@@ -685,7 +685,7 @@ export default function StudentsPage() {
                                     title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}
                                 >
                                     {isPrivacyMode ? <EyeSlash className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-                                    <span className="text-[9px] font-black uppercase tracking-widest hidden md:inline">
+                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">
                                         Privasi
                                     </span>
                                 </button>
@@ -695,7 +695,7 @@ export default function StudentsPage() {
                                 <button
                                     onClick={handleAdd}
                                     disabled={!canEdit}
-                                    className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
+                                    className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
                                 >
                                     <Plus className="w-[18px] h-[18px]" />
                                     <span>{canEdit ? 'Tambah Siswa' : 'Read-only'}</span>
