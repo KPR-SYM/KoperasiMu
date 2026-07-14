@@ -22,7 +22,7 @@ export function FeatureFlagsProvider({ children }) {
                 'module.students': true,
                 'module.teachers': true,
                 'module.classes': true,
-                'module.academic_years': true,
+                'module.periods': true,
                 'module.enrollment': true,
                 'nav.dorms': true,
                 'nav.health': true,

@@ -12,7 +12,7 @@ export default function ClassImportModal(props) {
     const {
         isOpen, onClose, importing, importStep, setImportStep, importPreview,
         importFileName, importDragOver, setImportDragOver,
-        processImportFile, teachersList, academicYearsList, handleDownloadTemplate,
+        processImportFile, teachersList, periodsList, handleDownloadTemplate,
         importFileHeaders, SYSTEM_COLS, importColumnMapping, setImportColumnMapping,
         importRawData, importLoading, setImportLoading, buildImportPreview,
         importIssues, importValidationOpen, setImportValidationOpen, importProgress,
@@ -40,7 +40,7 @@ export default function ClassImportModal(props) {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [showTeachersDropdown])
 
-    const EditableCell = React.memo(({ rowIdx, colKey, value, importPreview, teachersList, academicYearsList, importEditCell, setImportEditCell, handleImportCellEdit }) => {
+    const EditableCell = React.memo(({ rowIdx, colKey, value, importPreview, teachersList, periodsList, importEditCell, setImportEditCell, handleImportCellEdit }) => {
         const isEditing = importEditCell?.row === rowIdx && importEditCell?.col === colKey
         const [searchTerm, setSearchTerm] = useState('')
         const cellRef = useRef(null)
@@ -89,7 +89,7 @@ export default function ClassImportModal(props) {
                 )
             }
             if (colKey === 'homeroom_teacher_id' || colKey === 'academic_year_id') {
-                const list = colKey === 'homeroom_teacher_id' ? teachersList : academicYearsList
+                const list = colKey === 'homeroom_teacher_id' ? teachersList : periodsList
                 const displayKey = colKey === 'homeroom_teacher_id' ? 'name' : 'label'
                 const filtered = list.filter(item => item[displayKey].toLowerCase().includes(searchTerm.toLowerCase()))
                 const currentDisplay = importPreview[rowIdx][colKey === 'homeroom_teacher_id' ? '_teacherRaw' : '_yearRaw']
@@ -352,7 +352,7 @@ export default function ClassImportModal(props) {
                                                         <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px]"><EditableCell rowIdx={i} colKey="program" value={r.program} importPreview={importPreview} importEditCell={importEditCell} setImportEditCell={setImportEditCell} handleImportCellEdit={handleImportCellEdit} /></td>
                                                         <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px]"><EditableCell rowIdx={i} colKey="gender_type" value={r.gender_type} importPreview={importPreview} importEditCell={importEditCell} setImportEditCell={setImportEditCell} handleImportCellEdit={handleImportCellEdit} /></td>
                                                         <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate"><EditableCell rowIdx={i} colKey="homeroom_teacher_id" value={r.homeroom_teacher_id} importPreview={importPreview} teachersList={teachersList} importEditCell={importEditCell} setImportEditCell={setImportEditCell} handleImportCellEdit={handleImportCellEdit} /></td>
-                                                        <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate"><EditableCell rowIdx={i} colKey="academic_year_id" value={r.academic_year_id} importPreview={importPreview} academicYearsList={academicYearsList} importEditCell={importEditCell} setImportEditCell={setImportEditCell} handleImportCellEdit={handleImportCellEdit} /></td>
+                                                        <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate"><EditableCell rowIdx={i} colKey="academic_year_id" value={r.academic_year_id} importPreview={importPreview} periodsList={periodsList} importEditCell={importEditCell} setImportEditCell={setImportEditCell} handleImportCellEdit={handleImportCellEdit} /></td>
                                                         <td className="px-2 py-1">
                                                             <div className="flex items-center justify-center gap-2">
                                                                 {isError ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500/15 text-red-600 animate-pulse"><WarningCircle className="w-3 h-3" /></span> : isDupe ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/15 text-blue-600"><Copy className="w-3 h-3" /></span> : isWarn ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/15 text-amber-600"><Warning className="w-3 h-3" /></span> : <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-600"><CheckCircle className="w-3 h-3" /></span>}

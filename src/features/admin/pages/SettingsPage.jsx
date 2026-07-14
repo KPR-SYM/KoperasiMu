@@ -78,7 +78,7 @@ const KNOWN_FLAGS = [
     { key: 'module.students', label: 'Data Siswa', category: 'module', description: 'Modul kelola data santri aktif', sort_order: 3 },
     { key: 'module.teachers', label: 'Data Guru', category: 'module', description: 'Modul kelola data guru & musyrif', sort_order: 4 },
     { key: 'module.classes', label: 'Data Kelas', category: 'module', description: 'Modul kelola kelas & kamar', sort_order: 5 },
-    { key: 'module.academic_years', label: 'Tahun Pelajaran', category: 'module', description: 'Modul periode tahun ajaran aktif', sort_order: 6 },
+    { key: 'module.periods', label: 'Periode Akademik', category: 'module', description: 'Modul periode tahun ajaran aktif', sort_order: 6 },
 
     // Students
     { key: 'students.add', label: 'Tambah Siswa Baru', category: 'students', description: 'Aktifkan tombol tambah data siswa di halaman directory', sort_order: 1 },
@@ -109,7 +109,7 @@ const KNOWN_FLAGS = [
     { key: 'nav.tahfidz', label: 'List Tahfidz Al-Qur\'an', category: 'nav', description: 'Tampilkan jurnal setoran hafalan santri', sort_order: 7 },
     { key: 'nav.extracurricular', label: 'List Ekstrakurikuler', category: 'nav', description: 'Tampilkan manajemen klub & ekskul', sort_order: 8 },
     { key: 'nav.saving', label: 'List Tabungan Santri', category: 'nav', description: 'Tampilkan sistem deposit uang saku santri', sort_order: 9 },
-    { key: 'nav.academic_years', label: 'List Tahun Akademik', category: 'nav', description: 'Tampilkan manajemen semester & kalender', sort_order: 10 },
+    { key: 'nav.periods', label: 'List Periode Akademik', category: 'nav', description: 'Tampilkan manajemen semester & kalender', sort_order: 10 },
 
     // System
     { key: 'system.maintenance', label: 'Maintenance Mode', category: 'system', description: 'Kunci aplikasi untuk semua user kecuali developer', sort_order: 1 },

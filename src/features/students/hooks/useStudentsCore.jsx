@@ -4,7 +4,7 @@ import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { RiskThreshold, calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { calculateCompleteness } from '@features/students/utils/studentsConstants'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useAuth } from '@context/Auth'
 
@@ -19,9 +19,8 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [classesList, setClassesList] = useState([])
     const [loading, setLoading] = useState(true)
     const [globalStats, setGlobalStats] = useState({
-        total: 0, boys: 0, girls: 0, avgPoints: 0, risk: 0,
-        worstClass: null, topPerformer: null, incompleteCount: 0,
-        noPhoneCount: 0, avgPointsLastWeek: null
+        total: 0, boys: 0, girls: 0, incompleteCount: 0,
+        noPhoneCount: 0
     })
     const [totalRows, setTotalRows] = useState(0)
 
@@ -34,9 +33,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [filterTag, setFilterTag] = useState('')
     const [filterMissing, setFilterMissing] = useState('')
     const [sortBy, setSortBy] = useState('name_asc')
-    const [filterPointMode, setFilterPointMode] = useState('')
-    const [filterPointMin, setFilterPointMin] = useState('')
-    const [filterPointMax, setFilterPointMax] = useState('')
     const [showAdvancedFilter, setShowAdvancedFilter] = useState(false)
     const [debouncedSearch, setDebouncedSearch] = useState('')
 
@@ -59,8 +55,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     // ---- STATE: BULK ACTIONS ----
     const [bulkClassId, setBulkClassId] = useState('')
     const [bulkTagAction, setBulkTagAction] = useState('add')
-    const [bulkPointValue, setBulkPointValue] = useState(0)
-    const [bulkPointLabel, setBulkPointLabel] = useState('')
     const [bulkRoomId, setBulkRoomId] = useState('')
 
     // ---- STATE: PROFILE / DETAIL ----
@@ -118,13 +112,11 @@ export function useStudentsCore({ addToast, addUndoToast }) {
 
     // ---- STATE: OTHERS ----
     const [isInlineAddOpen, setIsInlineAddOpen] = useState(false)
-    const [inlineForm, setInlineForm] = useState({ name: '', gender: 'L', class_id: '', phone: '', nisn: '', nis: '', kamar: '' })
+    const [inlineForm, setInlineForm] = useState({ name: '', gender: 'L', class_id: '', phone: '', nis: '', kamar: '' })
     const [submittingInline, setSubmittingInline] = useState(false)
     const [uploadingPhoto, setUploadingPhoto] = useState(false)
     const [classBreakdownData, setClassBreakdownData] = useState(null)
     const [loadingBreakdown, setLoadingBreakdown] = useState(false)
-    const [resetPointsClassId, setResetPointsClassId] = useState('')
-    const [resettingPoints, setResettingPoints] = useState(false)
     const [resettingPin, setResettingPin] = useState(false)
     const [bulkPhotoFiles, setBulkPhotoFiles] = useState([])
     const [bulkPhotoMatches, setBulkPhotoMatches] = useState([])
@@ -158,7 +150,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     // ---- REFS ----
     const formDataRef = useRef({
         name: '', gender: 'L', class_id: '', phone: '', photo_url: '',
-        nisn: '', nis: '', nik: '', birth_date: '', birth_place: '',
+        nik: '', birth_date: '', birth_place: '',
         religion: '', address: '',
         guardian_name: '', guardian_relation: 'Ayah',
         status: 'aktif', tags: []
@@ -179,8 +171,8 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const selectedStudentsWithPhone = useMemo(() => selectedStudents.filter((s) => s.phone), [selectedStudents])
 
     const activeFilterCount = useMemo(() =>
-        [filterClass, filterClasses.length > 0 ? 'multi' : '', filterGender, filterStatus, filterTag, filterPointMode, filterMissing, debouncedSearch].filter(Boolean).length
-        , [filterClass, filterClasses.length, filterGender, filterStatus, filterTag, filterPointMode, filterMissing, debouncedSearch])
+        [filterClass, filterClasses.length > 0 ? 'multi' : '', filterGender, filterStatus, filterTag, filterMissing, debouncedSearch].filter(Boolean).length
+        , [filterClass, filterClasses.length, filterGender, filterStatus, filterTag, filterMissing, debouncedSearch])
 
     const isAnyModalOpen = useMemo(() =>
         !!(isModalOpen || !!activeModal || isPrintModalOpen || photoZoom)
@@ -220,127 +212,28 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     }, [filterGender, filterStatus, filterTag, sortBy, pageSize])
 
     // ---- FUNCTIONS: LOAD DATA ----
-    const fetchStats = useCallback(async (invalidateCache = false) => {
-        // Kalau explicit refresh, reset cache ranking & trend
-        if (invalidateCache) {
-            rankingsFetchedRef.current = false
-            trendMapRef.current = {}
-            lastReportMapRef.current = {}
-            setLastReportMap({})
-        }
+    const fetchStats = useCallback(async () => {
         try {
             const { data: statsData } = await supabase
                 .from('students')
-                .select('id, name, gender, total_points, class_id, photo_url, phone, nisn, metadata, classes(name)')
+                .select('id, full_name, gender, phone, classes(name)')
                 .is('deleted_at', null)
             if (!statsData) return
             const total = statsData.length
             const boys = statsData.filter(s => s.gender === 'L').length
             const girls = statsData.filter(s => s.gender === 'P').length
-            const risk = statsData.filter(s => (s.total_points || 0) < RiskThreshold).length
-            const avgPoints = total > 0
-                ? Math.round(statsData.reduce((acc, s) => acc + (s.total_points || 0), 0) / total)
-                : 0
             const incompleteCount = statsData.filter(s => calculateCompleteness(s) < 80).length
             const noPhoneCount = statsData.filter(s => !s.phone).length
 
-            const sorted = [...statsData].sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
-            const topPerformer = sorted[0] && (sorted[0].total_points || 0) > 0
-                ? { name: sorted[0].name, points: sorted[0].total_points, className: sorted[0].classes?.name || '' }
-                : null
-
-            const classBuckets = {}
-            statsData.forEach(s => {
-                const cn = s.classes?.name || 'Tanpa Kelas'
-                if (!classBuckets[cn]) classBuckets[cn] = []
-                classBuckets[cn].push(s.total_points || 0)
-            })
-            let worstClass = null, worstAvg = 0
-            Object.entries(classBuckets).forEach(([name, pts]) => {
-                const avg = pts.reduce((a, b) => a + b, 0) / pts.length
-                if (avg < worstAvg) { worstAvg = avg; worstClass = { name, avg: Math.round(avg), count: pts.length } }
-            })
-
-            let avgPointsLastWeek = null
-            try {
-                const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-                const { data: recentReports } = await supabase
-                    .from('reports')
-                    .select('points, created_at')
-                    .gte('created_at', oneWeekAgo)
-                if (recentReports && recentReports.length > 0) {
-                    const weeklyDelta = recentReports.reduce((acc, r) => acc + (r.points || 0), 0)
-                    avgPointsLastWeek = Math.round(weeklyDelta / (total || 1))
-                }
-            } catch { /* ignore */ }
-
-            setGlobalStats({ total, boys, girls, avgPoints, risk, worstClass, topPerformer, incompleteCount, noPhoneCount, avgPointsLastWeek })
+            setGlobalStats({ total, boys, girls, incompleteCount, noPhoneCount })
         } catch (err) {
             console.error('Fetch stats error:', err)
         }
     }, [])
 
-    // ---- REFS: CACHE DATA YANG JARANG BERUBAH ----
-    // Rankings & trend tidak perlu refetch setiap search/filter
-    const rankingsRef = useRef({})
+    // ---- REFS ----
     const trendMapRef = useRef({})
     const lastReportMapRef = useRef({})
-    const rankingsFetchedRef = useRef(false)
-
-    const fetchRankingsAndTrends = useCallback(async (ids) => {
-        // Fetch rankings sekali saja per session
-        if (!rankingsFetchedRef.current) {
-            try {
-                const { data, error: rpcErr } = await supabase.rpc('get_student_rankings')
-                if (!rpcErr && data) {
-                    rankingsRef.current = Object.fromEntries((data || []).map((r, i) => [r.id, r.student_rank || (i + 1)]))
-                }
-            } catch { }
-            rankingsFetchedRef.current = true
-        }
-
-        // Fetch trend hanya untuk IDs yang belum ada di cache
-        const uncachedIds = ids.filter(id => !(id in trendMapRef.current))
-        if (uncachedIds.length > 0) {
-            try {
-                const { data: reportsData } = await supabase
-                    .from('reports')
-                    .select('student_id, created_at, points')
-                    .in('student_id', uncachedIds)
-                    .order('created_at', { ascending: false })
-
-                const newLastReportMap = { ...lastReportMapRef.current };
-
-                // UsersThree points by student
-                const studentPointsMap = {};
-                (reportsData || []).forEach(r => {
-                    if (!studentPointsMap[r.student_id]) studentPointsMap[r.student_id] = []
-                    if (studentPointsMap[r.student_id].length < 5) studentPointsMap[r.student_id].push(r.points)
-                });
-
-                Object.entries(studentPointsMap).forEach(([sid, pts]) => {
-                    const latest = pts[0] || 0
-                    trendMapRef.current[sid] = {
-                        trend: latest > 0 ? 'up' : latest < 0 ? 'down' : 'neutral',
-                        history: pts.reverse() // Reverse so it's chronologically left-to-right
-                    }
-                })
-
-                    // Get latest report timestamps
-                    (reportsData || []).forEach(r => {
-                        if (!newLastReportMap[r.student_id]) newLastReportMap[r.student_id] = r.created_at
-                    })
-
-                // Siswa tanpa report = neutral
-                uncachedIds.forEach(id => {
-                    if (!(id in trendMapRef.current)) trendMapRef.current[id] = { trend: 'neutral', history: [] }
-                })
-
-                lastReportMapRef.current = newLastReportMap
-                setLastReportMap(newLastReportMap)
-            } catch { }
-        }
-    }, [])
 
     const fetchData = useCallback(async () => {
         setLoading(true)
@@ -356,27 +249,18 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             if (filterTag) q = q.contains('tags', [filterTag])
             if (filterMissing === 'photo') q = q.or('photo_url.is.null,photo_url.eq.""')
             else if (filterMissing === 'wa') q = q.or('phone.is.null,phone.eq.""')
-            else if (filterMissing === 'all') q = q.or('photo_url.is.null,photo_url.eq."",phone.is.null,phone.eq."",nisn.is.null,nisn.eq.""')
+            else if (filterMissing === 'all') q = q.or('photo_url.is.null,photo_url.eq."",phone.is.null,phone.eq.""')
 
             if (debouncedSearch) {
                 const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_')
-                q = q.or(`name.ilike.%${s}%,registration_code.ilike.%${s}%,nisn.ilike.%${s}%,phone.ilike.%${s}%`)
+                q = q.or(`full_name.ilike.%${s}%,registration_code.ilike.%${s}%,phone.ilike.%${s}%`)
             }
 
-            if (filterPointMode === 'risk') q = q.lt('total_points', RiskThreshold)
-            else if (filterPointMode === 'positive') q = q.gt('total_points', 0)
-            else if (filterPointMode === 'custom') {
-                if (filterPointMin !== '') q = q.gte('total_points', Number(filterPointMin))
-                if (filterPointMax !== '') q = q.lte('total_points', Number(filterPointMax))
-            }
-
-            if (sortBy === 'name_asc') q = q.order('name', { ascending: true })
-            else if (sortBy === 'name_desc') q = q.order('name', { ascending: false })
-            else if (sortBy === 'class_asc') q = q.order('class_id', { ascending: true }).order('name', { ascending: true })
-            else if (sortBy === 'points_desc') q = q.order('total_points', { ascending: false, nullsFirst: false })
-            else if (sortBy === 'points_asc') q = q.order('total_points', { ascending: true, nullsFirst: false })
+            if (sortBy === 'name_asc') q = q.order('full_name', { ascending: true })
+            else if (sortBy === 'name_desc') q = q.order('full_name', { ascending: false })
+            else if (sortBy === 'class_asc') q = q.order('class_id', { ascending: true }).order('full_name', { ascending: true })
             else if (sortBy === 'updated_desc') q = q.order('updated_at', { ascending: false })
-            else q = q.order('name', { ascending: true })
+            else q = q.order('full_name', { ascending: true })
 
             const from = (page - 1) * pageSize
             const to = from + pageSize - 1
@@ -385,22 +269,12 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             const { data: studentsData, count } = await q
             setTotalRows(count || 0)
 
-            const ids = (studentsData || []).map(s => s.id)
-
-            // Fetch rankings & trends dari cache (hanya hit DB untuk data baru)
-            await fetchRankingsAndTrends(ids)
-
             const transformed = (studentsData || []).map(s => {
-                const pts = s.total_points ?? 0
-                const trendInfo = trendMapRef.current[s.id] || { trend: 'neutral', history: [] }
+                if (s.full_name !== undefined) { s.name = s.full_name; delete s.full_name }
                 return {
                     ...s,
                     className: s.classes?.name || '-',
                     code: s.registration_code,
-                    points: pts,
-                    trend: trendInfo.trend,
-                    trendHistory: trendInfo.history,
-                    _rank: rankingsRef.current[s.id] || '-',
                     is_pinned: s.is_pinned || false,
                 }
             })
@@ -413,7 +287,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         } finally {
             setLoading(false)
         }
-    }, [page, pageSize, sortBy, filterGender, filterStatus, filterTag, filterMissing, debouncedSearch, filterClasses, filterClass, filterPointMode, filterPointMin, filterPointMax, addToast, fetchRankingsAndTrends])
+    }, [page, pageSize, sortBy, filterGender, filterStatus, filterTag, filterMissing, debouncedSearch, filterClasses, filterClass, addToast])
 
 
     // ---- FUNCTIONS: BASIC CRUD ----
@@ -430,7 +304,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         setSelectedStudent(null)
         formDataRef.current = {
             name: '', gender: 'L', class_id: '', phone: '', photo_url: '',
-            nisn: '', nis: '', nik: '', birth_date: '', birth_place: '',
+            nis: '', nik: '', birth_date: '', birth_place: '',
             religion: '', address: '',
             guardian_name: '', guardian_relation: 'Ayah',
             status: 'aktif', tags: []
@@ -446,7 +320,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             class_id: student.class_id || '',
             phone: student.phone || '',
             photo_url: student.photo_url || '',
-            nisn: student.nisn || '',
+
             nis: student.nis || '',
             nik: student.nik || '',
             birth_date: student.birth_date || '',
@@ -520,12 +394,11 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 const { error } = await supabase
                     .from('students')
                     .update({
-                        name: formData.name,
+                        full_name: formData.name,
                         gender: formData.gender,
                         class_id: formData.class_id,
                         phone: formData.phone,
                         photo_url: formData.photo_url,
-                        nisn: formData.nisn || null,
                         nis: formData.nis || null,
                         nik: formData.nik || null,
                         birth_date: formData.birth_date || null,
@@ -563,13 +436,11 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 const newStudentData = {
                     registration_code: newCode,
                     pin: newPin,
-                    total_points: 0,
-                    name: formData.name,
+                    full_name: formData.name,
                     gender: formData.gender,
                     class_id: formData.class_id,
                     phone: formData.phone,
                     photo_url: formData.photo_url,
-                    nisn: formData.nisn || null,
                     nis: formData.nis || null,
                     nik: formData.nik || null,
                     birth_date: formData.birth_date || null,
@@ -680,46 +551,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         } catch { addToast('Gagal', 'error') } finally { setSubmitting(false) }
     }
 
-    const handleBulkPointUpdate = async () => {
-        if (!bulkPointValue || selectedStudentIds.length === 0) return
-        setSubmitting(true)
-        const idsToUpdate = [...selectedStudentIds]
-        const count = idsToUpdate.length
-        const pointDelta = bulkPointValue
-        try {
-            const { data: prevData } = await supabase.from('students').select('id, total_points').in('id', idsToUpdate)
-            const prevPointMap = Object.fromEntries((prevData || []).map(s => [s.id, s.total_points || 0]))
-
-            const updates = idsToUpdate.map(async (sid) => {
-                const oldPoints = prevPointMap[sid] ?? 0
-                const newPoints = oldPoints + pointDelta
-                await supabase.from('students').update({ total_points: newPoints }).eq('id', sid)
-                return supabase.from('point_history').insert([{
-                    student_id: sid,
-                    points: pointDelta,
-                    label: bulkPointLabel || 'Aksi Massal',
-                    created_at: new Date().toISOString()
-                }])
-            })
-
-            await Promise.all(updates)
-            await logAudit({
-                action: 'UPDATE', source: 'OPERATIONAL', tableName: 'students',
-                newData: { bulk_point_update: true, count: idsToUpdate.length, delta: pointDelta, label: bulkPointLabel || 'Aksi Massal' }
-            })
-            fetchData()
-            closeModal()
-            setBulkPointValue(0)
-            setBulkPointLabel('')
-            setSelectedStudentIds([])
-            addUndoToast(`${count} siswa: poin ${pointDelta > 0 ? '+' : ''}${pointDelta}`, async () => {
-                await Promise.all(idsToUpdate.map(id => supabase.from('students').update({ total_points: prevPointMap[id] }).eq('id', id)))
-                fetchData()
-                fetchStats()
-            })
-        } catch { addToast('Gagal', 'error') } finally { setSubmitting(false) }
-    }
-
     const handleBulkRoomAssign = async () => {
         if (!bulkRoomId || selectedStudentIds.length === 0) return addToast('Pilih kamar terlebih dahulu', 'warning')
         setSubmitting(true)
@@ -761,7 +592,10 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         try {
             const { data, error } = await supabase.from('students').select(`*, classes(name)`).not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
             if (error) throw error
-            setArchivedStudents((data || []).map(s => ({ ...s, className: s.classes?.name || '-' })))
+            setArchivedStudents((data || []).map(s => {
+                if (s.full_name !== undefined) { s.name = s.full_name; delete s.full_name }
+                return { ...s, className: s.classes?.name || '-' }
+            }))
         } catch { addToast('Gagal memuat arsip', 'error') } finally { setLoadingArchived(false) }
     }
 
@@ -921,7 +755,7 @@ Koperasi SenyumMu System`
         return template
             .replace(/{nama}/g, student.name)
             .replace(/{kelas}/g, classesList.find(c => c.id === student.class_id)?.name || '-')
-            .replace(/{poin}/g, String(student.points ?? student.total_points ?? 0))
+            .replace(/{poin}/g, '0')
             .replace(/{kode}/g, student.registration_code || student.code || '-')
             .replace(/{pin}/g, student.pin || '-')
             .replace(/\[URL\]/g, window.location.origin + '/check')
@@ -933,21 +767,6 @@ Koperasi SenyumMu System`
     }
 
     // ---- FUNCTIONS: MISC ACTIONS ----
-    const handleQuickPoint = async (student, amount, reason) => {
-        try {
-            const next = (student.total_points || 0) + amount
-            await supabase.from('students').update({ total_points: next }).eq('id', student.id)
-            addToast(`${amount > 0 ? '+' : ''}${amount} poin untuk ${student.name}`, 'success')
-            await logAudit({
-                action: 'UPDATE', source: 'OPERATIONAL', tableName: 'students',
-                recordId: student.id,
-                oldData: { total_points: student.total_points || 0 },
-                newData: { total_points: next, quick_point: true, reason: reason || '-' }
-            })
-            fetchData(); fetchStats()
-        } catch { addToast('Gagal', 'error') }
-    }
-
     const handleTogglePin = async (student) => {
         const next = !student.is_pinned
         setStudents(prev => prev.map(s => s.id === student.id ? { ...s, is_pinned: next } : s).sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)))
@@ -1018,7 +837,7 @@ Koperasi SenyumMu System`
         })
     }
 
-    const handleBulkPhotoMatch = async (files, method = 'nisn', autoCompress = false) => {
+    const handleBulkPhotoMatch = async (files, method = 'name', autoCompress = false) => {
         setMatchingPhotos(true)
         try {
             // Fetch ALL students from DB (not just the filtered/paginated ones)
@@ -1026,7 +845,7 @@ Koperasi SenyumMu System`
             if (allStudents.length === 0) {
                 const { data } = await supabase
                     .from('students')
-                    .select('id, name, nisn, registration_code')
+                    .select('id, full_name, registration_code')
                     .is('deleted_at', null)
                 allStudents = data || []
                 setAllStudentsForBulk(allStudents)
@@ -1053,21 +872,21 @@ Koperasi SenyumMu System`
                 const normalizedFileName = normalize(fileBaseName)
                 const fileWords = getWords(fileBaseName)
 
-                const s = allStudents.find(std => {
-                    if (method === 'name') {
-                        const normalizedStdName = normalize(std.name)
-                        const stdWords = getWords(std.name)
-                        if (normalizedStdName === normalizedFileName) return true
-                        if (normalizedStdName.includes(normalizedFileName) || normalizedFileName.includes(normalizedStdName)) return true
-                        if (normalizeStrict(std.name) === normalizeStrict(fileBaseName)) return true
-                        if (fileWords.length >= 2 && fileWords.every(fw => stdWords.some(sw => sw.startsWith(fw) || fw.startsWith(sw)))) return true
-                        return false
-                    }
-                    if (method === 'code') {
-                        return normalizeStrict(std.registration_code) === normalizeStrict(fileBaseName) || normalizeStrict(std.id) === normalizeStrict(fileBaseName)
-                    }
-                    return normalizeStrict(std.nisn) === normalizeStrict(fileBaseName)
-                })
+            const s = allStudents.find(std => {
+                if (method === 'name') {
+                    const normalizedStdName = normalize(std.name)
+                    const stdWords = getWords(std.name)
+                    if (normalizedStdName === normalizedFileName) return true
+                    if (normalizedStdName.includes(normalizedFileName) || normalizedFileName.includes(normalizedStdName)) return true
+                    if (normalizeStrict(std.name) === normalizeStrict(fileBaseName)) return true
+                    if (fileWords.length >= 2 && fileWords.every(fw => stdWords.some(sw => sw.startsWith(fw) || fw.startsWith(sw)))) return true
+                    return false
+                }
+                if (method === 'code') {
+                    return normalizeStrict(std.registration_code) === normalizeStrict(fileBaseName) || normalizeStrict(std.id) === normalizeStrict(fileBaseName)
+                }
+                return normalizeStrict(std.name) === normalizeStrict(fileBaseName)
+            })
 
                 return {
                     file: processedFile,
@@ -1115,9 +934,7 @@ Koperasi SenyumMu System`
             const { data } = await supabase.from('students').select('*').eq('class_id', classId).is('deleted_at', null)
             if (data) {
                 const boys = data.filter(s => s.gender === 'L').length, girls = data.filter(s => s.gender === 'P').length
-                const avg = data.length ? Math.round(data.reduce((a, s) => a + (s.total_points || 0), 0) / data.length) : 0
-                const top = [...data].sort((a, b) => b.total_points - a.total_points).slice(0, 3)
-                setClassBreakdownData({ className, total: data.length, boys, girls, avgPoints: avg, riskCount: data.filter(s => s.total_points <= RiskThreshold).length, topStudents: top, allStudents: data })
+                setClassBreakdownData({ className, total: data.length, boys, girls, allStudents: data })
             }
         } catch { } finally { setLoadingBreakdown(false) }
     }
@@ -1130,23 +947,6 @@ Koperasi SenyumMu System`
                 setNewTagInput('')
             }
         }
-    }
-
-    const handleBatchResetPoints = async () => {
-        const msg = resetPointsClassId
-            ? `Reset semua poin siswa di kelas ini ke 0?`
-            : `Reset SEMUA poin siswa di SELURUH kelas ke 0? Tindakan ini tidak bisa dibatalkan.`
-        if (!window.confirm(msg)) return
-
-        setResettingPoints(true)
-        try {
-            let q = supabase.from('students').update({ total_points: 0 }).is('deleted_at', null)
-            if (resetPointsClassId) q = q.eq('class_id', resetPointsClassId)
-            await q
-            addToast('Poin direset', 'success')
-            await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'students', newData: { batch_reset_points: true, class_id: resetPointsClassId || 'all' } })
-            closeModal(); fetchData(); fetchStats()
-        } catch { addToast('Gagal', 'error') } finally { setResettingPoints(false) }
     }
 
     const handleResetPin = async (student) => {
@@ -1165,7 +965,7 @@ Koperasi SenyumMu System`
         if (!name || name.trim().length < 3 || !classId) { setDuplicateWarning(null); return }
         setCheckingDuplicate(true)
         try {
-            const { data } = await supabase.from('students').select('id, name').ilike('name', `%${name.trim()}%`).eq('class_id', classId).is('deleted_at', null).neq('id', selectedStudent?.id || 0).limit(3)
+            const { data } = await supabase.from('students').select('id, full_name').ilike('full_name', `%${name.trim()}%`).eq('class_id', classId).is('deleted_at', null).neq('id', selectedStudent?.id || 0).limit(3)
             setDuplicateWarning(data?.length ? data : null)
         } catch { } finally { setCheckingDuplicate(false) }
     }
@@ -1196,13 +996,12 @@ Koperasi SenyumMu System`
 
     const handleInlineUpdate = async (id, field, value, data) => {
         let payload = {}, msg = ''
-        if (field === 'name') { payload = { name: value }; msg = 'Nama updated' }
+        if (field === 'name') { payload = { full_name: value }; msg = 'Nama updated' }
         else if (field === 'gender') { payload = { gender: value }; msg = 'Gender updated' }
         else if (field === 'kelas') {
             payload = { class_id: value }; msg = 'Kelas updated'
             if (value !== data.class_id) await supabase.from('student_class_history').insert([{ student_id: id, from_class_id: data.class_id, to_class_id: value, changed_at: new Date().toISOString() }])
         }
-        else if (field === 'poin') { payload = { total_points: value }; msg = 'Poin updated' }
         try {
             await supabase.from('students').update(payload).eq('id', id)
             addToast(msg, 'success')
@@ -1221,23 +1020,21 @@ Koperasi SenyumMu System`
         setSubmittingInline(true)
         try {
             const { error } = await supabase.from('students').insert([{
-                name: payload.name,
+                full_name: payload.name,
                 gender: payload.gender || 'L',
                 class_id: payload.class_id,
                 phone: payload.phone || null,
-                nisn: payload.nisn || null,
                 nis: payload.nis || null,
                 kamar: payload.kamar || null,
                 status: 'aktif',
                 tags: [],
                 registration_code: generateCode(),
-                pin: String(Math.floor(1000 + Math.random() * 9000)),
-                total_points: 0
+                pin: String(Math.floor(1000 + Math.random() * 9000))
             }])
             if (error) throw error
             addToast('Berhasil menambahkan siswa', 'success')
-            await logAudit({ action: 'INSERT', tableName: 'students', newData: { name: payload.name, class_id: payload.class_id, gender: payload.gender, nisn: payload.nisn, nis: payload.nis, kamar: payload.kamar, via: 'inline' } })
-            if (!payloadOverride) setInlineForm({ name: '', gender: 'L', class_id: inlineForm.class_id, phone: '', nisn: '', nis: '', kamar: '' })
+            await logAudit({ action: 'INSERT', tableName: 'students', newData: { full_name: payload.name, class_id: payload.class_id, gender: payload.gender, nis: payload.nis, kamar: payload.kamar, via: 'inline' } })
+            if (!payloadOverride) setInlineForm({ name: '', gender: 'L', class_id: inlineForm.class_id, phone: '', nis: '', kamar: '' })
             fetchData(); fetchStats()
         } catch (err) {
             console.error('Inline Add Error:', err)
@@ -1313,8 +1110,7 @@ Koperasi SenyumMu System`
         // Filtering
         searchQuery, setSearchQuery, filterClass, setFilterClass, filterClasses, setFilterClasses,
         filterGender, setFilterGender, filterStatus, setFilterStatus, filterTag, setFilterTag,
-        filterMissing, setFilterMissing, sortBy, setSortBy, filterPointMode, setFilterPointMode,
-        filterPointMin, setFilterPointMin, filterPointMax, setFilterPointMax,
+        filterMissing, setFilterMissing, sortBy, setSortBy,
         showAdvancedFilter, setShowAdvancedFilter, debouncedSearch, activeFilterCount, resetAllFilters,
         // Modals & UI
         isModalOpen, setIsModalOpen, isPrintModalOpen, setIsPrintModalOpen,
@@ -1327,7 +1123,6 @@ Koperasi SenyumMu System`
         newlyCreatedStudent, setNewlyCreatedStudent,
         // Bulk
         bulkClassId, setBulkClassId, bulkTagAction, setBulkTagAction,
-        bulkPointValue, setBulkPointValue, bulkPointLabel, setBulkPointLabel,
         bulkRoomId, setBulkRoomId,
         // Profile / Details
         behaviorHistory, setBehaviorHistory, raportHistory, setRaportHistory,
@@ -1337,18 +1132,17 @@ Koperasi SenyumMu System`
         // Functional
         handleSubmit, handleAdd, handleEdit, confirmDelete, executeDelete, closeModal,
         toggleSelectAll, toggleSelectStudent, handleBulkPromote, handleBulkDelete,
-        handleBulkPointUpdate, handleBulkTagApply, handleBulkRoomAssign,
+        handleBulkTagApply, handleBulkRoomAssign,
         fetchArchivedStudents, handleRestoreStudent, handlePermanentDelete, setArchivedStudents,
         fetchUsedTags, handleToggleTag, handleGlobalDeleteTag, handleGlobalRenameTag,
         fetchBehaviorHistory, fetchRaportHistory, handleViewProfile,
         handleResetPin, checkDuplicate, fetchAuditLog, fetchClassHistory, handleViewClassHistory,
-        handleQuickPoint, handleInlineUpdate, handleTogglePin, handlePhotoUpload, uploadingPhoto,
+        handleInlineUpdate, handleTogglePin, handlePhotoUpload, uploadingPhoto,
         handleInlineSubmit, handleViewQR, handleViewPrint, handleBulkWA, buildWAMessage, openWAForStudent, waTemplate,
         generateStudentPDF, handlePrintSingle, handlePrintThermal, handleSavePNG, handleBulkPrint,
-        handleBulkPhotoMatch, handleBulkPhotoUpload, handleClassBreakdown, handleBatchResetPoints,
+        handleBulkPhotoMatch, handleBulkPhotoUpload, handleClassBreakdown,
         bulkPhotoMatches, uploadingBulkPhotos, setBulkPhotoMatches, allStudentsForBulk, matchingPhotos,
         // State Helpers
-        resetPointsClassId, setResetPointsClassId, resettingPoints,
         classBreakdownData, loadingBreakdown,
         setNewTagInput, newTagInput, tagToEdit, setTagToEdit, tagStats, duplicateWarning,
         checkingDuplicate, gSheetsUrl, setGSheetsUrl, fetchingGSheets, setFetchingGSheets,

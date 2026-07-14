@@ -46,7 +46,7 @@ const MASTER_ITEMS = [
     { to: "/master/students", label: "Data Siswa", icon: Users, desc: "Pusat database seluruh santri aktif dalam sistem" },
     { to: "/master/teachers", label: "Data Guru", icon: PresentationChart, desc: "Data akun pengajar, musyrif, dan staf sekolah" },
     { to: "/master/classes", label: "Data Kelas", icon: Buildings, desc: "Pengaturan struktur kelas dan pembagian asrama" },
-    { to: "/master/academic-years", label: "Tahun Pelajaran", icon: Calendar, desc: "Manajemen semester dan periode kalender akademik" },
+    { to: "/master/periods", label: "Tahun Pelajaran", icon: Calendar, desc: "Manajemen semester dan periode kalender akademik" },
     { to: "/master/enrollment", label: "PSB / Enrollment", icon: UserPlus, desc: "Manajemen pendaftaran dan penerimaan siswa baru", color: "bg-emerald-500/10 text-emerald-600" },
 ]
 
@@ -255,7 +255,7 @@ export default function TopNav({ title, subtitle }) {
         if (it.to === '/master/students') return flags['nav.students'] !== false
         if (it.to === '/master/teachers') return flags['nav.teachers'] !== false
         if (it.to === '/master/classes') return flags['nav.classes'] !== false
-        if (it.to === '/master/academic-years') return flags['nav.academic_years'] !== false
+        if (it.to === '/master/periods') return flags['nav.periods'] !== false
         return true
     })
 

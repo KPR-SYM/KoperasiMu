@@ -65,7 +65,7 @@ const AdminDashboardPage = lazyRetry(() => import('@features/admin/pages/AdminDa
 const StudentsPage = lazyRetry(() => import('@features/students/pages/StudentsPage.jsx'))
 const TeachersPage = lazyRetry(() => import('@features/teachers/pages/TeachersPage.jsx'))
 const ClassesPage = lazyRetry(() => import('@features/classes/pages/ClassesPage.jsx'))
-const AcademicYearsPage = lazyRetry(() => import('@features/academic-years/pages/AcademicYearsPage.jsx'))
+const PeriodsPage = lazyRetry(() => import('@features/periods/pages/PeriodsPage.jsx'))
 const EnrollmentPage = lazyRetry(() => import('@features/enrollment/pages/EnrollmentPage.jsx'))
 const PublicEnrollmentPage = lazyRetry(() => import('@features/public/pages/PublicEnrollmentPage.jsx'))
 const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/PublicStatusCheckPage.jsx'))
@@ -93,6 +93,8 @@ const ROUTE_ALIASES = [
   { from: '/admin/db', to: '/admin/database' },
   { from: '/admin/task', to: '/admin/tasks' },
   { from: '/playground', to: '/admin/playground' },
+  { from: '/master/academic-years', to: '/master/periods' },
+  { from: '/master/academic-year', to: '/master/periods' },
   { from: '/master/psb', to: '/master/enrollment' },
 ]
 
@@ -541,9 +543,9 @@ function AppRoutes() {
                 <ClassesPage />
               </RoleFlagRoute>
             } />
-            <Route path="/master/academic-years" element={
-              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.academic_years" label="Tahun Pelajaran">
-                <AcademicYearsPage />
+            <Route path="/master/periods" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Periode Akademik">
+                <PeriodsPage />
               </RoleFlagRoute>
             } />
             <Route path="/master/enrollment" element={

@@ -1,13 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
-import { RiskThreshold, calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { calculateCompleteness } from '@features/students/utils/studentsConstants'
 
 export const SYSTEM_COLS = [
-    { key: 'name', label: 'Nama', synonyms: ['nama', 'name', 'nama lengkap', 'full name', 'student name', 'siswa', 'nama siswa'] },
+    { key: 'full_name', label: 'Nama', synonyms: ['nama', 'name', 'nama lengkap', 'full name', 'student name', 'siswa', 'nama siswa'] },
     { key: 'class_name', label: 'Kelas', synonyms: ['kelas', 'class', 'class_name', 'rombel', 'rombongan belajar'] },
     { key: 'gender', label: 'Gender', synonyms: ['gender', 'jk', 'jenis kelamin', 'kelamin', 'sex', 'l/p'] },
-    { key: 'nisn', label: 'NISN', synonyms: ['nisn', 'nomor induk siswa nasional', 'nisn siswa'] },
     { key: 'nis', label: 'NIS', synonyms: ['nis', 'nomor induk siswa', 'no induk'] },
     { key: 'nik', label: 'NIK', synonyms: ['nik', 'nomor induk kependudukan', 'no ktp'] },
     { key: 'phone', label: 'No. HP / WA', synonyms: ['phone', 'no_hp', 'hp', 'whatsapp', 'wa', 'telp', 'telepon', 'phone number', 'wali_phone', 'no. whatsapp', 'no whatsapp', 'no. hp / wa', 'no. hp', 'whatsapp number'] },
@@ -39,9 +38,7 @@ export function useStudentsImportExport({
     filterTag,
     filterMissing,
     debouncedSearch,
-    filterPointMode,
-    filterPointMin,
-    filterPointMax,
+
     sortBy,
 
     // Additional features state
@@ -79,7 +76,7 @@ export function useStudentsImportExport({
     const [importLoading, setImportLoading] = useState(false) // loading state during file parsing
     const [isRevalidating, setIsRevalidating] = useState(false) // spinning icon state for Re-validasi button
     const [importEditCell, setImportEditCell] = useState(null) // { idx, key }
-    const [importCachedDBStudents, setImportCachedDBStudents] = useState({ names: new Set(), nisns: new Set() })
+    const [importCachedDBStudents, setImportCachedDBStudents] = useState({ names: new Set() })
     const [exporting, setExporting] = useState(false)
 
     // ---- COMPUTED & EFFECTS ----
@@ -126,21 +123,13 @@ export function useStudentsImportExport({
 
         if (debouncedSearch) {
             const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_')
-            q = q.or(`name.ilike.%${s}%,registration_code.ilike.%${s}%,nisn.ilike.%${s}%`)
+                q = q.or(`full_name.ilike.%${s}%,registration_code.ilike.%${s}%`)
         }
 
         // Points filters
-        if (filterPointMode === 'risk') q = q.lt('total_points', RiskThreshold)
-        else if (filterPointMode === 'positive') q = q.gt('total_points', 0)
-        else if (filterPointMode === 'custom') {
-            if (filterPointMin !== '') q = q.gte('total_points', Number(filterPointMin))
-            if (filterPointMax !== '') q = q.lte('total_points', Number(filterPointMax))
-        }
-
         // Sorting (Important for 'New Student' or 'Top Performer' presets)
-        if (sortBy === 'total_points_desc') q = q.order('total_points', { ascending: false })
-        else if (sortBy === 'created_at') q = q.order('created_at', { ascending: false })
-        else q = q.order('name', { ascending: true })
+        if (sortBy === 'created_at') q = q.order('created_at', { ascending: false })
+        else q = q.order('full_name', { ascending: true })
 
         const { data, error } = await q
         if (error) throw error
@@ -148,11 +137,11 @@ export function useStudentsImportExport({
         return (data || []).map(s => ({
             ID: s.id,
             'Kode Registrasi': s.registration_code || '',
-            NISN: s.nisn || '',
+
             Nama: s.name || '',
             Gender: s.gender === 'L' ? 'Putra' : 'Putri',
             Kelas: s.classes?.name || '',
-            Poin: s.total_points ?? 0,
+            Poin: 0,
             Phone: s.phone || '',
             Status: s.status || 'aktif',
             Tags: (s.tags || []).join(', '),
@@ -164,7 +153,6 @@ export function useStudentsImportExport({
     const ALL_EXPORT_COLUMNS = [
         { key: 'id', label: 'ID', fn: s => s.id },
         { key: 'kode', label: 'Kode Registrasi', fn: s => s.registration_code || '' },
-        { key: 'nisn', label: 'NISN', fn: s => s.nisn || '' },
         { key: 'nis', label: 'NIS', fn: s => s.nis || '' },
         { key: 'nik', label: 'NIK', fn: s => s.nik || '' },
         { key: 'nama', label: 'Nama', fn: s => s.name || '' },
@@ -177,7 +165,7 @@ export function useStudentsImportExport({
         { key: 'father_name', label: 'Nama Ayah', fn: s => s.metadata?.father?.name || s.father_name || '' },
         { key: 'mother_name', label: 'Nama Ibu', fn: s => s.metadata?.mother?.name || s.mother_name || '' },
         { key: 'guardian_name', label: 'Nama Wali', fn: s => s.guardian_name || '' },
-        { key: 'poin', label: 'Poin', fn: s => s.total_points ?? 0 },
+        { key: 'poin', label: 'Poin', fn: s => 0 },
         { key: 'phone', label: 'Phone/WA', fn: s => s.phone || '' },
         { key: 'status', label: 'Status', fn: s => s.status || 'aktif' },
         { key: 'tags', label: 'Label', fn: s => (s.tags || []).join(', ') },
@@ -218,20 +206,12 @@ export function useStudentsImportExport({
             else if (filterMissing === 'wa') q = q.or('phone.is.null,phone.eq.""')
             if (debouncedSearch) {
                 const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_')
-                q = q.or(`name.ilike.%${s}%,registration_code.ilike.%${s}%,nisn.ilike.%${s}%`)
-            }
-            if (filterPointMode === 'risk') q = q.lt('total_points', RiskThreshold)
-            else if (filterPointMode === 'positive') q = q.gt('total_points', 0)
-            else if (filterPointMode === 'custom') {
-                if (filterPointMin !== '') q = q.gte('total_points', Number(filterPointMin))
-                if (filterPointMax !== '') q = q.lte('total_points', Number(filterPointMax))
+                q = q.or(`full_name.ilike.%${s}%,registration_code.ilike.%${s}%`)
             }
         }
-        // exportScope === 'all': no extra filters
 
-        if (sortBy === 'total_points_desc') q = q.order('total_points', { ascending: false })
-        else if (sortBy === 'created_at') q = q.order('created_at', { ascending: false })
-        else q = q.order('name', { ascending: true })
+        if (sortBy === 'created_at') q = q.order('created_at', { ascending: false })
+        else q = q.order('full_name', { ascending: true })
 
         const { data, error } = await q
         if (error) throw error
@@ -415,7 +395,6 @@ export function useStudentsImportExport({
             const name = getVal(r, 'name')
             const className = getVal(r, 'class_name')
             const genderRaw = getVal(r, 'gender')
-            const nisn = getVal(r, 'nisn')
             const nis = getVal(r, 'nis')
             const nik = getVal(r, 'nik')
             const phone = normalizePhone(getVal(r, 'phone'))
@@ -444,7 +423,6 @@ export function useStudentsImportExport({
                 name,
                 gender,
                 phone,
-                nisn,
                 nis: nis || null,
                 nik: nik || null,
                 birth_place: birthPlace || null,
@@ -475,28 +453,25 @@ export function useStudentsImportExport({
         try {
             const { data: allStudents } = await supabase
                 .from('students')
-                .select('name, nisn')
+                .select('full_name')
                 .is('deleted_at', null)
             if (allStudents) {
-                existingNames = new Set(allStudents.map(s => (s.name || '').toLowerCase().trim()))
-                existingNisn = new Set(allStudents.filter(s => s.nisn).map(s => String(s.nisn).trim()))
+                existingNames = new Set(allStudents.map(s => (s.full_name || '').toLowerCase().trim()))
             }
         } catch (err) { console.error(err) }
 
-        setImportCachedDBStudents({ names: existingNames, nisns: existingNisn })
+        setImportCachedDBStudents({ names: existingNames })
         setImportPreview(preview)
-        validateImportPreview(preview, existingNames, existingNisn)
+        validateImportPreview(preview, existingNames)
     }
 
-    const validateImportPreview = (preview, dbNames = null, dbNisns = null) => {
+    const validateImportPreview = (preview, dbNames = null) => {
         const issues = []
         const dupeIndices = []
 
         const names = dbNames || importCachedDBStudents.names
-        const nisns = dbNisns || importCachedDBStudents.nisns
 
         const seenNamesInFile = new Map()
-        const seenNisnInFile = new Map()
 
         const validated = preview.map((r, idx) => {
             const rowIssues = []
@@ -509,10 +484,8 @@ export function useStudentsImportExport({
             // Dupe check
             let isDupe = false
             const lowerName = (r.name || '').toLowerCase().trim()
-            const cleanNisn = String(r.nisn || '').trim()
 
             if (lowerName && names.has(lowerName)) isDupe = true
-            if (cleanNisn && nisns.has(cleanNisn)) isDupe = true
 
             // Within file dupe
             if (lowerName) {
@@ -520,12 +493,6 @@ export function useStudentsImportExport({
                     isDupe = true
                     rowIssues.push({ level: 'dupe', message: `Nama sama dengan baris ${seenNamesInFile.get(lowerName) + 1}` })
                 } else seenNamesInFile.set(lowerName, idx)
-            }
-            if (cleanNisn) {
-                if (seenNisnInFile.has(cleanNisn)) {
-                    isDupe = true
-                    rowIssues.push({ level: 'dupe', message: `NISN sama dengan baris ${seenNisnInFile.get(cleanNisn) + 1}` })
-                } else seenNisnInFile.set(cleanNisn, idx)
             }
 
             if (isDupe) dupeIndices.push(idx)
@@ -691,7 +658,7 @@ export function useStudentsImportExport({
                         ...cleanRow,
                         registration_code: generateCode(),
                         pin: String(Math.floor(1000 + Math.random() * 9000)),
-                        total_points: 0
+
                     }
                 })
                 const { error } = await supabase.from('students').insert(chunk)

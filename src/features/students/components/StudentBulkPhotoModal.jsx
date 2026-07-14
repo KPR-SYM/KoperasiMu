@@ -15,7 +15,7 @@ export default function StudentBulkPhotoModal({
     allStudentsForBulk = [],
     matchingPhotos = false,
 }) {
-    const [matchMethod, setMatchMethod] = useState('nisn')
+    const [matchMethod, setMatchMethod] = useState('name')
     const [autoShrink, setAutoShrink] = useState(true)
 
     if (!isOpen) return null
@@ -59,7 +59,7 @@ export default function StudentBulkPhotoModal({
     }
 
     const methods = [
-        { id: 'nisn', label: 'NISN', desc: 'Contoh: 0012345.jpg' },
+
         { id: 'name', label: 'Nama', desc: 'Contoh: Ahmad Muazza.png' },
         { id: 'code', label: 'ID/Reg', desc: 'Contoh: REG-ABCD.jpg' },
     ]

@@ -182,11 +182,9 @@ export const StudentRow = memo(({
     onClassBreakdown,
     onPhotoZoom,
     onToggleSelect,
-    onQuickPoint,
     onInlineUpdate,
     onTogglePin,
     formatRelativeDate,
-    RiskThreshold,
     isPrivacyMode,
     visibleColumns = {},
     classesList = [],
@@ -197,31 +195,20 @@ export const StudentRow = memo(({
     const vc = {
         gender: true,
         kelas: true,
-        poin: true,
         last_report: true,
         profil: true,
         tags: true,
         aksi: true,
         ...visibleColumns
     }
-    const [lastAction, setLastAction] = useState(null) // { amount, reason, timestamp }
-    const lastActionTimerRef = useRef(null)
-
-    const handleQuickPointInternal = (student, amount, reason) => {
-        onQuickPoint(student, amount, reason)
-        setLastAction({ amount, reason, timestamp: Date.now() })
-        if (lastActionTimerRef.current) clearTimeout(lastActionTimerRef.current)
-        lastActionTimerRef.current = setTimeout(() => setLastAction(null), 8000)
-    }
-
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
         if (str.length <= visibleLen) return str[0] + '*'.repeat(str.length - 1)
         return str.substring(0, visibleLen) + '***'
     }
 
-    const isRisk = (student.total_points || 0) <= RiskThreshold
-    const p = student.total_points || 0
+    const isRisk = false
+    const p = 0
     const [showQuickAction, setShowQuickAction] = useState(false)
     const [showQuickViewPopover, setShowQuickViewPopover] = useState(false)
     const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
@@ -285,12 +272,7 @@ export const StudentRow = memo(({
         }
     }, [showQuickAction])
 
-    const quickActions = [
-        { label: 'Sangat Aktif', amount: 5, color: 'text-emerald-500' },
-        { label: 'Fokus', amount: 2, color: 'text-emerald-500' },
-        { label: 'Ramai', amount: -2, color: 'text-amber-500' },
-        { label: 'Melanggar', amount: -5, color: 'text-red-500' },
-    ]
+    const quickActions = []
 
     return (
         <tr className={`border-t border-[var(--color-border)] transition-colors group/row table-row-lazy
@@ -342,16 +324,7 @@ export const StudentRow = memo(({
                             }
                             <span className="relative z-10" style={student.photo_url ? { display: 'none' } : {}}>{isPrivacyMode ? '*' : (student.name || 'S').charAt(0)}</span>
                         </div>
-                        {/* Rank badge — pojok kiri bawah avatar */}
-                        {student._rank <= 3 && student._rank >= 1 && (student.total_points > 0) && (
-                            <div className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-full flex items-center justify-center shadow-md border-2 border-[var(--color-surface)] z-20
-                                ${student._rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500'
-                                    : student._rank === 2 ? 'bg-gradient-to-br from-slate-300 to-slate-500'
-                                        : 'bg-gradient-to-br from-orange-400 to-orange-600'}`}
-                            >
-                                {student._rank === 1 ? <Crown className="text-white w-2 h-2" /> : <Medal className="text-white w-2 h-2" />}
-                            </div>
-                        )}
+
                     </div>
 
                     {/* Name + badges area */}
@@ -614,67 +587,7 @@ export const StudentRow = memo(({
                                     <Pencil className="w-3 h-3" />
                                 </button>
 
-                                {/* Quick Action bolt */}
-                                <div className="relative">
-                                    <button
-                                        ref={boltRef}
-                                        onClick={() => {
-                                            if (!showQuickAction) {
-                                                const rect = boltRef.current?.getBoundingClientRect()
-                                                setBoltRect(rect)
-                                            }
-                                            setShowQuickAction(!showQuickAction)
-                                        }}
-                                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all
-                                                ${showQuickAction ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-amber-500/10 text-amber-500 opacity-0 group-hover/point:opacity-100 hover:bg-amber-500 hover:text-white'}`}
-                                        title="Aksi Cepat"
-                                    >
-                                        <Lightning className="w-3 h-3" />
-                                    </button>
-                                    {showQuickAction && boltRect && createPortal(
-                                        <>
-                                            <div className="fixed inset-0 z-[9990] bg-black/5 backdrop-blur-[1px]" onClick={() => setShowQuickAction(false)} />
-                                            <div
-                                                className="fixed z-[9991] w-40 glass-morphism bg-white dark:bg-gray-800 shadow-2xl rounded-2xl border border-[var(--color-border)] p-1.5 animate-in fade-in zoom-in-95 duration-200"
-                                                style={{
-                                                    top: boltRect.top + boltRect.height + 8,
-                                                    left: boltRect.left + (boltRect.width / 2) - 80
-                                                }}
-                                            >
-                                                <div className="text-[8px] font-black uppercase tracking-widest text-[var(--color-text-muted)] p-2 mb-1 border-b border-[var(--color-border)] text-center">Quick Points</div>
-                                                {quickActions.map((act, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        onClick={() => { handleQuickPointInternal(student, act.amount, act.label); setShowQuickAction(false) }}
-                                                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-between group/act"
-                                                    >
-                                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] group-hover/act:text-[var(--color-text)]">{act.label}</span>
-                                                        <span className={`text-[10px] font-black ${act.color}`}>{act.amount > 0 ? `+${act.amount}` : act.amount}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>,
-                                        getPortalContainer('portal-quick-action')
-                                    )}
-                                </div>
                             </div>
-
-                            {/* WhatsApp Post-Action Button */}
-                            {lastAction && student.phone && (
-                                <div className="absolute left-[-180px] top-1/2 -translate-y-1/2 animate-in slide-in-from-right-4 fade-in duration-500 z-[60]">
-                                    <button
-                                        onClick={() => {
-                                            const msg = buildWAMessage?.(student, 'points') || `Laporan untuk ${student.name}: Poin ${lastAction.amount > 0 ? '+' : ''}${lastAction.amount} (${lastAction.reason})`
-                                            openWAForStudent?.(student, msg)
-                                            setLastAction(null)
-                                        }}
-                                        className="h-8 px-3 rounded-xl bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all"
-                                    >
-                                        <ChatCircle className="w-3 h-3" />
-                                        Laporkan ke WA
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     )}
                 </td>
@@ -793,43 +706,14 @@ export const StudentMobileCard = memo(({
     onEdit,
     onConfirmDelete,
     onTogglePin,
-    onQuickPoint,
     isPrivacyMode,
-    RiskThreshold,
     buildWAMessage,
     openWAForStudent,
     waTemplate
 }) => {
-    const isRisk = (student.total_points || 0) <= RiskThreshold
-    const p = student.total_points || 0
+    const isRisk = false
+    const p = 0
     const [showQuickAction, setShowQuickAction] = useState(false)
-    const [isPressed, setIsPressed] = useState(false)
-    const [lastAction, setLastAction] = useState(null)
-    const lastActionTimerRef = useRef(null)
-
-    const [boltRect, setBoltRect] = useState(null)
-    const boltRef = useRef(null)
-
-    const handleQuickPointInternal = (student, amount, reason) => {
-        onQuickPoint(student, amount, reason)
-        setLastAction({ amount, reason, timestamp: Date.now() })
-        if (lastActionTimerRef.current) clearTimeout(lastActionTimerRef.current)
-        lastActionTimerRef.current = setTimeout(() => setLastAction(null), 8000)
-    }
-
-    // Sticky positioning for portaled dropdown (Mobile)
-    useEffect(() => {
-        if (!showQuickAction || !boltRef.current) return
-        const updateRect = () => {
-            setBoltRect(boltRef.current.getBoundingClientRect())
-        }
-        window.addEventListener('scroll', updateRect, true)
-        window.addEventListener('resize', updateRect)
-        return () => {
-            window.removeEventListener('scroll', updateRect, true)
-            window.removeEventListener('resize', updateRect)
-        }
-    }, [showQuickAction])
 
     const longPressProps = useLongPress(() => {
         onToggleSelect(student.id)
@@ -852,12 +736,7 @@ export const StudentMobileCard = memo(({
         e.stopPropagation();
     };
 
-    const quickActions = [
-        { label: 'Sangat Aktif', amount: 5, color: 'text-emerald-500', icon: Plus },
-        { label: 'Fokus', amount: 2, color: 'text-emerald-500', icon: Lightning },
-        { label: 'Ramai', amount: -2, color: 'text-amber-500', icon: Minus },
-        { label: 'Melanggar', amount: -5, color: 'text-red-500', icon: Warning },
-    ]
+    const quickActions = []
 
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
@@ -924,10 +803,7 @@ export const StudentMobileCard = memo(({
                         </div>
 
                         {/* Status Circle */}
-                        <div className={`absolute -bottom-0.5 -right-0.5 w-4.5 h-4.5 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center shadow-lg
-                            ${p < 0 ? 'bg-amber-500' : p > 0 ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                            {p < 0 ? <TrendDown className="text-white w-2 h-2" /> : p > 0 ? <TrendUp className="text-white w-2 h-2" /> : <Lightning className="text-white w-2 h-2" />}
-                        </div>
+
                     </div>
 
                     {/* NAME & IDENTITY */}
@@ -1055,68 +931,6 @@ export const StudentMobileCard = memo(({
                         </span>
                     </button>
 
-                    {/* Poin Cepat */}
-                    <div className="relative isolate flex-1 flex justify-center">
-                        <button
-                            ref={boltRef}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!showQuickAction) {
-                                    const rect = boltRef.current?.getBoundingClientRect()
-                                    setBoltRect(rect)
-                                }
-                                setShowQuickAction(!showQuickAction)
-                            }}
-                            className={`flex flex-col items-center justify-center gap-0.5 w-full py-1 rounded-xl transition-all active:scale-95 border
-                                ${showQuickAction
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-lg'
-                                    : 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white'}`}
-                        >
-                            <Lightning className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-wider leading-none">Poin</span>
-                        </button>
-
-                        {showQuickAction && boltRect && createPortal(
-                            <>
-                                <div className="fixed inset-0 z-[9990] bg-black/10 backdrop-blur-[1px]" onClick={(e) => { e.stopPropagation(); setShowQuickAction(false) }} />
-                                <div
-                                    onClick={e => e.stopPropagation()}
-                                    className="fixed z-[9991] w-52 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[1.5rem] shadow-2xl animate-in fade-in slide-in-from-bottom-2 zoom-in-95 duration-200 p-2.5 text-[var(--color-text)]"
-                                    style={{
-                                        top: boltRect.top - 8,
-                                        left: Math.min(window.innerWidth - 215, Math.max(10, boltRect.right - 208)),
-                                        transform: 'translateY(-100%)'
-                                    }}
-                                >
-                                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] p-2 mb-1.5 border-b border-[var(--color-border)] text-center flex items-center justify-center gap-2">
-                                        <Lightning className="w-2 h-2" />
-                                        Input Poin Cepat
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-1.5">
-                                        {quickActions.map((act, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => { handleQuickPointInternal(student, act.amount, act.label); setShowQuickAction(false) }}
-                                                className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-[var(--color-surface-alt)] hover:bg-[var(--color-border)] transition-all border border-[var(--color-border)] active:scale-95"
-                                            >
-                                                <act.icon className={`text-[10px] ${act.color}`} />
-                                                <span className="text-[8px] font-black uppercase tracking-widest leading-none mt-0.5">{act.label.split(' ')[0]}</span>
-                                                <span className={`text-[10px] font-black ${act.color}`}>{act.amount > 0 ? `+${act.amount}` : act.amount}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={() => { handleQuickPointInternal(student, 0, 'custom'); setShowQuickAction(false) }}
-                                        className="w-full mt-2 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-[0.98]"
-                                    >
-                                        Input Kustom
-                                    </button>
-                                </div>
-                            </>,
-                            getPortalContainer('portal-quick-action')
-                        )}
-                    </div>
-
                     {/* Arsip */}
                     {onConfirmDelete && (
                         <button
@@ -1129,28 +943,6 @@ export const StudentMobileCard = memo(({
                     )}
                 </div>
 
-                {/* Mobile WA Post-Action Overlay - Rounded to match card */}
-                {lastAction && student.phone && (
-                    <div className="absolute inset-0 bg-emerald-500 z-[90] animate-in slide-in-from-right-full duration-500 rounded-3xl flex flex-col items-center justify-center text-white shadow-2xl overflow-hidden">
-                        <button
-                            onClick={() => {
-                                const msg = buildWAMessage?.(student, 'points') || `Laporan untuk ${student.name}: Poin ${lastAction.amount > 0 ? '+' : ''}${lastAction.amount} (${lastAction.reason})`
-                                openWAForStudent?.(student, msg)
-                                setLastAction(null)
-                            }}
-                            className="w-full h-full flex flex-col items-center justify-center gap-1 active:scale-90 transition-transform"
-                        >
-                            <ChatCircle className="text-xl" />
-                            <span className="text-[8px] font-black uppercase tracking-widest">Kirim WA</span>
-                        </button>
-                        <button
-                            onClick={() => setLastAction(null)}
-                            className="absolute top-4 right-5 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-[12px] active:scale-95 transition-all"
-                        >
-                            <X />
-                        </button>
-                    </div>
-                )}
             </div>
         </div>
     )
@@ -1226,9 +1018,7 @@ export const StudentMobileListRow = memo(({
     onViewProfile,
     onEdit,
     onTogglePin,
-    onQuickPoint,
     isPrivacyMode,
-    RiskThreshold,
     canEdit,
     onConfirmDelete,
     buildWAMessage,
@@ -1239,9 +1029,6 @@ export const StudentMobileListRow = memo(({
     const [showQuickAction, setShowQuickAction] = useState(false)
     const [boltRect, setBoltRect] = useState(null)
     const boltRef = useRef(null)
-
-    const p = student.total_points || 0
-    const isRisk = p <= RiskThreshold
 
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
@@ -1308,12 +1095,6 @@ export const StudentMobileListRow = memo(({
         if (timerRef.current) clearTimeout(timerRef.current)
     }
 
-    const handleQuickPointInternal = (std, amount, reason) => {
-        if (onQuickPoint) {
-            onQuickPoint(std, amount, reason)
-        }
-    }
-
     const handleActionAreaClick = (e) => {
         e.stopPropagation()
     }
@@ -1322,13 +1103,7 @@ export const StudentMobileListRow = memo(({
         e.stopPropagation()
     }
 
-    // Quick point options
-    const quickActions = [
-        { label: 'Sakit / Izin', amount: 0, icon: ClockCounterClockwise, color: 'text-amber-500' },
-        { label: 'Terlambat', amount: -5, icon: TrendDown, color: 'text-red-500' },
-        { label: 'Melanggar', amount: -10, icon: Warning, color: 'text-red-500' },
-        { label: 'Prestasi', amount: 10, icon: TrendUp, color: 'text-emerald-500' },
-    ]
+    const quickActions = []
 
     return (
         <div 
@@ -1391,14 +1166,6 @@ export const StudentMobileListRow = memo(({
                         <span className={`text-[9px] font-bold ${student.gender === 'L' ? 'text-blue-500/60' : 'text-pink-500/60'}`}>
                             {student.gender === 'L' ? 'L' : 'P'}
                         </span>
-                    </div>
-                </div>
-
-                {/* Points Block (Slim) */}
-                <div className="flex items-center gap-2 shrink-0 pl-1 pointer-events-none">
-                    <div className={`text-[10px] font-black px-2 py-0.5 rounded-lg border text-center min-w-[45px] flex items-center justify-center gap-1
-                        ${p < 0 ? 'bg-red-500/10 border-red-500/10 text-red-600 shadow-sm' : p > 0 ? 'bg-emerald-500/10 border-emerald-500/10 text-emerald-600 shadow-sm' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)]/60 text-[var(--color-text-muted)] opacity-70'}`}>
-                        <span className="tracking-tight">{p > 0 ? '+' : ''}{p}</span>
                     </div>
                 </div>
 
@@ -1476,68 +1243,6 @@ export const StudentMobileListRow = memo(({
                             {student.is_pinned ? 'Unpin' : 'MapPin'}
                         </span>
                     </button>
-
-                    {/* Quick Points */}
-                    <div className="relative isolate flex-1 flex justify-center animate-in fade-in duration-300">
-                        <button
-                            ref={boltRef}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!showQuickAction) {
-                                    const rect = boltRef.current?.getBoundingClientRect()
-                                    setBoltRect(rect)
-                                }
-                                setShowQuickAction(!showQuickAction)
-                            }}
-                            className={`flex flex-col items-center justify-center gap-0.5 w-full py-1 rounded-xl transition-all active:scale-95 border
-                                ${showQuickAction
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-lg'
-                                    : 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white'}`}
-                        >
-                            <Lightning className="w-3 h-3" />
-                            <span className="text-[8px] font-black uppercase tracking-wider leading-none">Poin</span>
-                        </button>
-
-                        {showQuickAction && boltRect && createPortal(
-                            <>
-                                <div className="fixed inset-0 z-[9990] bg-black/10 backdrop-blur-[1px]" onClick={(e) => { e.stopPropagation(); setShowQuickAction(false) }} />
-                                <div
-                                    onClick={e => e.stopPropagation()}
-                                    className="fixed z-[9991] w-52 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[1.5rem] shadow-2xl animate-in fade-in slide-in-from-bottom-2 zoom-in-95 duration-200 p-2.5 text-[var(--color-text)]"
-                                    style={{
-                                        top: boltRect.top - 8,
-                                        left: Math.min(window.innerWidth - 215, Math.max(10, boltRect.right - 208)),
-                                        transform: 'translateY(-100%)'
-                                    }}
-                                >
-                                    <div className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] p-2 mb-1.5 border-b border-[var(--color-border)] text-center flex items-center justify-center gap-2">
-                                        <Lightning className="w-2 h-2" />
-                                        Input Poin Cepat
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-1.5">
-                                        {quickActions.map((act, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => { handleQuickPointInternal(student, act.amount, act.label); setShowQuickAction(false) }}
-                                                className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-[var(--color-surface-alt)] hover:bg-[var(--color-border)] transition-all border border-[var(--color-border)] active:scale-95"
-                                            >
-                                                <act.icon className={`text-[10px] ${act.color}`} />
-                                                <span className="text-[8px] font-black uppercase tracking-widest leading-none mt-0.5">{act.label.split(' ')[0]}</span>
-                                                <span className={`text-[10px] font-black ${act.color}`}>{act.amount > 0 ? `+${act.amount}` : act.amount}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={() => { handleQuickPointInternal(student, 0, 'custom'); setShowQuickAction(false) }}
-                                        className="w-full mt-2 py-3 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 shadow-lg shadow-[var(--color-primary)]/20 transition-all active:scale-[0.98]"
-                                    >
-                                        Input Kustom
-                                    </button>
-                                </div>
-                            </>,
-                            getPortalContainer('portal-quick-action')
-                        )}
-                    </div>
 
                     {/* Arsip */}
                     {onConfirmDelete && (

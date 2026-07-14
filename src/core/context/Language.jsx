@@ -36,7 +36,7 @@ const ROUTE_KEY_MAP = {
     "/master/teachers": "nav.teachers",
     "/master/classes": "nav.classes",
     "/master/subjects": "nav.subjects",
-    "/master/academic-years": "nav.academic_years",
+    "/master/periods": "nav.periods",
     "/master/enrollment": "nav.enrollment",
     "/boarding/counseling": "nav.counseling",
     "/academic/library": "nav.library",

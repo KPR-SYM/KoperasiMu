@@ -59,8 +59,8 @@ export function useNotifications() {
             //    Cek apakah ada academic_year yang aktif
             // ─────────────────────────────────────────────────────────────────
             const { data: activeYears } = await supabase
-                .from('academic_years')
-                .select('id, name, is_active')
+                .from('periods')
+                .select('id, academic_year, is_active')
                 .eq('is_active', true)
 
             if (!activeYears?.length) {
@@ -70,7 +70,7 @@ export function useNotifications() {
                     icon: '📅',
                     title: 'Tidak ada tahun ajaran aktif',
                     body: 'Set tahun ajaran aktif agar semua fitur berjalan normal',
-                    action: { label: 'Atur Sekarang', route: '/master/academic-years' },
+                    action: { label: 'Atur Sekarang', route: '/master/periods' },
                     meta: {},
                     priority: 0, // tertinggi
                 })
@@ -81,7 +81,7 @@ export function useNotifications() {
                     icon: '📅',
                     title: 'Ada lebih dari 1 tahun ajaran aktif',
                     body: `${activeYears.length} tahun ajaran aktif sekaligus`,
-                    action: { label: 'Periksa', route: '/master/academic-years' },
+                    action: { label: 'Periksa', route: '/master/periods' },
                     meta: { count: activeYears.length },
                     priority: 1,
                 })

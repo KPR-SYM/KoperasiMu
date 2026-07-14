@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect, memo } from 'react'
+import React, { useState, useEffect, memo } from 'react'
 import { Warning, Calendar, CheckCircle, Spinner, Pencil, PlusCircle } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
 
-const AcademicYearFormModal = memo(function AcademicYearFormModal({
+const PeriodFormModal = memo(function PeriodFormModal({
     isOpen,
     onClose,
     selectedItem,
@@ -16,22 +16,20 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
         semester: 'Ganjil',
         startDate: '',
         endDate: '',
-        curriculum: 'Merdeka',
         makeActive: false
     })
     const [formErrors, setFormErrors] = useState({})
     const [isDuplicateName, setIsDuplicateName] = useState(false)
-    const [isOverlapping, setIsOverlapping] = useState(null) // { name, semester } matching overlap
+    const [isOverlapping, setIsOverlapping] = useState(null)
 
     useEffect(() => {
         if (isOpen) {
             if (selectedItem) {
                 setFormData({
-                    name: selectedItem.name || '',
+                    name: selectedItem.academic_year || '',
                     semester: selectedItem.semester || 'Ganjil',
                     startDate: selectedItem.start_date || '',
                     endDate: selectedItem.end_date || '',
-                    curriculum: selectedItem.curriculum || 'Merdeka',
                     makeActive: selectedItem.is_active || false
                 })
             } else {
@@ -40,7 +38,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                     semester: 'Ganjil',
                     startDate: '',
                     endDate: '',
-                    curriculum: 'Merdeka',
                     makeActive: false
                 })
             }
@@ -50,7 +47,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
         }
     }, [isOpen, selectedItem])
 
-    // Real-time conflict validation (Exclusion Constraint check)
     useEffect(() => {
         if (!isOpen || !formData.startDate || !formData.endDate) {
             setIsOverlapping(null)
@@ -79,7 +75,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
         const s = new Date(start)
         const e = new Date(end)
         if (e < s) {
-            // Check if only year is filled (12026 case)
             if (e.getFullYear() > 3000) return 'Format Tanggal Salah'
             return '-'
         }
@@ -92,14 +87,13 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
         const trimmed = name.trim()
         if (!trimmed) return false
         return (years || []).some(y =>
-            y.name === trimmed &&
+            y.academic_year === trimmed &&
             y.semester === semester &&
             (!selectedItem?.id || y.id !== selectedItem.id)
         )
     }
 
     const handlePredictDates = () => {
-        // Match 2024/2025 or 2024-2025 or even 2024 2025
         const match = formData.name.match(/(\d{4})[/\-\s](\d{4})/)
         if (!match) return
 
@@ -181,7 +175,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
             }
         >
             <div className="space-y-5">
-                {/* ── Rows: Identitas & Periode ── */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-1">
                         <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -190,7 +183,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                     </div>
 
                     <div className="grid grid-cols-12 gap-3">
-                        {/* ── Nama Tahun Pelajaran ── */}
                         <div className="col-span-12 sm:col-span-7">
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">
                                 Tahun Pelajaran <span className="text-red-500">*</span>
@@ -206,7 +198,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                                 />
                             </div>
 
-                            {/* Predictor Trigger */}
                             {formData.name.match(/\d{4}.*\d{4}/) && (!formData.startDate || !formData.endDate) && (
                                 <button
                                     type="button"
@@ -224,7 +215,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                             )}
                         </div>
 
-                        {/* ── Semester ── */}
                         <div className="col-span-12 sm:col-span-5">
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Semester</label>
                             <div className="flex p-0.5 bg-[var(--color-surface-alt)] rounded-xl border border-[var(--color-border)] h-9">
@@ -239,7 +229,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                         </div>
                     </div>
 
-                    {/* Duplicates Alert */}
                     {isDuplicateName && !formErrors.name && (
                         <div className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 text-amber-700 flex gap-2.5 animate-in fade-in slide-in-from-top-1">
                             <Warning className="text-amber-500 w-3 h-3 mt-0.5" />
@@ -247,7 +236,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                         </div>
                     )}
 
-                    {/* ── Tanggal ── */}
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Mulai <span className="text-red-500">*</span></label>
@@ -295,7 +283,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                         </div>
                     </div>
 
-                    {/* ── Overlap & Duration Compact Banner ── */}
                     {((formData.startDate && formData.endDate) || isOverlapping) && (
                         <div className="space-y-2">
                             {isOverlapping && (
@@ -306,7 +293,7 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                                     <div>
                                         <p className="text-[10px] font-black text-amber-700 leading-tight">Konflik Jadwal Deteksi!</p>
                                         <p className="text-[9px] font-bold text-amber-600/80 leading-snug mt-0.5">
-                                            Periode ini tumpang tindih dengan <span className="text-amber-700 font-extrabold">{isOverlapping.name} {isOverlapping.semester}</span>.
+                                            Periode ini tumpang tindih dengan <span className="text-amber-700 font-extrabold">{isOverlapping.academic_year} {isOverlapping.semester}</span>.
                                             Ubah tanggal atau nonaktifkan tahun lain.
                                         </p>
                                     </div>
@@ -324,7 +311,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                     )}
                 </div>
 
-                {/* ── Rows: Pengaturan Sistem ── */}
                 <div className="space-y-4 pt-2 border-t border-[var(--color-border)]">
                     <div className="flex items-center gap-2.5 pt-1">
                         <div className="w-1 h-4 bg-emerald-500 rounded-full" />
@@ -332,25 +318,6 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
                         <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
                     </div>
 
-                    {/* ── Kurikulum ── */}
-                    <div>
-                        <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-2 ml-1 opacity-60">Kurikulum Aktif</label>
-                        <div className="grid grid-cols-2 gap-2.5">
-                            {['Merdeka', 'K-13'].map(c => (
-                                <button key={c} type="button"
-                                    onClick={() => handleChange('curriculum', c)}
-                                    className={`h-10 px-3.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-start gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]/50 ${formData.curriculum === c ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/40 text-[var(--color-primary)] shadow-sm' : 'bg-[var(--color-surface-alt)]/40 border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)] hover:border-[var(--color-border)] hover:text-[var(--color-text)]'}`}>
-                                    <div className={`w-3.5 h-3.5 rounded-full border-[1.5px] flex items-center justify-center transition-all shrink-0 ${formData.curriculum === c ? 'border-[var(--color-primary)] bg-[var(--color-surface)]' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}>
-                                        <div className={`w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] transition-transform duration-300 ${formData.curriculum === c ? 'scale-100' : 'scale-0'}`} />
-                                    </div>
-                                    <span className="truncate mt-px text-left">{c}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-
-                    {/* ── Status Aktif Toggle ── */}
                     <button
                         type="button"
                         onClick={() => handleChange('makeActive', !formData.makeActive)}
@@ -375,4 +342,4 @@ const AcademicYearFormModal = memo(function AcademicYearFormModal({
     )
 })
 
-export default AcademicYearFormModal
+export default PeriodFormModal

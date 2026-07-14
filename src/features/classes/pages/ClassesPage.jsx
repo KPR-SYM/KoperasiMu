@@ -106,7 +106,7 @@ export default function ClassesPage() {
     const [classes, setClasses] = useState([])
     const [archivedClasses, setArchivedClasses] = useState([])
     const [teachersList, setTeachersList] = useState([])
-    const [academicYearsList, setAcademicYearsList] = useState([])
+    const [periodsList, setAcademicYearsList] = useState([])
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
 
@@ -271,10 +271,10 @@ export default function ClassesPage() {
         try {
             const [tRes, yRes] = await Promise.all([
                 supabase.from('teachers').select('id, name').order('name'),
-                supabase.from('academic_years').select('id, name, semester').order('name', { ascending: false })
+                supabase.from('periods').select('id, academic_year, semester').order('academic_year', { ascending: false })
             ])
             const tList = tRes.data || []
-            const yList = (yRes.data || []).map(y => ({ ...y, label: [y.name, y.semester].filter(Boolean).join(' ') || '—' }))
+            const yList = (yRes.data || []).map(y => ({ ...y, label: [y.academic_year, y.semester].filter(Boolean).join(' ') || '—' }))
             setTeachersList(tList); setAcademicYearsList(yList)
             return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.id, y.label])) }
         } catch { return { t: {}, y: {} } }
@@ -290,7 +290,7 @@ export default function ClassesPage() {
                 const mapped = data.map(row => ({
                     ...row,
                     teacherName: row.homeroom_teacher_id ? (tMap[row.homeroom_teacher_id] || '—') : '—',
-                    academicYearName: row.academic_year_id ? (yMap[row.academic_year_id] || '—') : '—',
+                    periodName: row.academic_year_id ? (yMap[row.academic_year_id] || '—') : '—',
                     students: row.students?.[0]?.count ?? 0,
                 }))
                 setClasses(mapped)
@@ -463,7 +463,7 @@ export default function ClassesPage() {
         { key: 'tingkat', label: 'Tingkat / Grade', fn: c => c.grade || '-' },
         { key: 'program', label: 'Program / Major', fn: c => c.major || '-' },
         { key: 'wali_kelas', label: 'Wali Kelas', fn: c => c.teacherName || '-' },
-        { key: 'tahun_ajaran', label: 'Tahun Ajaran', fn: c => c.academicYearName || '-' },
+        { key: 'tahun_ajaran', label: 'Tahun Ajaran', fn: c => c.periodName || '-' },
         { key: 'jumlah_siswa', label: 'Jumlah Siswa', fn: c => c.students || 0 },
     ]
 
@@ -482,7 +482,7 @@ export default function ClassesPage() {
             const enriched = {
                 ...c,
                 teacherName: c.homeroom_teacher_id ? (tMap[c.homeroom_teacher_id] || '-') : '-',
-                academicYearName: c.academic_year_id ? (yMap[c.academic_year_id] || '-') : '-',
+                periodName: c.academic_year_id ? (yMap[c.academic_year_id] || '-') : '-',
                 students: c.students?.[0]?.count || 0
             }
             const row = {}
@@ -685,7 +685,7 @@ export default function ClassesPage() {
         setImportLoading(true)
         try {
             const teacherByName = Object.fromEntries(teachersList.map(t => [t.name.toLowerCase().trim(), t.id]))
-            const yearByLabel = Object.fromEntries(academicYearsList.map(y => [y.label.toLowerCase().trim(), y.id]))
+            const yearByLabel = Object.fromEntries(periodsList.map(y => [y.label.toLowerCase().trim(), y.id]))
 
             const preview = raw.map((row, i) => {
                 const data = {}
@@ -829,7 +829,7 @@ export default function ClassesPage() {
     return (
         <DashboardLayout title="Data Kelas" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
             <style>{isAnyModalOpen ? ` .top-nav, .sidebar, .floating-dock { display: none !important; } main { padding-top: 0 !important; } ` : ''}</style>
-            <div className="p-4 md:p-6 space-y-4 max-w-[1800px] mx-auto">
+            <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
 
                 {/* Read-only Banner */}
                 {!canEdit && (
@@ -1484,7 +1484,7 @@ export default function ClassesPage() {
                 </div>
 
                 {/* Modals */}
-                <ClassFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} selectedItem={selectedItem} teachersList={teachersList} academicYearsList={academicYearsList} onSubmit={handleSubmit} submitting={submitting} />
+                <ClassFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} selectedItem={selectedItem} teachersList={teachersList} periodsList={periodsList} onSubmit={handleSubmit} submitting={submitting} />
 
                 {/* Backspace Modal */}
                 <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Hapus Kelas" size="sm">
@@ -1555,7 +1555,7 @@ export default function ClassesPage() {
                     setImportDragOver={setImportDragOver}
                     processImportFile={processImportFile}
                     teachersList={teachersList}
-                    academicYearsList={academicYearsList}
+                    periodsList={periodsList}
                     handleDownloadTemplate={handleDownloadTemplate}
                     importFileHeaders={importFileHeaders}
                     SYSTEM_COLS={SYSTEM_COLS}

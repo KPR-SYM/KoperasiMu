@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 
 import { Modal, RichSelect } from '@shared/components'
 
-export default function AcademicYearImportModal(props) {
+export default function PeriodImportModal(props) {
     const {
         isOpen,
         onClose,
@@ -45,7 +45,6 @@ export default function AcademicYearImportModal(props) {
 
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
 
-    // Inline Editor Component - Memoized for high performance
     const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImportEditCell, handleImportCellEdit }) => {
         const isEditing = importEditCell?.row === rowIdx && importEditCell?.col === colKey
         const cellRef = useRef(null)
@@ -117,38 +116,6 @@ export default function AcademicYearImportModal(props) {
                 )
             }
 
-            if (colKey === 'curriculum') {
-                const options = [
-                    { id: 'Merdeka', name: 'Merdeka' },
-                    { id: '2013', name: '2013' },
-                    { id: 'KTSP', name: 'KTSP' }
-                ]
-                return (
-                    <div ref={cellRef} className="relative">
-                        <div className="bg-[var(--color-primary)]/10 rounded-lg px-2 py-1 text-[var(--color-primary)] font-black uppercase text-center border border-[var(--color-primary)] shadow-sm">
-                            {value || '-'}
-                        </div>
-                        {renderDropdown(
-                            <div className="py-1">
-                                {options.map(opt => (
-                                    <button
-                                        key={opt.id}
-                                        className="w-full px-4 py-2.5 text-left text-[10px] font-bold hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors flex items-center justify-between"
-                                        onClick={() => {
-                                            handleImportCellEdit(rowIdx, colKey, opt.id)
-                                            setImportEditCell(null)
-                                        }}
-                                    >
-                                        <span>{opt.name}</span>
-                                        {value === opt.id && <Check className="w-2 h-2" />}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )
-            }
-
             return (
                 <input
                     autoFocus
@@ -161,7 +128,7 @@ export default function AcademicYearImportModal(props) {
             )
         }
 
-        const isCentered = ['semester', 'curriculum'].includes(colKey)
+        const isCentered = ['semester'].includes(colKey)
         const displayValue = value || '-'
         const isEmpty = !value || value === '-'
 
@@ -238,7 +205,7 @@ export default function AcademicYearImportModal(props) {
                                     await buildImportPreview(importRawData, importColumnMapping)
                                     setImportLoading(false)
                                 }}
-                                disabled={!importColumnMapping.name || !importColumnMapping.semester || !importColumnMapping.start_date || !importColumnMapping.end_date}
+                                disabled={!importColumnMapping.academic_year || !importColumnMapping.semester || !importColumnMapping.start_date || !importColumnMapping.end_date}
                                 className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
                             >
                                 Review Data <ArrowRight />
@@ -353,7 +320,6 @@ export default function AcademicYearImportModal(props) {
                             </button>
                         </div>
 
-                        {/* Bottom: Excel Structure Table */}
                         <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm flex flex-col">
                             <div className="px-4 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -375,11 +341,10 @@ export default function AcademicYearImportModal(props) {
                                         <tr className="bg-[var(--color-surface)]">
                                             <th className="w-8 border-r border-b border-[var(--color-border)]"></th>
                                             {[
-                                                { l: 'A', k: 'NAME', n: 'Tahun Pelajaran', w: 'w-[25%]' },
-                                                { l: 'B', k: 'SEMESTER', n: 'Semester', w: 'w-[20%]' },
-                                                { l: 'C', k: 'START', n: 'Tanggal Mulai', w: 'w-[20%]' },
-                                                { l: 'D', k: 'END', n: 'Tanggal Selesai', w: 'w-[20%]' },
-                                                { l: 'E', k: 'CURRICULUM', n: 'Kurikulum', w: 'w-[15%]' }
+                                                { l: 'A', k: 'ACADEMIC_YEAR', n: 'Tahun Pelajaran', w: 'w-[25%]' },
+                                                { l: 'B', k: 'SEMESTER', n: 'Semester', w: 'w-[25%]' },
+                                                { l: 'C', k: 'START', n: 'Tanggal Mulai', w: 'w-[25%]' },
+                                                { l: 'D', k: 'END', n: 'Tanggal Selesai', w: 'w-[25%]' }
                                             ].map((col, i) => (
                                                 <th key={i} className={`px-2 py-1.5 border-r border-b border-[var(--color-border)] text-left ${col.w} min-w-0 overflow-hidden`}>
                                                     <div className="flex flex-col min-w-0">
@@ -395,8 +360,8 @@ export default function AcademicYearImportModal(props) {
                                     </thead>
                                     <tbody>
                                         {[
-                                            ['2024/2025', 'Ganjil', '2024-07-01', '2024-12-31', 'Merdeka'],
-                                            ['2024/2025', 'Genap', '2025-01-01', '2025-06-30', 'Merdeka']
+                                            ['2024/2025', 'Ganjil', '2024-07-01', '2024-12-31'],
+                                            ['2024/2025', 'Genap', '2025-01-01', '2025-06-30']
                                         ].map((row, rIdx) => (
                                             <tr key={rIdx}>
                                                 <td className="bg-[var(--color-surface-alt)] border-r border-b border-[var(--color-border)] text-[8px] font-bold text-[var(--color-text-muted)] text-center py-1">
@@ -445,7 +410,7 @@ export default function AcademicYearImportModal(props) {
                                         <div className="flex flex-col w-[130px] shrink-0">
                                             <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
                                                 {sys.label}
-                                                {['name', 'semester', 'start_date', 'end_date'].includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
+                                                {['academic_year', 'semester', 'start_date', 'end_date'].includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
                                             </span>
                                             <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
                                         </div>
@@ -536,7 +501,6 @@ export default function AcademicYearImportModal(props) {
                                                 <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[15%]">Semester</th>
                                                 <th className="px-2 py-2 text-left text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[20%]">Tanggal Mulai</th>
                                                 <th className="px-2 py-2 text-left text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[20%]">Tanggal Selesai</th>
-                                                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[12%]">Kurikulum</th>
                                                 <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[8%]">Aksi</th>
                                             </tr>
                                         </thead>
@@ -554,7 +518,7 @@ export default function AcademicYearImportModal(props) {
                                                         <tr key={i} className={`hover:bg-[var(--color-surface-alt)]/40 transition-colors border-b border-[var(--color-border)]/30 last:border-0 ${isError ? 'bg-red-500/3' : isDupe ? 'bg-violet-500/3' : ''}`}>
                                                             <td className="px-2 py-0.5 font-bold text-[var(--color-text)] text-[10px] truncate">
                                                                 <EditableCell
-                                                                    rowIdx={i} colKey="name" value={r.name}
+                                                                    rowIdx={i} colKey="academic_year" value={r.academic_year}
                                                                     importEditCell={importEditCell} setImportEditCell={setImportEditCell}
                                                                     handleImportCellEdit={handleImportCellEdit}
                                                                 />
@@ -576,13 +540,6 @@ export default function AcademicYearImportModal(props) {
                                                             <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate">
                                                                 <EditableCell
                                                                     rowIdx={i} colKey="end_date" value={r.end_date}
-                                                                    importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                    handleImportCellEdit={handleImportCellEdit}
-                                                                />
-                                                            </td>
-                                                            <td className="px-2 py-0.5 text-center text-[var(--color-text-muted)] font-bold text-[10px]">
-                                                                <EditableCell
-                                                                    rowIdx={i} colKey="curriculum" value={r.curriculum}
                                                                     importEditCell={importEditCell} setImportEditCell={setImportEditCell}
                                                                     handleImportCellEdit={handleImportCellEdit}
                                                                 />

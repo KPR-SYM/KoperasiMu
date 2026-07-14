@@ -160,12 +160,6 @@ export default memo(function StudentProfileModal({
                             )}
                         </div>
 
-                        <div className="shrink-0 text-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
-                            <p className="text-[8px] font-black text-white/50 uppercase tracking-widest mb-1">Poin</p>
-                            <p className={`text-2xl font-black ${(selectedStudent.total_points ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                {(selectedStudent.total_points ?? 0) > 0 ? '+' : ''}{selectedStudent.total_points ?? 0}
-                            </p>
-                        </div>
                     </div>
                 </div>
 
@@ -203,9 +197,8 @@ export default memo(function StudentProfileModal({
                                 </div>
                                 <div className="grid grid-cols-2 gap-y-5 gap-x-6">
                                     <div className="col-span-2">
-                                        <p className="text-[10px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1 opacity-80 text-indigo-600/70">NISN / NIS / NIK</p>
+                                        <p className="text-[10px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1 opacity-80 text-indigo-600/70">NIS / NIK</p>
                                         <p className="text-[13px] font-bold text-[var(--color-text)] tracking-wider">
-                                            {isPrivacyMode ? maskInfo(selectedStudent.nisn, 4) : (selectedStudent.nisn || '---')} /
                                             {isPrivacyMode ? maskInfo(selectedStudent.nis, 4) : (selectedStudent.nis || '---')} /
                                             {isPrivacyMode ? maskInfo(selectedStudent.nik, 4) : (selectedStudent.nik || '---')}
                                         </p>
@@ -447,10 +440,6 @@ export default memo(function StudentProfileModal({
                                         })()}
                                     </div>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                        <StatCard
-                                            icon={Lightning} label="Total Poin" value={selectedStudent.total_points} color={selectedStudent.total_points >= 0 ? 'emerald' : 'rose'}
-                                            className="!w-full !rounded-2xl !p-3 !min-h-0" valueClassName="text-lg"
-                                        />
                                         <StatCard
                                             icon={ClockCounterClockwise} label="Total Log" value={behaviorHistory.length} color="indigo"
                                             className="!w-full !rounded-2xl !p-3 !min-h-0" valueClassName="text-lg"

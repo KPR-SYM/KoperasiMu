@@ -30,7 +30,7 @@ export const MASTER_ITEMS = [
     { to: "/master/students", label: "Data Siswa", icon: Users, desc: "Pusat database seluruh santri aktif dalam sistem", color: "bg-indigo-500/10 text-indigo-600" },
     { to: "/master/teachers", label: "Data Guru", icon: GraduationCap, desc: "Data akun pengajar, musyrif, dan staf sekolah", color: "bg-indigo-500/10 text-indigo-600" },
     { to: "/master/classes", label: "Data Kelas", icon: Buildings, desc: "Pengaturan struktur kelas dan pembagian asrama", color: "bg-indigo-500/10 text-indigo-600" },
-    { to: "/master/academic-years", label: "Tahun Akademik", icon: CalendarDots, desc: "Manajemen semester dan periode kalender akademik", color: "bg-indigo-500/10 text-indigo-600" },
+    { to: "/master/periods", label: "Tahun Akademik", icon: CalendarDots, desc: "Manajemen semester dan periode kalender akademik", color: "bg-indigo-500/10 text-indigo-600" },
     { to: "/master/enrollment", label: "Pendaftaran Baru (PPDB)", icon: UserPlus, desc: "Manajemen pendaftaran dan penerimaan siswa baru", color: "bg-emerald-500/10 text-emerald-600" },
     { to: "/master/inventory", label: "Inventaris & Aset", icon: Stack, desc: "Pencatatan sarana prasarana sekolah, inventaris asrama & kelas", color: "bg-blue-500/10 text-blue-600" },
 ]
@@ -96,7 +96,7 @@ export const ROUTE_FLAG_MAP = {
     '/master/students': 'nav.students',
     '/master/teachers': 'nav.teachers',
     '/master/classes': 'nav.classes',
-    '/master/academic-years': 'nav.academic_years',
+    '/master/periods': 'nav.periods',
 }
 
 /**

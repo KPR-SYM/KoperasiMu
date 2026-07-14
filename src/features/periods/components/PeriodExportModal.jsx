@@ -1,25 +1,24 @@
-﻿import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, CaretDown, Clock, FileXls, FileText, FileArrowUp, GraduationCap, TextH, List, Spinner, GearSix, SlidersHorizontal, Tag, Users } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
 
 const COLUMN_DEFS = [
-    { key: 'name', label: 'Tahun Pelajaran', icon: Calendar },
+    { key: 'academic_year', label: 'Tahun Pelajaran', icon: Calendar },
     { key: 'semester', label: 'Semester', icon: TextH },
     { key: 'start_date', label: 'Mulai', icon: Calendar },
     { key: 'end_date', label: 'Selesai', icon: Clock },
-    { key: 'curriculum', label: 'Kurikulum', icon: GraduationCap },
     { key: 'is_active', label: 'Status Aktif', icon: CheckCircle },
     { key: 'is_locked', label: 'Status Kunci', icon: Archive },
 ]
 
 const PRESETS = [
-    { id: 'all', label: 'Data Lengkap', cols: ['name', 'semester', 'start_date', 'end_date', 'curriculum', 'is_active', 'is_locked'] },
-    { id: 'general', label: 'Umum', cols: ['name', 'semester', 'curriculum', 'is_active'] },
-    { id: 'schedule', label: 'Jadwal', cols: ['name', 'semester', 'start_date', 'end_date'] },
+    { id: 'all', label: 'Data Lengkap', cols: ['academic_year', 'semester', 'start_date', 'end_date', 'is_active', 'is_locked'] },
+    { id: 'general', label: 'Umum', cols: ['academic_year', 'semester', 'is_active'] },
+    { id: 'schedule', label: 'Jadwal', cols: ['academic_year', 'semester', 'start_date', 'end_date'] },
 ]
 
-export default function AcademicYearExportModal({
+export default function PeriodExportModal({
     isOpen,
     onClose,
     years,
@@ -36,7 +35,7 @@ export default function AcademicYearExportModal({
 }) {
     const [fileName, setFileName] = useState(`Data Tahun Pelajaran ${new Date().toISOString().slice(0, 10)}`)
     const [advancedOpen, setAdvancedOpen] = useState(false)
-    const [pdfOrientation, setPdfOrientation] = useState('landscape') // 'landscape' | 'portrait'
+    const [pdfOrientation, setPdfOrientation] = useState('landscape')
     const [includeHeader, setIncludeHeader] = useState(true)
     const containerRef = useRef(null)
 
@@ -132,21 +131,16 @@ export default function AcademicYearExportModal({
             }
         >
             <div ref={containerRef}>
-                {/* Overlay Loading Premium */}
                 {exporting && (
                     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[var(--color-surface)]/60 backdrop-blur-md animate-in fade-in duration-300">
                         <div className="bg-gradient-to-b from-[var(--color-surface)] to-[var(--color-surface-alt)]/90 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12)] border border-[var(--color-border)]/60 rounded-3xl p-8 flex flex-col items-center gap-5 scale-110 animate-in zoom-in-95 duration-300">
                             <div className="relative w-16 h-16">
-                                {/* Outer pulsing ring */}
                                 <div className="absolute inset-0 rounded-full bg-[var(--color-primary)]/10 animate-ping opacity-75"></div>
-                                {/* Track ring */}
                                 <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]/10"></div>
-                                {/* Spinning active ring with premium glow filter */}
                                 <div 
                                     className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--color-primary)] border-r-[var(--color-primary)] animate-spin"
                                     style={{ filter: 'drop-shadow(0 0 4px var(--color-primary))' }}
                                 ></div>
-                                {/* Center icon container - centered absolutely using inset-0 m-auto */}
                                 <div className="absolute inset-0 m-auto w-10 h-10 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)]/60 flex items-center justify-center shadow-sm z-10">
                                     <FileArrowUp className="text-[var(--color-primary)] w-4 h-4 animate-pulse" />
                                 </div>
@@ -167,9 +161,8 @@ export default function AcademicYearExportModal({
                 )}
 
                 <div className={`space-y-6 pb-2 transition-all duration-500 ${exporting ? 'blur-sm grayscale-[0.5] opacity-50 pointer-events-none' : ''}`}>
-                    {/* Rows 1: Scope */}
                     <div className="space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 â€” Jangkauan Data</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 — Jangkauan Data</p>
                         <div className="grid grid-cols-3 gap-2.5">
                             {[
                                 { val: 'filtered', label: 'Funnel Aktif', desc: `${years.length} periode`, icon: SlidersHorizontal },
@@ -198,17 +191,15 @@ export default function AcademicYearExportModal({
                         </div>
                     </div>
 
-                    {/* Rows 2: Columns */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">2 â€” Kolom & Presets</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">2 — Kolom & Presets</p>
                             <div className="flex gap-2">
                                 <button onClick={() => handlePresetClick(COLUMN_DEFS.map(c => c.key))} className="text-[9px] font-black text-[var(--color-primary)] hover:underline uppercase tracking-widest bg-[var(--color-primary)]/5 px-2 py-1 rounded-lg transition-colors">Semua</button>
-                                <button onClick={() => handlePresetClick(['name', 'semester'])} className="text-[9px] font-black text-rose-500 hover:underline uppercase tracking-widest bg-rose-500/5 px-2 py-1 rounded-lg transition-colors">Reset</button>
+                                <button onClick={() => handlePresetClick(['academic_year', 'semester'])} className="text-[9px] font-black text-rose-500 hover:underline uppercase tracking-widest bg-rose-500/5 px-2 py-1 rounded-lg transition-colors">Reset</button>
                             </div>
                         </div>
 
-                        {/* Presets Sub-section with label and horizontal scroll */}
                         <div className="flex flex-col gap-2 p-3 bg-[var(--color-surface-alt)]/40 rounded-2xl border border-[var(--color-border)]/50">
                             <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-wider text-[var(--color-text-muted)] opacity-60">
                                 <Tag className="w-3 h-3" />
@@ -233,7 +224,6 @@ export default function AcademicYearExportModal({
                             </div>
                         </div>
 
-                        {/* Divider Line */}
                         <div className="relative flex items-center justify-center my-1">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-dashed border-[var(--color-border)]/65"></div>
@@ -248,9 +238,8 @@ export default function AcademicYearExportModal({
                         </div>
                     </div>
 
-                    {/* Rows 3: Filename & Advanced */}
                     <div className="space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">3 â€” Konfigurasi File</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">3 — Konfigurasi File</p>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <div className="flex-1 relative">
                                 <input
@@ -318,9 +307,8 @@ export default function AcademicYearExportModal({
                         )}
                     </div>
 
-                    {/* Rows 4: Format GridFour */}
                     <div className="space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">4 â€” Mulai Ekspor</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">4 — Mulai Ekspor</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                             {[
                                 { label: 'CSV', icon: FileXls, desc: 'Universal', onClick: () => handleExportCSV(fileName, exportOptions), color: 'hover:border-slate-400 hover:bg-slate-50', iconColor: 'text-slate-500' },

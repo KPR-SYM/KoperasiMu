@@ -144,7 +144,7 @@ export const ClassRow = React.memo(({
             {visibleCols.year && (
                 <td className="px-6 py-4 text-center">
                     <span className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-70">
-                        {cls.academicYearName || 'â€”'}
+                        {cls.periodName || 'â€”'}
                     </span>
                 </td>
             )}
@@ -253,7 +253,7 @@ export const ClassMobileCard = React.memo(({
 
                     <div className="mt-3 pt-3 border-t border-dashed border-[var(--color-border)] flex items-center justify-between text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
                         <span>Lvl {cls.grade}</span>
-                        <span>{cls.academicYearName || 'â€”'}</span>
+                        <span>{cls.periodName || 'â€”'}</span>
                     </div>
                 </div>
             </div>

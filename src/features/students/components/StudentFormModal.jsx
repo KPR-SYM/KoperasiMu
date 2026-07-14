@@ -23,7 +23,7 @@ const StudentFormModal = memo(function StudentFormModal({
 }) {
     const INIT = {
         name: '', gender: 'L', class_id: '', phone: '', photo_url: '',
-        nisn: '', nis: '', nik: '', birth_date: '', birth_place: '',
+        nis: '', nik: '', birth_date: '', birth_place: '',
         religion: '', address: '',
         guardian_name: '', guardian_relation: 'Ayah',
         status: 'aktif', tags: [], kamar: '',
@@ -108,7 +108,7 @@ const StudentFormModal = memo(function StudentFormModal({
 
     const calculateStepProgress = (step) => {
         if (step === 1) {
-            const fields = ['name', 'class_id', 'gender', 'nisn']
+            const fields = ['name', 'class_id', 'gender']
             const filled = fields.filter(f => form[f]).length
             return Math.round((filled / fields.length) * 100)
         }
@@ -132,7 +132,7 @@ const StudentFormModal = memo(function StudentFormModal({
         const value = form[field]
         const isTouched = touched[field] || attemptedSubmit
 
-        if (field === 'nisn' && value && value.length !== 10) return 'warning'
+
         if ((field === 'nik' || field === 'father_nik' || field === 'mother_nik') && value && value.length !== 16) return 'warning'
         if (field === 'phone' && value && (value.length < 10 || !value.startsWith('08'))) return 'warning'
 
@@ -176,7 +176,7 @@ const StudentFormModal = memo(function StudentFormModal({
                 class_id: selectedStudent.class_id || '',
                 phone: selectedStudent.phone || '',
                 photo_url: selectedStudent.photo_url || '',
-                nisn: selectedStudent.nisn || '',
+
                 nis: selectedStudent.nis || '',
                 nik: selectedStudent.nik || '',
                 birth_date: selectedStudent.birth_date || '',
@@ -226,7 +226,7 @@ const StudentFormModal = memo(function StudentFormModal({
                 .map(([k, v]) => ({ key: k, value: v }))
             setMetadataFields(metaArray)
             setShowMetadata(metaArray.length > 0)
-            setShowOptional(!!(selectedStudent.nisn || selectedStudent.guardian_name || (selectedStudent.tags || []).length > 0))
+            setShowOptional(!!(selectedStudent.guardian_name || (selectedStudent.tags || []).length > 0))
         } else {
             setForm(INIT)
             setMetadataFields([])
@@ -590,23 +590,6 @@ const StudentFormModal = memo(function StudentFormModal({
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="relative group">
-                                        <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">NISN</label>
-                                        <div className="relative">
-                                            <input
-                                                type="text"
-                                                value={form.nisn}
-                                                onChange={(e) => setField('nisn', e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                                onBlur={() => setFieldTouched('nisn')}
-                                                placeholder="10 Digit"
-                                                className={`w-full pl-9 pr-3 h-11 rounded-xl border outline-none transition-all text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 bg-[var(--color-surface)]
-                                                ${touched.nisn && form.nisn && form.nisn.length !== 10 ? 'border-amber-500 bg-amber-50/10' :
-                                                        getStatus('nisn') === 'success' ? 'border-emerald-500/30 bg-emerald-50/5' : 'border-[var(--color-border)] focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]'}`}
-                                            />
-                                            <IdentificationCard className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-3 h-3 transition-colors ${getStatus('nisn') === 'success' ? 'text-emerald-500' : 'text-[var(--color-text-muted)] opacity-50 group-focus-within:text-[var(--color-primary)]'}`} />
-                                        </div>
-                                    </div>
-
                                     <div className="relative group">
                                         <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">NIS</label>
                                         <div className="relative">
@@ -1303,7 +1286,7 @@ const StudentFormModal = memo(function StudentFormModal({
                                     </div>
                                     {/* Completion Ring */}
                                     {(() => {
-                                        const fields = [form.name, form.nisn, form.class_id, form.gender, form.birth_place, form.birth_date, form.mother_name, form.phone, form.address]
+                                        const fields = [form.name, form.class_id, form.gender, form.birth_place, form.birth_date, form.mother_name, form.phone, form.address]
                                         const filled = fields.filter(Boolean).length
                                         const pct = Math.round((filled / fields.length) * 100)
                                         const radius = 16, circ = 2 * Math.PI * radius, offset = circ - (pct / 100) * circ
@@ -1332,8 +1315,8 @@ const StudentFormModal = memo(function StudentFormModal({
                                                 <p className="text-[11px] font-bold text-[var(--color-text)] truncate">{form.name || <span className="text-[var(--color-text-muted)] italic opacity-40">belum diisi</span>}</p>
                                             </div>
                                             <div>
-                                                <p className="text-[8px] font-bold text-[var(--color-text-muted)] uppercase tracking-tight opacity-60">NISN / NIS</p>
-                                                <p className="text-[11px] font-bold text-[var(--color-text)]">{form.nisn || '---'} / {form.nis || '---'}</p>
+                                                <p className="text-[8px] font-bold text-[var(--color-text-muted)] uppercase tracking-tight opacity-60">NIS</p>
+                                                <p className="text-[11px] font-bold text-[var(--color-text)]">{form.nis || '---'}</p>
                                             </div>
                                             <div>
                                                 <p className="text-[8px] font-bold text-[var(--color-text-muted)] uppercase tracking-tight opacity-60">Kelas</p>

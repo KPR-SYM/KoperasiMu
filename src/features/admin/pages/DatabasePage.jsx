@@ -17,7 +17,7 @@ const TABLE_CONFIG = [
     { key: 'student_monthly_reports', label: 'Raport Bulanan', icon: ClipboardText, color: 'text-purple-500', bg: 'bg-purple-500/10', softDelete: false, dateCol: 'created_at' },
     { key: 'reports', label: 'Poin Siswa', icon: Shield, color: 'text-orange-500', bg: 'bg-orange-500/10', softDelete: false, dateCol: 'reported_at' },
     { key: 'point_rules', label: 'Konfigurasi Poin', icon: Warning, color: 'text-red-500', bg: 'bg-red-500/10', softDelete: false, dateCol: 'created_at' },
-    { key: 'academic_years', label: 'Tahun Pelajaran', icon: Calendar, color: 'text-teal-500', bg: 'bg-teal-500/10', softDelete: true, dateCol: 'created_at' },
+    { key: 'periods', label: 'Periode Akademik', icon: Calendar, color: 'text-teal-500', bg: 'bg-teal-500/10', softDelete: true, dateCol: 'created_at' },
     { key: 'gate_logs', label: 'Log Gerbang', icon: ArrowLineRight, color: 'text-rose-500', bg: 'bg-rose-500/10', softDelete: false, dateCol: 'created_at' },
     { key: 'profiles', label: 'Profil Akun', icon: Shield, color: 'text-violet-500', bg: 'bg-violet-500/10', softDelete: false, dateCol: 'created_at' },
     { key: 'feature_flags', label: 'Feature Flags', icon: Lightning, color: 'text-amber-500', bg: 'bg-amber-500/10', softDelete: false, dateCol: null },

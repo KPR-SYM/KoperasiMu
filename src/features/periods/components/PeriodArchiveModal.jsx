@@ -1,10 +1,10 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { Warning, Archive, CaretLeft, CaretRight, Spinner, Trash, ArrowCounterClockwise } from '@phosphor-icons/react'
 
 import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 
-export default function AcademicYearArchiveModal({
+export default function PeriodArchiveModal({
     isOpen,
     onClose,
     archivedYears,
@@ -26,9 +26,9 @@ export default function AcademicYearArchiveModal({
     const handleRestoreYear = async (year) => {
         setRestoring(true)
         try {
-            const { error } = await supabase.from('academic_years').update({ deleted_at: null }).eq('id', year.id)
+            const { error } = await supabase.from('periods').update({ deleted_at: null }).eq('id', year.id)
             if (error) throw error
-            addToast(`${year.name} ${year.semester} berhasil dipulihkan`, 'success')
+            addToast(`${year.academic_year} ${year.semester} berhasil dipulihkan`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== year.id))
             fetchData?.()
         } catch {
@@ -42,10 +42,10 @@ export default function AcademicYearArchiveModal({
         if (!deleteTarget) return
         setDeleting(true)
         try {
-            const { error } = await supabase.from('academic_years').delete().eq('id', deleteTarget.id)
+            const { error } = await supabase.from('periods').delete().eq('id', deleteTarget.id)
             if (error) throw error
 
-            addToast(`${deleteTarget.name} ${deleteTarget.semester} dihapus permanen`, 'success')
+            addToast(`${deleteTarget.academic_year} ${deleteTarget.semester} dihapus permanen`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== deleteTarget.id))
             setDeleteTarget(null)
             fetchData?.()
@@ -94,7 +94,7 @@ export default function AcademicYearArchiveModal({
         >
             <div className="space-y-3 relative">
 
-                {/* ====== DELETE CONFIRMATION OVERLAY (slides in smoothly) ====== */}
+                {/* ====== DELETE CONFIRMATION OVERLAY ====== */}
                 <div
                     className={`absolute inset-0 z-20 bg-[var(--color-surface)] flex flex-col items-center justify-center gap-4 p-6 rounded-xl transition-all duration-300 ease-out ${deleteTarget ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}
                 >
@@ -104,7 +104,7 @@ export default function AcademicYearArchiveModal({
                     <div className="text-center max-w-xs">
                         <p className="w-4 h-4 font-black text-[var(--color-text)] mb-1">Hapus Permanen?</p>
                         <p className="text-[11px] font-medium text-[var(--color-text-muted)] leading-relaxed">
-                            Tahun pelajaran <b className="text-red-500">{deleteTarget?.name} ({deleteTarget?.semester})</b> akan dihapus secara permanen. Tindakan ini <b>tidak dapat dibatalkan</b>.
+                            Tahun pelajaran <b className="text-red-500">{deleteTarget?.academic_year} ({deleteTarget?.semester})</b> akan dihapus secara permanen. Tindakan ini <b>tidak dapat dibatalkan</b>.
                         </p>
                     </div>
                     <div className="flex items-center gap-3 mt-2">
@@ -154,7 +154,6 @@ export default function AcademicYearArchiveModal({
                                 <thead className="bg-[var(--color-surface-alt)] sticky top-0">
                                     <tr className="text-left text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                                         <th className="px-3 py-2.5">Tahun Pelajaran</th>
-                                        <th className="px-3 py-2.5 text-center whitespace-nowrap">Kurikulum</th>
                                         <th className="px-3 py-2.5 text-center whitespace-nowrap">Diarsipkan</th>
                                         <th className="px-3 py-2.5 text-right">Aksi</th>
                                     </tr>
@@ -163,11 +162,8 @@ export default function AcademicYearArchiveModal({
                                     {archivedYears.slice((archivePage - 1) * archivePageSize, archivePage * archivePageSize).map(y => (
                                         <tr key={y.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
                                             <td className="px-3 py-2.5">
-                                                <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{y.name}</p>
+                                                <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{y.academic_year}</p>
                                                 <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Semester {y.semester}</p>
-                                            </td>
-                                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                                                <span className="text-[9px] font-black bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-1.5 py-0.5 rounded-md border border-[var(--color-primary)]/20">{y.curriculum || 'â€”'}</span>
                                             </td>
                                             <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
                                                 {formatRelativeDate(y.deleted_at)}
@@ -197,7 +193,6 @@ export default function AcademicYearArchiveModal({
                             </table>
                         </div>
 
-                        {/* Pagination Arsip */}
                         {archivedYears.length > archivePageSize && (
                             <div className="flex items-center justify-between px-1">
                                 <p className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">

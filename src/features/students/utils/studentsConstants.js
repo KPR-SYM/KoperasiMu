@@ -5,7 +5,6 @@ export const SortOptions = [
     { value: 'updated_desc', label: 'Terakhir diubah' },
 ]
 
-export const RiskThreshold = -30
 export const AvailableTags = ['Beasiswa', 'Berprestasi']
 
 export const getTagColor = (tag) => {
@@ -31,7 +30,6 @@ export const calculateCompleteness = (s) => {
     let score = 40; // Base score for Name, Gender, Class
     if (s.photo_url || s.photo) score += 20;
     if (s.phone) score += 15;
-    if (s.nisn) score += 15;
     if (s.metadata && Object.keys(s.metadata).length > 0) score += 10;
     return score;
 };

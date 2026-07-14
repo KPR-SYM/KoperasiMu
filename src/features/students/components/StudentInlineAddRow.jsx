@@ -31,7 +31,6 @@ export default function StudentInlineAddRow({
         gender: 'L',
         class_id: initialClassId || '',
         phone: '',
-        nisn: '',
         nis: '',
         kamar: ''
     })
@@ -119,19 +118,7 @@ export default function StudentInlineAddRow({
                 </td>
             )}
 
-            {/* Column 6: NISN (fills Poin column) */}
-            {vc.poin && (
-                <td className="px-4 py-3 text-center">
-                    <input
-                        type="text"
-                        value={localForm.nisn}
-                        onChange={e => setLocalForm(p => ({ ...p, nisn: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
-                        onKeyDown={handleKeyDown}
-                        placeholder="NISN"
-                        className="input-field text-[10px] h-9 px-2 rounded-xl border-[var(--color-border)] bg-[var(--color-surface)] w-full text-center font-bold"
-                    />
-                </td>
-            )}
+
 
             {/* Column 7: NIS (fills Lap. Terakhir column) */}
             {vc.last_report && (

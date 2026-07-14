@@ -88,7 +88,7 @@ const DebouncedSearchInput = memo(({ searchQuery, onSearch, inputRef, isLoading 
                 type="text"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                placeholder="Cari nama, NISN..."
+                placeholder="Cari nama..."
                 className="input-field w-full h-9 text-xs sm:text-sm bg-[var(--color-surface-alt)]/50 border-[var(--color-border)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all rounded-xl font-bold placeholder:font-normal placeholder:opacity-40"
             />
         </div>
@@ -506,7 +506,6 @@ export default function StudentsPage() {
 
                 {/* Header */}
                 <PageHeader
-                    badge="Master Data"
                     title="Data Siswa"
                     subtitle={`Kelola ${globalStats.total} data siswa aktif dalam sistem koperasi.`}
                     actions={
@@ -731,19 +730,11 @@ export default function StudentsPage() {
                             color="rose"
                         />
                         <StatCard
-                            key="avgPoints"
-                            icon={TrendUp}
-                            label="Rata-rata Poin"
-                            value={globalStats.avgPoints?.toFixed(1) || '0'}
-                            subValue={globalStats.avgPointsLastWeek ? `Naik ${(globalStats.avgPoints - globalStats.avgPointsLastWeek).toFixed(1)} minggu ini` : 'Minggu ini'}
-                            color="emerald"
-                        />
-                        <StatCard
                             key="incomplete"
                             icon={WarningCircle}
                             label="Data Tidak Lengkap"
                             value={globalStats.incompleteCount}
-                            subValue="Foto / NISN / No. HP"
+                            subValue="Foto / No. HP"
                             color="amber"
                         />
                     </StatsCarousel>
@@ -762,7 +753,7 @@ export default function StudentsPage() {
                             </div>
                             <div className="text-left whitespace-nowrap">
                                 <p className={`text-[10px] font-black leading-none ${filterMissing === 'photo' ? 'text-amber-600' : 'text-amber-600 dark:text-amber-400'}`}>{globalStats.incompleteCount} Tidak Lengkap</p>
-                                <p className="text-[9px] text-[var(--color-text-muted)] font-bold mt-0.5">Foto / NISN / Whatsapp</p>
+                                <p className="text-[9px] text-[var(--color-text-muted)] font-bold mt-0.5">Foto / No. HP / Whatsapp</p>
                             </div>
                         </button>
                     </div>

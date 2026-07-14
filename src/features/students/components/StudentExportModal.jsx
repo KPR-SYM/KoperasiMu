@@ -7,7 +7,6 @@ import Modal from '@shared/components/Modal'
 const COLUMN_DEFS = [
     { key: 'id', label: 'ID', icon: Hash },
     { key: 'kode', label: 'Kode Registrasi', icon: Barcode },
-    { key: 'nisn', label: 'NISN', icon: IdentificationCard },
     { key: 'nis', label: 'NIS', icon: IdentificationCard },
     { key: 'nik', label: 'NIK', icon: IdentificationCard },
     { key: 'nama', label: 'Nama', icon: User },
@@ -28,9 +27,9 @@ const COLUMN_DEFS = [
 ]
 
 const PRESETS = [
-    { id: 'all', label: 'Data Lengkap', cols: ['kode', 'nisn', 'nis', 'nik', 'nama', 'gender', 'kelas', 'poin', 'phone', 'status', 'tags', 'kelengkapan'] },
+    { id: 'all', label: 'Data Lengkap', cols: ['kode', 'nis', 'nik', 'nama', 'gender', 'kelas', 'poin', 'phone', 'status', 'tags', 'kelengkapan'] },
     { id: 'contact', label: 'Kontak Wali', cols: ['nama', 'kelas', 'phone'] },
-    { id: 'academic', label: 'Akademik', cols: ['nama', 'kelas', 'nis', 'nisn', 'poin'] },
+    { id: 'academic', label: 'Akademik', cols: ['nama', 'kelas', 'nis', 'poin'] },
     { id: 'minimal', label: 'Presensi', cols: ['nama', 'kelas'] },
 ]
 

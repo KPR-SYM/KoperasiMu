@@ -8,7 +8,7 @@ const ClassFormModal = memo(function ClassFormModal({
     onClose,
     selectedItem,
     teachersList,
-    academicYearsList,
+    periodsList,
     onSubmit,
     submitting
 }) {
@@ -22,7 +22,7 @@ const ClassFormModal = memo(function ClassFormModal({
         program: 'Boarding',
         gender_type: 'Putra',
         homeroom_teacher_id: '',
-        academic_year_id: academicYearsList[0]?.id || ''
+        academic_year_id: periodsList[0]?.id || ''
     }
 
     const [form, setForm] = useState(INIT)
@@ -43,15 +43,15 @@ const ClassFormModal = memo(function ClassFormModal({
                 program: selectedItem.major?.includes('Reguler') ? 'Reguler' : 'Boarding',
                 gender_type: selectedItem.major?.includes('Putri') ? 'Putri' : 'Putra',
                 homeroom_teacher_id: validTeacherId,
-                academic_year_id: selectedItem.academic_year_id || academicYearsList[0]?.id || ''
+                academic_year_id: selectedItem.academic_year_id || periodsList[0]?.id || ''
             })
         } else {
-            setForm({ ...INIT, academic_year_id: academicYearsList[0]?.id || '' })
+            setForm({ ...INIT, academic_year_id: periodsList[0]?.id || '' })
         }
         setFormError('')
         setTouched({})
         setAttemptedSubmit(false)
-    }, [isOpen, selectedItem, academicYearsList, teachersList])
+    }, [isOpen, selectedItem, periodsList, teachersList])
 
     const setField = useCallback((key, val) => {
         setForm(p => ({ ...p, [key]: val }))
@@ -283,7 +283,7 @@ const ClassFormModal = memo(function ClassFormModal({
                             <RichSelect
                                 value={form.academic_year_id}
                                 onChange={val => setField('academic_year_id', val)}
-                                options={academicYearsList.map(y => ({ id: y.id, name: y.label }))}
+                                options={periodsList.map(y => ({ id: y.id, name: y.label }))}
                                 placeholder="Pilih Tahun Akademik"
                                 icon={Calendar}
                                 status={getStatus('academic_year_id', true)}

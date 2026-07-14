@@ -704,14 +704,7 @@ export default function StudentImportModal(props) {
                                                                     handleImportCellEdit={handleImportCellEdit}
                                                                 />
                                                             </td>
-                                                            <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate">
-                                                                <EditableCell
-                                                                    rowIdx={i} colKey="nisn" value={r.nisn}
-                                                                    importPreview={importPreview} classesList={classesList}
-                                                                    importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                    handleImportCellEdit={handleImportCellEdit}
-                                                                />
-                                                            </td>
+
                                                             <td className="px-2 py-1">
                                                                 <div className="flex items-center justify-center gap-2">
                                                                     {isError ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-500/15 text-red-600 animate-pulse"><WarningCircle className="w-3 h-3" /></span>
