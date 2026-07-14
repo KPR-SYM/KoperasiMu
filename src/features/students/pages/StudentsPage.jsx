@@ -764,8 +764,8 @@ export default function StudentsPage() {
 
                     {/* Row 1: TelegramLogo + Quick Filters + Action Buttons */}
                     <div className="flex items-center gap-2 p-2.5 lg:p-3">
-                        {/* TelegramLogo Bar - Dynamic & Responsive */}
-                        <div className="flex-initial w-full lg:w-[160px] xl:w-[330px] focus-within:xl:w-[340px] min-w-[120px] transition-all duration-300">
+                        {/* Dynamic & Responsive */}
+                        <div className="flex-1 min-w-[140px]">
                             <DebouncedSearchInput
                                 searchQuery={searchQuery}
                                 onSearch={handleSearchChange}
@@ -775,7 +775,7 @@ export default function StudentsPage() {
                         </div>
 
                         {/* Quick Funnel Chips - Desktop Only */}
-                        <div className="hidden lg:flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 min-w-0 pr-8 h-full [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)]">
+                        <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
                             <div className="h-4 w-px bg-[var(--color-border)] mx-1 hidden lg:block" />
 
                             {/* UsersThree 1: Status */}
@@ -825,7 +825,7 @@ export default function StudentsPage() {
                             <div className="flex items-center gap-1.5 shrink-0">
                                 <button
                                     onClick={() => setSortBy(sortBy === 'name' ? '-name' : 'name')}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${sortBy.includes('name')
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border shadow-none ${sortBy.includes('name')
                                         ? 'bg-amber-500 border-amber-500 text-white'
                                         : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-amber-500/30 hover:bg-amber-500/5 hover:text-amber-600'
                                         }`}
@@ -954,7 +954,7 @@ export default function StudentsPage() {
                                     <div className="w-1 h-3 bg-[var(--color-primary)] rounded-full" />
                                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-primary)] flex items-center gap-2">
                                         <SlidersHorizontal className="w-3 h-3 opacity-60" />
-                                        Funnel Lanjutan
+                                        Filter Lanjutan
                                     </span>
                                 </div>
                                 <button
@@ -962,12 +962,12 @@ export default function StudentsPage() {
                                     className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 border border-transparent hover:border-red-100"
                                 >
                                     <ArrowCounterClockwise className="w-3 h-3" />
-                                    Reset Semua Funnel
+                                    Reset Semua Filter
                                 </button>
                             </div>
 
+                            {/* Row 1: Filter selects */}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-3 mb-3">
-                                {/* Kelas */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Kelas</label>
                                     <RichSelect
@@ -979,8 +979,6 @@ export default function StudentsPage() {
                                         searchable
                                     />
                                 </div>
-
-                                {/* Gender */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Gender</label>
                                     <RichSelect
@@ -995,8 +993,6 @@ export default function StudentsPage() {
                                         small
                                     />
                                 </div>
-
-                                {/* Status */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Status</label>
                                     <RichSelect
@@ -1013,8 +1009,6 @@ export default function StudentsPage() {
                                         small
                                     />
                                 </div>
-
-                                {/* Label/Tag */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Label</label>
                                     <RichSelect
@@ -1026,9 +1020,7 @@ export default function StudentsPage() {
                                         searchable
                                     />
                                 </div>
-
-                                {/* Urutkan */}
-                                <div className="col-span-1">
+                                <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Urutkan</label>
                                     <RichSelect
                                         value={sortBy}
@@ -1037,107 +1029,53 @@ export default function StudentsPage() {
                                         small
                                     />
                                 </div>
-
-                                {/* Desktop Only: Quick List & Actions Relocation */}
-                                <div className="hidden lg:block lg:col-span-3 pl-4 ml-4 border-l border-[var(--color-border)]/30">
-                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">List Cepat & Aksi</label>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex flex-wrap items-center gap-1.5">
-                                            {[
-                                                { label: 'Semua', icon: X, active: !filterMissing, onClick: () => { setFilterMissing(''); setSortBy('name_asc'); } },
-                                                { label: 'Foto Kosong', icon: StackSimple, active: filterMissing === 'photo', onClick: () => { setFilterMissing('photo'); setPage(1); } },
-                                                { label: 'Tanpa WA', icon: PenNibStraight, active: filterMissing === 'wa', onClick: () => { setFilterMissing('wa'); setPage(1); } },
-                                                { label: 'Siswa Baru', icon: ArrowClockwise, active: sortBy === 'created_at', onClick: () => { setSortBy('created_at'); setPage(1); } },
-                                            ].map((s, i) => (
-                                                <button key={i} onClick={s.onClick}
-                                                    className={`h-8 px-2.5 rounded-lg border flex items-center gap-2 transition-all ${s.active ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
-                                                    <s.icon className="w-3 h-3" />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">{s.label}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex items-center gap-2">
-                                            {activeFilterCount > 0 && (
-                                                <button
-                                                    onClick={async () => {
-                                                        try {
-                                                            const XLSX = await import('xlsx')
-                                                            const rows = await fetchFilteredForExport()
-                                                            const ws = XLSX.utils.json_to_sheet(rows)
-                                                            const wb = XLSX.utils.book_new()
-                                                            XLSX.utils.book_append_sheet(wb, ws, 'Funnel')
-                                                            const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
-                                                            const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-                                                            downloadBlob(blob, `export_filter_${new Date().toISOString().slice(0, 10)}.xlsx`)
-                                                            addToast(`${rows.length} baris berhasil diekspor sebagai Excel`, 'success')
-                                                        } catch { addToast('Gagal export', 'error') }
-                                                    }}
-                                                    className="h-8 px-3 rounded-lg bg-teal-500/10 text-teal-600 hover:bg-teal-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-teal-500/20"
-                                                >
-                                                    <DownloadSimple className="w-3 h-3" />
-                                                    Export
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => setShowAdvancedFilter(false)}
-                                                className="h-8 px-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
-                                            >
-                                                Tutup Panel
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
 
-                            {/* Mobile/DeviceTablet Only: Data Needs Presets - Separate row */}
-                            <div className="lg:hidden pt-3 border-t border-[var(--color-border)]/30 mt-1">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                    <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mr-2">Cepat:</span>
-                                        {[
-                                            { label: 'Semua', icon: X, active: !filterMissing, onClick: () => { setFilterMissing(''); setSortBy('name_asc'); } },
-                                            { label: 'Foto Kosong', icon: StackSimple, active: filterMissing === 'photo', onClick: () => { setFilterMissing('photo'); setPage(1); } },
-                                            { label: 'Tanpa WA', icon: PenNibStraight, active: filterMissing === 'wa', onClick: () => { setFilterMissing('wa'); setPage(1); } },
-                                            { label: 'Siswa Baru', icon: ArrowClockwise, active: sortBy === 'created_at', onClick: () => { setSortBy('created_at'); setPage(1); } },
-                                        ].map((s, i) => (
-                                            <button key={i} onClick={s.onClick}
-                                                className={`h-7 px-2.5 rounded-lg border flex items-center gap-2 transition-all ${s.active ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
-                                                <s.icon className="w-3 h-3" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">{s.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        {activeFilterCount > 0 && (
-                                            <button
-                                                onClick={async () => {
-                                                    try {
-                                                        const XLSX = await import('xlsx')
-                                                        const rows = await fetchFilteredForExport()
-                                                        const ws = XLSX.utils.json_to_sheet(rows)
-                                                        const wb = XLSX.utils.book_new()
-                                                        XLSX.utils.book_append_sheet(wb, ws, 'Funnel')
-                                                        const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
-                                                        const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-                                                        downloadBlob(blob, `export_filter_${new Date().toISOString().slice(0, 10)}.xlsx`)
-                                                        addToast(`${rows.length} baris berhasil diekspor sebagai Excel`, 'success')
-                                                    } catch { addToast('Gagal export', 'error') }
-                                                }}
-                                                className="h-7 px-3 rounded-lg bg-teal-500/10 text-teal-600 hover:bg-teal-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-teal-500/20"
-                                            >
-                                                <DownloadSimple className="w-3 h-3" />
-                                                Export
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => setShowAdvancedFilter(false)}
-                                            className="h-7 px-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
-                                        >
-                                            Tutup Panel
+                            {/* Row 2: Quick actions + Export — full width, all screens */}
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--color-border)]/30">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    {[
+                                        { label: 'Semua', icon: X, active: !filterMissing, onClick: () => { setFilterMissing(''); setSortBy('name_asc'); } },
+                                        { label: 'Foto Kosong', icon: StackSimple, active: filterMissing === 'photo', onClick: () => { setFilterMissing('photo'); setPage(1); } },
+                                        { label: 'Tanpa WA', icon: PenNibStraight, active: filterMissing === 'wa', onClick: () => { setFilterMissing('wa'); setPage(1); } },
+                                        { label: 'Siswa Baru', icon: ArrowClockwise, active: sortBy === 'created_at', onClick: () => { setSortBy('created_at'); setPage(1); } },
+                                    ].map((s, i) => (
+                                        <button key={i} onClick={s.onClick}
+                                            className={`h-8 px-2.5 rounded-lg border flex items-center gap-2 transition-all ${s.active ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
+                                            <s.icon className="w-3 h-3" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">{s.label}</span>
                                         </button>
-                                    </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    {activeFilterCount > 0 && (
+                                        <button
+                                            onClick={async () => {
+                                                try {
+                                                    const XLSX = await import('xlsx')
+                                                    const rows = await fetchFilteredForExport()
+                                                    const ws = XLSX.utils.json_to_sheet(rows)
+                                                    const wb = XLSX.utils.book_new()
+                                                    XLSX.utils.book_append_sheet(wb, ws, 'Funnel')
+                                                    const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
+                                                    const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+                                                    downloadBlob(blob, `export_filter_${new Date().toISOString().slice(0, 10)}.xlsx`)
+                                                    addToast(`${rows.length} baris berhasil diekspor sebagai Excel`, 'success')
+                                                } catch { addToast('Gagal export', 'error') }
+                                            }}
+                                            className="h-8 px-3 rounded-lg bg-teal-500/10 text-teal-600 hover:bg-teal-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-teal-500/20"
+                                        >
+                                            <DownloadSimple className="w-3 h-3" />
+                                            Export
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => setShowAdvancedFilter(false)}
+                                        className="h-8 px-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
+                                    >
+                                        Tutup Panel
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1315,7 +1253,7 @@ export default function StudentsPage() {
                                                                         onClick={resetAllFilters}
                                                                         className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition"
                                                                     >
-                                                                        Reset Semua Funnel
+                                                                        Reset Semua Filter
                                                                     </button>
                                                                 ) : (
                                                                     <button
@@ -1465,7 +1403,7 @@ export default function StudentsPage() {
                                                             onClick={resetAllFilters}
                                                             className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition"
                                                         >
-                                                            Reset Semua Funnel
+                                                            Reset Semua Filter
                                                         </button>
                                                     ) : (
                                                         <button
@@ -2386,7 +2324,7 @@ export default function StudentsPage() {
                                     <div className="flex justify-end">
                                         <button onClick={() => { closeModal(); setFilterClass(''); const cls = classesList.find(c => c.name === classBreakdownData.className); if (cls) setFilterClass(cls.id) }}
                                             className="btn bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 h-9 px-5 text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[var(--color-primary)]/20 transition">
-                                            Funnel Kelas Ini
+                                            Filter Kelas Ini
                                         </button>
                                     </div>
                                 </div>
