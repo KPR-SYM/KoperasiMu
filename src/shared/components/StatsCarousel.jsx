@@ -1,23 +1,6 @@
 import { useRef, useState } from 'react'
 import { useLanguage } from '@context'
 
-/**
- * StatsCarousel — Horizontally scrollable stats card container on mobile,
- * responsive grid on desktop. Includes dot indicators for mobile.
- *
- * Usage:
- *   <StatsCarousel count={4}>
- *     <StatCard ... />
- *     <StatCard ... />
- *     ...
- *   </StatsCarousel>
- *
- * Props:
- *   children  – stat card elements
- *   count     – total number of cards (for dot indicator)
- *   cols      – desktop grid cols (default 4) — maps to lg:grid-cols-{cols}
- *   className – extra classes on the outer wrapper
- */
 export default function StatsCarousel({ children, count, cols = 4, className = '' }) {
     const { dir } = useLanguage()
     const scrollRef = useRef(null)
@@ -33,10 +16,10 @@ export default function StatsCarousel({ children, count, cols = 4, className = '
 
     const colsClass =
         cols === 5 ? 'sm:grid-cols-3 lg:grid-cols-5' :
-        cols === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' :
-        cols === 3 ? 'sm:grid-cols-3 lg:grid-cols-3' :
-        cols === 2 ? 'sm:grid-cols-2 lg:grid-cols-2' :
-        'sm:grid-cols-2 lg:grid-cols-4'
+            cols === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' :
+                cols === 3 ? 'sm:grid-cols-3 lg:grid-cols-3' :
+                    cols === 2 ? 'sm:grid-cols-2 lg:grid-cols-2' :
+                        'sm:grid-cols-2 lg:grid-cols-4'
 
     return (
         <div className={`relative mb-6 -mx-3 sm:mx-0 rounded-2xl ${className}`}>
@@ -61,11 +44,10 @@ export default function StatsCarousel({ children, count, cols = 4, className = '
                             el.scrollTo({ left: cardWidth * i * scrollMultiplier, behavior: 'smooth' })
                         }}
                         aria-label={`Go to slide ${i + 1}`}
-                        className={`rounded-full transition-all duration-300 ${
-                            activeIdx === i
+                        className={`rounded-full transition-all duration-300 ${activeIdx === i
                                 ? 'w-5 h-1.5 bg-[var(--color-primary)]'
                                 : 'w-1.5 h-1.5 bg-[var(--color-text-muted)]/30 hover:bg-[var(--color-text-muted)]/50'
-                        }`}
+                            }`}
                     />
                 ))}
             </div>

@@ -704,7 +704,7 @@ export default function StudentsPage() {
 
                 {/* Stats Row Wrapper */}
                 {canShowStats && (
-                    <StatsCarousel count={5} cols={5}>
+                    <StatsCarousel count={5} cols={4}>
                         <StatCard
                             key="total"
                             icon={Users}
