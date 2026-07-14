@@ -6,7 +6,6 @@ import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, C
 import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
 import { EmptyState } from '@shared/components/DataDisplay'
 import { useToast } from '@context/Toast'
 import { useLanguage } from '@context/Language'
@@ -4307,7 +4306,7 @@ export default function AttendancePage() {
                 {/* Page header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
-                        <Breadcrumb badge="academic" items={['Attendance Analytics']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-1 inline-block">academic</span>
                         <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Absensi Bulanan</h1>
                         <p className="text-[var(--color-text-muted)] text-[11px] mt-0.5 font-medium opacity-70">
                             <span className="sm:hidden">Input &amp; rekap absensi siswa per bulan.</span>

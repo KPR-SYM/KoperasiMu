@@ -274,7 +274,6 @@ export default function TaskCenterPage() {
         {/* PAGE HEADER */}
         <PageHeader
           badge="Koperasi"
-          breadcrumbs={['Pusat Tugas']}
           title="Pusat Tugas Koperasi"
           subtitle="Dashboard koordinasi harian dan checklist verifikasi tugas operasional toko koperasi."
           actions={

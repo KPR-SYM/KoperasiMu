@@ -840,7 +840,6 @@ export default function CounselingPage() {
                 <PageHeader
                     title="Bimbingan & Konseling (BK)"
                     subtitle="Pusat pembinaan karakter, solusi psikososial, dan arahan karir santri MBS Tanggul."
-                    breadcrumbs={['Konseling & BK']}
                     badge="Kesantrian"
                     actions={
                         <>

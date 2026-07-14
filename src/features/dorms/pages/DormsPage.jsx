@@ -77,7 +77,6 @@ export default function DormsPage() {
                 {/* --- HEADER --- */}
                 <PageHeader
                     badge={t('dorms.badge')}
-                    breadcrumbs={[t('dorms.breadcrumbs')]}
                     title={t('dorms.title')}
                     subtitle={t('dorms.subtitle')}
                     actions={

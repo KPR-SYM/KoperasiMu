@@ -7,7 +7,6 @@ import { LIST_KAMAR } from '@features/dorms/utils/dormConstants'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import {
-    Breadcrumb,
     PageHeader,
     Modal,
     RichSelect,
@@ -508,7 +507,6 @@ export default function StudentsPage() {
                 {/* Header */}
                 <PageHeader
                     badge="Master Data"
-                    breadcrumbs={['Data Siswa']}
                     title="Data Siswa"
                     subtitle={`Kelola ${globalStats.total} data siswa aktif dalam sistem koperasi.`}
                     actions={

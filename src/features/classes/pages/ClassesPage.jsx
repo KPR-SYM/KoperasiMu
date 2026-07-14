@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import Modal from '@shared/components/Modal'
-import Breadcrumb from '@shared/components/Breadcrumb'
 import PageHeader from '@shared/components/PageHeader'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
@@ -854,7 +853,6 @@ export default function ClassesPage() {
                 {/* ── Header ── */}
                 <PageHeader
                     badge="Master Data"
-                    breadcrumbs={['Class Management']}
                     title="Data Kelas"
                     subtitle={`Kelola ${stats.total} data kelas dalam sistem.`}
                     actions={

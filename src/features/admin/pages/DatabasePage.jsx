@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { WarningCircle, Warning, ArrowLineRight, Calendar, CalendarBlank, Checks, CheckCircle, CaretDown, CaretUp, ClipboardText, Database, DownloadSimple, Info, LinkBreak, Spinner, PresentationChart, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, Buildings, MagnifyingGlass, Shield, ShieldCheck, Trash, Users, X, Lightning } from '@phosphor-icons/react'
-import { StatsCarousel, Breadcrumb } from '@shared/components'
+import { StatsCarousel } from '@shared/components'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast, useAuth } from '@context'
@@ -738,7 +738,7 @@ export default function DatabasePage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Engine Health']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Database Health</h1>
                             {integrityScore && (

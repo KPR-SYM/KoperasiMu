@@ -184,7 +184,6 @@ export default function DashboardPage() {
                 {/* ── PAGE HEADER ── */}
                 <PageHeader
                     badge="Dashboard"
-                    breadcrumbs={['Overview']}
                     title={
                         <>
                             Selamat Datang, {profile?.name?.split(' ')[0] || 'User'}!

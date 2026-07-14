@@ -6,7 +6,7 @@ import {
     BarChart, Bar, Cell, PieChart, Pie
 } from 'recharts'
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Breadcrumb } from '@shared/components'
+
 import { supabase } from '@lib/supabase'
 
 const TOKEN_RATE = 0.0012
@@ -105,7 +105,7 @@ export default function AdminDashboardPage() {
                 {/* ── HEADER ── */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8 animate-in slide-in-from-top-4 duration-500">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Technical Dashboard']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Admin Dashboard Center</h1>
                             <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 uppercase tracking-widest animate-pulse">System Active</span>

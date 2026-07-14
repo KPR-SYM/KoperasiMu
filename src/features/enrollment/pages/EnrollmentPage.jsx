@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import {
-    Breadcrumb,
     Modal,
     StatCard,
     EmptyState,
@@ -133,7 +132,7 @@ export default function EnrollmentPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                     <div>
-                        <Breadcrumb badge="Master Data" items={['PSB / Enrollment']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-1 inline-block">Master Data</span>
                         <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Penerimaan Santri Baru</h1>
                         <p className="text-[var(--color-text-muted)] text-[11px] mt-1 font-medium">Kelola pendaftaran dan seleksi calon santri baru</p>
                     </div>

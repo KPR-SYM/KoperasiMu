@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, memo, createContext,
 import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Funnel, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Breadcrumb, Modal, Pagination, Skeleton } from '@shared/components'
+import { Modal, Pagination, Skeleton } from '@shared/components'
 import { useToast } from '@context'
 
 // ─── VS Code Syntax Highlighter ────────────────────────────────────────────────
@@ -1591,7 +1591,7 @@ export default function PlaygroundPage() {
                     <div className="space-y-3">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-6">
                             <div className="min-w-0">
-                                <Breadcrumb badge="Admin" items={['Developer Tools', 'Design System']} />
+                                <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                                 <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)] mt-1.5">UI Playground</h1>
                                 <p className="text-[var(--color-text-muted)] text-[11px] font-medium opacity-70 mt-1 leading-relaxed">
                                     Design system sandbox & panduan komponen Koperasi SenyumMu Ecosystem. Semua komponen interaktif dengan preview dan kode siap pakai.
@@ -2596,7 +2596,7 @@ export default function PlaygroundPage() {
                                             </div>
                                         </div>
                                     }
-                                    code={`// Breadcrumb component\n<Breadcrumb badge="Admin" items={['Master Data', 'Data Siswa']} />\n\n// Manual:\n<div className="flex items-center gap-1.5">\n  {items.map((item, i) => (\n    <span key={item} className="flex items-center gap-1.5">\n      <span className={\`text-[10px] font-black\n        \${i === items.length - 1\n          ? 'text-[var(--color-text)]'\n          : 'text-[var(--color-text-muted)] opacity-50 cursor-pointer hover:text-[var(--color-primary)]'\n        }\`}>\n        {item}\n      </span>\n      {i < items.length - 1 &&\n        <CaretRight className="w-2 h-2 opacity-30" />}\n    </span>\n  ))}\n</div>`}
+                                    code={`// Breadcrumb component\n<span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>\n\n// Manual:\n<div className="flex items-center gap-1.5">\n  {items.map((item, i) => (\n    <span key={item} className="flex items-center gap-1.5">\n      <span className={\`text-[10px] font-black\n        \${i === items.length - 1\n          ? 'text-[var(--color-text)]'\n          : 'text-[var(--color-text-muted)] opacity-50 cursor-pointer hover:text-[var(--color-primary)]'\n        }\`}>\n        {item}\n      </span>\n      {i < items.length - 1 &&\n        <CaretRight className="w-2 h-2 opacity-30" />}\n    </span>\n  ))}\n</div>`}
                                     dos={['Tampilkan max 4 level — collapse tengah kalau lebih dari itu', 'Buat semua item kecuali terakhir bisa diklik', 'Gunakan role badge di kiri untuk konteks halaman']}
                                     donts={['Jangan ulangi halaman aktif di breadcrumb dan page title', 'Hindari breadcrumb di halaman top-level (Dashboard, House)', 'Jangan gunakan slash (/) sebagai separator — pakai chevron >']}
                                 />
@@ -3715,7 +3715,7 @@ export default function PlaygroundPage() {
                                                 </div>
                                             ))}
                                         </div>
-                                    } code={`<div className="flex items-end justify-between gap-4 mb-6">\n  <div>\n    <Breadcrumb items={['Dashboard', 'Data Siswa']} />\n    <h1 className="text-[24px] font-black font-heading tracking-tight text-[var(--color-text)] mt-1">Data Siswa</h1>\n    <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">320 siswa aktif · TA 2024/2025</p>\n  </div>\n  <div className="flex gap-2 shrink-0">\n    <button className="h-9 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black">Export</button>\n    <button className="h-9 px-4 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black">+ Tambah</button>\n  </div>\n</div>`} />
+                                    } code={`<div className="flex items-end justify-between gap-4 mb-6">\n  <div>\n    <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>\n    <h1 className="text-[24px] font-black font-heading tracking-tight text-[var(--color-text)] mt-1">Data Siswa</h1>\n    <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">320 siswa aktif · TA 2024/2025</p>\n  </div>\n  <div className="flex gap-2 shrink-0">\n    <button className="h-9 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black">Export</button>\n    <button className="h-9 px-4 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black">+ Tambah</button>\n  </div>\n</div>`} />
                                     <UIBlock title="20 · Stepper Layout" children={
                                         <div className="space-y-4">
                                             <div className="flex items-center">

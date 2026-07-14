@@ -3,7 +3,6 @@ import { Warning, SealCheck, Bell, Camera, Check, Clock, Eye, EyeSlash, Spinner,
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
 import { useTheme } from '@context/Theme'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
@@ -443,7 +442,7 @@ export default function SettingsPage() {
             <div className="p-4 md:p-6 space-y-5 max-w-[1800px] mx-auto">
 
                 <div className="mb-6">
-                    <Breadcrumb badge="Pengaturan" items={['GearSix']} className="mb-1" />
+                    <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-1 inline-block">Pengaturan</span>
                     <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Pengaturan</h1>
                     <p className="text-[11px] text-[var(--color-text-muted)] mt-1 font-medium">
                         Kelola profil, tampilan, dan keamanan akun kamu.

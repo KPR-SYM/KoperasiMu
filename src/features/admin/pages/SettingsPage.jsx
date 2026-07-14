@@ -3,7 +3,7 @@ import { WarningCircle, Warning, Check, CheckCircle, CaretRight, Code, Compass, 
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
+
 import Pagination from '@shared/components/Pagination'
 import { useToast } from '@context/Toast'
 import { supabase } from '@lib/supabase'
@@ -1029,7 +1029,7 @@ export default function AdminSettingsPage() {
                 {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Internal Flags']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">
                                 Developer Trash

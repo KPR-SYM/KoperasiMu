@@ -2,7 +2,7 @@
 import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, Funnel, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
+
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -297,7 +297,7 @@ export default function TasksPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Background Tasks']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1 flex-wrap">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Background Tasks</h1>
                             <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 uppercase tracking-widest">Direct Query</span>

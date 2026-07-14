@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Warning, Archive, Eraser, CheckCircle, Database, FileText, FolderOpen, ImageSquare, Spinner, ArrowCounterClockwise, MagnifyingGlass, Trash } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
+
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -250,7 +250,7 @@ export default function StoragePage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Storage Analysis']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Storage Manager</h1>
                             <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 uppercase tracking-widest">Admin Only</span>

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Modal, Breadcrumb, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, RichSelect } from '@shared/components'
+import { Modal, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, RichSelect } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
@@ -1059,7 +1059,6 @@ export default function TeachersPage() {
                 {/* ── Header ── */}
                 <PageHeader
                     badge="Master Data"
-                    breadcrumbs={['Faculty Members']}
                     title="Data Guru"
                     subtitle={`Kelola ${stats.total} data ${filterType === 'karyawan' ? 'karyawan' : filterType === 'guru' ? 'guru' : 'guru dan karyawan'} dalam sistem.`}
                     actions={

@@ -8,7 +8,7 @@ import {
 } from 'recharts'
 import Papa from 'papaparse'
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Breadcrumb } from '@shared/components'
+
 import { supabase } from '@lib/supabase'
 
 const PAGE_SIZE = 10
@@ -237,7 +237,7 @@ export default function AiInsightsPage() {
                 {/* ── Rows 1: Header Rows (NewsListPage Style) ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 animate-in slide-in-from-top-4 duration-500">
                     <div>
-                        <Breadcrumb badge="Admin" items={['Neural Engine Center']} className="mb-1" />
+                        <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">AI Insights Center</h1>
                             <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 uppercase tracking-widest">Active Monitor</span>

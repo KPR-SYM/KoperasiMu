@@ -13,7 +13,6 @@ import { useDebounce } from '@hooks/useDebounce'
 import {
     PageHeader,
     Modal,
-    Breadcrumb,
     Pagination,
     TableSkeleton,
     CardSkeleton,
@@ -1198,7 +1197,6 @@ export default function AcademicYearsPage() {
                 {/* ── Header Row ── */}
                 <PageHeader
                     badge="Master Data"
-                    breadcrumbs={['Academic Cycle']}
                     title="Tahun Pelajaran"
                     subtitle={`Kelola ${stats.total} periode akademik dalam ekosistem.`}
                     actions={

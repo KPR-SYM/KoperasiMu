@@ -945,7 +945,6 @@ export default function HealthPage() {
                 {/* ─── PAGE HEADER WITH INTEGRATED BREADCRUMB ─── */}
                 <PageHeader
                     badge="Kesantrian"
-                    breadcrumbs={['UKS & Poskestren']}
                     title={tp('title')}
                     subtitle={tp('desc')}
                     actions={

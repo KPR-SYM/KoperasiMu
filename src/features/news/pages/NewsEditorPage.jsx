@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -969,11 +968,7 @@ export default function NewsEditorPage() {
 
                 {/* ── Header ── */}
                 <div className="bg-[var(--color-surface)] p-5 md:p-6 rounded-[1.5rem] border border-[var(--color-border)] shadow-sm space-y-4">
-                    <Breadcrumb items={[
-                        'Admin',
-                        'Informasi',
-                        isEdit ? 'Pen' : 'Create'
-                    ]} />
+                    <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
 
                     <div className="flex items-center justify-between gap-3 min-w-0">
                         <div className="flex items-center gap-2 md:gap-4 min-w-0">

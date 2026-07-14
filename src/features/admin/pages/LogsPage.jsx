@@ -2,7 +2,7 @@
 import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, Funnel, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Breadcrumb from '@shared/components/Breadcrumb'
+
 
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
@@ -727,7 +727,7 @@ export default function LogsPage() {
 
                 {/* Header */}
                 <div className="flex flex-col gap-1">
-                    <Breadcrumb badge="Admin" items={['Audit Center']} className="mb-0" />
+                    <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                     <h1 className="text-2xl font-black font-heading text-[var(--color-text)]">Pusat Audit Sistem</h1>
                     <p className="text-[11px] font-medium text-[var(--color-text-muted)] opacity-60">
                         Jejak digital lengkap aktivitas sistem dan akses data.

@@ -1,4 +1,3 @@
-export { default as Breadcrumb } from './Breadcrumb'
 export { default as BulkActionsBar } from './BulkActionsBar'
 export { StatCard, DataTable, EmptyState } from './DataDisplay'
 export { default as ConfirmDialog } from './ConfirmDialog'
