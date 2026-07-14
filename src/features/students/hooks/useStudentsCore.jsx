@@ -112,7 +112,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
 
     // ---- STATE: OTHERS ----
     const [isInlineAddOpen, setIsInlineAddOpen] = useState(false)
-    const [inlineForm, setInlineForm] = useState({ name: '', gender: 'L', class_id: '', phone: '', nis: '', kamar: '' })
+    const [inlineForm, setInlineForm] = useState({ name: '', gender: 'L', class_id: '', phone: '' })
     const [submittingInline, setSubmittingInline] = useState(false)
     const [uploadingPhoto, setUploadingPhoto] = useState(false)
     const [classBreakdownData, setClassBreakdownData] = useState(null)
@@ -304,9 +304,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         setSelectedStudent(null)
         formDataRef.current = {
             name: '', gender: 'L', class_id: '', phone: '', photo_url: '',
-            nis: '', nik: '', birth_date: '', birth_place: '',
-            religion: '', address: '',
-            guardian_name: '', guardian_relation: 'Ayah',
             status: 'aktif', tags: []
         }
         setIsModalOpen(true)
@@ -320,15 +317,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             class_id: student.class_id || '',
             phone: student.phone || '',
             photo_url: student.photo_url || '',
-
-            nis: student.nis || '',
-            nik: student.nik || '',
-            birth_date: student.birth_date || '',
-            birth_place: student.birth_place || '',
-            religion: student.religion || '',
-            address: student.address || '',
-            guardian_name: student.guardian_name || '',
-            guardian_relation: student.guardian_relation || 'Ayah',
             status: student.status || 'aktif',
             tags: student.tags || [],
         }
@@ -399,17 +387,8 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                         class_id: formData.class_id,
                         phone: formData.phone,
                         photo_url: formData.photo_url,
-                        nis: formData.nis || null,
-                        nik: formData.nik || null,
-                        birth_date: formData.birth_date || null,
-                        birth_place: formData.birth_place || null,
-                        religion: formData.religion || null,
-                        address: formData.address || null,
-                        guardian_name: formData.guardian_name || null,
-                        guardian_relation: formData.guardian_relation || null,
                         status: formData.status || 'aktif',
                         tags: formData.tags || [],
-                        metadata: formData.metadata || {},
                     })
                     .eq('id', selectedStudent.id)
                 if (error) throw error
@@ -441,17 +420,8 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                     class_id: formData.class_id,
                     phone: formData.phone,
                     photo_url: formData.photo_url,
-                    nis: formData.nis || null,
-                    nik: formData.nik || null,
-                    birth_date: formData.birth_date || null,
-                    birth_place: formData.birth_place || null,
-                    religion: formData.religion || null,
-                    address: formData.address || null,
-                    guardian_name: formData.guardian_name || null,
-                    guardian_relation: formData.guardian_relation || null,
                     status: formData.status || 'aktif',
                     tags: formData.tags || [],
-                    metadata: formData.metadata || {},
                 }
                 const { data: insData, error } = await supabase.from('students').insert([newStudentData]).select('id').single()
                 if (error) throw error
@@ -1024,8 +994,6 @@ Koperasi SenyumMu System`
                 gender: payload.gender || 'L',
                 class_id: payload.class_id,
                 phone: payload.phone || null,
-                nis: payload.nis || null,
-                kamar: payload.kamar || null,
                 status: 'aktif',
                 tags: [],
                 registration_code: generateCode(),
@@ -1033,8 +1001,8 @@ Koperasi SenyumMu System`
             }])
             if (error) throw error
             addToast('Berhasil menambahkan siswa', 'success')
-            await logAudit({ action: 'INSERT', tableName: 'students', newData: { full_name: payload.name, class_id: payload.class_id, gender: payload.gender, nis: payload.nis, kamar: payload.kamar, via: 'inline' } })
-            if (!payloadOverride) setInlineForm({ name: '', gender: 'L', class_id: inlineForm.class_id, phone: '', nis: '', kamar: '' })
+            await logAudit({ action: 'INSERT', tableName: 'students', newData: { full_name: payload.name, class_id: payload.class_id, gender: payload.gender, via: 'inline' } })
+            if (!payloadOverride) setInlineForm({ name: '', gender: 'L', class_id: inlineForm.class_id, phone: '' })
             fetchData(); fetchStats()
         } catch (err) {
             console.error('Inline Add Error:', err)

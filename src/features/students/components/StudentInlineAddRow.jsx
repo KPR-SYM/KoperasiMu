@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Check, Spinner, X } from '@phosphor-icons/react'
 
-import { LIST_KAMAR } from '@features/dorms/utils/dormConstants'
 import RichSelect from '@shared/components/RichSelect'
 
 export default function StudentInlineAddRow({
@@ -17,10 +16,6 @@ export default function StudentInlineAddRow({
         gender: true,
         kelas: true,
         status: true,
-        poin: true,
-        last_report: true,
-        profil: true,
-        tags: true,
         aksi: true,
         ...visibleColumns
     }
@@ -30,9 +25,7 @@ export default function StudentInlineAddRow({
         name: '',
         gender: 'L',
         class_id: initialClassId || '',
-        phone: '',
-        nis: '',
-        kamar: ''
+        phone: ''
     })
 
     useEffect(() => {
@@ -59,12 +52,10 @@ export default function StudentInlineAddRow({
 
     return (
         <tr className="border-t-2 border-[var(--color-primary)]/30 bg-[var(--color-primary)]/[0.01] transition-all duration-300">
-            {/* Column 1: Selection (Empty) */}
             <td className="px-4 py-3">
                 <div className="w-4 h-4 rounded border border-[var(--color-border)] opacity-20 mx-auto" />
             </td>
 
-            {/* Column 2: Name / Siswa */}
             <td className="px-4 py-3">
                 <input
                     ref={nameInputRef}
@@ -77,7 +68,6 @@ export default function StudentInlineAddRow({
                 />
             </td>
 
-            {/* Column 3: Gender */}
             {vc.gender && (
                 <td className="px-4 py-3 text-center">
                     <div className="flex gap-1 justify-center">
@@ -90,7 +80,6 @@ export default function StudentInlineAddRow({
                 </td>
             )}
 
-            {/* Column 4: Class */}
             {vc.kelas && (
                 <td className="px-4 py-3 text-center">
                     <RichSelect
@@ -104,7 +93,6 @@ export default function StudentInlineAddRow({
                 </td>
             )}
 
-            {/* Column 5: WhatsApp (fills Status column) */}
             {vc.status && (
                 <td className="px-4 py-3 text-center">
                     <input
@@ -118,40 +106,8 @@ export default function StudentInlineAddRow({
                 </td>
             )}
 
-
-
-            {/* Column 7: NIS (fills Lap. Terakhir column) */}
-            {vc.last_report && (
-                <td className="px-4 py-3 text-center">
-                    <input
-                        type="text"
-                        value={localForm.nis}
-                        onChange={e => setLocalForm(p => ({ ...p, nis: e.target.value }))}
-                        onKeyDown={handleKeyDown}
-                        placeholder="NIS"
-                        className="input-field text-[10px] h-9 px-2 rounded-xl border-[var(--color-border)] bg-[var(--color-surface)] w-full text-center font-bold"
-                    />
-                </td>
-            )}
-
-            {/* Column 8: Kamar (fills Profil column) */}
-            {vc.profil && (
-                <td className="px-4 py-3 text-center">
-                    <RichSelect
-                        small
-                        value={localForm.kamar}
-                        onChange={val => setLocalForm(p => ({ ...p, kamar: val }))}
-                        options={LIST_KAMAR?.map(k => ({ id: k.id, name: k.id })) || []}
-                        placeholder="Pilih Kamar"
-                        className="w-full"
-                    />
-                </td>
-            )}
-
-            {/* Column 9: Tag (Empty) */}
             {vc.tags && <td className="px-4 py-3" />}
 
-            {/* Column 10: Actions (FloppyDisk/Cancel) */}
             {vc.aksi && (
                 <td className="px-4 py-3 text-center w-[280px]">
                     <div className="flex items-center justify-center gap-1.5">

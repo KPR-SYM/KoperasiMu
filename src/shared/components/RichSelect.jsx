@@ -374,8 +374,8 @@ const RichSelect = memo(({
         heightClass = 'h-8 sm:h-9'
         paddingClass = icon ? 'pl-8 pr-3 rtl:pl-3 rtl:pr-8' : 'px-3'
     } else {
-        heightClass = 'h-9'
-        paddingClass = icon ? 'pl-8 pr-2.5 rtl:pl-2.5 rtl:pr-8' : 'px-2.5'
+        heightClass = 'h-11'
+        paddingClass = icon ? 'pl-9 pr-3 rtl:pl-3 rtl:pr-9' : 'px-3'
     }
 
     return (
@@ -384,10 +384,10 @@ const RichSelect = memo(({
                 type="button"
                 onClick={disabled ? undefined : toggle}
                 disabled={disabled}
-                className={`w-full flex items-center justify-between gap-2 ${hasCustomHeight ? '' : heightClass} ${paddingClass} rounded-lg border ${statusClasses[status]} bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]/50 focus:ring-1 outline-none transition-all text-[10px] font-bold relative group shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${buttonClassName}`}
+                className={`w-full flex items-center justify-between gap-2 ${hasCustomHeight ? '' : heightClass} ${paddingClass} rounded-xl border ${statusClasses[status]} bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]/50 focus:ring-1 outline-none transition-all text-[10px] font-bold relative group shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${buttonClassName}`}
             >
                 <div className="flex items-center gap-2 truncate">
-                    {icon && !compact && renderIcon(icon, `absolute ${small ? 'left-2.5 rtl:left-auto rtl:right-2.5 w-2.5 h-2.5' : 'left-3 rtl:left-auto rtl:right-3 w-3 h-3'} top-1/2 -translate-y-1/2 transition-colors ${iconStatusClasses[status]}`)}
+                    {icon && !compact && renderIcon(icon, `absolute ${small ? 'left-3 rtl:left-auto rtl:right-3 w-2.5 h-2.5' : 'left-3.5 rtl:left-auto rtl:right-3.5 w-3 h-3'} top-1/2 -translate-y-1/2 transition-colors ${iconStatusClasses[status]}`)}
                     <span className={selectedOption ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-60'}>
                         {selectedOption ? (selectedOption.render ? selectedOption.render : selectedOption.name) : placeholder}
                     </span>
