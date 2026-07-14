@@ -12,13 +12,11 @@ import {
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
 import { GlobalErrorBoundary } from '@shared/components'
+import { logErrorToSupabase } from '@shared/utils/errorLogger'
 import { Component } from 'react'
 
 // ─── Lazy Loading Guard ───────────────────────────────────────────────────────
-/**
- * Helper to handle "Failed to fetch dynamically imported module".
- * Happens during development (Vite HMR) or when a new version is deployed.
- */
+
 function lazyRetry(componentImport) {
   return lazy(async () => {
     try {
@@ -35,6 +33,7 @@ function lazyRetry(componentImport) {
 }
 
 // ─── Lazy-loaded Pages ────────────────────────────────────────────────────────
+
 // Public
 const LandingPage = lazyRetry(() => import('@features/public/pages/LandingPage.jsx'))
 const LoginPage = lazyRetry(() => import('@features/auth/pages/LoginPage.jsx'))
@@ -72,7 +71,7 @@ const PublicEnrollmentPage = lazyRetry(() => import('@features/public/pages/Publ
 const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/PublicStatusCheckPage.jsx'))
 
 // ─── Role Hierarchy ───────────────────────────────────────────────────────────
-// developer > admin > guru = satpam > viewer
+
 const DEV_ONLY = ['developer']
 const DEV_ADMIN = ['developer', 'admin']
 const DEV_ADMIN_TEACHER = ['developer', 'admin', 'guru']
@@ -568,11 +567,26 @@ function AppRoutes() {
   )
 }
 
+// ─── ErrorBoundary Bridge (inside BrowserRouter so resetKeys can use useLocation) ─
+function ErrorBoundaryWithRouter({ children }) {
+  const location = useLocation()
+  return (
+    <GlobalErrorBoundary
+      resetKeys={[location.pathname]}
+      onError={(error, errorInfo, errorId) => {
+        logErrorToSupabase(error, errorInfo, errorId)
+      }}
+    >
+      {children}
+    </GlobalErrorBoundary>
+  )
+}
+
 // ─── App Root ─────────────────────────────────────────────────────────────────
 export default function App() {
   return (
-    <GlobalErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundaryWithRouter>
         <Toaster
           position="bottom-right"
           toastOptions={{
@@ -596,7 +610,7 @@ export default function App() {
             </ToastProvider>
           </ThemeProvider>
         </LanguageProvider>
-      </BrowserRouter>
-    </GlobalErrorBoundary>
+      </ErrorBoundaryWithRouter>
+    </BrowserRouter>
   )
 }

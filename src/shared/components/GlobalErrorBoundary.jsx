@@ -52,6 +52,7 @@ function ErrorFallback({
     const canRetry = retryCount < maxRetries
     const showRetryWarn = retryCount > 0
     const isAmber = isOffline || isModuleError
+    const accent = isAmber ? 'amber' : 'red'
 
     // ── Handler: Salin detail error ke clipboard ──────────────────────────────
     const handleCopy = () => {
@@ -107,44 +108,42 @@ function ErrorFallback({
                 details[open] .eb-details-arrow { transform: rotate(180deg); }
             `}</style>
 
-            {/* Card utama — identik dengan modal di page lain */}
+            {/* Card utama — rounded-2xl + border-t-4 color-coded, sama pattern kayak StatCard */}
             <div className={`
                 relative w-full max-w-md
                 bg-[var(--color-surface)] border border-[var(--color-border)]
-                rounded-2xl shadow-2xl
+                rounded-2xl shadow-sm
                 flex flex-col items-center gap-4
                 px-6 pt-8 pb-6
-                ${isAmber ? 'border-t-[3px] border-t-amber-500' : 'border-t-[3px] border-t-red-500'}
+                border-t-4 border-t-${accent}-500
             `}>
 
-                {/* SealCheck tipe error — gaya badge tag di page */}
-                <span className={`
-                    absolute top-4 right-4
-                    px-3 py-1 rounded-full font-mono
-                    text-[10px] font-black uppercase tracking-[0.15em]
-                    border
-                    ${isAmber
-                        ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                        : 'bg-red-500/10 text-red-500 border-red-500/10'}
-                `}>
-                    {errorType}
-                </span>
+                {/* Badge tipe error — HANYA muncul di DEV, jangan bocorin internal error type ke production user */}
+                {isDev && (
+                    <span className={`
+                        absolute top-4 right-4
+                        px-2.5 py-1 rounded-full
+                        text-[9px] font-black uppercase tracking-[0.15em]
+                        border
+                        bg-${accent}-500/10 text-${accent}-600 border-${accent}-500/20
+                    `}>
+                        {errorType}
+                    </span>
+                )}
 
-                {/* Icon bulat */}
+                {/* Icon — rounded-2xl square, sama persis pattern empty-state (mis. "Belum Ada Data Siswa") */}
                 <div className={`
-                    w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 border-2
-                    ${isAmber
-                        ? 'bg-amber-500/10 border-amber-500/20'
-                        : 'bg-red-500/10 border-red-500/20'}
+                    w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0
+                    bg-${accent}-500/10
                 `}>
                     {isOffline ? (
-                        <WarningCircle className={`text-xl ${isAmber ? 'text-amber-500' : 'text-red-500'}`} />
+                        <WarningCircle weight="bold" className={`text-2xl text-${accent}-500`} />
                     ) : (
-                        <Warning className={`text-xl ${isAmber ? 'text-amber-500' : 'text-red-500'}`} />
+                        <Warning weight="bold" className={`text-2xl text-${accent}-500`} />
                     )}
                 </div>
 
-                {/* TextH + subtext */}
+                {/* Judul + subtext */}
                 <div className="text-center max-w-xs">
                     <p className="text-base font-black text-[var(--color-text)] tracking-tight mb-1.5">
                         {isOffline ? 'Tidak ada koneksi' : isModuleError ? 'Gagal memuat modul' : 'Terjadi kesalahan'}
@@ -158,8 +157,8 @@ function ErrorFallback({
                     </p>
                 </div>
 
-                {/* Error message — code block dengan border-left aksen */}
-                {error?.message && (
+                {/* Error message mentah — HANYA di DEV. Production user cukup tau "ada masalah", bukan detail teknisnya */}
+                {isDev && error?.message && (
                     <div
                         role="code"
                         aria-label="Pesan error"
@@ -167,7 +166,7 @@ function ErrorFallback({
                             w-full font-mono text-[11.5px] leading-relaxed break-all
                             bg-[var(--color-surface-alt)] border border-[var(--color-border)]
                             border-l-[3px] rounded-r-xl px-3 py-2.5
-                            ${isAmber ? 'border-l-amber-500 text-amber-600' : 'border-l-red-500 text-red-500'}
+                            border-l-${accent}-500 text-${accent}-600
                         `}
                     >
                         {error.message}
@@ -216,7 +215,7 @@ function ErrorFallback({
                 {/* Tombol aksi */}
                 <div className="flex flex-col gap-2 w-full">
 
-                    {/* Baris 1: primary full-width — gradient identik dengan button login/cta di page */}
+                    {/* Baris 1: primary full-width — solid, sama gaya tombol "TAMBAH SISWA" (tanpa gradient/scale) */}
                     <button
                         onClick={isModuleError ? () => window.location.reload() : onReset}
                         disabled={!canRetry}
@@ -224,14 +223,11 @@ function ErrorFallback({
                         aria-label={isModuleError ? 'Muat ulang halaman' : canRetry ? `Coba lagi, percobaan ke-${retryCount + 1}` : 'Batas percobaan tercapai'}
                         className={`
                             w-full h-10 rounded-xl
-                            text-white text-[12px] font-black uppercase tracking-widest
+                            text-white text-[12px] font-black uppercase tracking-wide
                             flex items-center justify-center gap-2
-                            hover:scale-[1.02] active:scale-[0.98] transition-all duration-200
-                            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
-                            ${isAmber
-                                ? 'bg-gradient-to-r from-amber-500 to-amber-600 shadow-lg shadow-amber-500/20'
-                                : 'bg-gradient-to-r from-red-500 to-red-600 shadow-lg shadow-red-500/20'
-                            }
+                            transition-colors duration-150
+                            disabled:opacity-40 disabled:cursor-not-allowed
+                            bg-${accent}-600 hover:bg-${accent}-700
                         `}
                     >
                         <ArrowClockwise />
