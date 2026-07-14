@@ -16,10 +16,9 @@ import Pagination from '@shared/components/Pagination'
 const ROLE_META = {
     developer: { label: 'Developer', color: 'text-rose-600', bg: 'bg-rose-500/10', border: 'border-rose-500/20', icon: Code },
     admin: { label: 'Admin', color: 'text-purple-600', bg: 'bg-purple-500/10', border: 'border-purple-500/20', icon: Shield },
-    guru: { label: 'Guru', color: 'text-indigo-600', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: PresentationChart },
-    karyawan: { label: 'Karyawan', color: 'text-green-600', bg: 'bg-green-500/10', border: 'border-green-500/20', icon: Suitcase },
-    satpam: { label: 'Satpam', color: 'text-blue-600', bg: 'bg-blue-500/10', border: 'border-blue-500/20', icon: Shield },
-    viewer: { label: 'Viewer', color: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/20', icon: Eye },
+    pimpinan: { label: 'Pimpinan', color: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/20', icon: UserGear },
+    teacher: { label: 'Teacher', color: 'text-indigo-600', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: PresentationChart },
+    staff: { label: 'Staff', color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: Suitcase },
 }
 const ROLES = Object.entries(ROLE_META).map(([key, v]) => ({ key, ...v }))
 
@@ -54,7 +53,7 @@ export default function UserManagementPage() {
     const [loading, setLoading] = useState(true)
     const [loadingUnlinked, setLoadingUnlinked] = useState(true)
     const [submitting, setSubmitting] = useState(false)
-    const [stats, setStats] = useState({ total: 0, guru: 0, karyawan: 0, admin: 0, noAccount: 0 })
+    const [stats, setStats] = useState({ total: 0, teacher: 0, staff: 0, admin: 0, pimpinan: 0, noAccount: 0 })
     const statsScrollRef = useRef(null)
     const [activeStatIdx, setActiveStatIdx] = useState(0)
     const STAT_CARD_COUNT = 5
@@ -101,7 +100,7 @@ export default function UserManagementPage() {
     // â”€â”€ State: create form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [createEmail, setCreateEmail] = useState('')
     const [createName, setCreateName] = useState('')
-    const [createRole, setCreateRole] = useState('guru')
+    const [createRole, setCreateRole] = useState('teacher')
     const [createTeacherId, setCreateTeacherId] = useState('')
     const [createPassword, setCreatePassword] = useState('')
     const [createSendEmail, setCreateSendEmail] = useState(true)
@@ -154,8 +153,9 @@ export default function UserManagementPage() {
             setStats(prev => ({
                 ...prev,
                 total: enriched.length,
-                guru: enriched.filter(u => u.role === 'guru').length,
-                karyawan: enriched.filter(u => u.role === 'karyawan').length,
+                teacher: enriched.filter(u => u.role === 'teacher').length,
+                staff: enriched.filter(u => u.role === 'staff').length,
+                pimpinan: enriched.filter(u => u.role === 'pimpinan').length,
                 admin: enriched.filter(u => ['admin', 'developer'].includes(u.role)).length,
                 // noAccount stays from fetchUnlinked â€” don't overwrite
             }))
@@ -614,7 +614,7 @@ export default function UserManagementPage() {
                             </button>
                         )}
                         <button
-                            onClick={() => { setCreateEmail(''); setCreateName(''); setCreateRole('guru'); setCreateTeacherId(''); setCreatePassword(''); setCreateModal(true) }}
+                            onClick={() => { setCreateEmail(''); setCreateName(''); setCreateRole('teacher'); setCreateTeacherId(''); setCreatePassword(''); setCreateModal(true) }}
                             disabled={!canCreateUsers(currentUser?.role)}
                             className="h-9 px-4 rounded-xl bg-[var(--color-primary)] text-white text-[11px] font-black flex items-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed">
                             <UserPlus className="w-3 h-3" />Buat Akun
@@ -637,8 +637,9 @@ export default function UserManagementPage() {
                     >
                         {[
                             { label: 'Total Akun', val: stats.total, color: 'text-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10', icon: Users },
-                            { label: 'Guru', val: stats.guru, color: 'text-indigo-600', bg: 'bg-indigo-500/10', icon: PresentationChart },
-                            { label: 'Karyawan', val: stats.karyawan, color: 'text-teal-600', bg: 'bg-teal-500/10', icon: Suitcase },
+                            { label: 'Teacher', val: stats.teacher, color: 'text-indigo-600', bg: 'bg-indigo-500/10', icon: PresentationChart },
+                            { label: 'Staff', val: stats.staff, color: 'text-emerald-600', bg: 'bg-emerald-500/10', icon: Suitcase },
+                            { label: 'Pimpinan', val: stats.pimpinan, color: 'text-amber-600', bg: 'bg-amber-500/10', icon: UserGear },
                             { label: 'Admin / Staff', val: stats.admin, color: 'text-purple-600', bg: 'bg-purple-500/10', icon: Shield },
                             { label: 'Belum Ada Akun', val: stats.noAccount, color: 'text-amber-600', bg: 'bg-amber-500/10', icon: UserMinus },
                         ].map((s, i) => (
@@ -856,7 +857,7 @@ export default function UserManagementPage() {
                                             onClick={() => {
                                                 setCreateEmail(t.email || '')
                                                 setCreateName(t.name)
-                                                setCreateRole(t.type || 'guru')
+                                                setCreateRole(t.type || 'teacher')
                                                 setCreateTeacherId(t.id)
                                                 setCreatePassword('')
                                                 setCreateModal(true)

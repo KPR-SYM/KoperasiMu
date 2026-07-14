@@ -80,7 +80,7 @@ export default function BottomNav() {
 
     const role = profile?.role?.toLowerCase()
     const isAdminUp = ['developer', 'admin'].includes(role)
-    const isSatpam = role === 'satpam'
+    const isStaff = role === 'staff'
 
     const open = (section) => setOpenSheet(section)
     const close = () => setOpenSheet(null)
@@ -137,7 +137,7 @@ export default function BottomNav() {
                         )}
 
                         {/* ── Satpam ── */}
-                        {isSatpam && (
+                        {isStaff && (
                             <div className="grid grid-cols-3">
                                 <NavItem to="/dashboard" icon={House} label={t('nav.dashboard')} />
                                 <NavItem to="/settings" icon={GearSix} label={t('nav.settings')} />
@@ -145,7 +145,7 @@ export default function BottomNav() {
                         )}
 
                         {/* ── Staff ── */}
-                        {!isAdminUp && !isSatpam && (
+                        {!isAdminUp && !isStaff && (
                             <div className="grid grid-cols-3">
                                 <NavItem to="/dashboard" icon={House} label={t('nav.dashboard')} />
                                 <MenuButton icon={CreditCard} label={t('section.finance')} onClick={() => open('finance')} active={openSheet === 'finance'} />

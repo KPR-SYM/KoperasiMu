@@ -69,7 +69,7 @@ export default function MasterSheet({ isOpen, onClose, section }) {
     const container = getPortalContainer('portal-sheet')
 
     const role = profile?.role?.toLowerCase()
-    const isSatpam = role === 'satpam'
+    const isStaff = role === 'staff'
     const isAdminUp = ['developer', 'admin'].includes(role)
 
     // Translate helper: map raw navItems → { label, desc } via t()
@@ -79,7 +79,7 @@ export default function MasterSheet({ isOpen, onClose, section }) {
         desc: tNavDesc(it),
     }))
 
-    const visibleMaster = isSatpam ? [] : translate(filterNavItems(MASTER_ITEMS, flags, role))
+    const visibleMaster = isStaff ? [] : translate(filterNavItems(MASTER_ITEMS, flags, role))
     const visibleFinance = translate(FINANCE_ITEMS)
     const visibleAdmin = translate(ADMIN_ITEMS)
 
@@ -88,7 +88,7 @@ export default function MasterSheet({ isOpen, onClose, section }) {
 
     // Tentukan section mana yang perlu ditampilkan
     const show = {
-        finance: (!section || section === 'finance') && !isSatpam,
+        finance: (!section || section === 'finance') && !isStaff,
         master: (!section || section === 'master' || isMore) && visibleMaster.length > 0,
         admin: (!section || section === 'admin' || isMore) && isAdminUp,
     }

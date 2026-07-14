@@ -87,9 +87,9 @@ const MOCK_DATA = {
     profiles: [
         { id: 'demo-dev', email: 'dev@koperasisenyummu.id', role: 'developer', name: 'Developer' },
         { id: 'demo-admin', email: 'admin@koperasisenyummu.id', role: 'admin', name: 'Administrator' },
-        { id: 'demo-guru', email: 'guru@koperasisenyummu.id', role: 'guru', name: 'Budi Santoso' },
-        { id: 'demo-satpam', email: 'satpam@koperasisenyummu.id', role: 'satpam', name: 'Penjaga Gerbang' },
-        { id: 'demo-viewer', email: 'viewer@koperasisenyummu.id', role: 'viewer', name: 'Demo Viewer' }
+        { id: 'demo-pimpinan', email: 'pimpinan@koperasisenyummu.id', role: 'pimpinan', name: 'Kepala Sekolah' },
+        { id: 'demo-teacher', email: 'teacher@koperasisenyummu.id', role: 'teacher', name: 'Budi Santoso' },
+        { id: 'demo-staff', email: 'staff@koperasisenyummu.id', role: 'staff', name: 'Staf Administrasi' }
     ]
 }
 

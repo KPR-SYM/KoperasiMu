@@ -518,7 +518,7 @@ export default function StudentsPage() {
                                 className={`h-9 w-9 rounded-xl border flex items-center justify-center text-sm transition-all active:scale-95 ${isHeaderMenuOpen ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'}`}
                                 title="Aksi lainnya"
                             >
-                                <SlidersHorizonta className="w-[18px] h-[18px]" />
+                                <SlidersHorizontal className="w-[18px] h-[18px]" />
                             </button>
 
                             {/* Portaled Header List Dropdown */}

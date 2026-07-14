@@ -5,13 +5,13 @@ import { useLanguage } from './Language'
 
 const AuthContext = createContext({})
 
-// ─── Hierarki Peran: Developer > Admin > Guru = Satpam > Viewer ───────────────
+// ─── Hierarki Peran: Developer > Admin > Pimpinan > Teacher = Staff ───────────
 const DEMO_USERS = {
     developer: { id: 'demo-dev', email: 'dev@koperasisenyummu.id', role: 'developer', name: 'Developer' },
     admin: { id: 'demo-admin', email: 'admin@koperasisenyummu.id', role: 'admin', name: 'Administrator' },
-    guru: { id: 'demo-guru', email: 'guru@koperasisenyummu.id', role: 'guru', name: 'Budi Santoso' },
-    satpam: { id: 'demo-satpam', email: 'satpam@koperasisenyummu.id', role: 'satpam', name: 'Penjaga Gerbang' },
-    viewer: { id: 'demo-viewer', email: 'viewer@koperasisenyummu.id', role: 'viewer', name: 'Demo Viewer' },
+    pimpinan: { id: 'demo-pimpinan', email: 'pimpinan@koperasisenyummu.id', role: 'pimpinan', name: 'Kepala Sekolah' },
+    teacher: { id: 'demo-teacher', email: 'teacher@koperasisenyummu.id', role: 'teacher', name: 'Budi Santoso' },
+    staff: { id: 'demo-staff', email: 'staff@koperasisenyummu.id', role: 'staff', name: 'Staf Administrasi' },
 }
 
 export function AuthProvider({ children }) {
@@ -114,8 +114,8 @@ export function AuthProvider({ children }) {
     }
 
     // ─── Helper Role ─────────────────────────────────────────────────────────
-    // Urutan Hierarki: Developer(4) > Admin(3) > Guru=Satpam(2) > Viewer(1)
-    const ROLE_LEVEL = { developer: 4, admin: 3, guru: 2, satpam: 2, viewer: 1 }
+    // Urutan Hierarki: Developer(4) > Admin(3) > Pimpinan(3) > Teacher(2) = Staff(2)
+    const ROLE_LEVEL = { developer: 4, admin: 3, pimpinan: 3, teacher: 2, staff: 2 }
 
     /** Periksa Apakah Pengguna Saat Ini Memiliki Salah Satu Peran Yang Diberikan */
     const hasRole = (...roles) => roles.includes(profile?.role?.toLowerCase())
@@ -131,16 +131,16 @@ export function AuthProvider({ children }) {
     const localizedProfile = useMemo(() => {
         if (!profile || !isDemoMode) return profile
         let name = profile.name
-        if (profile.role === 'guru') {
-            name = t('auth.demoGuruName')
-        } else if (profile.role === 'satpam') {
-            name = t('auth.demoSatpamName')
+        if (profile.role === 'teacher') {
+            name = t('auth.demoTeacherName')
+        } else if (profile.role === 'staff') {
+            name = t('auth.demoStaffName')
         } else if (profile.role === 'developer') {
             name = t('auth.demoDevName')
         } else if (profile.role === 'admin') {
             name = t('auth.demoAdminName')
-        } else if (profile.role === 'viewer') {
-            name = t('auth.demoViewerName')
+        } else if (profile.role === 'pimpinan') {
+            name = t('auth.demoPimpinanName')
         }
         return { ...profile, name }
     }, [profile, t])

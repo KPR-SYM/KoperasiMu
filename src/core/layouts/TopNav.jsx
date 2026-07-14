@@ -247,7 +247,7 @@ export default function TopNav({ title, subtitle }) {
         return true
     })
     const role = profile?.role?.toLowerCase()
-    const isSatpam = role === 'satpam'
+    const isStaff = role === 'staff'
     const filteredReportsItems = visibleReportsItems
 
     // Funnel master items by nav flags

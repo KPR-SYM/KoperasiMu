@@ -14,10 +14,9 @@ import { logAudit } from '@utils/auditLogger'
 const ROLE_META = {
     developer: { label: 'Developer', color: 'text-rose-600', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
     admin: { label: 'Admin', color: 'text-purple-600', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-    guru: { label: 'Guru', color: 'text-indigo-600', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
-    karyawan: { label: 'Karyawan', color: 'text-green-600', bg: 'bg-green-500/10', border: 'border-green-500/20' },
-    satpam: { label: 'Satpam', color: 'text-blue-600', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-    viewer: { label: 'Viewer', color: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/20' },
+    pimpinan: { label: 'Pimpinan', color: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+    teacher: { label: 'Teacher', color: 'text-indigo-600', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
+    staff: { label: 'Staff', color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
 }
 
 // ─── Pure Helpers (outside component to avoid re-creation on every render) ───

@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Toaster } from 'react-hot-toast'
 import { Warning, CaretLeft, Question, DoorOpen, Spinner, Lock, Wrench } from '@phosphor-icons/react'
-import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   AuthProvider, useAuth,
   ToastProvider,
@@ -74,8 +74,8 @@ const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/Pub
 
 const DEV_ONLY = ['developer']
 const DEV_ADMIN = ['developer', 'admin']
-const DEV_ADMIN_TEACHER = ['developer', 'admin', 'guru']
-const ALL_STAFF = ['developer', 'admin', 'guru', 'satpam']
+const DEV_ADMIN_TEACHER = ['developer', 'admin', 'teacher']
+const ALL_STAFF = ['developer', 'admin', 'teacher', 'staff', 'pimpinan']
 
 const ROUTE_ALIASES = [
   // English ↔ Indonesian aliases

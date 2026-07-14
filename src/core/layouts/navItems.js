@@ -71,14 +71,14 @@ export const NAV_GROUPS = [
         label: SECTION_TITLES.finance,
         icon: CreditCard,
         items: FINANCE_ITEMS,
-        hideForRoles: ['satpam'],
+        hideForRoles: ['staff'],
     },
     {
         key: 'master',
         label: SECTION_TITLES.master,
         icon: Users,
         items: MASTER_ITEMS,
-        hideForRoles: ['satpam'],
+        hideForRoles: ['staff'],
     },
     {
         key: 'admin',
