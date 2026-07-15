@@ -16,8 +16,6 @@ import {
     Modal,
     Pagination,
     RichSelect,
-    TableSkeleton,
-    CardSkeleton,
     AuditTimeline,
     StatsCarousel,
     StatCard,
@@ -93,6 +91,56 @@ const DebouncedSearchInput = memo(({ searchQuery, onSearch, inputRef, isLoading 
     )
 })
 DebouncedSearchInput.displayName = 'DebouncedSearchInput'
+
+const PeriodSkeletonRow = () => (
+    <tr className="animate-pulse border-b border-[var(--color-border)]/50">
+        <td className="py-4 px-4 w-12 text-center">
+            <div className="w-5 h-5 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
+        </td>
+        <td className="py-4 px-4">
+            <div className="w-32 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+        </td>
+        <td className="py-4 px-4">
+            <div className="w-16 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+        </td>
+        <td className="py-4 px-4">
+            <div className="w-24 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+        </td>
+        <td className="py-4 px-4">
+            <div className="w-20 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+        </td>
+        <td className="py-4 px-4 text-center w-32">
+            <div className="flex gap-1.5 justify-center">
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+            </div>
+        </td>
+    </tr>
+)
+
+const PeriodSkeletonCard = () => (
+    <div className="animate-pulse rounded-2xl border border-[var(--color-border)]/50 p-4 bg-[var(--color-surface)]">
+        <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-alt)]" />
+            <div className="flex-1 space-y-2">
+                <div className="w-3/4 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+                <div className="w-1/2 h-3 bg-[var(--color-surface-alt)]/60 rounded-md" />
+            </div>
+        </div>
+        <div className="flex gap-2 mb-3">
+            <div className="w-16 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+            <div className="w-12 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+        </div>
+        <div className="flex items-center justify-between">
+            <div className="flex gap-1.5">
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+            </div>
+        </div>
+    </div>
+)
 
 function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDelete, onToggleLock, canEdit }) {
     if (years.length === 0) {
@@ -491,6 +539,7 @@ export default function PeriodsPage() {
     const handleSubmit = async (formData, setFormErrors) => {
         if (!supabase || submitting) return
         setSubmitting(true)
+        console.log('[PeriodsPage] formData:', JSON.stringify(formData))
 
         const errors = {}
         if (!formData.name.trim()) errors.name = 'Nama tahun pelajaran wajib diisi'
@@ -527,10 +576,11 @@ export default function PeriodsPage() {
 
             const payload = {
                 academic_year: formData.name.trim(),
-                semester: formData.semester,
+                semester: String(formData.semester || '').trim().toLowerCase(),
                 start_date: formData.startDate,
                 end_date: formData.endDate,
             }
+            console.log('[PeriodsPage] handleSubmit payload:', payload)
 
             if (selectedItem?.id) {
                 const { data, error } = await supabase.from('periods').update(payload).eq('id', selectedItem.id).select()
@@ -545,7 +595,7 @@ export default function PeriodsPage() {
                 }
 
                 addToast('Tahun pelajaran berhasil diupdate', 'success')
-                await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } })
+                try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             } else {
                 const { data, error } = await supabase.from('periods').insert({ ...payload, is_active: false }).select()
                 if (error) throw error
@@ -557,16 +607,17 @@ export default function PeriodsPage() {
                 }
 
                 addToast('Tahun pelajaran berhasil ditambahkan', 'success')
-                await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', recordId: data?.[0]?.id, newData: { ...payload, is_active: formData.makeActive } })
+                try { await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', recordId: data?.[0]?.id, newData: { ...payload, is_active: formData.makeActive } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             }
             setIsModalOpen(false)
             setSelectedItem(null)
             fetchData()
         } catch (err) {
+            console.error('[PeriodsPage] handleSubmit error:', err)
             if (err?.code === '23505') {
                 addToast('Tidak bisa menyimpan: sudah ada tahun pelajaran lain yang aktif.', 'error')
             } else if (err?.code === '23514') {
-                addToast('Tidak bisa menyimpan: pastikan tanggal mulai lebih kecil dari tanggal selesai.', 'error')
+                addToast(`Tidak bisa menyimpan: ${err?.message || 'data melanggar aturan database'}`, 'error')
             } else if (err?.code === '23P01') {
                 const clash = findOverlappingYear({
                     semester: formData.semester,
@@ -593,7 +644,7 @@ export default function PeriodsPage() {
             const { data, error: e2 } = await supabase.from('periods').update({ is_active: true }).eq('id', item.id).select()
             if (e2) throw e2
             addToast(`${item.academic_year} ${item.semester} diaktifkan`, 'success')
-            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, is_active: true } })
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, is_active: true } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             fetchData()
         } catch (err) { addToast(err?.message || 'Gagal mengaktifkan', 'error') }
         finally { setSubmitting(false) }
@@ -607,7 +658,7 @@ export default function PeriodsPage() {
             const { error } = await supabase.from('periods').update({ is_locked: newStatus }).eq('id', item.id)
             if (error) throw error
             addToast(`Tahun pelajaran berhasil di${newStatus ? 'tutup' : 'buka'}`, 'success')
-            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, is_locked: newStatus } })
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, is_locked: newStatus } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             fetchData()
         } catch (err) { addToast(err?.message || 'Gagal mengubah status', 'error') }
         finally { setSubmitting(false) }
@@ -625,7 +676,7 @@ export default function PeriodsPage() {
             const { error } = await supabase.from('periods').update({ is_active: false }).eq('id', itemToDeactivate.id).select()
             if (error) throw error
             addToast(`${itemToDeactivate.academic_year} ${itemToDeactivate.semester} dinonaktifkan`, 'success')
-            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: itemToDeactivate.id, oldData: itemToDeactivate, newData: { ...itemToDeactivate, is_active: false } })
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: itemToDeactivate.id, oldData: itemToDeactivate, newData: { ...itemToDeactivate, is_active: false } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             setIsDeactivateConfirmOpen(false)
             setItemToDeactivate(null)
             fetchData()
@@ -663,7 +714,7 @@ export default function PeriodsPage() {
         const archived = itemToDelete
         try {
             await supabase.from('periods').update({ is_active: false }).eq('id', archived.id)
-            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: archived.id, newData: { is_active: false } })
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: archived.id, newData: { is_active: false } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             setIsDeleteModalOpen(false); fetchData()
             addUndoToast(`${archived.academic_year} diarsipkan.`, async () => {
                 await supabase.from('periods').update({ is_active: true }).eq('id', archived.id)
@@ -762,12 +813,7 @@ export default function PeriodsPage() {
             a.download = `${filename || 'export_tahun_pelajaran'}.csv`
             a.click()
 
-            await logAudit({
-                action: 'EXPORT',
-                source: 'MASTER',
-                tableName: 'periods',
-                newData: { format: 'csv', scope: exportScope, columns: exportColumns, count: rows.length }
-            })
+            try { await logAudit({ action: 'EXPORT', source: 'MASTER', tableName: 'periods', newData: { format: 'csv', scope: exportScope, columns: exportColumns, count: rows.length } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
 
             addToast(`Export CSV berhasil (${rows.length} periode)`, 'success')
             setIsExportModalOpen(false)
@@ -787,12 +833,7 @@ export default function PeriodsPage() {
             XLSX.utils.book_append_sheet(wb, ws, 'Data Periode')
             XLSX.writeFile(wb, `${filename || 'export_tahun_pelajaran'}.xlsx`)
 
-            await logAudit({
-                action: 'EXPORT',
-                source: 'MASTER',
-                tableName: 'periods',
-                newData: { format: 'xlsx', scope: exportScope, columns: exportColumns, count: rows.length }
-            })
+            try { await logAudit({ action: 'EXPORT', source: 'MASTER', tableName: 'periods', newData: { format: 'xlsx', scope: exportScope, columns: exportColumns, count: rows.length } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
 
             addToast(`Export Excel berhasil (${rows.length} periode)`, 'success')
             setIsExportModalOpen(false)
@@ -854,12 +895,7 @@ export default function PeriodsPage() {
 
             doc.save(`${filename || 'export_tahun_pelajaran'}.pdf`)
 
-            await logAudit({
-                action: 'EXPORT',
-                source: 'MASTER',
-                tableName: 'periods',
-                newData: { format: 'pdf', scope: exportScope, columns: exportColumns, count: allRows.length }
-            })
+            try { await logAudit({ action: 'EXPORT', source: 'MASTER', tableName: 'periods', newData: { format: 'pdf', scope: exportScope, columns: exportColumns, count: allRows.length } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
 
             addToast(`Export PDF berhasil (${allRows.length} periode)`, 'success')
             setIsExportModalOpen(false)
@@ -1064,7 +1100,7 @@ export default function PeriodsPage() {
                 setImportProgress({ done: Math.min(i + CHUNK, validRows.length), total: validRows.length })
             }
             addToast(`Berhasil import ${validRows.length} periode`, 'success')
-            await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', newData: { bulk_import: true, count: validRows.length, data: validRows } })
+            try { await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', newData: { bulk_import: true, count: validRows.length, data: validRows } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1)
             fetchData()
         } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB / duplikat)' }) }
@@ -1411,50 +1447,74 @@ export default function PeriodsPage() {
 
                     {/* Active Chips */}
                     {(searchQuery || filterSemester || filterStatus || filterLock || filterTimeStatus || sortBy !== 'name_desc') && (
-                        <div className="px-3 pb-3 -mt-1 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                            {searchQuery && (
-                                <button type="button" onClick={() => setSearchQuery('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/40 text-[10px] font-black text-[var(--color-text)]">
-                                    <MagnifyingGlass className="opacity-40" />
-                                    <span>"{searchQuery.slice(0, 20)}{searchQuery.length > 20 ? '...' : ''}"</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
+                        <div className="px-3 pb-3 -mt-1">
+                            <div className="flex flex-wrap gap-2">
+                                {searchQuery && (
+                                    <button type="button" onClick={() => setSearchQuery('')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/40 text-[10px] font-black text-[var(--color-text)]" title="Hapus pencarian">
+                                        <MagnifyingGlass className="w-3 h-3 opacity-60" />
+                                        <span className="max-w-[180px] truncate">"{searchQuery}"</span>
+                                        <span className="w-5 h-5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] group-hover:text-red-500 transition-colors">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                {filterSemester && (
+                                    <button type="button" onClick={() => setFilterSemester('')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 text-[10px] font-black text-[var(--color-primary)]" title="Hapus filter semester">
+                                        <StackSimple className="w-3 h-3 opacity-70" />
+                                        {filterSemester}
+                                        <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-[var(--color-primary)]/20 flex items-center justify-center text-[var(--color-primary)] opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                {filterStatus && (
+                                    <button type="button" onClick={() => setFilterStatus('')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-[10px] font-black text-emerald-600" title="Hapus filter status">
+                                        {filterStatus === 'active' ? <CheckCircle className="w-3 h-3 opacity-70" /> : <CircleDashed className="w-3 h-3 opacity-70" />}
+                                        {filterStatus === 'active' ? 'Aktif' : 'Nonaktif'}
+                                        <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-emerald-500/20 flex items-center justify-center text-emerald-600 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                {filterLock && (
+                                    <button type="button" onClick={() => setFilterLock('')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600" title="Hapus filter kunci">
+                                        {filterLock === 'open' ? <Fingerprint className="w-3 h-3 opacity-70" /> : <EyeSlash className="w-3 h-3 opacity-70" />}
+                                        {filterLock === 'open' ? 'Bisa Diedit' : 'Terkunci'}
+                                        <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-amber-500/20 flex items-center justify-center text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                {filterTimeStatus && (
+                                    <button type="button" onClick={() => setFilterTimeStatus('')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-[10px] font-black text-cyan-600" title="Hapus filter waktu">
+                                        <ClockClockwise className="w-3 h-3 opacity-70" />
+                                        {filterTimeStatus}
+                                        <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-cyan-500/20 flex items-center justify-center text-cyan-600 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                {sortBy !== 'name_desc' && (
+                                    <button type="button" onClick={() => setSortBy('name_desc')}
+                                        className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600" title="Hapus filter urutan">
+                                        <ArrowCounterClockwise className="w-3 h-3 opacity-70" />
+                                        {sortBy === 'name_asc' ? 'Terlama' : 'Terdekat'}
+                                        <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-amber-500/20 flex items-center justify-center text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <X className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                )}
+                                <button type="button" onClick={resetAllFilters}
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/5 text-[10px] font-black text-red-600" title="Hapus semua filter">
+                                    <ArrowCounterClockwise className="w-3 h-3" />
+                                    Hapus semua
                                 </button>
-                            )}
-                            {filterSemester && (
-                                <button type="button" onClick={() => setFilterSemester('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 text-[10px] font-black text-[var(--color-primary)]">
-                                    <span>{filterSemester}</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
-                                </button>
-                            )}
-                            {filterStatus && (
-                                <button type="button" onClick={() => setFilterStatus('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-[10px] font-black text-emerald-600">
-                                    <span>{filterStatus === 'active' ? 'Aktif' : 'Nonaktif'}</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
-                                </button>
-                            )}
-                            {filterLock && (
-                                <button type="button" onClick={() => setFilterLock('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600">
-                                    <span>{filterLock === 'open' ? 'Bisa Diedit' : 'Terkunci'}</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
-                                </button>
-                            )}
-                            {filterTimeStatus && (
-                                <button type="button" onClick={() => setFilterTimeStatus('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-[10px] font-black text-cyan-600">
-                                    <ClockClockwise className="w-3 h-3 opacity-40" />
-                                    <span>{filterTimeStatus}</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
-                                </button>
-                            )}
-                            {sortBy !== 'name_desc' && (
-                                <button type="button" onClick={() => setSortBy('name_desc')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600">
-                                    <ArrowCounterClockwise className="w-3 h-3 opacity-40" />
-                                    <span>{sortBy === 'name_asc' ? 'Terlama' : 'Terdekat'}</span>
-                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
-                                </button>
-                            )}
-                            <button onClick={resetAllFilters} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-500/5 transition-all">
-                                <ArrowCounterClockwise className="w-3 h-3" />
-                                Hapus Semua
-                            </button>
+                            </div>
                         </div>
                     )}
 
@@ -1551,11 +1611,33 @@ export default function PeriodsPage() {
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
                     {loading ? (
-                        <div className="p-12 space-y-4">
-                            <div className="flex gap-4">
-                                <TableSkeleton rows={5} cols={4} />
+                        viewMode === 'timeline' ? (
+                            <div className="p-6 space-y-4">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <PeriodSkeletonCard key={i} />
+                                ))}
                             </div>
-                        </div>
+                        ) : (
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
+                                        <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                                            <th className="px-6 py-4 text-center w-12"><div className="w-5 h-5 bg-[var(--color-border)] rounded-lg mx-auto animate-pulse" /></th>
+                                            <th className="px-6 py-4 text-left"><div className="w-24 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
+                                            <th className="px-6 py-4 text-left"><div className="w-16 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
+                                            <th className="px-6 py-4 text-left"><div className="w-20 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
+                                            <th className="px-6 py-4 text-left"><div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
+                                            <th className="px-6 py-4 text-center w-32"><div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[var(--color-border)]/50">
+                                        {Array.from({ length: 5 }).map((_, i) => (
+                                            <PeriodSkeletonRow key={i} />
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )
                     ) : (
                         <>
                             {viewMode === 'timeline' ? (

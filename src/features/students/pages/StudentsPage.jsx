@@ -783,8 +783,8 @@ export default function StudentsPage() {
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {[
                                     { id: '', label: 'Semua', icon: X },
-                                    { id: 'aktif', label: 'Aktif', icon: CaretLeft },
-                                    { id: 'lulus', label: 'Lulus', icon: ClockCounterClockwise },
+                                    { id: 'aktif', label: 'Aktif', icon: CheckCircle },
+                                    { id: 'lulus', label: 'Lulus', icon: DoorOpen },
                                 ].map((s) => (
                                     <button
                                         key={s.id}
@@ -903,7 +903,7 @@ export default function StudentsPage() {
                                     <button type="button" onClick={() => setFilterGender('')}
                                         className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/40 text-[10px] font-black text-[var(--color-text)]" title="Hapus filter gender">
                                         {filterGender === 'L' ? <GenderMale className="w-3 h-3 opacity-70" /> : <GenderFemale className="w-3 h-3 opacity-70" />}
-                                        Gender: {filterGender === 'L' ? 'Putra' : 'Putri'}
+                                        {filterGender === 'L' ? 'Putra' : 'Putri'}
                                         <span className="w-5 h-5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] group-hover:text-red-500 transition-colors">
                                             <X className="w-3 h-3" />
                                         </span>
@@ -912,7 +912,8 @@ export default function StudentsPage() {
                                 {filterStatus && (
                                     <button type="button" onClick={() => setFilterStatus('')}
                                         className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600" title="Hapus filter status">
-                                        Status: {(filterStatus?.charAt(0).toUpperCase() || '') + (filterStatus?.slice(1) || '')}
+                                        {filterStatus === 'aktif' ? <CheckCircle className="w-3 h-3 opacity-70" /> : <DoorOpen className="w-3 h-3 opacity-70" />}
+                                        {filterStatus === 'aktif' ? 'Aktif' : 'Lulus'}
                                         <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-amber-500/20 flex items-center justify-center text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity">
                                             <X className="w-3 h-3" />
                                         </span>
@@ -940,7 +941,7 @@ export default function StudentsPage() {
                                 <button type="button" onClick={resetAllFilters}
                                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-red-500/20 bg-red-500/5 text-[10px] font-black text-red-600" title="Reset semua filter">
                                     <ArrowCounterClockwise className="w-3 h-3" />
-                                    Reset semua
+                                    Hapus semua
                                 </button>
                             </div>
                         </div>
@@ -1089,12 +1090,14 @@ export default function StudentsPage() {
                             <table className="w-full text-sm">
                                 <thead className="bg-[var(--color-surface-alt)]">
                                     <tr className="text-left text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                                        <th className="px-6 py-4 w-10"></th>
-                                        <th className="px-6 py-4">Siswa</th>
-                                        <th className="px-6 py-4 text-center">Gender</th>
-                                        <th className="px-6 py-4 text-center">Kelas</th>
-
-                                        <th className="px-6 py-4 text-center">Aksi</th>
+                                        <th className="px-6 py-4 w-10"><div className="w-4 h-4 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4"><div className="w-20 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-10 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                        <th className="px-6 py-4 text-center"><div className="w-16 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
                                     </tr>
                                 </thead>
                                 <tbody>
