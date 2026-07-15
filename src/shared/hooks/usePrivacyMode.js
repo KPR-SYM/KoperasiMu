@@ -1,11 +1,6 @@
 import { useState, useCallback, useRef, createElement, Fragment } from 'react'
-import { useFlag } from '@context'
 
-export function usePrivacyMode({
-    featureFlag = 'students.privacy_mode',
-    defaultMaskPatterns = {},
-} = {}) {
-    const { enabled } = useFlag(featureFlag)
+export function usePrivacyMode({ defaultMaskPatterns = {} } = {}) {
     const [isPrivacyMode, setIsPrivacyMode] = useState(false)
 
     const maskValue = useCallback((value, type = 'text') => {
@@ -24,7 +19,7 @@ export function usePrivacyMode({
 
     const togglePrivacyMode = useCallback(() => setIsPrivacyMode(v => !v), [])
 
-    return { isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue, enabled }
+    return { isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue }
 }
 
 export function PrivacyValue({
@@ -58,9 +53,7 @@ export function PrivacyValue({
         if (!allowReveal) return
         setIsRevealed(true)
         clearRevealTimeout()
-        timeoutRef.current = setTimeout(() => {
-            setIsRevealed(false)
-        }, revealDuration)
+        timeoutRef.current = setTimeout(() => setIsRevealed(false), revealDuration)
     }, [allowReveal, revealDuration, clearRevealTimeout])
 
     if (!active) {

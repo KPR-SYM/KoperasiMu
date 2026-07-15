@@ -8,8 +8,8 @@ import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
-import { useDebounce } from '@hooks/useDebounce'
 import { useErrorHandler } from '@hooks'
+import { usePrivacyMode, PrivacyValue } from '@hooks/usePrivacyMode'
 import {
     PageHeader,
     Modal,
@@ -22,7 +22,7 @@ import {
     BulkActionsBar
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
-import { ArchiveModal, DeactivateModal } from '@features/periods/components/PeriodConfirmModals'
+import { ArchiveModal } from '@features/periods/components/PeriodConfirmModals'
 import PeriodArchiveModal from '@features/periods/components/PeriodArchiveModal'
 
 
@@ -58,17 +58,20 @@ function getPortalContainer(id) {
 // ── Isolated MagnifyingGlass Input ────────────────────────────────────────────────────
 const DebouncedSearchInput = memo(({ searchQuery, onSearch, inputRef, isLoading }) => {
     const [value, setValue] = useState(searchQuery)
+    const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery)
+
+    if (searchQuery !== prevSearchQuery) {
+        setPrevSearchQuery(searchQuery)
+        if (searchQuery === '') {
+            setValue('')
+        }
+    }
 
     // Debounce: propagate ke parent setelah 350ms berhenti mengetik
     useEffect(() => {
         const t = setTimeout(() => onSearch(value), 350)
         return () => clearTimeout(t)
-    }, [value])
-
-    // Sync saat di-clear dari luar (resetAllFilters, klik chip ×)
-    useEffect(() => {
-        if (searchQuery === '' && value !== '') setValue('')
-    }, [searchQuery])
+    }, [value, onSearch])
 
     return (
         <div className="relative group">
@@ -279,7 +282,6 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
 export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast()
     const { handleError } = useErrorHandler('PeriodsPage')
-    const { profile } = useAuth()
     const { enabled: canEdit } = useFlag('access.teacher_academic')
 
     const [years, setYears] = useState([])
@@ -288,9 +290,6 @@ export default function PeriodsPage() {
     const [submitting, setSubmitting] = useState(false)
     const [stats, setStats] = useState({ total: 0, active: 0, ganjil: 0, genap: 0 })
 
-    // --- Stats Carousel Circle Indicator ---
-    const statsScrollRef = useRef(null)
-    const [activeStatIdx, setActiveStatIdx] = useState(0)
     const STAT_CARD_COUNT = 4
 
     // MagnifyingGlass & Funnel
@@ -325,19 +324,18 @@ export default function PeriodsPage() {
 
     // UI
     const [isPrivacyMode, setIsPrivacyMode] = useState(false)
-    const [mobileView, setMobileView] = useState(() => {
-        try { return localStorage.getItem('periods_mobile_view') || 'card' } catch { return 'card' }
-    }) // 'card' | 'list'
     const [isShortcutOpen, setIsShortcutOpen] = useState(false)
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
-    const headerMenuRef = useRef(null)
-    const shortcutRef = useRef(null)
     const headerMenuBtnRef = useRef(null)
     const shortcutBtnRef = useRef(null)
     const [headerMenuRect, setHeaderMenuRect] = useState(null)
     const [shortcutRect, setShortcutRect] = useState(null)
     // Deferred unmount: keeps portal in DOM for 200ms after close so exit animation can play
     const [headerMenuMounted, setHeaderMenuMounted] = useState(false)
+
+    if (isHeaderMenuOpen && !headerMenuMounted) {
+        setHeaderMenuMounted(true)
+    }
     const searchInputRef = useRef(null)
 
     const [viewMode, setViewMode] = useState(() => {
@@ -359,8 +357,6 @@ export default function PeriodsPage() {
     // Selection & Data state
     const [selectedItem, setSelectedItem] = useState(null)
     const [itemToDelete, setItemToDelete] = useState(null)
-    const [itemToDeactivate, setItemToDeactivate] = useState(null)
-    const [itemToPermanentDelete, setItemToPermanentDelete] = useState(null)
     const [readOnlyDetailItem, setReadOnlyDetailItem] = useState(null)
     const [historyItem, setHistoryItem] = useState(null)
 
@@ -370,8 +366,6 @@ export default function PeriodsPage() {
     const [isArchivedOpen, setIsArchivedOpen] = useState(false)
     const [loadingArchived, setLoadingArchived] = useState(false)
     const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false)
-    const [isPermanentDeleteOpen, setIsPermanentDeleteOpen] = useState(false)
-    const [isDeactivateConfirmOpen, setIsDeactivateConfirmOpen] = useState(false)
     const [isReadOnlyDetailOpen, setIsReadOnlyDetailOpen] = useState(false)
     const [isHistoryOpen, setIsHistoryOpen] = useState(false)
     const [isImportModalOpen, setIsImportModalOpen] = useState(false)
@@ -432,8 +426,11 @@ export default function PeriodsPage() {
                 .eq('is_active', false)
                 .order('created_at', { ascending: false })
             setArchivedYears(data || [])
-        } catch { }
-        finally { setLoadingArchived(false) }
+        } catch (err) {
+            console.warn('[PeriodsPage] fetchArchived failed:', err)
+        } finally {
+            setLoadingArchived(false)
+        }
     }, [])
 
     const fetchDataOnce = useRef(false)
@@ -456,13 +453,11 @@ export default function PeriodsPage() {
 
     // Deferred unmount effect for header menu
     useEffect(() => {
-        if (isHeaderMenuOpen) {
-            setHeaderMenuMounted(true)
-        } else {
+        if (!isHeaderMenuOpen && headerMenuMounted) {
             const t = setTimeout(() => setHeaderMenuMounted(false), 200)
             return () => clearTimeout(t)
         }
-    }, [isHeaderMenuOpen])
+    }, [isHeaderMenuOpen, headerMenuMounted])
 
     // Sticky positioning - keep portaled dropdowns anchored on scroll/resize
     useEffect(() => {
@@ -510,7 +505,7 @@ export default function PeriodsPage() {
         localStorage.setItem('periods_view_mode', viewMode)
     }, [viewMode])
 
-    const handleAdd = () => {
+    function handleAdd() {
         let nextSuggested = null
         if (years.length > 0) {
             const latest = [...years].sort((a, b) => {
@@ -532,7 +527,7 @@ export default function PeriodsPage() {
         setSelectedItem(nextSuggested)
         setIsModalOpen(true)
     }
-    const handleEdit = (item) => {
+    function handleEdit(item) {
         setSelectedItem(item)
         setIsModalOpen(true)
     }
@@ -673,25 +668,7 @@ export default function PeriodsPage() {
         finally { setSubmitting(false) }
     }
 
-    const handleDeactivate = (item) => {
-        setItemToDeactivate(item)
-        setIsDeactivateConfirmOpen(true)
-    }
 
-    const handleDeactivateConfirm = async () => {
-        if (!itemToDeactivate || submitting) return
-        setSubmitting(true)
-        try {
-            const { error } = await supabase.from('periods').update({ is_active: false }).eq('id', itemToDeactivate.id).select()
-            if (error) throw error
-            addToast(`${itemToDeactivate.academic_year} ${itemToDeactivate.semester} dinonaktifkan`, 'success')
-            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: itemToDeactivate.id, oldData: itemToDeactivate, newData: { ...itemToDeactivate, is_active: false } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
-            setIsDeactivateConfirmOpen(false)
-            setItemToDeactivate(null)
-            fetchData()
-        } catch (err) { handleError(err, { context: 'Gagal menonaktifkan' }) }
-        finally { setSubmitting(false) }
-    }
 
     const handleDuplicate = (item) => {
         setSelectedItem({ ...item, id: undefined, academic_year: `${item.academic_year} (Salinan)` })
@@ -733,21 +710,7 @@ export default function PeriodsPage() {
         finally { setSubmitting(false); setItemToDelete(null) }
     }
 
-    const handleRestore = async (item) => {
-        try {
-            await supabase.from('periods').update({ is_active: true }).eq('id', item.id)
-            addToast('Berhasil dipulihkan', 'success')
-            fetchArchived(); fetchData()
-        } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
-    }
 
-    const handlePermanentDelete = async (item) => {
-        try {
-            await supabase.from('periods').delete().eq('id', item.id)
-            addToast('Data dihapus permanen', 'success')
-            setIsPermanentDeleteOpen(false); fetchArchived()
-        } catch (err) { handleError(err, { context: 'Gagal menghapus permanen' }) }
-    }
 
     const handleBulkDelete = async () => {
         setSubmitting(true)
@@ -1116,7 +1079,7 @@ export default function PeriodsPage() {
         finally { setImporting(false) }
     }
 
-    const resetAllFilters = () => {
+    function resetAllFilters() {
         setSearchQuery('')
         setFilterSemester('')
         setFilterStatus('')
@@ -1152,7 +1115,6 @@ export default function PeriodsPage() {
 
     const totalRows = filtered.length
     const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
-    const isTrulyEmpty = years.length === 0
     const isEmpty = filtered.length === 0
 
     const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
@@ -1722,7 +1684,6 @@ export default function PeriodsPage() {
                                                     <tr><td colSpan="5" className="py-24 text-center"><EmptyState icon={MagnifyingGlass} title="Tidak ada data ditemukan" description="Sesuaikan filter atau kata kunci pencarian Anda" color="slate" variant="plain" /></td></tr>
                                                 ) : paged.map(year => {
                                                     const isSelected = selectedIds.includes(year.id);
-                                                    const ts = getTimeStatus(year.start_date, year.end_date)
                                                     return (
                                                         <tr key={year.id} className={`border-t border-[var(--color-border)] transition-colors group/row ${isSelected ? 'bg-[var(--color-primary)]/5' : 'hover:bg-[var(--color-surface-alt)]/40'}`}>
                                                             <td className="px-6 py-4"><input type="checkbox" checked={selectedIds.includes(year.id)} onChange={() => toggleSelect(year.id)} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" /></td>
@@ -1839,11 +1800,9 @@ export default function PeriodsPage() {
                 {/* ── Modals ── */}
                 <PeriodFormModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedItem(null); }} selectedItem={selectedItem} years={years} onSubmit={handleSubmit} submitting={submitting} />
                 <ArchiveModal isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setItemToDelete(null); }} selectedItem={itemToDelete} onConfirm={handleDeleteConfirm} submitting={submitting} />
-                <DeactivateModal isOpen={isDeactivateConfirmOpen} onClose={() => { setIsDeactivateConfirmOpen(false); setItemToDeactivate(null); }} selectedItem={itemToDeactivate} onConfirm={handleDeactivateConfirm} submitting={submitting} />
 
                 <Modal isOpen={isReadOnlyDetailOpen} onClose={() => { setIsReadOnlyDetailOpen(false); setReadOnlyDetailItem(null) }} title="Detail Tahun Pelajaran" size="full" mobileVariant="bottom-sheet">
                     {readOnlyDetailItem && (() => {
-                        const ts = getTimeStatus(readOnlyDetailItem.start_date, readOnlyDetailItem.end_date)
                         return (
                             <div className="space-y-4 pb-2">
                                 <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 flex items-start justify-between gap-3">
