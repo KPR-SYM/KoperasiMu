@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
-import { useLanguage } from '@context/Language'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
 import { supabase } from '@lib/supabase'
@@ -19,7 +18,8 @@ import {
     AuditTimeline,
     StatsCarousel,
     StatCard,
-    EmptyState
+    EmptyState,
+    BulkActionsBar
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
 import { ArchiveModal, DeactivateModal } from '@features/periods/components/PeriodConfirmModals'
@@ -142,7 +142,7 @@ const PeriodSkeletonCard = () => (
     </div>
 )
 
-function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDelete, onToggleLock, canEdit }) {
+function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDelete, onToggleLock, canEdit, isPrivacyMode, maskValue }) {
     if (years.length === 0) {
         return (
             <EmptyState
@@ -202,7 +202,7 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
                                         {/* Badges */}
                                         <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
                                             <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest ${isGanjil ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-purple-500/10 text-purple-600'}`}>
-                                                {year.semester}
+                                                {maskValue(year.semester, 'semester')}
                                             </div>
                                             {isActive && (
                                                 <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[7px] font-black">
@@ -214,17 +214,17 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
                                             {year.is_locked && <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">TUTUP</div>}
                                         </div>
 
-                                        {/* Year */}
+{/* Year */}
                                         <h4 className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors">
-                                            {year.academic_year}
+                                            {maskValue(year.academic_year, 'year')}
                                         </h4>
 
                                         {/* Dates */}
                                         <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
                                             <Calendar className="w-3 h-3 opacity-50 shrink-0" />
-                                            <span>{new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} – {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+                                            <span>{isPrivacyMode ? maskValue(null, 'date') + ' \u2013 ' + maskValue(null, 'date') : new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} \u2013 {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                                         </div>
-                                        {dur && <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">{dur}</div>}
+                                        {dur && <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">{isPrivacyMode ? maskValue(null, 'date') : dur}</div>}
 
                                         {/* Actions — always visible */}
                                         <div className="mt-3 pt-2.5 border-t border-[var(--color-border)]/50 flex items-center justify-between gap-1">
@@ -279,7 +279,6 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
 export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast()
     const { handleError } = useErrorHandler('PeriodsPage')
-    const { dir } = useLanguage()
     const { profile } = useAuth()
     const { enabled: canEdit } = useFlag('access.teacher_academic')
 
@@ -344,6 +343,18 @@ export default function PeriodsPage() {
     const [viewMode, setViewMode] = useState(() => {
         try { return localStorage.getItem('periods_view_mode') || 'table' } catch { return 'table' }
     }) // 'table' | 'timeline' | 'card'
+
+    // Privacy mode masking helper
+    const maskValue = (value, type) => {
+        if (!isPrivacyMode) return value
+        switch (type) {
+            case 'year': return '****/****'
+            case 'semester': return '******'
+            case 'date': return '****-**-**'
+            case 'duration': return '** bulan'
+            default: return '****'
+        }
+    }
 
     // Selection & Data state
     const [selectedItem, setSelectedItem] = useState(null)
@@ -1147,37 +1158,40 @@ export default function PeriodsPage() {
     const toggleSelect = (id) => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
     const toggleSelectAll = () => setSelectedIds(selectedIds.length === paged.length ? [] : paged.map(y => y.id))
 
+    // Build selectedItems for BulkActionsBar preview
+    const selectedItems = selectedIds.map(id => {
+        const item = years.find(y => y.id === id)
+        if (!item) return null
+        return {
+            id: item.id,
+            label: item.academic_year,
+            meta: `${item.semester} · ${formatDate(item.start_date)}–${formatDate(item.end_date)}`,
+            statusColor: item.is_active ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-white/5 border-white/10',
+            statusIconBg: item.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+            statusIcon: item.is_active ? <CheckCircle className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />,
+        }
+    }).filter(Boolean)
+
     return (
         <DashboardLayout title="Tahun Pelajaran">
             <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
 
-                {/* Selection Action Bar ── */}
-                {selectedIds.length > 0 && (
-                    <div
-                        className="fixed bottom-6 -translate-x-1/2 z-[100] w-[90%] max-w-xl animate-in fade-in slide-in-from-bottom-8 duration-500"
-                        style={{
-                            left: dir === 'rtl'
-                                ? 'calc(50vw - (var(--sidebar-width, 0px) / 2))'
-                                : 'calc(50vw + (var(--sidebar-width, 0px) / 2))'
-                        }}
-                    >
-                        <div className="bg-gray-900 text-white rounded-[2.5rem] p-2 pr-6 shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-xl">
-                            <div className="w-10 h-10 rounded-full bg-[var(--color-primary)] flex items-center justify-center font-black text-sm shadow-lg shadow-[var(--color-primary)]/20 animate-bounce">
-                                {selectedIds.length}
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-[11px] font-black uppercase tracking-widest text-white/90">Data Terpilih</p>
-                                <p className="text-[9px] font-bold text-white/50 tracking-tight">Lakukan aksi massal pada data ini</p>
-                            </div>
-                            <div className="h-8 w-px bg-white/10" />
-                            <button onClick={() => setSelectedIds([])} className="h-10 px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all">Batal</button>
-                            <button onClick={() => setIsBulkDeleteOpen(true)} className="h-10 px-5 rounded-2xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center gap-2 active:scale-95">
-                                <Archive className="w-3 h-3" />
-                                Arsipkan
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <BulkActionsBar
+                    selectedCount={selectedIds.length}
+                    onClear={() => setSelectedIds([])}
+                    title="Data Terpilih"
+                    subtitle="Aksi Massal"
+                    selectedItems={selectedItems}
+                    onRemoveItem={id => setSelectedIds(prev => prev.filter(x => x !== id))}
+                    primaryAction={{
+                        label: 'Arsipkan',
+                        icon: <Archive className="w-3 h-3" />,
+                        variant: 'destructive',
+                        onClick: () => setIsBulkDeleteOpen(true),
+                        disabled: submitting,
+                    }}
+                    secondaryActions={[]}
+                />
 
                 {!canEdit && (
                     <div className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
@@ -1305,7 +1319,6 @@ export default function PeriodsPage() {
                             <button onClick={() => {
                                 const next = !isPrivacyMode
                                 setIsPrivacyMode(next)
-                                addToast(next ? 'Mode privasi diaktifkan — Data sensitif disembunyikan' : 'Mode privasi dinonaktifkan', next ? 'info' : 'success')
                             }}
                                 className={`h-9 w-9 sm:w-auto sm:px-3 rounded-lg border flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
                                 title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}>
@@ -1649,6 +1662,8 @@ export default function PeriodsPage() {
                                     onHistory={handleOpenHistory}
                                     canEdit={canEdit}
                                     submitting={submitting}
+                                    isPrivacyMode={isPrivacyMode}
+                                    maskValue={maskValue}
                                 />
                             ) : (
                                 <>
@@ -1715,13 +1730,13 @@ export default function PeriodsPage() {
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex items-start gap-3">
                                                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${year.is_active ? 'bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]'}`}>
-                                                                            <span className="relative z-10">{year.academic_year?.slice(2, 4) || '??'}</span>
+                                                                            <span className="relative z-10">{isPrivacyMode ? '??' : year.academic_year?.slice(2, 4) || '??'}</span>
                                                                         </div>
                                                                         <div className="flex flex-col min-w-0 flex-1">
                                                                             <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
-                                                                                {year.academic_year}
+                                                                                {maskValue(year.academic_year, 'year')}
                                                                             </span>
-                                                                            <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">ID: {year.id}</p>
+                                                                            <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">{maskValue(`ID: ${year.id}`, 'id')}</p>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -1729,15 +1744,15 @@ export default function PeriodsPage() {
                                                             {visibleCols.semester && (
                                                                 <td className="px-6 py-4">
                                                                     <span className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === 'Ganjil' ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' : 'bg-purple-500/10 text-purple-600 border-purple-500/20'}`}>
-                                                                        {year.semester}
+                                                                        {maskValue(year.semester, 'semester')}
                                                                     </span>
                                                                 </td>
                                                             )}
                                                             {visibleCols.duration && (
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex flex-col">
-                                                                        <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">{formatDate(year.start_date)} — {formatDate(year.end_date)}</span>
-                                                                        <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{getDuration(year.start_date, year.end_date)}</span>
+                                                                        <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">{isPrivacyMode ? maskValue(null, 'date') + ' — ' + maskValue(null, 'date') : formatDate(year.start_date) + ' — ' + formatDate(year.end_date)}</span>
+                                                                        <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{isPrivacyMode ? maskValue(null, 'date') : getDuration(year.start_date, year.end_date)}</span>
                                                                     </div>
                                                                 </td>
                                                             )}

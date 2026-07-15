@@ -239,7 +239,7 @@ export default function StudentsPage() {
         isModalOpen, setIsModalOpen, isPrintModalOpen, setIsPrintModalOpen,
         activeModal, setActiveModal, isHeaderMenuOpen, setIsHeaderMenuOpen,
         isShortcutOpen, setIsShortcutOpen, photoZoom, setPhotoZoom,
-        isPrivacyMode, setIsPrivacyMode, isAnyModalOpen,
+        isPrivacyMode, setIsPrivacyMode, isAnyModalOpen, maskValue,
         selectedStudent, setSelectedStudent, studentToDelete, setStudentToDelete,
         selectedStudentIds, setSelectedStudentIds, submitting, setSubmitting,
         newlyCreatedStudent, setNewlyCreatedStudent,
@@ -1280,6 +1280,7 @@ export default function StudentsPage() {
                                                         visibleColumns={visibleColumns}
                                                         isSelected={selectedIdSet.has(student.id)}
                                                         isPrivacyMode={isPrivacyMode}
+                                                        maskValue={maskValue}
                                                         onEdit={canEdit && canEditStudent ? handleEdit : null}
                                                         onViewProfile={handleViewProfile}
                                                         onViewQR={handleViewQR}
@@ -1482,6 +1483,7 @@ export default function StudentsPage() {
                                                                     onConfirmDelete={canEdit ? confirmDelete : null}
                                                                     onTogglePin={handleTogglePin}
                                                                     isPrivacyMode={isPrivacyMode}
+                                                                    maskValue={maskValue}
                                                                     buildWAMessage={buildWAMessage}
                                                                     openWAForStudent={openWAForStudent}
                                                                     waTemplate={waTemplate}
@@ -1519,6 +1521,7 @@ export default function StudentsPage() {
                                                                     onEdit={canEdit ? handleEdit : null}
                                                                     onTogglePin={handleTogglePin}
                                                                     isPrivacyMode={isPrivacyMode}
+                                                                    maskValue={maskValue}
                                                                     canEdit={canEdit}
                                                                     onConfirmDelete={canEdit ? confirmDelete : null}
                                                                     buildWAMessage={buildWAMessage}
@@ -1887,6 +1890,7 @@ export default function StudentsPage() {
                             selectedStudents={selectedStudents}
                             newlyCreatedStudent={newlyCreatedStudent}
                             isPrivacyMode={isPrivacyMode}
+                            maskValue={maskValue}
                             maskInfo={maskInfo}
                             addToast={addToast}
                             cardCaptureRef={cardCaptureRef}
@@ -1912,6 +1916,7 @@ export default function StudentsPage() {
                                 onClose={closeModal}
                                 selectedStudent={selectedStudent}
                                 isPrivacyMode={isPrivacyMode}
+                                maskValue={maskValue}
                                 maskInfo={maskInfo}
                                 calculateCompleteness={calculateCompleteness}
                                 canEdit={canEdit}

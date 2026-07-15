@@ -47,6 +47,21 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [photoZoom, setPhotoZoom] = useState(null)
     const [isPrivacyMode, setIsPrivacyMode] = useState(false)
 
+    // Privacy mode masking helper
+    const maskValue = (value, type) => {
+        if (!isPrivacyMode) return value
+        switch (type) {
+            case 'name': return '********'
+            case 'nisn': return '**********'
+            case 'phone': return '***********'
+            case 'email': return '****@****.***'
+            case 'address': return '****************'
+            case 'parent': return '********'
+            case 'id': return 'ID: ****'
+            default: return '****'
+        }
+    }
+
     // ---- STATE: ACTION CONTEXT ----
     const [selectedStudent, setSelectedStudent] = useState(null)
     const [studentToDelete, setStudentToDelete] = useState(null)
@@ -1033,7 +1048,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         isModalOpen, setIsModalOpen, isPrintModalOpen, setIsPrintModalOpen,
         activeModal, setActiveModal, isHeaderMenuOpen, setIsHeaderMenuOpen,
         isShortcutOpen, setIsShortcutOpen, photoZoom, setPhotoZoom,
-        isPrivacyMode, setIsPrivacyMode, isAnyModalOpen,
+        isPrivacyMode, setIsPrivacyMode, isAnyModalOpen, maskValue,
         // Action Context
         selectedStudent, setSelectedStudent, studentToDelete, setStudentToDelete,
         selectedStudentIds, setSelectedStudentIds, submitting, setSubmitting,

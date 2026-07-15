@@ -570,7 +570,6 @@ export default function UserManagementPage() {
                             onClick={() => {
                                 const next = !isPrivacyMode
                                 setIsPrivacyMode(next)
-                                addToast(next ? 'Mode privasi diaktifkan â€” Data sensitif disembunyikan' : 'Mode privasi dinonaktifkan', next ? 'info' : 'success')
                             }}
                             className={`h-9 px-3 rounded-xl border flex items-center gap-2 transition-all text-[10px] font-black uppercase tracking-widest
                                 ${isPrivacyMode

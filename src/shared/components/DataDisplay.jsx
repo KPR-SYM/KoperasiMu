@@ -23,32 +23,66 @@ export function StatCard({
     progressValue,
     progressMax = 100,
     className = '',
-    valueClassName = 'text-lg sm:text-xl text-[var(--color-text)]',
+    valueClassName = '',
     onClick,
-    title
+    title,
+    variant = 'gradient', // 'gradient' | 'flat'
 }) {
     const { tNum } = useLanguage()
 
+    // ── Color palette ──────────────────────────────────────────────
     const colorMap = {
-        primary: { borderTop: 'border-t-[var(--color-primary)]', dotBg: 'bg-[var(--color-primary)]', bg: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' },
-        indigo: { borderTop: 'border-t-indigo-500', dotBg: 'bg-indigo-500', bg: 'bg-indigo-500/10 text-indigo-500' },
-        emerald: { borderTop: 'border-t-emerald-500', dotBg: 'bg-emerald-500', bg: 'bg-emerald-500/10 text-emerald-500' },
-        amber: { borderTop: 'border-t-amber-500', dotBg: 'bg-amber-500', bg: 'bg-amber-500/10 text-amber-500' },
-        rose: { borderTop: 'border-t-rose-500', dotBg: 'bg-rose-500', bg: 'bg-rose-500/10 text-rose-500' },
-        sky: { borderTop: 'border-t-sky-500', dotBg: 'bg-sky-500', bg: 'bg-sky-500/10 text-sky-500' },
+        primary: {
+            gradient: 'from-[var(--color-primary)] to-[var(--color-primary)]/70',
+            shadow: 'shadow-[var(--color-primary)]/30',
+            ring: 'ring-[var(--color-primary)]',
+            flat_border: 'border-t-[var(--color-primary)]',
+            flat_dot: 'bg-[var(--color-primary)]',
+            flat_iconBg: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+        },
+        indigo: {
+            gradient: 'from-indigo-600 to-indigo-500/70',
+            shadow: 'shadow-indigo-500/30',
+            ring: 'ring-indigo-500',
+            flat_border: 'border-t-indigo-500',
+            flat_dot: 'bg-indigo-500',
+            flat_iconBg: 'bg-indigo-500/10 text-indigo-500',
+        },
+        emerald: {
+            gradient: 'from-emerald-600 to-emerald-500/70',
+            shadow: 'shadow-emerald-500/30',
+            ring: 'ring-emerald-500',
+            flat_border: 'border-t-emerald-500',
+            flat_dot: 'bg-emerald-500',
+            flat_iconBg: 'bg-emerald-500/10 text-emerald-500',
+        },
+        amber: {
+            gradient: 'from-amber-500 to-amber-400/70',
+            shadow: 'shadow-amber-500/30',
+            ring: 'ring-amber-500',
+            flat_border: 'border-t-amber-500',
+            flat_dot: 'bg-amber-500',
+            flat_iconBg: 'bg-amber-500/10 text-amber-500',
+        },
+        rose: {
+            gradient: 'from-rose-600 to-rose-500/70',
+            shadow: 'shadow-rose-500/30',
+            ring: 'ring-rose-500',
+            flat_border: 'border-t-rose-500',
+            flat_dot: 'bg-rose-500',
+            flat_iconBg: 'bg-rose-500/10 text-rose-500',
+        },
+        sky: {
+            gradient: 'from-sky-600 to-sky-500/70',
+            shadow: 'shadow-sky-500/30',
+            ring: 'ring-sky-500',
+            flat_border: 'border-t-sky-500',
+            flat_dot: 'bg-sky-500',
+            flat_iconBg: 'bg-sky-500/10 text-sky-500',
+        },
     }
 
     const resolved = colorMap[color] || colorMap.primary
-    const finalBorderTop = borderColor
-        ? (colorMap[borderColor]?.borderTop
-            ?? (borderColor.startsWith('border-t-')
-                ? borderColor
-                : `border-t-${borderColor}`))
-        : resolved.borderTop
-    const finalDotBg = resolved.dotBg
-    const finalBg = iconBg || resolved.bg
-
-    const activeRing = isActive ? `ring-2 ring-offset-1 ${resolved.borderTop.replace('border-t-', 'ring-')} ${resolved.borderTop.replace('border-t-', 'shadow-md shadow-')} shadow-[color]/10` : ''
 
     const progressPct = progressValue != null
         ? Math.min(100, Math.max(0, (progressValue / (progressMax || 100)) * 100))
@@ -56,27 +90,94 @@ export function StatCard({
 
     const animatedValue = useCountUp(value, 1500, loading)
     const displayValue = typeof value === 'number' || !isNaN(parseFloat(value)) ? animatedValue : value
-
     const TrendArrow = trendUp === true ? '↑' : trendUp === false ? '↓' : null
+
+    // ── GRADIENT VARIANT (new, matches reference image) ────────────
+    if (variant === 'gradient') {
+        return (
+            <div
+                onClick={onClick}
+                title={title}
+                className={`shrink-0 snap-center w-[200px] xs:w-[220px] sm:w-auto relative overflow-hidden rounded-2xl bg-gradient-to-br ${resolved.gradient} p-3.5 flex items-center gap-3 shadow-lg ${resolved.shadow} transition-all duration-300 ${isActive ? `ring-2 ring-white/50 ring-offset-1 ring-offset-transparent` : ''} ${onClick ? 'cursor-pointer active:scale-[0.97] hover:brightness-110' : ''} ${className}`}
+            >
+                {/* Watermark icon — large, decorative, bottom-right */}
+                {icon && (
+                    <div className="absolute -right-3 -bottom-3 opacity-[0.12] pointer-events-none select-none">
+                        {renderIcon(icon, 'w-20 h-20 text-white')}
+                    </div>
+                )}
+
+                {/* Icon box */}
+                <div className="shrink-0 w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/25 shadow-inner">
+                    {loading
+                        ? <span className="w-4 h-4 rounded bg-white/30 animate-pulse" />
+                        : renderIcon(icon, 'w-4 h-4 text-white')
+                    }
+                </div>
+
+                {/* Text block */}
+                <div className="relative z-10 min-w-0 flex-1">
+                    {loading ? (
+                        <>
+                            <span className="block w-20 h-4 rounded bg-white/25 animate-pulse mb-1.5" />
+                            <span className="block w-14 h-3 rounded bg-white/15 animate-pulse" />
+                        </>
+                    ) : (
+                        <>
+                            <h3 className={`font-black font-heading leading-none tabular-nums tracking-tighter text-white text-lg sm:text-xl ${valueClassName}`}>
+                                {tNum(displayValue)}{suffix && <span className="text-sm font-bold ml-0.5 opacity-80">{tNum(suffix)}</span>}
+                            </h3>
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-white/70 mt-1 truncate">{label}</p>
+
+                            {/* Trend badge */}
+                            {trend && (
+                                <span className={`inline-flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-md leading-none mt-1.5
+                                    ${trendUp === true ? 'bg-white/20 text-white' :
+                                    trendUp === false ? 'bg-black/20 text-white/80' :
+                                    'bg-white/10 text-white/60'}`}
+                                >
+                                    {TrendArrow && <span>{TrendArrow}</span>}
+                                    {tNum(trend)}
+                                </span>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Progress bar */}
+                {progressPct != null && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-black/15">
+                        <div
+                            className="h-full bg-white/60 transition-all duration-1000 ease-out rounded-full"
+                            style={{ width: loading ? '0%' : `${progressPct}%` }}
+                        />
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+    // ── FLAT VARIANT (original look, kept for backward-compat) ─────
+    const finalBorderTop = borderColor
+        ? (colorMap[borderColor]?.flat_border ?? (borderColor.startsWith('border-t-') ? borderColor : `border-t-${borderColor}`))
+        : resolved.flat_border
+    const finalBg = iconBg || resolved.flat_iconBg
 
     return (
         <div
             onClick={onClick}
             title={title}
-            className={`shrink-0 snap-center w-[160px] xs:w-[180px] sm:w-auto glass group relative overflow-hidden rounded-2xl border-t ${finalBorderTop} border border-[var(--color-border)] p-2.5 flex flex-col justify-center gap-1 hover:border-[var(--color-primary)]/30 hover:shadow-lg hover:shadow-[var(--color-primary)]/5 transition-all duration-300 min-h-[48px] ${onClick ? 'cursor-pointer active:scale-95' : ''} ${activeRing} ${className}`}
+            className={`shrink-0 snap-center w-[160px] xs:w-[180px] sm:w-auto glass group relative overflow-hidden rounded-2xl border-t ${finalBorderTop} border border-[var(--color-border)] p-2.5 flex flex-col justify-center gap-1 hover:border-[var(--color-primary)]/30 hover:shadow-lg hover:shadow-[var(--color-primary)]/5 transition-all duration-300 min-h-[48px] ${onClick ? 'cursor-pointer active:scale-95' : ''} ${isActive ? `ring-2 ring-offset-1 ${resolved.ring}` : ''} ${className}`}
         >
-            {/* Status Pulse Dot */}
             <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${finalDotBg} opacity-50 animate-pulse`} />
+                <div className={`w-1.5 h-1.5 rounded-full ${resolved.flat_dot} opacity-50 animate-pulse`} />
             </div>
 
-            {/* Label */}
             {loading
                 ? <span className="inline-block w-16 h-2 rounded bg-[var(--color-border)] animate-pulse" />
                 : <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] opacity-70 truncate pr-4">{label}</p>
             }
 
-            {/* Icon + Value + Trend */}
             <div className="flex items-center gap-2">
                 <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${finalBg} transform group-hover:scale-110 transition-all duration-500`}>
                     {renderIcon(icon, 'w-3 h-3')}
@@ -85,7 +186,7 @@ export function StatCard({
                 {loading
                     ? <span className="inline-block w-10 h-4 rounded bg-[var(--color-border)] animate-pulse" />
                     : (
-                        <h3 className={`font-black font-heading leading-none tabular-nums tracking-tighter ${valueClassName}`}>
+                        <h3 className={`font-black font-heading leading-none tabular-nums tracking-tighter text-lg sm:text-xl text-[var(--color-text)] ${valueClassName}`}>
                             {tNum(displayValue)}{suffix && tNum(suffix)}
                         </h3>
                     )
@@ -102,11 +203,10 @@ export function StatCard({
                 )}
             </div>
 
-            {/* Optional Progress Bar */}
             {progressPct != null && (
                 <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--color-border)]/60">
                     <div
-                        className={`h-full ${finalDotBg} opacity-70 transition-all duration-1000 ease-out rounded-full`}
+                        className={`h-full ${resolved.flat_dot} opacity-70 transition-all duration-1000 ease-out rounded-full`}
                         style={{ width: loading ? '0%' : `${progressPct}%` }}
                     />
                 </div>
