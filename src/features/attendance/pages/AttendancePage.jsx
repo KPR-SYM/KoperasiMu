@@ -1353,10 +1353,7 @@ function RekapBulananPanel({ classId, tahun, bulan, studentList, dataMap }) {
                 .select('student_id, hari_sakit, hari_izin, hari_alpa, hari_pulang')
                 .in('student_id', ids).eq('month', bulan).eq('year', tahun)
             if (data) { const m = {}; for (const r of data) m[r.student_id] = r; setRaportMap(m) }
-            await logAudit({
-                action: 'UPDATE', source: 'OPERATIONAL', tableName: 'student_monthly_reports',
-                newData: { bulk_sync: true, count: studentList.length, month: bulan, year: tahun, classId }
-            })
+            try { await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'student_monthly_reports', newData: { bulk_sync: true, count: studentList.length, month: bulan, year: tahun, classId } }) } catch (e) { console.warn('[AttendancePage] logAudit skip:', e.message) }
         }
     }
 
@@ -2325,7 +2322,7 @@ function AttendanceSettingsModal({ settings, onSave, onClose }) {
         if (error) {
             addToast('Gagal menyimpan: ' + error.message, 'error')
         } else {
-            await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'teacher_attendance_config', recordId: '1', newData: form })
+            try { await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'teacher_attendance_config', recordId: '1', newData: form }) } catch (e) { console.warn('[AttendancePage] logAudit skip:', e.message) }
             addToast('Pengaturan absensi guru tersimpan âœ“', 'success')
             onSave(form)
             onClose()
@@ -4097,11 +4094,11 @@ export default function AttendancePage() {
         } else {
             try { localStorage.removeItem(draftKey(classId, tahun, bulan)) } catch { }
             setDraftAvail(false)
-            addToast(`Absensi ${BULAN_NAMA[bulan]} ${tahun} tersimpan âœ“`, 'success')
-            await logAudit({
+            addToast(`Absensi ${BULAN_NAMA[bulan]} ${tahun} tersimpan âœ"`, 'success')
+            try { await logAudit({
                 action: 'UPDATE', source: 'SYSTEM', tableName: 'student_attendance', recordId: null,
                 newData: { class_id: classId, year: tahun, month: bulan, count: studentList.length }
-            })
+            }) } catch (e) { console.warn('[AttendancePage] logAudit skip:', e.message) }
             haptic('success')
         }
     }, [saving, isDirty, classId, tahun, bulan, studentList, dataMap, originalMap, profile, isOnline, addToast])

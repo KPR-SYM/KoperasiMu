@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
-import { Archive, Calendar, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, CircleDashed, Clock, Copy, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Fingerprint, GraduationCap, DotsSix, ClockCounterClockwise, Keyboard, StackSimple, List, Spinner, Pencil, Plus, MagnifyingGlass, SlidersHorizontal, ClockClockwise, Trash, X, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Archive, Calendar, Check, CheckCircle, CheckSquare, Checks, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, CircleDashed, Clock, Copy, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Fingerprint, GraduationCap, DotsSix, ClockCounterClockwise, Keyboard, StackSimple, List, Spinner, Pencil, Plus, MagnifyingGlass, SlidersHorizontal, ClockClockwise, Trash, X, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -539,7 +539,6 @@ export default function PeriodsPage() {
     const handleSubmit = async (formData, setFormErrors) => {
         if (!supabase || submitting) return
         setSubmitting(true)
-        console.log('[PeriodsPage] formData:', JSON.stringify(formData))
 
         const errors = {}
         if (!formData.name.trim()) errors.name = 'Nama tahun pelajaran wajib diisi'
@@ -580,7 +579,6 @@ export default function PeriodsPage() {
                 start_date: formData.startDate,
                 end_date: formData.endDate,
             }
-            console.log('[PeriodsPage] handleSubmit payload:', payload)
 
             if (selectedItem?.id) {
                 const { data, error } = await supabase.from('periods').update(payload).eq('id', selectedItem.id).select()
@@ -1421,7 +1419,7 @@ export default function PeriodsPage() {
                                 className={`h-8 px-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 ${selectedIds.length > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
                                 title="Pilih Semua / Batal"
                             >
-                                <Check className="w-3 h-3" />
+                                {selectedIds.length > 0 ? <Checks className="w-3 h-3" /> : <CheckSquare className="w-3 h-3" />}
                                 <span className="hidden xs:inline">{selectedIds.length > 0 ? 'Terpilih' : 'Pilih'}</span>
                                 {selectedIds.length > 0 && (
                                     <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[9px] font-black flex items-center justify-center">

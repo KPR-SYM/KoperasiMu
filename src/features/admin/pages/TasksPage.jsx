@@ -228,13 +228,7 @@ export default function TasksPage() {
             setTaskState(id, { status: 'error', progress: 0, lastRun: now })
             setLogs(prev => [{ id: Date.now(), task: id, status: 'error', timestamp: now, msg: err?.message || 'Error tidak diketahui', duration: '—' }, ...prev])
             if (!cancelledRef.current) addToast(`Task gagal: ${err?.message}`, 'error')
-            await logAudit({
-                action: 'EXECUTE',
-                source: 'SYSTEM',
-                tableName: 'tasks',
-                recordId: id,
-                newData: { task: id, status: 'error', msg: err?.message }
-            })
+            try { await logAudit({ action: 'EXECUTE', source: 'SYSTEM', tableName: 'tasks', recordId: id, newData: { task: id, status: 'error', msg: err?.message } }) } catch (e) { console.warn('[TasksPage] logAudit skip:', e.message) }
         }
     }, [tasks, isAnyRunning, setTaskState, addToast])
 

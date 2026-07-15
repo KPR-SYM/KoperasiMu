@@ -855,10 +855,10 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             } catch { }
         }
         addToast(`Selesai`, 'success'); closeModal(); setBulkPhotoMatches([]); setUploadingBulkPhotos(false); fetchData()
-        await logAudit({
+        try { await logAudit({
             action: 'UPDATE', source: 'OPERATIONAL', tableName: 'students',
             newData: { bulk_photo_upload: true, count: matched.length }
-        })
+        }) } catch (e) { console.warn('[useStudentsCore] logAudit skip:', e.message) }
     }
 
     const handleClassBreakdown = async (classId, className) => {

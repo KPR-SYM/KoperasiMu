@@ -513,13 +513,13 @@ export default function NewsListPage() {
         setDeleteModal({ isOpen: false, data: null, isDeleting: false })
         if (error) { addToast('Gagal hapus: ' + error.message, 'error'); return }
         setNewsList(prev => prev.filter(n => n.id !== itemToDelete.id))
-        await logAudit({
+        try { await logAudit({
             action: 'DELETE',
             source: 'SYSTEM',
             tableName: 'news',
             recordId: itemToDelete.id,
             oldData: itemToDelete
-        })
+        }) } catch (e) { console.warn('[NewsListPage] logAudit skip:', e.message) }
         addToast('Informasi dihapus', 'success')
     }
 
@@ -539,14 +539,14 @@ export default function NewsListPage() {
         }
 
         // Show toast with undo option for unpublish
-        await logAudit({
+        try { await logAudit({
             action: 'UPDATE',
             source: 'SYSTEM',
             tableName: 'news',
             recordId: item.id,
             oldData: item,
             newData: { ...item, is_published: newStatus }
-        })
+        }) } catch (e) { console.warn('[NewsListPage] logAudit skip:', e.message) }
         if (!newStatus) {
             addToast(`Informasi diarsipkan`, 'warning')
         } else {
@@ -567,14 +567,14 @@ export default function NewsListPage() {
         setSelectedIds(new Set())
         addToast(successMsg, 'success')
 
-        await logAudit({
+        try { await logAudit({
             action: 'BULK_UPDATE',
             source: user?.id || 'SYSTEM',
             tableName: 'news',
             recordId: 'MULTIPLE',
             oldData: { affected_ids: ids },
             newData: { ...update }
-        })
+        }) } catch (e) { console.warn('[NewsListPage] logAudit skip:', e.message) }
     }
 
     const bulkDelete = async () => {
@@ -590,13 +590,13 @@ export default function NewsListPage() {
         setSelectedIds(new Set())
         addToast(`${ids.length} Informasi berhasil dihapus`, 'success')
 
-        await logAudit({
+        try { await logAudit({
             action: 'BULK_DELETE',
             source: user?.id || 'SYSTEM',
             tableName: 'news',
             recordId: 'MULTIPLE',
             oldData: { affected_ids: ids }
-        })
+        }) } catch (e) { console.warn('[NewsListPage] logAudit skip:', e.message) }
     }
 
     // ── Duplicate ───────────────────────────────────────────────────────────────
@@ -626,13 +626,13 @@ export default function NewsListPage() {
         
         if (error) { addToast('Gagal duplikat: ' + error.message, 'error'); return }
         setNewsList(prev => [data[0], ...prev])
-        await logAudit({
+        try { await logAudit({
             action: 'INSERT',
             source: 'SYSTEM',
             tableName: 'news',
             recordId: data[0].id,
             newData: data[0]
-        })
+        }) } catch (e) { console.warn('[NewsListPage] logAudit skip:', e.message) }
         addToast('Artikel diduplikat sebagai draft', 'success')
     }, [duplicateModal.data, addToast])
 
