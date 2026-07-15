@@ -19,7 +19,7 @@ const COLUMN_DEFS = [
     { key: 'father_name', label: 'Ayah', icon: GenderMale },
     { key: 'mother_name', label: 'Ibu', icon: GenderFemale },
     { key: 'guardian_name', label: 'Wali', icon: Shield },
-    { key: 'poin', label: 'Poin', icon: Star },
+            { key: 'phone', label: 'Phone', icon: Star },
     { key: 'phone', label: 'Whatsapp', icon: ChatCircle },
     { key: 'status', label: 'Status', icon: Question },
     { key: 'tags', label: 'Label/Tag', icon: Tag },
@@ -27,9 +27,9 @@ const COLUMN_DEFS = [
 ]
 
 const PRESETS = [
-    { id: 'all', label: 'Data Lengkap', cols: ['kode', 'nis', 'nik', 'nama', 'gender', 'kelas', 'poin', 'phone', 'status', 'tags', 'kelengkapan'] },
+    { id: 'all', label: 'Data Lengkap', cols: ['kode', 'nis', 'nik', 'nama', 'gender', 'kelas', 'phone', 'status', 'tags', 'kelengkapan'] },
     { id: 'contact', label: 'Kontak Wali', cols: ['nama', 'kelas', 'phone'] },
-    { id: 'academic', label: 'Akademik', cols: ['nama', 'kelas', 'nis', 'poin'] },
+    { id: 'academic', label: 'Akademik', cols: ['nama', 'kelas', 'nis'] },
     { id: 'minimal', label: 'Presensi', cols: ['nama', 'kelas'] },
 ]
 

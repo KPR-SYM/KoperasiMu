@@ -1,5 +1,5 @@
 import React, { memo, useState, useRef, useEffect } from 'react'
-import { Warning, Archive, Check, Checks, CaretDown, CaretLeft, Crown, Flame, ClockCounterClockwise, IdentificationCard, GenderMale, Medal, ChatCircle, Minus, Pencil, Plus, TelegramLogo, Star, Tag, TrendDown, TrendUp, UserCheck, GenderFemale, X, Lightning, MapPin } from '@phosphor-icons/react'
+import { Archive, Check, CaretDown, ChatCircle, IdentificationCard, GenderMale, Pencil, Plus, Tag, ClockCounterClockwise, UserCheck, GenderFemale, X, MapPin } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 
@@ -62,7 +62,7 @@ const InlineEditGender = ({ value, onSave, onCancel }) => (
                         : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] bg-[var(--color-surface)]'
                     }`}
             >
-                                {g === 'L' ? <GenderMale /> : <GenderFemale />}
+                {g === 'L' ? <GenderMale /> : <GenderFemale />}
             </button>
         ))}
         <button onClick={onCancel} className="w-8 h-8 rounded-lg flex items-center justify-center bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all text-[10px]">
@@ -95,83 +95,10 @@ const InlineEditKelas = ({ value, classesList, onSave, onCancel }) => {
     )
 }
 
-// ─── Inline Pen: Poin ───────────────────────────────────────────────────────
-const InlineEditPoin = ({ value, onSave, onCancel }) => {
-    const [val, setVal] = useState(value)
-    const inputRef = useRef(null)
-    useEffect(() => { inputRef.current?.focus(); inputRef.current?.select() }, [])
-    const parsed = parseInt(val) || 0
-    return (
-        <div className="flex items-center gap-1">
-            <input
-                ref={inputRef}
-                type="number"
-                value={val}
-                onChange={e => setVal(e.target.value)}
-                onKeyDown={e => {
-                    if (e.key === 'Enter') onSave(parsed)
-                    if (e.key === 'Escape') onCancel()
-                }}
-                placeholder="Poin"
-                className="input-field h-7 w-16 px-2 rounded-lg border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black text-center outline-none focus:border-[var(--color-primary)] shadow-sm"
-            />
-            {val !== '' && (
-                <button onClick={() => onSave(parsed)} className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[10px] hover:brightness-110 transition-all shadow-sm">
-                    <Check />
-                </button>
-            )}
-            <button onClick={onCancel} className="w-7 h-7 rounded-lg flex items-center justify-center border border-[var(--color-border)] text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] hover:bg-[var(--color-border)] transition-all text-[10px]">
-                <X />
-            </button>
-        </div>
-    )
-}
-
-const Sparkline = ({ data = [], width = 30, height = 12 }) => {
-    if (!data || data.length < 2) return null
-
-    // Calculate bounds
-    const max = Math.max(...data, 2)
-    const min = Math.min(...data, -2)
-    const range = max - min || 1
-
-    // Generate points string
-    const points = data.map((val, i) => {
-        const x = (i / (data.length - 1)) * width
-        const y = height - ((val - min) / range) * height
-        return `${x},${y}`
-    }).join(' ')
-
-    const latest = data[data.length - 1]
-    const color = latest > 0 ? '#10b981' : latest < 0 ? '#ef4444' : '#9ca3af'
-
-    return (
-        <svg width={width} height={height} className="overflow-visible ml-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-            <polyline
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                points={points}
-                className={latest > 0 ? 'text-emerald-500' : latest < 0 ? 'text-red-500' : 'text-gray-400'}
-            />
-            <circle
-                cx={width}
-                cy={height - ((latest - min) / range) * height}
-                r="1.5"
-                fill="currentColor"
-                className={latest > 0 ? 'text-emerald-500 animate-pulse' : latest < 0 ? 'text-red-500 animate-pulse' : 'text-gray-400'}
-            />
-        </svg>
-    )
-}
-
 // ─── Main Component ──────────────────────────────────────────────────────────
 export const StudentRow = memo(({
     student,
     isSelected = false,
-    lastReportMap,
     onEdit,
     onViewProfile,
     onViewQR,
@@ -184,7 +111,6 @@ export const StudentRow = memo(({
     onToggleSelect,
     onInlineUpdate,
     onTogglePin,
-    formatRelativeDate,
     isPrivacyMode,
     visibleColumns = {},
     classesList = [],
@@ -195,7 +121,6 @@ export const StudentRow = memo(({
     const vc = {
         gender: true,
         kelas: true,
-        last_report: true,
         profil: true,
         tags: true,
         aksi: true,
@@ -207,13 +132,8 @@ export const StudentRow = memo(({
         return str.substring(0, visibleLen) + '***'
     }
 
-    const isRisk = false
-    const p = 0
-    const [showQuickAction, setShowQuickAction] = useState(false)
     const [showQuickViewPopover, setShowQuickViewPopover] = useState(false)
     const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0 })
-    const [boltRect, setBoltRect] = useState(null)
-    const boltRef = useRef(null)
     const nameRef = useRef(null)
 
     const hoverTimerRef = useRef(null)
@@ -246,43 +166,24 @@ export const StudentRow = memo(({
     }
 
     // ── Inline edit state ──────────────────────────────────────────────────
-    const [editingField, setEditingField] = useState(null) // 'name' | 'gender' | 'kelas' | 'poin'
-    const [savingField, setSavingField] = useState(null)
+    const [editingField, setEditingField] = useState(null) // 'name' | 'gender' | 'kelas'
 
     const handleInlineSave = async (field, value) => {
-        setSavingField(field)
         await onInlineUpdate(student.id, field, value, student)
-        setSavingField(null)
         setEditingField(null)
     }
 
     const cancelEdit = () => setEditingField(null)
 
-    // Sticky positioning for portaled dropdown
-    useEffect(() => {
-        if (!showQuickAction || !boltRef.current) return
-        const updateRect = () => {
-            setBoltRect(boltRef.current.getBoundingClientRect())
-        }
-        window.addEventListener('scroll', updateRect, true)
-        window.addEventListener('resize', updateRect)
-        return () => {
-            window.removeEventListener('scroll', updateRect, true)
-            window.removeEventListener('resize', updateRect)
-        }
-    }, [showQuickAction])
-
-    const quickActions = []
-
     return (
         <tr className={`border-t border-[var(--color-border)] transition-colors group/row table-row-lazy
-            ${isRisk ? 'bg-red-500/[0.03] hover:bg-red-500/[0.06]' : 'hover:bg-[var(--color-surface-alt)]/40'}
+            hover:bg-[var(--color-surface-alt)]/40
             ${editingField ? 'bg-[var(--color-primary)]/[0.02]' : ''}
             ${student.is_pinned ? 'bg-amber-500/[0.04] border-l-2 border-l-amber-400' : ''}
         `}>
 
             {/* Checkbox + MapPin */}
-            <td className="px-4 py-4">
+            <td className="px-4 py-4 w-12">
                 <div className="flex items-center gap-2">
                     <input
                         type="checkbox"
@@ -307,13 +208,13 @@ export const StudentRow = memo(({
             </td>
 
             {/* ── Siswa (Nama) ─────────────────────────────────────────── */}
-            <td className="px-4 py-4">
+            <td className="px-4 py-4 min-w-[250px]">
                 <div className="flex items-start gap-3">
-                    {/* Avatar + rank badge overlay */}
+                    {/* Avatar */}
                     <div className="relative shrink-0">
                         <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-sm overflow-hidden relative cursor-pointer transition-transform hover:scale-110
-                                ${isRisk ? 'bg-red-500/10 text-red-500' : 'bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]'}
+                                bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]
                                 ${isPrivacyMode ? 'blur-sm grayscale opacity-60' : ''}`}
                             onClick={() => { if (isPrivacyMode) return; student.photo_url && onPhotoZoom({ url: student.photo_url, name: student.name, registrationCode: student.registration_code, className: student.className }) }}
                             title={student.photo_url && !isPrivacyMode ? 'Klik untuk zoom foto' : ''}
@@ -365,8 +266,8 @@ export const StudentRow = memo(({
                                             >
                                                 {/* Header Profile Rows */}
                                                 <div className="flex items-center gap-4 mb-4 pb-4 border-b border-[var(--color-border)]/50">
-                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black shadow-inner relative group/pop-img
-                                                        ${isRisk ? 'bg-red-500/10 text-red-500' : 'bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-accent)]/20 text-[var(--color-primary)]'}`}>
+                                                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-lg font-black shadow-inner relative group/pop-img
+                                                        bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-accent)]/20 text-[var(--color-primary)]">
                                                         {student.photo_url ? (
                                                             <img src={student.photo_url} className="w-full h-full object-cover rounded-2xl" onError={(e) => { e.target.onerror = null; e.target.parentElement.innerHTML = `<span>${(student.name || 'S').charAt(0)}</span>` }} />
                                                         ) : (
@@ -383,17 +284,10 @@ export const StudentRow = memo(({
                                                     </div>
                                                 </div>
 
-                                                {/* Quick Stats GridFour */}
-                                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                                {/* Quick Stat: Kelengkapan Profil */}
+                                                <div className="mb-4">
                                                     <div className="p-3 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 transition-colors">
-                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest mb-1 opacity-60">Status Poin</p>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${p >= 0 ? 'bg-emerald-500 animate-pulse' : 'bg-red-500 animate-pulse'}`} />
-                                                            <p className={`w-3 h-3 font-black ${p >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{p} Poin</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-3 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] hover:border-[var(--color-primary)]/30 transition-colors">
-                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest mb-1 opacity-60">Kelengkapan</p>
+                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest mb-1 opacity-60">Kelengkapan Profil</p>
                                                         <div className="flex items-center gap-2">
                                                             <div className="flex-1 h-1 rounded-full bg-[var(--color-border)] overflow-hidden">
                                                                 <div className="h-full bg-[var(--color-primary)]" style={{ width: `${calculateCompleteness(student)}%` }} />
@@ -449,38 +343,8 @@ export const StudentRow = memo(({
                             )}
                         </div>
 
-                        {/* Status + Identification line */}
+                        {/* Identification line */}
                         <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-                            {/* Badges prioritize visibility */}
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                                {isRisk ? (
-                                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-red-500/10 text-red-500 border border-red-500/20 uppercase tracking-widest animate-pulse">
-                                        <Warning className="w-2 h-2" />
-                                        Risiko
-                                    </span>
-                                ) : p < 0 ? (
-                                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-widest">
-                                        <Warning className="w-2 h-2" />
-                                        Monitor
-                                    </span>
-                                ) : p >= 200 ? (
-                                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-orange-500/10 text-orange-600 border border-orange-500/20 uppercase tracking-widest">
-                                        <Flame className="w-2 h-2" />
-                                        Legendary
-                                    </span>
-                                ) : p >= 100 ? (
-                                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 uppercase tracking-widest">
-                                        <Crown className="w-2 h-2" />
-                                        Excellent
-                                    </span>
-                                ) : p >= 50 ? (
-                                    <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black bg-amber-500/10 text-amber-600 border border-amber-500/20 uppercase tracking-widest">
-                                        <Star className="w-2 h-2" />
-                                        Star
-                                    </span>
-                                ) : null}
-                            </div>
-
                             <span className="text-[10px] font-bold text-[var(--color-text-muted)] opacity-60 uppercase tracking-wider truncate">
                                 {isPrivacyMode ? maskInfo(student.registration_code || student.code, 2) : (student.registration_code || student.code)}
                             </span>
@@ -491,7 +355,7 @@ export const StudentRow = memo(({
 
             {/* ── Gender ───────────────────────────────────────────────── */}
             {vc.gender && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
+                <td className="px-4 py-4 text-center whitespace-nowrap w-20">
                     {editingField === 'gender' ? (
                         <InlineEditGender
                             value={student.gender}
@@ -520,7 +384,7 @@ export const StudentRow = memo(({
 
             {/* ── Kelas ────────────────────────────────────────────────── */}
             {vc.kelas && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
+                <td className="px-4 py-4 text-center whitespace-nowrap w-44">
                     {editingField === 'kelas' ? (
                         <InlineEditKelas
                             value={student.class_id}
@@ -552,7 +416,7 @@ export const StudentRow = memo(({
 
             {/* ── Status ────────────────────────────────────────────────── */}
             {vc.status && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
+                <td className="px-4 py-4 text-center whitespace-nowrap w-32">
                     <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider
                         ${student.status === 'aktif' ? 'bg-emerald-500/10 text-emerald-600' :
                             student.status === 'lulus' ? 'bg-blue-500/10 text-blue-600' :
@@ -562,54 +426,9 @@ export const StudentRow = memo(({
                 </td>
             )}
 
-            {vc.poin && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
-                    {editingField === 'poin' ? (
-                        <InlineEditPoin
-                            value={p}
-                            onSave={delta => handleInlineSave('poin', delta)}
-                            onCancel={cancelEdit}
-                        />
-                    ) : (
-                        <div className="flex flex-col items-start gap-1 group/point">
-                            <div className="flex items-center gap-1.5">
-                                <span className={`w-4 h-4 font-black tracking-tight ${p < 0 ? 'text-red-500' : p > 0 ? 'text-emerald-500' : 'text-[var(--color-text)] opacity-40'}`}>
-                                    {p > 0 ? '+' : ''}{p}
-                                </span>
-                                <Sparkline data={student.trendHistory} />
-
-                                {/* Inline edit poin — pensil */}
-                                <button
-                                    onClick={() => setEditingField('poin')}
-                                    className="w-5 h-5 rounded-md flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all opacity-0 group-hover/point:opacity-100"
-                                    title="Pen poin"
-                                >
-                                    <Pencil className="w-3 h-3" />
-                                </button>
-
-                            </div>
-                        </div>
-                    )}
-                </td>
-            )}
-
-            {/* ── Laporan Terakhir ────────────────────────────────────────── */}
-            {vc.last_report && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
-                    <div className="flex flex-col gap-0.5">
-                        <p className="text-[11px] font-black text-[var(--color-text)] whitespace-nowrap">
-                            {lastReportMap?.[student.id] ? formatRelativeDate(lastReportMap[student.id]) : '---'}
-                        </p>
-                        {lastReportMap?.[student.id] && (
-                            <p className="text-[9px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest opacity-60">Aktif</p>
-                        )}
-                    </div>
-                </td>
-            )}
-
             {/* ── Kelengkapan Profil ──────────────────────────────────────── */}
             {vc.profil && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
+                <td className="px-4 py-4 text-center whitespace-nowrap w-32">
                     <div className="flex items-center gap-2">
                         {(() => {
                             const score = calculateCompleteness(student);
@@ -633,7 +452,7 @@ export const StudentRow = memo(({
 
             {/* ── Label/Tag ─────────────────────────────────────────────── */}
             {vc.tags && (
-                <td className="px-4 py-4 text-center whitespace-nowrap">
+                <td className="px-4 py-4 text-center whitespace-nowrap w-28">
                     <div className="flex flex-wrap items-center gap-1 max-w-[120px]">
                         {(student.tags || []).length > 0 ? (
                             student.tags.map(tag => (
@@ -678,7 +497,7 @@ export const StudentRow = memo(({
                         <button onClick={() => onViewTags(student)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-violet-500 hover:bg-violet-500/10 transition-all text-sm" title="Label">
                             <Tag />
                         </button>
-                        <button onClick={() => onViewClassHistory(student)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 transition-all text-sm" title="Riwayat Perilaku">
+                        <button onClick={() => onViewClassHistory(student)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 transition-all text-sm" title="Riwayat Kelas">
                             <ClockCounterClockwise />
                         </button>
 
@@ -711,10 +530,6 @@ export const StudentMobileCard = memo(({
     openWAForStudent,
     waTemplate
 }) => {
-    const isRisk = false
-    const p = 0
-    const [showQuickAction, setShowQuickAction] = useState(false)
-
     const longPressProps = useLongPress(() => {
         onToggleSelect(student.id)
     }, {
@@ -728,15 +543,12 @@ export const StudentMobileCard = memo(({
         }
     })
 
-    const stopPropagation = (e) => e.stopPropagation();
     const handleActionAreaClick = (e) => {
         e.stopPropagation();
     };
     const stopTouch = (e) => {
         e.stopPropagation();
     };
-
-    const quickActions = []
 
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
@@ -748,12 +560,10 @@ export const StudentMobileCard = memo(({
         <div
             {...longPressProps}
             className={`group relative p-1.5 rounded-3xl border transition-all duration-300 ease-out select-none
-                ${showQuickAction ? 'z-[100]' : 'z-auto'}
                 ${isSelected
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/[0.04] shadow-xl shadow-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/20'
                     : 'border-[var(--color-border)] bg-[var(--color-surface)] shadow-md shadow-black/[0.02]'}
                 ${student.is_pinned ? 'border-amber-400/40' : ''}
-                ${isPressed ? 'scale-[0.985] shadow-inner brightness-[0.98]' : 'scale-100'}
                 ${hasSelection ? 'cursor-pointer' : ''}
             `}
         >
@@ -785,7 +595,7 @@ export const StudentMobileCard = memo(({
                         <div
                             className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-black shadow-inner border-2 transition-all overflow-hidden
                                 ${isSelected ? 'border-[var(--color-primary)] scale-110' : 'border-white dark:border-gray-800'}
-                                ${isRisk ? 'bg-red-500/10 text-red-500' : 'bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary)]/90 to-[var(--color-accent)] text-white'}
+                                bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary)]/90 to-[var(--color-accent)] text-white
                                 ${isPrivacyMode ? 'blur-md grayscale opacity-60' : ''}`}
                         >
                             {student.photo_url
@@ -801,9 +611,6 @@ export const StudentMobileCard = memo(({
                                 </div>
                             )}
                         </div>
-
-                        {/* Status Circle */}
-
                     </div>
 
                     {/* NAME & IDENTITY */}
@@ -825,7 +632,7 @@ export const StudentMobileCard = memo(({
                     </div>
                 </div>
 
-                {/* INFO PILLS - Single Row with Dynamic Indicator */}
+                {/* INFO PILLS */}
                 <div className="mt-3 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                         <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[var(--color-surface-alt)]/80 border border-[var(--color-border)]/40 min-w-0">
@@ -833,13 +640,6 @@ export const StudentMobileCard = memo(({
                             <span className="text-[10px] font-black text-[var(--color-text)] uppercase tracking-tight truncate">
                                 {student.className}
                             </span>
-                        </div>
-
-                        <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border font-black text-[10px] transition-all shrink-0
-                            ${p < 0 ? 'bg-red-500/10 border-red-500/10 text-red-600' : p > 0 ? 'bg-emerald-500/10 border-emerald-500/10 text-emerald-600' : 'bg-[var(--color-surface-alt)]/80 border-[var(--color-border)]/40 text-[var(--color-text-muted)]'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${p < 0 ? 'bg-red-500' : p > 0 ? 'bg-emerald-500' : 'bg-gray-400 opacity-40'}`} />
-                            {p > 0 ? '+' : ''}{p} Poin
-                            <Sparkline data={student.trendHistory} />
                         </div>
                     </div>
 
@@ -873,17 +673,9 @@ export const StudentMobileCard = memo(({
                     </div>
                 </div>
 
-                {/* Additional Tag (Second row if needed) */}
-                {((student.tags || []).length > 0 || p >= 50) && (
+                {/* Label Tags */}
+                {(student.tags || []).length > 0 && (
                     <div className="mt-2 flex flex-wrap items-center gap-1">
-                        {p >= 200 ? (
-                            <span className="text-[8px] font-black px-2 py-0.5 rounded-md border border-orange-500/20 bg-orange-500/10 text-orange-600 uppercase tracking-wider">Legendary</span>
-                        ) : p >= 100 ? (
-                            <span className="text-[8px] font-black px-2 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 uppercase tracking-wider">Perfect</span>
-                        ) : p >= 50 ? (
-                            <span className="text-[8px] font-black px-2 py-0.5 rounded-md border border-amber-500/20 bg-amber-500/10 text-amber-600 uppercase tracking-wider">Star</span>
-                        ) : null}
-
                         {(student.tags || []).slice(0, 3).map(tag => (
                             <span key={tag} className={`text-[8px] font-black px-2 py-0.5 rounded-md border uppercase tracking-wider ${getTagColor(tag)}`}>
                                 {tag}
@@ -955,31 +747,32 @@ export const StudentSkeletonRow = () => (
         <td className="py-4 px-4 w-12 text-center">
             <div className="w-5 h-5 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
         </td>
-        <td className="py-4 px-1 w-12 truncate">
-            <div className="w-9 h-9 rounded-full bg-[var(--color-surface-alt)] mx-auto" />
-        </td>
-        <td className="py-4 px-1 w-16 text-center">
-            <div className="w-10 h-4 bg-[var(--color-surface-alt)] rounded-md mx-auto" />
-        </td>
-        <td className="py-4 px-4 min-w-[300px]">
-            <div className="flex flex-col gap-1.5">
-                <div className="w-48 h-4 bg-[var(--color-surface-alt)] rounded-md" />
-                <div className="w-32 h-3 bg-[var(--color-surface-alt)]/60 rounded-md" />
+        <td className="py-4 px-4 min-w-[250px]">
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--color-surface-alt)] shrink-0" />
+                <div className="flex flex-col gap-1.5">
+                    <div className="w-40 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+                    <div className="w-24 h-3 bg-[var(--color-surface-alt)]/60 rounded-md" />
+                </div>
             </div>
         </td>
-        <td className="py-4 px-4 text-center">
-            <div className="w-8 h-4 bg-[var(--color-surface-alt)] rounded-md mx-auto" />
+        <td className="py-4 px-4 text-center w-20">
+            <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
         </td>
-        <td className="py-4 px-4 text-center">
-            <div className="w-12 h-4 bg-[var(--color-surface-alt)] rounded-md mx-auto" />
+        <td className="py-4 px-4 text-center w-44">
+            <div className="w-20 h-5 bg-[var(--color-surface-alt)] rounded-md mx-auto" />
         </td>
-        <td className="py-4 px-4 text-center">
-            <div className="w-12 h-6 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
+        <td className="py-4 px-4 text-center w-32">
+            <div className="w-16 h-5 bg-[var(--color-surface-alt)] rounded-full mx-auto" />
         </td>
-        <td className="py-4 px-4">
+        <td className="py-4 px-4 text-center w-28">
+            <div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-md mx-auto" />
+        </td>
+        <td className="py-4 px-4 text-center w-[280px]">
             <div className="flex gap-2 justify-center">
-                <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-xl" />
-                <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-xl" />
+                <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="w-8 h-8 bg-[var(--color-surface-alt)] rounded-lg" />
             </div>
         </td>
     </tr>
@@ -1026,9 +819,6 @@ export const StudentMobileListRow = memo(({
     waTemplate
 }) => {
     const [isExpanded, setIsExpanded] = useState(false)
-    const [showQuickAction, setShowQuickAction] = useState(false)
-    const [boltRect, setBoltRect] = useState(null)
-    const boltRef = useRef(null)
 
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
@@ -1056,7 +846,7 @@ export const StudentMobileListRow = memo(({
             isLongPressActive.current = true
             onToggleSelect(student.id)
             if (navigator.vibrate) {
-                try { navigator.vibrate(40) } catch (err) {}
+                try { navigator.vibrate(40) } catch (err) { }
             }
         }, 600)
     }
@@ -1103,10 +893,8 @@ export const StudentMobileListRow = memo(({
         e.stopPropagation()
     }
 
-    const quickActions = []
-
     return (
-        <div 
+        <div
             className={`w-full flex flex-col transition-all duration-300
                 ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : 'bg-[var(--color-surface)]'}
                 ${student.is_pinned ? 'border-l-[4px] border-l-amber-400' : ''}
@@ -1142,7 +930,7 @@ export const StudentMobileListRow = memo(({
                 <div className="relative shrink-0 pointer-events-none">
                     <div
                         className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black shadow-inner border transition-all overflow-hidden
-                            ${isRisk ? 'bg-red-500/10 text-red-500 border-red-200 shadow-red-200' : 'bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)] border-[var(--color-border)]'}
+                            bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)] border-[var(--color-border)]
                             ${isPrivacyMode ? 'blur-md grayscale opacity-60' : ''}`}
                     >
                         {student.photo_url && !isPrivacyMode ? (

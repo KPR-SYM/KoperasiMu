@@ -4,7 +4,6 @@ import { ClipboardText, ArrowRight, Warning, CheckCircle, Circle } from '@phosph
 import { supabase } from '@lib/supabase'
 
 export function TaskCenterWidget() {
-  const [dbCounts, setDbCounts] = useState({ pendingGate: 0, todayReports: 0 })
   const [completedTasks, setCompletedTasks] = useState({})
 
   // Load completed tasks status from localStorage
@@ -15,26 +14,6 @@ export function TaskCenterWidget() {
     } catch (e) {
       console.error(e)
     }
-
-    // Fetch live DB values for dynamic updates
-    const fetchCounts = async () => {
-      try {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const { count: reportCount } = await supabase
-          .from('reports')
-          .select('id', { count: 'exact', head: true })
-          .gte('reported_at', today.toISOString())
-
-        setDbCounts({
-          todayReports: reportCount || 0
-        })
-      } catch (err) {
-        console.warn('Gagal memuat statistik database untuk widget:', err)
-      }
-    }
-
-    fetchCounts()
   }, [])
 
   // Tasks overview configuration
@@ -47,20 +26,13 @@ export function TaskCenterWidget() {
       role: 'Guru'
     },
     {
-      id: 'waka_poin_review',
-      title: 'Review Pelanggaran Poin Berat',
-      count: dbCounts.todayReports,
-      urgent: false,
-      role: 'Waka'
-    },
-    {
       id: 'musyrif_presence_subuh',
       title: 'Presensi Ibadah Santri',
       count: 1,
       urgent: true,
       role: 'Musyrif'
     }
-  ], [dbCounts])
+  ], [])
 
   const pendingTasks = useMemo(() => {
     return tasks.filter(t => !completedTasks[t.id])

@@ -58,14 +58,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [bulkRoomId, setBulkRoomId] = useState('')
 
     // ---- STATE: PROFILE / DETAIL ----
-    const [behaviorHistory, setBehaviorHistory] = useState([])
-    const [raportHistory, setRaportHistory] = useState([])
     const [profileTab, setProfileTab] = useState('info')
-    const [timelineFilter, setTimelineFilter] = useState('all')
-    const [timelineVisible, setTimelineVisible] = useState(8)
-    const [auditLogs, setAuditLogs] = useState([])
-    const [loadingAudit, setLoadingAudit] = useState(false)
-    const [loadingHistory, setLoadingHistory] = useState(false)
 
     // ---- STATE: ARCHIVE & HISTORY ----
     const [archivedStudents, setArchivedStudents] = useState([])
@@ -129,7 +122,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [broadcastResults, setBroadcastResults] = useState({})
     const [allUsedTags, setAllUsedTags] = useState([])
     const [tagStats, setTagStats] = useState({})
-    const [lastReportMap, setLastReportMap] = useState({})
     const [pendingArchive, setPendingArchive] = useState(null)
     const [gSheetsUrl, setGSheetsUrl] = useState('')
     const [fetchingGSheets, setFetchingGSheets] = useState(false)
@@ -145,7 +137,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [renameInput, setRenameInput] = useState('')
     const [archivePage, setArchivePage] = useState(1)
     const [archivePageSize, setArchivePageSize] = useState(15)
-    const [loadingRaport, setLoadingRaport] = useState(false)
+
 
     // ---- REFS ----
     const formDataRef = useRef({
@@ -232,9 +224,6 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     }, [])
 
     // ---- REFS ----
-    const trendMapRef = useRef({})
-    const lastReportMapRef = useRef({})
-
     const fetchData = useCallback(async () => {
         setLoading(true)
         try {
@@ -675,57 +664,28 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     }
 
     // ---- FUNCTIONS: PROFILE ACCESS ----
-    const fetchBehaviorHistory = useCallback(async (studentId) => {
-        setLoadingHistory(true)
-        try {
-            const { data } = await supabase.from('reports').select('*').eq('student_id', studentId).order('created_at', { ascending: false })
-            setBehaviorHistory(data || [])
-        } catch { setBehaviorHistory([]) } finally { setLoadingHistory(false) }
-    }, [])
-
-    const fetchRaportHistory = useCallback(async (studentId) => {
-        try {
-            const { data } = await supabase.from('student_monthly_reports').select('*').eq('student_id', studentId).order('created_at', { ascending: false })
-            setRaportHistory(data || [])
-        } catch { setRaportHistory([]) }
-    }, [])
-
     const handleViewProfile = (student, tab = 'info') => {
-        setSelectedStudent(student); setBehaviorHistory([]); setRaportHistory([])
-        setTimelineFilter('all'); setTimelineVisible(8); setProfileTab(tab)
+        setSelectedStudent(student); setProfileTab(tab)
         setActiveModal('profile')
-        fetchBehaviorHistory(student.id); fetchRaportHistory(student.id)
     }
 
     const resetAllFilters = useCallback(() => {
         setSearchQuery(''); setFilterClass(''); setFilterClasses([])
         setFilterGender(''); setFilterStatus(''); setFilterTag('')
-        setFilterMissing(''); setSortBy('name_asc'); setFilterPointMode('')
-        setFilterPointMin(''); setFilterPointMax(''); setSelectedStudentIds([])
+        setFilterMissing(''); setSortBy('name_asc'); setSelectedStudentIds([])
         localStorage.removeItem('students_filters')
     }, [])
 
     // ---- FUNCTIONS: WA BROADCAST ----
-    const waTemplate = `*Laporan Perkembangan Ananda {nama}*
-
-Saat ini, Ananda tercatat memiliki total *{poin} poin* perilaku.
-Tetap semangat dalam meningkatkan kedisiplinan dan prestasi!
-
-Salam,
-Koperasi SenyumMu System`
-
     const buildWAMessage = (student, templateId) => {
-        let template = waTemplate
-        if (templateId === 'general') template = `Assalamualaikum Wr. Wb.\n\nBapak/Ibu Wali dari Ananda *{nama}* ({kelas}).\n\n`
-        else if (templateId === 'intro') template = `Assalamualaikum Wr. Wb.\n\nPerkenalkan, saya dari *Koperasi SenyumMu*. Ini terkait Ananda *{nama}* ({kelas}).\n\n`
-        else if (templateId === 'points') template = `*Laporan Poin Perilaku Ananda {nama}*\n\nSaat ini Ananda memiliki total *{poin} poin* di sistem Koperasi SenyumMu.\n\n_Terus semangatkan kedisiplinan dan prestasi ananda._\n\nWassalam.`
+        let template = `Assalamualaikum Wr. Wb.\n\nBapak/Ibu Wali dari Ananda *{nama}* ({kelas}).\n\n`
+        if (templateId === 'intro') template = `Assalamualaikum Wr. Wb.\n\nPerkenalkan, saya dari *Koperasi SenyumMu*. Ini terkait Ananda *{nama}* ({kelas}).\n\n`
         else if (templateId === 'security') template = `*PEMBERITAHUAN KEAMANAN*\n\nInformasi akses Portal Orang Tua untuk ananda {nama}:\nID Reg : {kode}\nPIN    : {pin}\nPortal : [URL]\n\n_Mohon jaga kerahasiaan PIN anda._`
         else if (templateId === 'custom') template = customWaMsg || 'Halo Bapak/Ibu wali dari {nama}.'
 
         return template
             .replace(/{nama}/g, student.name)
             .replace(/{kelas}/g, classesList.find(c => c.id === student.class_id)?.name || '-')
-            .replace(/{poin}/g, '0')
             .replace(/{kode}/g, student.registration_code || student.code || '-')
             .replace(/{pin}/g, student.pin || '-')
             .replace(/\[URL\]/g, window.location.origin + '/check')
@@ -940,20 +900,6 @@ Koperasi SenyumMu System`
         } catch { } finally { setCheckingDuplicate(false) }
     }
 
-    const fetchAuditLog = async (id) => {
-        setLoadingAudit(true)
-        try {
-            const { data } = await supabase
-                .from('audit_logs')
-                .select('*')
-                .eq('table_name', 'students')
-                .eq('record_id', id)
-                .order('created_at', { ascending: false })
-                .limit(50)
-            setAuditLogs(data || [])
-        } catch { setAuditLogs([]) } finally { setLoadingAudit(false) }
-    }
-
     const fetchClassHistory = async (id) => {
         setLoadingClassHistory(true)
         try {
@@ -1093,18 +1039,15 @@ Koperasi SenyumMu System`
         bulkClassId, setBulkClassId, bulkTagAction, setBulkTagAction,
         bulkRoomId, setBulkRoomId,
         // Profile / Details
-        behaviorHistory, setBehaviorHistory, raportHistory, setRaportHistory,
-        profileTab, setProfileTab, timelineFilter, setTimelineFilter,
-        timelineVisible, setTimelineVisible, auditLogs, setAuditLogs, loadingAudit, setLoadingAudit,
-        loadingHistory,
+        profileTab, setProfileTab,
         // Functional
         handleSubmit, handleAdd, handleEdit, confirmDelete, executeDelete, closeModal,
         toggleSelectAll, toggleSelectStudent, handleBulkPromote, handleBulkDelete,
         handleBulkTagApply, handleBulkRoomAssign,
         fetchArchivedStudents, handleRestoreStudent, handlePermanentDelete, setArchivedStudents,
         fetchUsedTags, handleToggleTag, handleGlobalDeleteTag, handleGlobalRenameTag,
-        fetchBehaviorHistory, fetchRaportHistory, handleViewProfile,
-        handleResetPin, checkDuplicate, fetchAuditLog, fetchClassHistory, handleViewClassHistory,
+        handleViewProfile,
+        handleResetPin, checkDuplicate, fetchClassHistory, handleViewClassHistory,
         handleInlineUpdate, handleTogglePin, handlePhotoUpload, uploadingPhoto,
         handleInlineSubmit, handleViewQR, handleViewPrint, handleBulkWA, buildWAMessage, openWAForStudent, waTemplate,
         generateStudentPDF, handlePrintSingle, handlePrintThermal, handleSavePNG, handleBulkPrint,
@@ -1116,8 +1059,8 @@ Koperasi SenyumMu System`
         checkingDuplicate, gSheetsUrl, setGSheetsUrl, fetchingGSheets, setFetchingGSheets,
         page, setPage, pageSize, setPageSize, jumpPage, setJumpPage, generatingPdf,
         studentForTags, setStudentForTags, renameInput, setRenameInput,
-        archivePage, setArchivePage, archivePageSize, setArchivePageSize, loadingRaport,
-        allSelected, someSelected, lastReportMap,
+        archivePage, setArchivePage, archivePageSize, setArchivePageSize,
+        allSelected, someSelected,
         allUsedTags, archivedStudents, loadingArchived, classHistory, loadingClassHistory,
         // Refs
         formDataRef, importFileInputRef, photoInputRef, searchInputRef, headerMenuRef, shortcutRef, cardCaptureRef,

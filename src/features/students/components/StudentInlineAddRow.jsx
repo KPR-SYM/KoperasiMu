@@ -16,6 +16,8 @@ export default function StudentInlineAddRow({
         gender: true,
         kelas: true,
         status: true,
+        profil: true,
+        tags: true,
         aksi: true,
         ...visibleColumns
     }
@@ -52,24 +54,24 @@ export default function StudentInlineAddRow({
 
     return (
         <tr className="border-t-2 border-[var(--color-primary)]/30 bg-[var(--color-primary)]/[0.01] transition-all duration-300">
-            <td className="px-4 py-3">
+            <td className="px-4 py-3 w-12">
                 <div className="w-4 h-4 rounded border border-[var(--color-border)] opacity-20 mx-auto" />
             </td>
 
-            <td className="px-4 py-3">
+            <td className="px-4 py-3 min-w-[250px]">
                 <input
                     ref={nameInputRef}
                     type="text"
                     value={localForm.name}
                     onChange={e => setLocalForm(p => ({ ...p, name: e.target.value }))}
                     onKeyDown={handleKeyDown}
-                    placeholder="Nama siswa baru..."
-                    className="input-field text-sm h-9 px-3 rounded-xl border-[var(--color-border)] focus:border-[var(--color-primary)] bg-[var(--color-surface)] w-full font-bold"
+                    placeholder="Nama Siswa"
+                    className="input-field text-xs h-9 px-3 rounded-xl border-[var(--color-border)] focus:border-[var(--color-primary)] bg-[var(--color-surface)] w-full"
                 />
             </td>
 
             {vc.gender && (
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center w-20">
                     <div className="flex gap-1 justify-center">
                         {['L', 'P'].map(g => (
                             <button key={g} type="button" onClick={() => setLocalForm(p => ({ ...p, gender: g }))}
@@ -81,7 +83,7 @@ export default function StudentInlineAddRow({
             )}
 
             {vc.kelas && (
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center w-44">
                     <RichSelect
                         small
                         value={localForm.class_id}
@@ -93,20 +95,25 @@ export default function StudentInlineAddRow({
                 </td>
             )}
 
+            {/* Status column: reused as phone/WA number entry for the quick-add row */}
             {vc.status && (
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 text-center w-32">
                     <input
                         type="text"
                         value={localForm.phone}
                         onChange={e => setLocalForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
                         onKeyDown={handleKeyDown}
-                        placeholder="No. WhatsApp"
-                        className="input-field text-[10px] h-9 px-3 rounded-xl border-[var(--color-border)] bg-[var(--color-surface)] w-full text-center font-bold"
+                        placeholder="No. Whatsapp"
+                        className="input-field text-[10px] h-9 px-2 rounded-xl border-[var(--color-border)] bg-[var(--color-surface)] w-full text-center"
                     />
                 </td>
             )}
 
-            {vc.tags && <td className="px-4 py-3" />}
+            {/* Profil column: no equivalent input while adding, keep empty placeholder
+                so this row stays aligned with the table header/body columns */}
+            {vc.profil && <td className="px-4 py-3 w-32" />}
+
+            {vc.tags && <td className="px-4 py-3 w-28" />}
 
             {vc.aksi && (
                 <td className="px-4 py-3 text-center w-[280px]">

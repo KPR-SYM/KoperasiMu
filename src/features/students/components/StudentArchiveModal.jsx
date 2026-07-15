@@ -46,9 +46,6 @@ export default function StudentArchiveModal({
         setDeleting(true)
         try {
             await supabase.from('student_class_history').delete().eq('student_id', deleteTarget.id)
-            await supabase.from('point_history').delete().eq('student_id', deleteTarget.id)
-            await supabase.from('reports').delete().eq('student_id', deleteTarget.id)
-            await supabase.from('student_monthly_reports').delete().eq('student_id', deleteTarget.id)
 
             const { data, error } = await supabase.from('students').delete().eq('id', deleteTarget.id).select()
 

@@ -14,9 +14,7 @@ const TABLE_CONFIG = [
     { key: 'students', label: 'Siswa', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/10', softDelete: true, dateCol: 'created_at' },
     { key: 'teachers', label: 'Guru & Karyawan', icon: PresentationChart, color: 'text-emerald-500', bg: 'bg-emerald-500/10', softDelete: true, dateCol: 'created_at' },
     { key: 'classes', label: 'Kelas', icon: Buildings, color: 'text-blue-500', bg: 'bg-blue-500/10', softDelete: false, dateCol: 'created_at' },
-    { key: 'student_monthly_reports', label: 'Raport Bulanan', icon: ClipboardText, color: 'text-purple-500', bg: 'bg-purple-500/10', softDelete: false, dateCol: 'created_at' },
-    { key: 'reports', label: 'Poin Siswa', icon: Shield, color: 'text-orange-500', bg: 'bg-orange-500/10', softDelete: false, dateCol: 'reported_at' },
-    { key: 'point_rules', label: 'Konfigurasi Poin', icon: Warning, color: 'text-red-500', bg: 'bg-red-500/10', softDelete: false, dateCol: 'created_at' },
+
     { key: 'periods', label: 'Periode Akademik', icon: Calendar, color: 'text-teal-500', bg: 'bg-teal-500/10', softDelete: true, dateCol: 'created_at' },
     { key: 'gate_logs', label: 'Log Gerbang', icon: ArrowLineRight, color: 'text-rose-500', bg: 'bg-rose-500/10', softDelete: false, dateCol: 'created_at' },
     { key: 'profiles', label: 'Profil Akun', icon: Shield, color: 'text-violet-500', bg: 'bg-violet-500/10', softDelete: false, dateCol: 'created_at' },
@@ -50,32 +48,7 @@ const INTEGRITY_CHECKS = [
             { label: 'Jumlah', key: 'count', width: '70px' },
         ],
     },
-    {
-        id: 'orphan_reports',
-        label: 'Poin tanpa siswa valid',
-        desc: 'Data poin yang student_id-nya tidak ada di tabel students',
-        severity: 'error',
-        icon: Shield,
-        canRepair: true,
-        columns: [
-            { label: 'Report ID', key: 'id', width: '200px', mono: true },
-            { label: 'Student ID', key: 'student_id', width: '200px', mono: true },
-            { label: 'Poin', key: 'points', width: '70px', highlight: true },
-        ],
-    },
-    {
-        id: 'orphan_raport',
-        label: 'Raport tanpa siswa valid',
-        desc: 'Raport bulanan yang student_id-nya tidak ada di tabel students',
-        severity: 'error',
-        icon: ClipboardText,
-        canRepair: true,
-        columns: [
-            { label: 'Raport ID', key: 'id', width: '200px', mono: true },
-            { label: 'Student ID', key: 'student_id', width: '200px', mono: true },
-            { label: 'Bulan/Tahun', key: 'period', width: '100px' },
-        ],
-    },
+
     {
         id: 'empty_classes',
         label: 'Kelas tanpa siswa',
@@ -472,27 +445,7 @@ export default function DatabasePage() {
                 items: orphanStudents.map(s => ({ id: s.id, name: s.name || '(tanpa nama)', class_id: s.class_id })),
             }
 
-            // 2. Orphan reports — reports with student_id not in students
-            const { data: allReports } = await supabase.from('reports').select('id, student_id, points')
-            const orphanReports = (allReports || []).filter(r => r.student_id && !allStudentIds.has(r.student_id))
-            results.orphan_reports = {
-                count: orphanReports.length,
-                items: orphanReports.map(r => ({ id: r.id, student_id: r.student_id, points: r.points ?? '—' })),
-            }
-
-            // 3. Orphan raport — raport with student_id not in students
-            const { data: allRaport } = await supabase.from('student_monthly_reports').select('id, student_id, month, year')
-            const orphanRaport = (allRaport || []).filter(r => r.student_id && !allStudentIds.has(r.student_id))
-            results.orphan_raport = {
-                count: orphanRaport.length,
-                items: orphanRaport.map(r => ({
-                    id: r.id,
-                    student_id: r.student_id,
-                    period: r.month && r.year ? `${r.month}/${r.year}` : '—',
-                })),
-            }
-
-            // 4. Empty classes — classes with no students
+            // 2. Empty classes — classes with no students
             const classStudentCount = {}
                 ; (allStudents || []).forEach(s => {
                     if (s.class_id) classStudentCount[s.class_id] = (classStudentCount[s.class_id] || 0) + 1
@@ -596,9 +549,7 @@ export default function DatabasePage() {
             let table = ''
             let action = 'delete'
 
-            if (id === 'orphan_reports') table = 'reports'
-            else if (id === 'orphan_raport') table = 'student_monthly_reports'
-            else if (id === 'orphan_students') {
+            if (id === 'orphan_students') {
                 table = 'students'
                 action = 'clear_class'
             }

@@ -243,15 +243,14 @@ export default function StudentsPage() {
         newlyCreatedStudent, setNewlyCreatedStudent,
         bulkClassId, setBulkClassId, bulkTagAction, setBulkTagAction,
         bulkRoomId, setBulkRoomId,
-        profileTab, setProfileTab, auditLogs, setAuditLogs, loadingAudit, setLoadingAudit,
-        loadingHistory,
+        profileTab, setProfileTab,
         handleSubmit, handleAdd, handleEdit, confirmDelete, executeDelete, closeModal,
         toggleSelectAll, toggleSelectStudent, handleBulkPromote, handleBulkDelete,
         handleBulkTagApply, handleBulkRoomAssign,
         fetchArchivedStudents, handleRestoreStudent, handlePermanentDelete, setArchivedStudents,
         fetchUsedTags, handleToggleTag, handleGlobalDeleteTag, handleGlobalRenameTag,
         handleViewProfile,
-        handleResetPin, checkDuplicate, fetchAuditLog, fetchClassHistory, handleViewClassHistory,
+        handleResetPin, checkDuplicate, fetchClassHistory, handleViewClassHistory,
         handleInlineUpdate, handleTogglePin, handlePhotoUpload,
         handleInlineSubmit, handleViewQR, handleViewPrint, handleBulkWA, buildWAMessage, openWAForStudent, waTemplate,
         generateStudentPDF, handlePrintSingle, handlePrintThermal, handleSavePNG, handleBulkPrint,
@@ -1910,7 +1909,6 @@ export default function StudentsPage() {
                                 isPrivacyMode={isPrivacyMode}
                                 maskInfo={maskInfo}
                                 calculateCompleteness={calculateCompleteness}
-                                loadingHistory={loadingHistory}
                                 canEdit={canEdit}
                                 handleEdit={handleEdit}
                                 profileTab={profileTab}

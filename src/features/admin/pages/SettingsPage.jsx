@@ -89,7 +89,6 @@ const KNOWN_FLAGS = [
     { key: 'students.export', label: 'Export Data', category: 'students', description: 'Izinkan pengunduhan seluruh database siswa', sort_order: 6 },
     { key: 'students.bulk_photo', label: 'Update Foto Masal', category: 'students', description: 'Fitur unggah foto siswa secara kolektif via NISN', sort_order: 7 },
     { key: 'students.archive', label: 'Arsip & Restore', category: 'students', description: 'Akses ke tempat sampah dan pemulihan data siswa', sort_order: 8 },
-    { key: 'students.reset_points', label: 'Reset Poin Masal', category: 'students', description: 'Fitur pembersihan poin untuk kenaikan semester', sort_order: 9 },
     { key: 'students.promote', label: 'Naik Kelas Masal', category: 'students', description: 'Fitur promosi kelas untuk banyak siswa sekaligus', sort_order: 10 },
     { key: 'students.bulk_tag', label: 'Labeling Masal', category: 'students', description: 'Tambah/hapus label untuk banyak siswa sekaligus', sort_order: 11 },
     { key: 'students.stats', label: 'Dashboard Statistik', category: 'students', description: 'Tampilkan carousel statistik ringkasan di bagian atas', sort_order: 12 },
@@ -97,12 +96,10 @@ const KNOWN_FLAGS = [
     { key: 'students.privacy_mode', label: 'Mode Privasi (Masking)', category: 'students', description: 'Sensor NISN dan nomor HP pada tabel untuk keamanan', sort_order: 14 },
     { key: 'students.filters_advanced', label: 'Funnel Lanjutan', category: 'students', description: 'Panel filter detail (Gender, Status, Poin, dll)', sort_order: 15 },
     { key: 'students.bulk_room', label: 'Pindah Kamar Masal', category: 'students', description: 'Fitur pengaturan kamar untuk banyak siswa sekaligus', sort_order: 16 },
-    { key: 'students.bulk_point', label: 'Poin Masal', category: 'students', description: 'Fitur pemberian poin untuk banyak siswa sekaligus', sort_order: 17 },
 
     // Nav
     { key: 'nav.dashboard', label: 'List Dashboard', category: 'nav', description: 'Tampilkan ringkasan statistik di sidebar', sort_order: 1 },
     { key: 'nav.students', label: 'List Data Siswa', category: 'nav', description: 'Tampilkan akses ke manajemen santri', sort_order: 2 },
-    { key: 'nav.poin', label: 'List Kedisiplinan & Poin', category: 'nav', description: 'Tampilkan menu pencatatan pelanggaran & prestasi santri', sort_order: 3 },
     { key: 'nav.dorms', label: 'List Manajemen Asrama', category: 'nav', description: 'Tampilkan menu plotting kamar & audit kebersihan', sort_order: 4 },
     { key: 'nav.health', label: 'List Klinik & Kesehatan', category: 'nav', description: 'Tampilkan menu rekam medis & stok obat', sort_order: 5 },
     { key: 'nav.counseling', label: 'List Konseling & BK', category: 'nav', description: 'Tampilkan menu Bimbingan Konseling (BK) santri', sort_order: 6 },

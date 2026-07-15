@@ -17,7 +17,7 @@ const INITIAL_TASKS = [
     {
         id: 'sync_stats',
         name: 'Sinkronisasi Statistik',
-        desc: 'Menghitung ulang total poin, rata-rata kelas, dan ranking untuk seluruh siswa.',
+        desc: 'Menghitung jumlah siswa, guru, dan kelas yang terdaftar.',
         icon: ChartLine, color: 'text-indigo-500', bg: 'bg-indigo-500/10',
         destructive: false,
         status: 'idle', lastRun: null, duration: '—', progress: 0,
@@ -69,15 +69,15 @@ const loadLogs = () => {
 const taskRunners = {
     // Hanya SELECT — aman, tidak destruktif
     sync_stats: async (onProgress, cancelledRef) => {
-        onProgress(15)
+        onProgress(30)
         const { count: s, error: e1 } = await supabase
             .from('students').select('*', { count: 'exact', head: true }).is('deleted_at', null)
         if (e1) throw new Error(e1.message)
         if (cancelledRef.current) throw new Error('Dibatalkan oleh user')
 
-        onProgress(45)
-        const { count: r, error: e2 } = await supabase
-            .from('reports').select('*', { count: 'exact', head: true })
+        onProgress(60)
+        const { count: t, error: e2 } = await supabase
+            .from('teachers').select('*', { count: 'exact', head: true })
         if (e2) throw new Error(e2.message)
         if (cancelledRef.current) throw new Error('Dibatalkan oleh user')
 
@@ -87,15 +87,13 @@ const taskRunners = {
         if (e3) throw new Error(e3.message)
 
         onProgress(100)
-        return `${s ?? 0} siswa aktif, ${r ?? 0} poin, ${c ?? 0} kelas tersinkronisasi`
+        return `${s ?? 0} siswa aktif, ${t ?? 0} guru, ${c ?? 0} kelas tersinkronisasi`
     },
 
-    // Hapus orphan dari reports & student_class_history
-    // (tabel yang punya FK ke students berdasarkan hasil cek)
+    // Hapus orphan dari student_class_history
     cleanup_orphans: async (onProgress, cancelledRef) => {
-        onProgress(10)
+        onProgress(30)
 
-        // Ambil ID semua siswa aktif (belum di-soft-delete)
         const { data: students, error: e1 } = await supabase
             .from('students').select('id').is('deleted_at', null)
         if (e1) throw new Error(e1.message)
@@ -109,17 +107,7 @@ const taskRunners = {
 
         const idList = `(${ids.join(',')})`
 
-        onProgress(30)
-        // Hapus orphan di reports
-        const { count: rc, error: e2 } = await supabase
-            .from('reports')
-            .delete({ count: 'exact' })
-            .not('student_id', 'in', idList)
-        if (e2) throw new Error(e2.message)
-        if (cancelledRef.current) throw new Error('Dibatalkan oleh user')
-
         onProgress(60)
-        // Hapus orphan di student_class_history
         const { count: hc, error: e3 } = await supabase
             .from('student_class_history')
             .delete({ count: 'exact' })
@@ -127,8 +115,7 @@ const taskRunners = {
         if (e3) throw new Error(e3.message)
 
         onProgress(100)
-        const total = (rc ?? 0) + (hc ?? 0)
-        return `${total} data orphan dihapus — ${rc ?? 0} poin, ${hc ?? 0} histori kelas`
+        return `${hc ?? 0} histori kelas orphan dihapus`
     },
 
     // Hapus audit_logs lebih dari 45 hari

@@ -12,15 +12,7 @@ export const QuickActions = memo(function QuickActions() {
                 <p className="text-[10px] text-[var(--color-text-muted)] opacity-70 mt-0.5">Navigasi halaman utama</p>
             </div>
             <div className="space-y-2.5 relative z-10">
-                <Link to="/boarding/behavior" className="flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--color-primary)] hover:brightness-110 active:scale-[0.98] text-white transition-all shadow-lg shadow-[var(--color-primary)]/20">
-                    <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                        <Plus className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-[13px] font-black leading-tight">Input Perilaku</p>
-                        <p className="text-[9px] text-white/70 font-bold uppercase tracking-widest mt-0.5">Poin & Prestasi</p>
-                    </div>
-                </Link>
+
                 <Link to="/master/students" className="flex items-center gap-3 p-3.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:shadow-lg group/btn transition-all">
                     <div className="w-9 h-9 bg-blue-500/10 text-blue-500 rounded-xl flex items-center justify-center shrink-0 group-hover/btn:scale-110 transition-transform">
                         <Users />

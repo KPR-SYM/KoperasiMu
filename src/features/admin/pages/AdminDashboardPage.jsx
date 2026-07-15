@@ -30,7 +30,7 @@ export default function AdminDashboardPage() {
     const fetchTechnicalStats = async () => {
         setLoading(true)
         try {
-            const tables = ['students', 'reports', 'teachers', 'gate_logs', 'ai_logs', 'audit_logs']
+            const tables = ['students', 'teachers', 'gate_logs', 'ai_logs', 'audit_logs']
             const counts = await Promise.all(tables.map(async (t) => {
                 const { count } = await supabase.from(t).select('*', { count: 'exact', head: true })
                 return { name: t, count: count || 0 }
@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
             setDbDistribution(counts.map(c => ({
                 name: c.name.replace('_', ' '),
                 value: c.count,
-                color: c.name === 'ai_logs' ? '#6366f1' : c.name === 'reports' ? '#ef4444' : '#10b981'
+                color: c.name === 'ai_logs' ? '#6366f1' : '#10b981'
             })))
 
             const { data: aiLogs } = await supabase

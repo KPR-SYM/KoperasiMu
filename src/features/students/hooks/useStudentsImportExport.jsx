@@ -57,7 +57,7 @@ export function useStudentsImportExport({
     const [isExportModalOpen, setIsExportModalOpen] = useState(false)
     // Export Wizard state
     const [exportScope, setExportScope] = useState('filtered')   // 'filtered' | 'selected' | 'all'
-    const [exportColumns, setExportColumns] = useState(['kode', 'nama', 'gender', 'kelas', 'poin', 'phone', 'tags']) // Array for ordered keys
+    const [exportColumns, setExportColumns] = useState(['kode', 'nama', 'gender', 'kelas', 'phone', 'tags']) // Array for ordered keys
 
     const [importTab, setImportTab] = useState('guideline')
     const [importFileName, setImportFileName] = useState('')
@@ -141,7 +141,6 @@ export function useStudentsImportExport({
             Nama: s.name || '',
             Gender: s.gender === 'L' ? 'Putra' : 'Putri',
             Kelas: s.classes?.name || '',
-            Poin: 0,
             Phone: s.phone || '',
             Status: s.status || 'aktif',
             Tags: (s.tags || []).join(', '),
@@ -165,7 +164,6 @@ export function useStudentsImportExport({
         { key: 'father_name', label: 'Nama Ayah', fn: s => s.metadata?.father?.name || s.father_name || '' },
         { key: 'mother_name', label: 'Nama Ibu', fn: s => s.metadata?.mother?.name || s.mother_name || '' },
         { key: 'guardian_name', label: 'Nama Wali', fn: s => s.guardian_name || '' },
-        { key: 'poin', label: 'Poin', fn: s => 0 },
         { key: 'phone', label: 'Phone/WA', fn: s => s.phone || '' },
         { key: 'status', label: 'Status', fn: s => s.status || 'aktif' },
         { key: 'tags', label: 'Label', fn: s => (s.tags || []).join(', ') },

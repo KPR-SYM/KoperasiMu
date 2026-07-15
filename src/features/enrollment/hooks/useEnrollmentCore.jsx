@@ -741,7 +741,6 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             const studentPayload = {
                 registration_code: regCode,
                 pin: pin,
-                total_points: 0,
                 name: enrollment.name,
                 gender: enrollment.gender || 'L',
                 class_id: classId,

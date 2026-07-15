@@ -1,27 +1,16 @@
-import { useState, useEffect, useCallback, useRef, memo } from 'react'
-import { ArrowDown, ArrowLeft, ArrowUp, ChartBar, BookOpenText, Buildings, Calendar, Check, CaretDown, CaretUp, ClipboardText, CreditCard, FileText, IdentificationCard, Key, Translate, Link as LinkIcon, Spinner, ChatCircle, Moon, Phone, MagnifyingGlass, ShieldCheck, Star, Sun, Trophy, User } from '@phosphor-icons/react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { ArrowLeft, Check, CreditCard, IdentificationCard, Key, Link as LinkIcon, Spinner, ChatCircle, Moon, Phone, ShieldCheck, Sun } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 
 
 import toast from 'react-hot-toast'
 import { useTheme } from '@context'
 import { supabase } from '@lib/supabase'
-import mbsLogo from '@assets/images/logos/logo-mbs.png'
 
 import ThemeToggle from '../../public/components/common/ThemeToggle'
 import logoSenyum from '../../../assets/images/logos/logo-senyum.png'
 
 // ─── Constants & Utils ───────────────────────────────────────────────────────
-
-// FIX #15: Helper withTimeout agar generatePDFBlob tidak hang selamanya
-const withTimeout = (promise, ms, label = 'Operasi') =>
-    Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout setelah ${ms / 1000}s`)), ms)),
-    ])
-
-// Ganti ke `true` jika fitur unduh PDF raport sudah siap diaktifkan kembali
-const ENABLE_PDF_DOWNLOAD = false
 
 // Rate limiting login — dipindah ke luar komponen agar tidak dibuat ulang tiap render.
 // sessionStorage dipakai agar counter reset otomatis saat tab ditutup.
@@ -35,22 +24,6 @@ const getRateData = () => {
 }
 const setRateData = (data) => {
     try { sessionStorage.setItem(RATE_KEY, JSON.stringify(data)) } catch { }
-}
-
-// Fallback school settings — sama persis dengan SchoolSettingsContext
-const DEFAULT_SETTINGS = {
-    school_name_id: 'Muhammadiyah Boarding Buildings (MBS) Tanggul',
-    school_name_ar: 'معهد محمدي&copy; الإسلامي تانجول',
-    school_subtitle_ar: 'المجلس التعليمي للمرحلتين الابتدائي&copy; والمتوسط&copy; التابع للرئاس&copy; الفرعي&copy; للجمعي&copy; المحمدي&copy;',
-    school_address: 'Jl. Pemandian no. 88 RT 002 RW 003 Patemon, Tanggul, Jember 68155',
-    logo_url: '/src/assets/mbs.png',
-    headmaster_title_id: 'Direktur MBS Tanggul',
-    headmaster_name_id: 'KH. Muhammad Ali Maksum, Lc',
-    headmaster_title_ar: 'مدير معهد محمدي&copy; الإسلامي تانجول',
-    headmaster_name_ar: 'كياهي الحاج محمد علي معصوم، ليسانس',
-    report_color_primary: '#1a5c35',
-    report_color_secondary: '#c8a400',
-    wa_footer: 'MBS Tanggul · Koperasi SenyumMu',
 }
 
 // Format nomor telepon lokal (08xx / +62 / dsb) ke format Whatsapp (62xxxxxxxxxx)
@@ -68,34 +41,7 @@ const formatCode = (value) => {
     return formatted
 }
 
-// Satu baris riwayat perilaku (pelanggaran / prestasi) — dipakai di dua daftar
-// agar markup tidak duplikat. `positive` menentukan skema warna & tanda "+".
-const BehaviorItem = memo(function BehaviorItem({ item, positive }) {
-    const badgeWrap = positive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'
-    const badgeText = positive ? 'text-emerald-500' : 'text-red-500'
-    const hoverBorder = positive ? 'hover:border-emerald-500/30' : 'hover:border-red-500/30'
 
-    return (
-        <div className={`glass rounded-2xl px-5 py-4 flex justify-between items-center gap-4 ${hoverBorder} transition-all group`}>
-            <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-10 h-10 rounded-xl ${badgeWrap} flex items-center justify-center shrink-0`}>
-                    <span className={`text-xs font-black ${badgeText}`}>{item.teacher[0]?.toUpperCase() || '?'}</span>
-                </div>
-                <div className="min-w-0">
-                    <p className="font-bold text-[var(--color-text)] leading-tight truncate mb-1">{item.type}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest opacity-60">
-                        <span className="tabular-nums">{item.date}</span>
-                        <span className="w-1 h-1 rounded-full bg-[var(--color-border)]"></span>
-                        <span className="truncate">{item.teacher}</span>
-                    </div>
-                </div>
-            </div>
-            <div className={`shrink-0 flex items-center justify-center px-3 py-1.5 rounded-lg ${badgeWrap} ${badgeText} font-black font-mono w-4 h-4 shadow-sm`}>
-                {positive ? '+' : ''}{item.points}
-            </div>
-        </div>
-    )
-})
 
 export default function ParentCheckPage() {
     const [code, setCode] = useState('')
@@ -104,21 +50,11 @@ export default function ParentCheckPage() {
     const [autoChecking, setAutoChecking] = useState(false)
     const [student, setStudent] = useState(null)
     const [errorMessage, setErrorMessage] = useState('')
-    const [activeTab, setActiveTab] = useState('perilaku')
-    const [raportHistory, setRaportHistory] = useState([])
-    const [raportLoading, setRaportLoading] = useState(false)
-    const [expandedRaport, setExpandedRaport] = useState(null)
     const [linkCopied, setLinkCopied] = useState(false)
-    const [pdfLoading, setPdfLoading] = useState(null)
-    const [settings, setSettings] = useState({})
-    const [printQueue, setPrintQueue] = useState([])
-    const [printRenderedCount, setPrintRenderedCount] = useState(0)
-    const [printRaportData, setPrintRaportData] = useState(null)
     const [isShaking, setIsShaking] = useState(false)
     // Rate limiting — cooldown counter (detik tersisa)
     const [mounted, setMounted] = useState(false)
     const [loginCooldown, setLoginCooldown] = useState(0)
-    const printContainerRef = useRef(null)
     const cooldownTimerRef = useRef(null)
     const { isDark, toggleTheme } = useTheme()
 
@@ -195,68 +131,16 @@ export default function ParentCheckPage() {
             // Login sukses — reset counter
             setRateData({ count: 0, until: 0 })
 
-            // Batasi 200 riwayat terbaru — wali santri tidak perlu lebih dari itu,
-            // dan mencegah silent truncation di Supabase (default limit 1000)
-            const { data: historyData } = await supabase
-                .from('behavior_reports')
-                .select('id, created_at, type, points, teacher_name')
-                .eq('student_id', studentData.id)
-                .order('created_at', { ascending: false })
-                .limit(200)
-
-            const reports = (historyData || []).filter(h => h.points < 0).map(h => ({
-                id: h.id,
-                date: new Date(h.created_at).toLocaleDateString('id-ID'),
-                type: h.type,
-                points: h.points,
-                teacher: h.teacher_name || 'Staff Sekolah'
-            }))
-
-            const achievements = (historyData || []).filter(h => h.points >= 0).map(h => ({
-                id: h.id,
-                date: new Date(h.created_at).toLocaleDateString('id-ID'),
-                type: h.type,
-                points: h.points,
-                teacher: h.teacher_name || 'Staff Sekolah'
-            }))
-
             setStudent({
                 ...studentData,
                 class: studentData.classes?.name || '-',
-                points: studentData.total_points || 0,
                 homeroomTeacher: {
                     name: studentData.classes?.teachers?.name || null,
                     phone: studentData.classes?.teachers?.phone || null,
                 },
-                reports,
-                achievements
             })
 
             toast.success('Data siswa berhasil ditemukan!')
-
-            // Fetch raport bulanan — blok terpisah agar error di sini
-            // tidak menimpa pesan error login, dan raportLoading SELALU
-            // di-reset lewat finally meski query gagal / timeout.
-            setRaportLoading(true)
-            try {
-                const { data: raportData, error: raportError } = await supabase
-                    .from('student_monthly_reports')
-                    .select('*')
-                    .eq('student_id', studentData.id)
-                    .order('year', { ascending: false })
-                    .order('month', { ascending: false })
-                if (raportError) throw raportError
-                setRaportHistory(raportData || [])
-            } catch (raportErr) {
-                console.error('Gagal memuat raport history:', raportErr)
-                toast.error('Gagal memuat riwayat raport. Coba muat ulang halaman.')
-                setRaportHistory([])
-            } finally {
-                // FIX MAJOR: raportLoading SELALU di-reset di sini.
-                // Sebelumnya hanya di-reset di happy path sehingga
-                // spinner bisa stuck selamanya jika query error.
-                setRaportLoading(false)
-            }
         } catch (err) {
             // FIX MINOR: Hanya setErrorMessage — tidak perlu addToast juga.
             // Sebelumnya error muncul dua kali (inline form + toast pojok layar).
@@ -320,100 +204,6 @@ export default function ParentCheckPage() {
         }
     }
 
-    // Fetch school settings — sama persis dengan SchoolSettingsContext
-    useEffect(() => {
-        supabase.from('school_settings').select('*').eq('id', 1).maybeSingle()
-            .then(({ data }) => setSettings(data ? { ...DEFAULT_SETTINGS, ...data } : DEFAULT_SETTINGS))
-            .catch(() => setSettings(DEFAULT_SETTINGS))
-    }, [])
-
-    // handlePrintRaport — IDENTIK dengan RaportPage generatePDFBlob
-    //
-    // 'Amiri' di-load secara eksplisit untuk memastikan font tersedia sebelum render.
-    const handlePrintRaport = async (r) => {
-        setPdfLoading(r.id)
-        try {
-            const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
-                import('html2canvas'),
-                import('jspdf')
-            ])
-
-            // Wait for fonts
-            await document.fonts.ready
-
-            // Set data → trigger JSX render
-            setPrintRaportData({ r, student })
-            setPrintRenderedCount(0)
-            setPrintQueue([r.id])
-            // Poll sampai card ada di DOM
-            let cardEl = null
-            await new Promise(resolve => {
-                let t = 0
-                const timer = setInterval(() => {
-                    const card = printContainerRef.current?.querySelector(`.raport-card[data-student-id="${student.id}"]`)
-                    if (card) { cardEl = card; clearInterval(timer); resolve() }
-                    if (++t > 50) { clearInterval(timer); resolve() }
-                }, 100)
-            })
-            if (!cardEl) throw new Error('Gagal render raport card')
-
-            // Preload images inside cardEl
-            const cardImgs = cardEl.querySelectorAll('img')
-            await Promise.allSettled(Array.from(cardImgs).map(img => new Promise(res => {
-                if (img.complete && img.naturalWidth > 0) return res()
-                img.onload = res; img.onerror = res
-            })))
-            await new Promise(res => setTimeout(res, 300))
-
-            // Snapshot — identik RaportPage
-            const rootStyles = getComputedStyle(document.documentElement)
-            const cssVars = ['--color-border', '--color-surface', '--color-surface-alt', '--color-text', '--color-text-muted'].map(v => `${v}: ${rootStyles.getPropertyValue(v).trim() || '#ccc'};`).join(' ')
-            const A4W = 794, A4H = 1123, wrapper = document.createElement('div')
-            wrapper.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;background:white;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;font-family:'Times New Roman',serif;`
-            wrapper.innerHTML = `<style>:root{${cssVars}}*{box-sizing:border-box;-webkit-print-color-adjust:exact!important}img{mix-blend-mode:multiply}.raport-card{width:${A4W}px!important;min-width:${A4W}px!important;height:${A4H}px!important;overflow:hidden!important;background:white!important;margin:0!important}</style>${cardEl.outerHTML}`
-            document.body.appendChild(wrapper)
-            await new Promise(res => setTimeout(res, 700))
-            try {
-                const canvas = await withTimeout(
-                    html2canvas(wrapper, {
-                        scale: 3,
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        width: A4W,
-                        height: A4H,
-                        scrollX: 0,
-                        scrollY: 0,
-                        logging: false,
-                    }),
-                    15000, 'Render PDF'
-                )
-                const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true })
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, 210, 297)
-                const bulanObj = BULAN.find(b => b.id === r.month)
-                const bulanStr = bulanObj?.id_str || String(r.month)
-                const safeName = student.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')
-                const safeClass = (student.class || '').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '')
-                pdf.save(`Raport_${safeName}_${safeClass}_${bulanStr}_${r.year}.pdf`)
-                toast.success('PDF berhasil diunduh!')
-            } finally {
-                if (document.body.contains(wrapper)) document.body.removeChild(wrapper)
-                // Cleanup SETELAH snapshot — bukan sebelum (Bug #3 fix dari sesi sebelumnya)
-                setPrintQueue([])
-                setPrintRenderedCount(0)
-                setPrintRaportData(null)
-            }
-        } catch (err) {
-            console.error(err)
-            toast.error('Gagal membuat PDF. Coba lagi.')
-            setPrintQueue([])
-            setPrintRenderedCount(0)
-            setPrintRaportData(null)
-        } finally {
-            setPdfLoading(null)
-        }
-    }
-
     // Auto-checking loading
     if (autoChecking) {
         return (
@@ -436,11 +226,6 @@ export default function ParentCheckPage() {
 
     // Student result view
     if (student) {
-        const latestRaport = raportHistory[0] || null
-        const now = new Date()
-        const currentMonth = now.getMonth() + 1
-        const currentYear = now.getFullYear()
-
         return (
             <div className="min-h-screen bg-[var(--color-surface)] py-8 px-4 relative overflow-x-hidden">
                 {/* Ambient Background Glows */}
@@ -484,24 +269,6 @@ export default function ParentCheckPage() {
                             </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="grid grid-cols-3 mt-6 bg-[var(--color-surface-alt)]/50 border-t border-[var(--color-border)] divide-x divide-[var(--color-border)]">
-                            <div className="p-4 text-center">
-                                <p className={`text-2xl font-bold font-heading mb-0.5 ${student.points >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    {student.points > 0 ? '+' : ''}{student.points}
-                                </p>
-                                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Total Poin</p>
-                            </div>
-                            <div className="p-4 text-center">
-                                <p className="text-2xl font-bold font-heading text-red-500 mb-0.5">{student.reports.length}</p>
-                                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Pelanggaran</p>
-                            </div>
-                            <div className="p-4 text-center">
-                                <p className="text-2xl font-bold font-heading text-emerald-500 mb-0.5">{raportHistory.length}</p>
-                                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Raport</p>
-                            </div>
-                        </div>
-
                         {/* ShareFat row */}
                         <div className="flex gap-2 px-4 py-3 border-t border-[var(--color-border)]">
                             <button
@@ -518,10 +285,8 @@ export default function ParentCheckPage() {
                             {(() => {
                                 const waPhone = toWaNumber(student.phone)
                                 const waText = encodeURIComponent(
-                                    `Assalamu'alaikum, berikut link raport ${student.name} di Pondok:\n${window.location.origin}/check?code=${student.registration_code}&pin=${pin}`
+                                    `Assalamu'alaikum, berikut akun tagihan ${student.name}:\n${window.location.origin}/check?code=${student.registration_code}&pin=${pin}`
                                 )
-                                // Jika nomor Whatsapp tersedia → langsung buka chat ke nomor wali santri
-                                // Jika tidak → buka Whatsapp tanpa nomor (wali santri pilih sendiri)
                                 const waHref = waPhone
                                     ? `https://wa.me/${waPhone}?text=${waText}`
                                     : `https://wa.me/?text=${waText}`
@@ -539,371 +304,11 @@ export default function ParentCheckPage() {
                                 )
                             })()}
                         </div>
-                        {/* Catatan keamanan untuk wali santri */}
                         <p className="px-4 pb-3 text-[10px] text-amber-600 font-medium leading-relaxed flex items-start gap-1.5">
                             <ShieldCheck className="mt-0.5 shrink-0" />
                             Link ini mengandung PIN pribadi Anda. Jangan bagikan ke orang lain selain anggota keluarga yang Anda percaya.
                         </p>
                     </div>
-
-                    {/* Tabs */}
-                    <div className="glass rounded-2xl p-1.5 flex gap-1">
-                        <button onClick={() => setActiveTab('perilaku')}
-                            className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5
-                                ${activeTab === 'perilaku' ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
-                            <ChartBar className="w-3 h-3" /> Perilaku
-                        </button>
-                        <button onClick={() => { setActiveTab('raport'); localStorage.setItem('raport_last_viewed_month', `${currentYear}-${currentMonth}`) }}
-                            className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 relative
-                                ${activeTab === 'raport' ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
-                            <ClipboardText className="w-3 h-3" /> Raport Bulanan
-                            {raportHistory.length > 0 && (
-                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border ${activeTab === 'raport' ? 'bg-white/20 border-white/30 text-white' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)]'}`}>
-                                    {raportHistory.length}
-                                </span>
-                            )}
-                            {latestRaport && latestRaport.month === currentMonth && latestRaport.year === currentYear &&
-                                localStorage.getItem('raport_last_viewed_month') !== `${currentYear}-${currentMonth}` && (
-                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 border-2 border-[var(--color-surface)]" />
-                                )}
-                        </button>
-                    </div>
-
-                    {/* ── TAB: PERILAKU ── */}
-                    {activeTab === 'perilaku' && (
-                        <div className="space-y-4">
-                            {/* Reports */}
-                            <div className="space-y-3">
-                                <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest px-2 flex items-center gap-2">
-                                    <span className="flex h-2.5 w-2.5 relative">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                                    </span>
-                                    Riwayat Pelanggaran
-                                </p>
-                                {student.reports.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {student.reports.map((report) => (
-                                            <BehaviorItem key={report.id} item={report} positive={false} />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="py-12 bg-[var(--color-surface-alt)]/50 rounded-2xl border border-[var(--color-border)] text-center flex flex-col items-center justify-center gap-4 animate-in fade-in zoom-in duration-500">
-                                        <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                            <ShieldCheck className="text-2xl text-emerald-500 opacity-20" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-black text-[var(--color-text)]">Nihil Pelanggaran</p>
-                                            <p className="text-[11px] text-[var(--color-text-muted)] mt-1 opacity-60">Santri berlaku sangat baik sejauh ini.</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Achievements */}
-                            <div className="space-y-3 pt-2">
-                                <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-widest px-2 flex items-center gap-2">
-                                    <span className="flex h-2.5 w-2.5 relative">
-                                        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                                    </span>
-                                    Riwayat Prestasi
-                                </p>
-                                {student.achievements.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {student.achievements.map((item) => (
-                                            <BehaviorItem key={item.id} item={item} positive={true} />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="py-12 bg-[var(--color-surface-alt)]/50 rounded-2xl border border-[var(--color-border)] text-center flex flex-col items-center justify-center gap-4 animate-in fade-in zoom-in duration-500">
-                                        <div className="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                                            <Trophy className="text-2xl text-amber-500 opacity-20" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-black text-[var(--color-text)]">Belum Ada Prestasi</p>
-                                            <p className="text-[11px] text-[var(--color-text-muted)] mt-1 opacity-60 px-6">Setiap pencapaian positif santri akan muncul di sini.</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── TAB: RAPORT BULANAN ── */}
-                    {activeTab === 'raport' && (
-                        <div className="space-y-3">
-                            {raportLoading ? (
-                                <div className="space-y-3">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-24 rounded-2xl bg-[var(--color-surface-alt)] animate-pulse border border-[var(--color-border)]" />
-                                    ))}
-                                </div>
-                            ) : raportHistory.length === 0 ? (
-                                <div className="py-14 bg-[var(--color-surface-alt)]/50 rounded-2xl border border-[var(--color-border)] text-center flex flex-col items-center justify-center gap-4 animate-in fade-in zoom-in duration-500">
-                                    <div className="w-16 h-16 rounded-3xl bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 flex items-center justify-center">
-                                        <Calendar className="text-2xl text-[var(--color-primary)] opacity-20" />
-                                    </div>
-                                    <div className="px-6">
-                                        <p className="text-sm font-black text-[var(--color-text)]">Raport Belum Tersedia</p>
-                                        <p className="text-[11px] text-[var(--color-text-muted)] mt-1.5 opacity-60 leading-relaxed">
-                                            Raport bulan <span className="font-bold">{BULAN_STR[currentMonth]} {currentYear}</span> belum diisi oleh musyrif.
-                                        </p>
-                                    </div>
-                                    {student.homeroomTeacher?.phone && (
-                                        <a
-                                            href={`https://wa.me/${toWaNumber(student.homeroomTeacher.phone)}`}
-                                            target="_blank" rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-xs font-black hover:bg-emerald-500/20 transition-all"
-                                        >
-                                            <ChatCircle className="w-4 h-4" />
-                                            Hubungi {student.homeroomTeacher.name || 'Wali Kelas'}
-                                        </a>
-                                    )}
-                                </div>
-                            ) : (
-                                <>
-                                    {/* ── Mini Trend Chart rata-rata bulanan ── */}
-                                    {raportHistory.length >= 2 && (() => {
-                                        const chronological = [...raportHistory].reverse()
-                                        const avgs = chronological.map(r => {
-                                            const vals = KRITERIA_LIST.map(k => r[k.key]).filter(v => v !== null && v !== undefined && v !== '')
-                                            return vals.length ? vals.reduce((a, b) => a + Number(b), 0) / vals.length : null
-                                        }).filter(v => v !== null)
-                                        if (avgs.length < 2) return null
-                                        const W = 260, H = 52, pad = 6
-                                        const minV = Math.min(...avgs), maxV = Math.max(...avgs)
-                                        const range = maxV - minV || 0.5
-                                        const pts = avgs.map((v, i) => {
-                                            const x = pad + (i / (avgs.length - 1)) * (W - pad * 2)
-                                            const y = H - pad - ((v - minV) / range) * (H - pad * 2)
-                                            return `${x},${y}`
-                                        }).join(' ')
-                                        const last = avgs[avgs.length - 1], prev = avgs[avgs.length - 2]
-                                        const trendColor = last > prev ? '#10b981' : last < prev ? '#ef4444' : '#6366f1'
-                                        const trendLabel = last > prev ? '↑ Naik' : last < prev ? '↓ Turun' : '→ Stabil'
-                                        return (
-                                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Tren Rata-rata Nilai</p>
-                                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: trendColor + '20', color: trendColor }}>{trendLabel} · {last.toFixed(1)}</span>
-                                                </div>
-                                                <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} aria-hidden="true" style={{ overflow: 'visible' }}>
-                                                    {[0.25, 0.5, 0.75].map((sc, i) => (
-                                                        <line key={i} x1={pad} y1={pad + sc * (H - pad * 2)} x2={W - pad} y2={pad + sc * (H - pad * 2)} stroke="var(--color-border)" strokeWidth="0.8" strokeDasharray="3,3" />
-                                                    ))}
-                                                    <defs>
-                                                        <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor={trendColor} stopOpacity="0.18" />
-                                                            <stop offset="100%" stopColor={trendColor} stopOpacity="0.02" />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <polygon points={`${pad},${H - pad} ${pts} ${W - pad},${H - pad}`} fill="url(#trendFill)" />
-                                                    <polyline points={pts} fill="none" stroke={trendColor} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-                                                    {avgs.map((v, i) => {
-                                                        const x = pad + (i / (avgs.length - 1)) * (W - pad * 2)
-                                                        const y = H - pad - ((v - minV) / range) * (H - pad * 2)
-                                                        const label = BULAN_STR[chronological[i]?.month]?.slice(0, 3) || ''
-                                                        return (
-                                                            <g key={i}>
-                                                                <circle cx={x} cy={y} r={i === avgs.length - 1 ? 4 : 2.5} fill={i === avgs.length - 1 ? trendColor : 'var(--color-surface)'} stroke={trendColor} strokeWidth="1.5" />
-                                                                <text x={x} y={H} textAnchor="middle" fontSize="7" fontWeight="700" fill="var(--color-text-muted)">{label}</text>
-                                                            </g>
-                                                        )
-                                                    })}
-                                                </svg>
-                                            </div>
-                                        )
-                                    })()}
-                                    {raportHistory.map((r, idx) => {
-                                        const avg = calcAvg(r)
-                                        const g = avg ? getGrade(avg) : null
-                                        const isLatest = r.month === currentMonth && r.year === currentYear
-                                        const isExpanded = expandedRaport === r.id
-                                        const allFilled = KRITERIA_LIST.every(k => r[k.key] !== null && r[k.key] !== undefined && r[k.key] !== '')
-                                        const prevR = raportHistory[idx + 1] || null
-
-                                        return (
-                                            <div key={r.id}
-                                                className="glass rounded-2xl border overflow-hidden transition-all"
-                                                style={{ borderColor: isLatest ? 'rgba(16,185,129,0.3)' : 'var(--color-border)', background: isLatest ? 'rgba(16,185,129,0.03)' : undefined }}>
-                                                {/* Card Header — always visible */}
-                                                <button className="w-full px-5 py-4 flex items-center gap-3 text-left"
-                                                    onClick={() => setExpandedRaport(isExpanded ? null : r.id)}>
-                                                    <div className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border"
-                                                        style={{ background: g ? g.bg : 'var(--color-surface-alt)', borderColor: g ? g.border : 'var(--color-border)' }}>
-                                                        <ClipboardText className="w-4 h-4" style={{ color: g ? g.color : 'var(--color-text-muted)' }} />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <p className="text-sm font-black text-[var(--color-text)]">
-                                                                {BULAN_STR[r.month]} {r.year}
-                                                            </p>
-                                                            {isLatest && (
-                                                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20">
-                                                                    ✦ Terbaru
-                                                                </span>
-                                                            )}
-                                                            {!allFilled && (
-                                                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20">
-                                                                    Belum lengkap
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                            {r.musyrif && (
-                                                                <span className="text-[10px] text-[var(--color-text-muted)] flex items-center gap-1">
-                                                                    <User className="w-2 h-2" /> {r.musyrif}
-                                                                </span>
-                                                            )}
-                                                            {avg && g && (
-                                                                <span className="text-[10px] font-black px-2 py-0.5 rounded-md" style={{ background: g.bg, color: g.color }}>
-                                                                    Rata-rata {avg} — {g.label}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    {isExpanded ? <CaretUp className="w-3 h-3 text-[var(--color-text-muted)] shrink-0" /> : <CaretDown className="w-3 h-3 text-[var(--color-text-muted)] shrink-0" />}
-                                                </button>
-
-                                                {/* Expanded detail */}
-                                                {isExpanded && (
-                                                    <div className="px-5 pb-5 pt-1 border-t border-[var(--color-border)] space-y-4">
-                                                        {/* Nilai 5 kriteria + delta arrow */}
-                                                        <div className="grid grid-cols-5 gap-2 pt-3">
-                                                            {KRITERIA_LIST.map(k => {
-                                                                const val = r[k.key]
-                                                                const vNum = val !== null && val !== undefined && val !== '' ? Number(val) : null
-                                                                const kg = vNum !== null ? getGrade(vNum) : null
-                                                                const prevVal = prevR?.[k.key]
-                                                                const prevNum = prevVal !== null && prevVal !== undefined && prevVal !== '' ? Number(prevVal) : null
-                                                                const delta = (vNum !== null && prevNum !== null) ? vNum - prevNum : null
-                                                                return (
-                                                                    <div key={k.key} className="flex flex-col items-center gap-1">
-                                                                        <k.icon className="text-[10px]" style={{ color: k.color }} />
-                                                                        <span className="text-[8px] font-black text-center leading-tight" style={{ color: k.color }}>
-                                                                            {k.label}
-                                                                        </span>
-                                                                        <div className="w-full h-9 rounded-xl flex items-center justify-center text-[14px] font-black border"
-                                                                            style={{
-                                                                                background: kg ? kg.bg : 'var(--color-surface-alt)',
-                                                                                color: kg ? kg.color : 'var(--color-text-muted)',
-                                                                                borderColor: kg ? kg.border : 'var(--color-border)'
-                                                                            }}>
-                                                                            {vNum !== null ? vNum : '—'}
-                                                                        </div>
-                                                                        {delta !== null && delta !== 0 && (
-                                                                            <span className={`text-[8px] font-black flex items-center gap-0.5 ${delta > 0 ? 'text-emerald-500' : 'text-red-400'}`}>
-                                                                                {delta > 0 ? <ArrowUp className="w-2 h-2" /> : <ArrowDown className="w-2 h-2" />}
-                                                                                {Math.abs(delta)}
-                                                                            </span>
-                                                                        )}
-                                                                        {delta === 0 && prevNum !== null && (
-                                                                            <span className="text-[8px] text-[var(--color-text-muted)]">—</span>
-                                                                        )}
-                                                                    </div>
-                                                                )
-                                                            })}
-                                                        </div>
-
-                                                        {/* Data tambahan jika ada */}
-                                                        {(r.ziyadah || r.murojaah || r.hari_sakit || r.hari_izin || r.hari_alpa || r.berat_badan || r.tinggi_badan) && (
-                                                            <div className="grid grid-cols-2 gap-2">
-                                                                {r.ziyadah && (
-                                                                    <div className="px-3 py-2 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
-                                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">Ziyadah</p>
-                                                                        <p className="font-black text-emerald-500">{r.ziyadah}</p>
-                                                                    </div>
-                                                                )}
-                                                                {r.murojaah && (
-                                                                    <div className="px-3 py-2 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
-                                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">Muroja'ah</p>
-                                                                        <p className="font-black text-indigo-500">{r.murojaah}</p>
-                                                                    </div>
-                                                                )}
-                                                                {(r.hari_sakit !== null && r.hari_sakit !== undefined) && (
-                                                                    <div className="px-3 py-2 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
-                                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">Hari Sakit</p>
-                                                                        <p className="font-black text-red-400">{r.hari_sakit} hari</p>
-                                                                    </div>
-                                                                )}
-                                                                {(r.hari_izin !== null && r.hari_izin !== undefined) && (
-                                                                    <div className="px-3 py-2 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)]">
-                                                                        <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">Hari Izin</p>
-                                                                        <p className="font-black text-amber-500">{r.hari_izin} hari</p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
-
-                                                        {/* Catatan musyrif */}
-                                                        {r.catatan && (
-                                                            <div className="px-4 py-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
-                                                                <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1">Catatan Musyrif</p>
-                                                                <p className="text-sm text-[var(--color-text)] leading-relaxed">{r.catatan}</p>
-                                                            </div>
-                                                        )}
-
-                                                        {/* Tombol Unduh PDF — dikontrol oleh ENABLE_PDF_DOWNLOAD di atas
-                                                         Ubah konstanta tersebut menjadi `true` untuk mengaktifkan kembali */}
-                                                        {ENABLE_PDF_DOWNLOAD && (
-                                                            <button
-                                                                onClick={() => handlePrintRaport(r)}
-                                                                disabled={pdfLoading === r.id}
-                                                                className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-[11px] font-black transition-all mt-1
-                                                                ${pdfLoading === r.id
-                                                                        ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] opacity-60 cursor-not-allowed'
-                                                                        : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500 hover:bg-indigo-500/20'
-                                                                    }`}
-                                                            >
-                                                                {pdfLoading === r.id ? <Spinner className="w-3 h-3 animate-spin" /> : <FileText className="w-3 h-3" />}
-                                                                {pdfLoading === r.id ? 'Membuat PDF...' : `Unduh PDF — ${BULAN_STR[r.month]} ${r.year}`}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )
-                                    })}
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Hidden container untuk render PDF — dikontrol oleh ENABLE_PDF_DOWNLOAD */}
-                    {ENABLE_PDF_DOWNLOAD && printQueue.length > 0 && printRaportData && (
-                        <div ref={printContainerRef} style={{ position: 'fixed', left: '-9999px', top: 0, width: '1000px', visibility: 'hidden', pointerEvents: 'none' }}>
-                            <RaportPrintCard
-                                student={printRaportData.student}
-                                scores={{
-                                    nilai_akhlak: printRaportData.r.nilai_akhlak,
-                                    nilai_ibadah: printRaportData.r.nilai_ibadah,
-                                    nilai_kebersihan: printRaportData.r.nilai_kebersihan,
-                                    nilai_quran: printRaportData.r.nilai_quran,
-                                    nilai_bahasa: printRaportData.r.nilai_bahasa,
-                                }}
-                                extra={{
-                                    berat_badan: printRaportData.r.berat_badan,
-                                    tinggi_badan: printRaportData.r.tinggi_badan,
-                                    ziyadah: printRaportData.r.ziyadah,
-                                    murojaah: printRaportData.r.murojaah,
-                                    hari_sakit: printRaportData.r.hari_sakit,
-                                    hari_izin: printRaportData.r.hari_izin,
-                                    hari_alpa: printRaportData.r.hari_alpa,
-                                    hari_pulang: printRaportData.r.hari_pulang,
-                                    catatan: printRaportData.r.catatan,
-                                }}
-                                bulanObj={BULAN.find(b => b.id === printRaportData.r.month)}
-                                tahun={printRaportData.r.year}
-                                musyrif={printRaportData.r.musyrif}
-                                className={printRaportData.student.class}
-                                lang="id"
-                                settings={settings}
-                                onRendered={() => setPrintRenderedCount(c => c + 1)}
-                                reportType="bulanan"
-                            />
-                        </div>
-                    )}
 
                     {/* Support */}
                     {(() => {

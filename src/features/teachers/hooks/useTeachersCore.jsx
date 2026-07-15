@@ -399,27 +399,10 @@ export function useTeachersCore({ addToast, profile }) {
     // ── profile ───────────────────────────────────────────────────────────────
     const openProfile = useCallback(async (teacher, tab = 'info') => {
         setProfileTeacher(teacher)
-        setProfileStats(null)
-        setProfileReports([])
         setProfileTab(tab)
         setLoadingProfile(true)
         setIsProfileOpen(true)
-        try {
-            const { data: reports } = await supabase.from('reports').select('id,created_at,points,description').eq('teacher_name', teacher.name).order('created_at', { ascending: false })
-            if (reports) {
-                const thisMonth = new Date()
-                thisMonth.setDate(1)
-                thisMonth.setHours(0, 0, 0, 0)
-                setProfileReports(reports)
-                setProfileStats({
-                    total: reports.length,
-                    monthly: reports.filter(r => new Date(r.created_at) >= thisMonth).length,
-                    totalPts: reports.reduce((a, r) => a + (r.points || 0), 0),
-                    posCount: reports.filter(r => (r.points || 0) > 0).length,
-                    negCount: reports.filter(r => (r.points || 0) < 0).length
-                })
-            }
-        } catch { } finally { setLoadingProfile(false) }
+        try { } catch { } finally { setLoadingProfile(false) }
     }, [])
 
     // ── bulk ──────────────────────────────────────────────────────────────────

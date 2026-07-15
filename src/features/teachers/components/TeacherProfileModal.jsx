@@ -1,7 +1,7 @@
 ﻿import React, { memo } from 'react'
-import { Book, Suitcase, Calendar, CalendarCheck, CheckCircle, Copy, Fingerprint, GraduationCap, ClockCounterClockwise, IdentificationCard, Info, ChartLine, Envelope, MapPin, GenderMale, ChatCircle, Minus, Pencil, Phone, Plus, PresentationChart, Lightning, Briefcase , Note } from '@phosphor-icons/react'
+import { Book, Suitcase, Calendar, CalendarCheck, CheckCircle, Copy, Fingerprint, GraduationCap, ClockCounterClockwise, IdentificationCard, Info, Envelope, MapPin, GenderMale, ChatCircle, Pencil, Phone, PresentationChart, Lightning, Briefcase, Note } from '@phosphor-icons/react'
 
-import { Modal, StatCard, EmptyState, AuditTimeline } from '@shared/components'
+import { Modal, AuditTimeline } from '@shared/components'
 
 
 const STATUS_CONFIG = {
@@ -12,7 +12,6 @@ const STATUS_CONFIG = {
 
 export default memo(function TeacherProfileModal({
     isOpen, onClose, selectedTeacher,
-    loadingProfile, profileStats, profileReports = [],
     profileTab, setProfileTab,
     canEdit, handleEdit, addToast, fetchData
 }) {
@@ -110,14 +109,7 @@ export default memo(function TeacherProfileModal({
 
                         </div>
 
-                        {profileStats && (
-                            <div className="shrink-0 text-center px-4 py-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
-                                <p className="text-[8px] font-black text-white/50 uppercase tracking-widest mb-1">Poin</p>
-                                <p className={`text-2xl font-black ${profileStats.totalPts >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                    {profileStats.totalPts > 0 ? '+' : ''}{profileStats.totalPts || 0}
-                                </p>
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
@@ -125,8 +117,7 @@ export default memo(function TeacherProfileModal({
                 <div className="flex bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)] overflow-x-auto no-scrollbar">
                     {[
                         { id: 'info', label: 'Info', icon: IdentificationCard },
-                        { id: 'stats', label: 'Statistik', icon: ChartLine },
-                        { id: 'laporan', label: 'Laporan', icon: ClockCounterClockwise },
+
                         { id: 'audit', label: 'Audit', icon: ClockCounterClockwise }
                     ].map(t => (
                         <button
@@ -287,72 +278,6 @@ export default memo(function TeacherProfileModal({
                                 </div>
                             </div>
                         </div>
-                    </div>
-                )}
-
-                {profileTab === 'stats' && (
-                    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {loadingProfile ? (
-                            <div className="py-20 flex flex-col items-center justify-center text-[var(--color-text-muted)] gap-3">
-                                <ChartLine className="text-2xl opacity-20 animate-pulse" />
-                                <p className="text-xs font-bold animate-pulse">Menganalisis data statistik...</p>
-                            </div>
-                        ) : profileStats ? (
-                            <div className="space-y-4">
-                                <EmptyState
-                                    variant="dashed"
-                                    icon={ChartLine}
-                                    title="Grafik belum tersedia"
-                                    description="Data performa diperlukan untuk memunculkan grafik tren kinerja bulanan."
-                                />
-                            </div>
-                        ) : (
-                            <EmptyState
-                                variant="dashed"
-                                icon={ChartLine}
-                                title="Data statistik kosong"
-                                description="Belum ada riwayat performa atau poin yang tercatat untuk guru ini."
-                            />
-                        )}
-                    </div>
-                )}
-
-                {profileTab === 'laporan' && (
-                    <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {loadingProfile ? (
-                            <div className="space-y-3">
-                                {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl bg-[var(--color-surface-alt)] animate-pulse" />)}
-                            </div>
-                        ) : profileReports.length === 0 ? (
-                            <EmptyState
-                                variant="dashed"
-                                icon={ClockCounterClockwise}
-                                title="Riwayat laporan kosong"
-                                description="Belum ada catatan aktivitas atau laporan log masuk untuk guru ini."
-                            />
-                        ) : (
-                            <div className="space-y-2.5">
-                                {profileReports.map((r, i) => {
-                                    const pts = r.points || 0
-                                    const isPos = pts >= 0
-                                    return (
-                                        <div key={i} className={`flex items-start gap-4 p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]/50 transition-all group border-l-4 ${isPos ? 'border-l-emerald-500' : 'border-l-rose-500'}`}>
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-xs ${isPos ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600'}`}>
-                                                {pts > 0 ? '+' : ''}{pts}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-[11px] font-bold text-[var(--color-text)] leading-snug">{r.description || 'Laporan Aktivitas'}</p>
-                                                <div className="flex items-center gap-3 mt-1.5 opacity-50 text-[8px] font-black uppercase tracking-widest">
-                                                    <span>{new Date(r.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                    <span className="w-1 h-1 rounded-full bg-current" />
-                                                    <span className="text-indigo-500">{r.teacher_name || 'System Audit'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
                     </div>
                 )}
 

@@ -1,16 +1,15 @@
 ﻿import React, { memo } from 'react'
-import { SealCheck, Calendar, Copy, DoorOpen, FileText, GraduationCap, HandHeart, Heart, ClockCounterClockwise, IdentificationCard, Info, ChartLine, MapPin, GenderMale, ChatCircle, Minus, Pencil, Plus, Tag, UserCheck, Users, Lightning } from '@phosphor-icons/react'
+import { SealCheck, Calendar, Copy, DoorOpen, GraduationCap, HandHeart, Heart, ClockCounterClockwise, IdentificationCard, Info, MapPin, GenderMale, ChatCircle, Pencil, Plus, Tag, UserCheck, Users, Lightning } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
 
 import { AuditTimeline } from '@shared/components'
-import { EmptyState, StatCard } from '@shared/components/DataDisplay'
+
 
 export default memo(function StudentProfileModal({
     isOpen, onClose, selectedStudent, isPrivacyMode, maskInfo, calculateCompleteness,
-    behaviorHistory = [], loadingHistory, canEdit, handleEdit, profileTab, setProfileTab,
-    timelineStats, timelineFilter, setTimelineFilter, timelineVisible, setTimelineVisible,
-    timelineFiltered = [], raportHistory = [], loadingRaport, addToast, onOpenTagModal,
+    canEdit, handleEdit, profileTab, setProfileTab,
+    addToast, onOpenTagModal,
     buildWAMessage, openWAForStudent
 }) {
     if (!isOpen || !selectedStudent) return null
@@ -164,7 +163,7 @@ export default memo(function StudentProfileModal({
                 </div>
 
                 <div className="flex bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)] overflow-x-auto no-scrollbar">
-                    {['info', 'stats', 'log', 'raport', 'audit'].map(t => (
+                    {['info', 'audit'].map(t => (
                         <button
                             key={t}
                             onClick={() => setProfileTab(t)}
@@ -172,15 +171,9 @@ export default memo(function StudentProfileModal({
                             className={`flex-1 min-w-[70px] h-12 flex flex-col items-center justify-center gap-1 transition-all relative
                                 ${profileTab === t ? 'text-indigo-500' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
                         >
-                            {t === 'info' ? <IdentificationCard className="w-4 h-4 mb-1" /> :
-                                t === 'stats' ? <ChartLine className="w-4 h-4 mb-1" /> :
-                                    t === 'log' ? <ClockCounterClockwise className="w-4 h-4 mb-1" /> :
-                                        t === 'audit' ? <ClockCounterClockwise className="w-4 h-4 mb-1" /> : <FileText className="w-4 h-4 mb-1" />}
-                            <span className="text-[10px] font-black uppercase tracking-widest">{t === 'log' ? 'Perilaku' : t === 'raport' ? 'Raport' : t}</span>
+                            {t === 'info' ? <IdentificationCard className="w-4 h-4 mb-1" /> : <ClockCounterClockwise className="w-4 h-4 mb-1" />}
+                            <span className="text-[10px] font-black uppercase tracking-widest">{t}</span>
                             {profileTab === t && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-500 rounded-full" />}
-
-                            {t === 'stats' && behaviorHistory.length > 0 && <div className="absolute top-2 right-4 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white" />}
-                            {t === 'raport' && raportHistory.length > 0 && <div className="absolute top-2 right-4 w-1.5 h-1.5 bg-emerald-500 rounded-full border border-white" />}
                         </button>
                     ))}
                 </div>
@@ -401,201 +394,9 @@ export default memo(function StudentProfileModal({
                         </div>
                     )}
 
-                    {profileTab === 'stats' && (
-                        <div className="space-y-4">
-                            {behaviorHistory.length > 0 ? (
-                                <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20">
-                                    <div className="flex gap-2 items-end h-32 px-1 mb-4">
-                                        {(() => {
-                                            const months = []
-                                            for (let i = 5; i >= 0; i--) {
-                                                const d = new Date()
-                                                d.setDate(1)
-                                                d.setMonth(d.getMonth() - i)
-                                                months.push({ label: d.toLocaleDateString('id-ID', { month: 'short' }), month: d.getMonth(), year: d.getFullYear(), pos: 0, neg: 0 })
-                                            }
-                                            behaviorHistory.forEach(item => {
-                                                const d = new Date(item.created_at)
-                                                const bucket = months.find(m => m.month === d.getMonth() && m.year === d.getFullYear())
-                                                if (!bucket) return
-                                                const pts = item.points ?? 0
-                                                if (pts > 0) bucket.pos += pts;
-                                                else if (pts < 0) bucket.neg += Math.abs(pts)
-                                            })
-                                            const maxVal = Math.max(...months.map(m => Math.max(m.pos, m.neg)), 1)
-                                            return months.map((m, i) => (
-                                                <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative">
-                                                    {/* Custom Tooltip */}
-                                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-slate-900 text-white text-[8px] font-black opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 whitespace-nowrap shadow-xl border border-white/10">
-                                                        <span className="text-emerald-400">+{m.pos}</span> / <span className="text-rose-400">-{m.neg}</span>
-                                                    </div>
-                                                    <div className="w-full flex flex-col gap-0.5 items-stretch justify-end h-full relative">
-                                                        {m.pos > 0 && <div className="w-full rounded-t-sm bg-emerald-500/40 group-hover:bg-emerald-500 transition-all" style={{ height: `${(m.pos / maxVal) * 100}%` }} />}
-                                                        {m.neg > 0 && <div className="w-full rounded-b-sm bg-rose-500/40 group-hover:bg-rose-500 transition-all" style={{ height: `${(m.neg / maxVal) * 100}%` }} />}
-                                                        {m.pos === 0 && m.neg === 0 && <div className="w-full h-1 bg-[var(--color-border)] opacity-20" />}
-                                                    </div>
-                                                    <span className="text-[8px] font-black text-[var(--color-text-muted)] uppercase">{m.label}</span>
-                                                </div>
-                                            ))
-                                        })()}
-                                    </div>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                        <StatCard
-                                            icon={ClockCounterClockwise} label="Total Log" value={behaviorHistory.length} color="indigo"
-                                            className="!w-full !rounded-2xl !p-3 !min-h-0" valueClassName="text-lg"
-                                        />
-                                        <StatCard
-                                            icon={Plus} label="Positif" value={timelineStats?.totalPos || 0} color="emerald"
-                                            className="!w-full !rounded-2xl !p-3 !min-h-0" valueClassName="text-lg"
-                                        />
-                                        <StatCard
-                                            icon={Minus} label="Negatif" value={timelineStats?.totalNeg || 0} color="rose"
-                                            className="!w-full !rounded-2xl !p-3 !min-h-0" valueClassName="text-lg"
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <EmptyState
-                                    variant="dashed"
-                                    icon={ChartLine}
-                                    title="Grafik belum tersedia"
-                                    description="Data histori perilaku diperlukan untuk memunculkan grafik tren."
-                                />
-                            )}
-                        </div>
-                    )}
-
-                    {profileTab === 'log' && (
-                        <div className="space-y-2">
-                            {loadingHistory ? (
-                                <div className="animate-pulse space-y-2">
-                                    {[1, 2, 3].map(i => <div key={i} className="h-14 bg-[var(--color-surface-alt)] rounded-lg" />)}
-                                </div>
-                            ) : timelineFiltered.length === 0 ? (
-                                <EmptyState
-                                    variant="dashed"
-                                    icon={ClockCounterClockwise}
-                                    title="Belum ada Kedisiplinan & Poin"
-                                    description="Siswa ini belum memiliki catatan histori perilaku di sistem."
-                                />
-                            ) : (
-                                <>
-                                    <div className="flex gap-1.5 mb-2 overflow-x-auto no-scrollbar pb-1">
-                                        {[
-                                            { id: 'all', label: 'Semua', active: 'bg-indigo-500 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' },
-                                            { id: 'pos', label: 'Positif', active: 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' },
-                                            { id: 'neg', label: 'Negatif', active: 'bg-rose-500 text-white border-rose-500 shadow-lg shadow-rose-500/20' }
-                                        ].map(f => (
-                                            <button
-                                                key={f.id}
-                                                onClick={() => setTimelineFilter(f.id)}
-                                                className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border shrink-0
-                                                    ${timelineFilter === f.id
-                                                        ? f.active
-                                                        : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:bg-[var(--color-border)]'}`}
-                                            >
-                                                {f.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {timelineFiltered.slice(0, timelineVisible).map(item => {
-                                        const pts = item.points ?? 0
-                                        const isPos = pts > 0
-                                        const isNeg = pts < 0
-                                        return (
-                                            <div key={item.id} className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/10 flex items-start gap-3 hover:bg-[var(--color-surface-alt)]/30 transition-all">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-black text-xs ${isPos ? 'bg-emerald-500/10 text-emerald-600' : isNeg ? 'bg-rose-500/10 text-rose-600' : 'bg-slate-500/10 text-slate-500'}`}>
-                                                    {pts > 0 ? '+' : ''}{pts}
-                                                </div>
-                                                <div className="flex-1 min-w-0 pt-0.5">
-                                                    <p className="text-[11px] font-bold text-[var(--color-text)] leading-tight">{item.description || item.notes}</p>
-                                                    <div className="flex items-center gap-3 mt-1.5 opacity-50 text-[8px] font-black uppercase tracking-wider">
-                                                        <span>{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
-                                                        <span className="w-1 h-1 rounded-full bg-current" />
-                                                        <span>{item.teacher_name || 'Admin'}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                    {timelineFiltered.length > timelineVisible && (
-                                        <button onClick={() => setTimelineVisible(v => v + 5)} className="w-full py-2.5 rounded-xl border border-dashed border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)] transition-all">Muat Lagi</button>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    )}
-
                     {profileTab === 'audit' && (
                         <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/10 p-1 custom-scrollbar">
                             <AuditTimeline tableName="students" recordId={selectedStudent.id} />
-                        </div>
-                    )}
-
-                    {profileTab === 'raport' && (
-                        <div className="space-y-4">
-                            {loadingRaport ? (
-                                <div className="animate-pulse space-y-2">
-                                    {[1, 2].map(i => <div key={i} className="h-20 bg-[var(--color-surface-alt)] rounded-lg" />)}
-                                </div>
-                            ) : raportHistory.length === 0 ? (
-                                <EmptyState
-                                    variant="dashed"
-                                    icon={FileText}
-                                    title="Arsip raport kosong"
-                                    description="Data raport bulanan untuk siswa ini belum tersedia."
-                                />
-                            ) : (
-                                <div className="space-y-3">
-                                    {raportHistory.map(r => {
-                                        const values = [r.nilai_akhlak, r.nilai_ibadah, r.nilai_kebersihan, r.nilai_quran, r.nilai_bahasa].filter(v => v != null && v !== '')
-                                        const avg = values.length ? (values.reduce((a, b) => a + Number(b), 0) / values.length).toFixed(1) : '---'
-                                        return (
-                                            <div key={r.id} className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/10">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-lg bg-indigo-500 text-white flex flex-col items-center justify-center font-black">
-                                                            <span className="text-[7px] uppercase leading-none opacity-60">Bln</span>
-                                                            <span className="text-[14px] leading-none">{r.month}</span>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-[11px] font-black">Raport Bulanan {r.year}</p>
-                                                            <p className="text-[8px] font-bold text-[var(--color-text-muted)] uppercase">{r.musyrif_name || '---'}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="w-5 h-5 font-black text-indigo-500">{avg}</p>
-                                                        <p className="text-[7px] font-black uppercase opacity-50">Rerata</p>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                                                    {[
-                                                        { l: 'Akhlak', v: r.nilai_akhlak, c: 'bg-amber-500' },
-                                                        { l: 'Ibadah', v: r.nilai_ibadah, c: 'bg-indigo-500' },
-                                                        { l: 'Bersih', v: r.nilai_kebersihan, c: 'bg-emerald-500' },
-                                                        { l: 'Quran', v: r.nilai_quran, c: 'bg-indigo-600' },
-                                                        { l: 'Bhs', v: r.nilai_bahasa, c: 'bg-violet-600' },
-                                                    ].map(k => (
-                                                        <div key={k.l} className="flex flex-col p-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-sm">
-                                                            <div className="flex justify-between items-center mb-1.5">
-                                                                <span className="text-[12px] font-black text-[var(--color-text)]">{k.v || '-'}</span>
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${k.c}`} />
-                                                            </div>
-                                                            <span className="text-[7px] font-black uppercase text-[var(--color-text-muted)] tracking-wider mb-1.5">{k.l}</span>
-                                                            <div className="w-full h-1 bg-[var(--color-border)]/50 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className={`h-full ${k.c} opacity-80 transition-all duration-1000`}
-                                                                    style={{ width: `${(Number(k.v) / 10) * 100}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>

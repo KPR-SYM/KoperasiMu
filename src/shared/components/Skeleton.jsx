@@ -114,7 +114,6 @@ export function MobileListSkeleton({ count = 7 }) {
                             style={{ width: `${35 + (idx * 11) % 25}%`, animationDelay: `${idx * 80 + 40}ms` }}
                         />
                     </div>
-                    {/* Points badge */}
                     <div className="w-7 h-5 rounded-md bg-[var(--color-border)]/50 animate-pulse shrink-0" style={{ animationDelay: `${idx * 60}ms` }} />
                     {/* Chevron */}
                     <div className="w-3 h-3 rounded-full bg-[var(--color-border)]/40 animate-pulse shrink-0" />

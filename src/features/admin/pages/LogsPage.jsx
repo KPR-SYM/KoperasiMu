@@ -47,9 +47,7 @@ const TABLE_LABELS = {
     teachers: 'Data Guru',
     classes: 'Data Kelas',
     gate_logs: 'Log Gerbang',
-    reports: 'Poin Pelanggaran',
-    student_monthly_reports: 'Raport Santri',
-    point_rules: 'Konfigurasi Poin',
+
     user_preferences: 'Pengaturan User',
 }
 
