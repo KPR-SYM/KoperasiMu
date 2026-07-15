@@ -3,6 +3,7 @@ import { Warning, Archive, CaretLeft, CaretRight, Spinner, Trash, ArrowCounterCl
 
 import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
+import { useErrorHandler } from '@hooks'
 
 export default function PeriodArchiveModal({
     isOpen,
@@ -14,6 +15,7 @@ export default function PeriodArchiveModal({
     fetchData,
     addToast
 }) {
+    const { handleError } = useErrorHandler('PeriodArchiveModal')
     const [archivePage, setArchivePage] = useState(1)
     const archivePageSize = 10
 
@@ -26,14 +28,12 @@ export default function PeriodArchiveModal({
     const handleRestoreYear = async (year) => {
         setRestoring(true)
         try {
-            const { error } = await supabase.from('periods').update({ deleted_at: null }).eq('id', year.id)
+            const { error } = await supabase.from('periods').update({ is_active: true }).eq('id', year.id)
             if (error) throw error
             addToast(`${year.academic_year} ${year.semester} berhasil dipulihkan`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== year.id))
             fetchData?.()
-        } catch {
-            addToast('Gagal memulihkan tahun pelajaran', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan tahun pelajaran' }) } finally {
             setRestoring(false)
         }
     }
@@ -102,7 +102,7 @@ export default function PeriodArchiveModal({
                         <Warning className="text-red-500 text-2xl" />
                     </div>
                     <div className="text-center max-w-xs">
-                        <p className="w-4 h-4 font-black text-[var(--color-text)] mb-1">Hapus Permanen?</p>
+                        <p className="font-black text-[var(--color-text)] mb-1">Hapus Permanen?</p>
                         <p className="text-[11px] font-medium text-[var(--color-text-muted)] leading-relaxed">
                             Tahun pelajaran <b className="text-red-500">{deleteTarget?.academic_year} ({deleteTarget?.semester})</b> akan dihapus secara permanen. Tindakan ini <b>tidak dapat dibatalkan</b>.
                         </p>
@@ -137,7 +137,7 @@ export default function PeriodArchiveModal({
                 {loadingArchived ? (
                     <div className="text-center py-12 text-[var(--color-text-muted)]">
                         <Spinner className="fa-spin mb-3 text-xl" />
-                        <p className="w-3 h-3 font-bold">Memuat arsip...</p>
+                                        <p className="font-bold">Memuat arsip...</p>
                     </div>
                 ) : archivedYears.length === 0 ? (
                     <EmptyState
@@ -162,11 +162,11 @@ export default function PeriodArchiveModal({
                                     {archivedYears.slice((archivePage - 1) * archivePageSize, archivePage * archivePageSize).map(y => (
                                         <tr key={y.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
                                             <td className="px-3 py-2.5">
-                                                <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{y.academic_year}</p>
+                                                <p className="font-bold text-[var(--color-text)] leading-snug whitespace-nowrap">{y.academic_year}</p>
                                                 <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Semester {y.semester}</p>
                                             </td>
                                             <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
-                                                {formatRelativeDate(y.deleted_at)}
+                                                {formatRelativeDate(y.updated_at)}
                                             </td>
                                             <td className="px-3 py-2.5 text-right">
                                                 <div className="flex items-center justify-end gap-1.5">

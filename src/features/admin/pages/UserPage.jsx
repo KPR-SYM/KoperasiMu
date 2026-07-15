@@ -1,14 +1,16 @@
-﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Code, Copy, Database, Eye, EyeSlash, Funnel, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Funnel, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
 import Modal from '@shared/components/Modal'
+import { EmptyState } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import Pagination from '@shared/components/Pagination'
+import { useErrorHandler } from '@hooks'
 
 // â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -46,6 +48,7 @@ function RoleBadge({ role }) {
 export default function UserManagementPage() {
     const { profile: currentUser } = useAuth()
     const { addToast } = useToast()
+    const { handleError } = useErrorHandler('UserManagementPage')
 
     // â”€â”€ State: data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const [users, setUsers] = useState([])
@@ -159,9 +162,7 @@ export default function UserManagementPage() {
                 admin: enriched.filter(u => ['admin', 'developer'].includes(u.role)).length,
                 // noAccount stays from fetchUnlinked â€” don't overwrite
             }))
-        } catch (err) {
-            addToast('Gagal memuat data user: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memuat data user: ' }) } finally {
             setLoading(false)
         }
     }, [addToast])
@@ -191,7 +192,7 @@ export default function UserManagementPage() {
         }
     }, [])
 
-    useEffect(() => { fetchUsers(); fetchUnlinked() }, [fetchUsers, fetchUnlinked])
+    useEffect(() => { fetchUsers(); fetchUnlinked() }, [addToast])
 
     // â”€â”€ Filtered & sorted users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const filteredUsers = useMemo(() => {
@@ -281,9 +282,7 @@ export default function UserManagementPage() {
             addToast('Session dicabut âœ“', 'success')
             await logAudit({ action: 'DELETE', source: currentUser?.id || 'SYSTEM', tableName: 'sessions', newData: { session_id: sessionId, revoked: true } })
             fetchSessions(true)
-        } catch (err) {
-            addToast('Gagal revoke: ' + err.message, 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal revoke: ' }) }
     }
 
     const handleRevokeAllUserSessions = async (userId, userName) => {
@@ -304,9 +303,7 @@ export default function UserManagementPage() {
             await logAudit({ action: 'DELETE', source: currentUser?.id || 'SYSTEM', tableName: 'sessions', newData: { revoke_all: true, user_id: userId, user_name: userName } })
             setConfirmRevokeAll(null)
             fetchSessions(true)
-        } catch (err) {
-            addToast('Gagal revoke: ' + err.message, 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal revoke: ' }) }
     }
 
     // Filtered sessions for modal
@@ -425,9 +422,7 @@ export default function UserManagementPage() {
             })
             setResetModal(null)
             setResetPassword('')
-        } catch (err) {
-            addToast('Gagal reset: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal reset: ' }) } finally {
             setSubmitting(false)
         }
     }
@@ -450,9 +445,7 @@ export default function UserManagementPage() {
             })
             setEditModal(null)
             fetchUsers()
-        } catch (err) {
-            addToast('Gagal update: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal update: ' }) } finally {
             setSubmitting(false)
         }
     }
@@ -474,9 +467,7 @@ export default function UserManagementPage() {
             })
             setLinkModal(null); setLinkTeacherId('')
             fetchUsers(); fetchUnlinked()
-        } catch (err) {
-            addToast('Gagal link: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal link: ' }) } finally {
             setSubmitting(false)
         }
     }
@@ -496,9 +487,7 @@ export default function UserManagementPage() {
                 oldData: { profile_id: user.id, name: user.linkedTeacher.name }, newData: { profile_id: null }
             })
             fetchUsers(); fetchUnlinked()
-        } catch (err) {
-            addToast('Gagal unlink: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal unlink: ' }) } finally {
             setSubmitting(false)
         }
     }
@@ -531,9 +520,7 @@ export default function UserManagementPage() {
             })
             setDeleteModal(null)
             fetchUsers(); fetchUnlinked()
-        } catch (err) {
-            addToast('Gagal hapus: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal hapus: ' }) } finally {
             setSubmitting(false)
         }
     }
@@ -769,13 +756,9 @@ export default function UserManagementPage() {
                                 </thead>
                                 <tbody>
                                     {pagedUsers.length === 0 ? (
-                                        <tr><td colSpan={4} className="px-5 py-16">
-                                            <div className="flex flex-col items-center gap-2 text-center">
-                                                <Users className="text-3xl text-[var(--color-text-muted)] opacity-20 mb-2" />
-                                                <p className="w-4 h-4 font-black text-[var(--color-text)]">Tidak ada user ditemukan</p>
-                                                <p className="w-3 h-3 text-[var(--color-text-muted)]">Coba ubah filter atau kata kunci pencarian.</p>
-                                                {hasFilters && <button onClick={resetFilters} className="mt-2 h-8 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black hover:bg-[var(--color-surface-alt)] transition-all">Reset Funnel</button>}
-                                            </div>
+                                        <tr><td colSpan={4} className="px-5 py-12">
+                                            <EmptyState icon={Users} title="Tidak Ada User Ditemukan" description="Coba ubah filter atau kata kunci pencarian Anda." variant="plain" color="slate" />
+                                            {hasFilters && <div className="flex justify-center mt-4"><button onClick={resetFilters} className="h-8 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black hover:bg-[var(--color-surface-alt)] transition-all">Reset Funnel</button></div>}
                                         </td></tr>
                                     ) : pagedUsers.map(user => (
                                         <UserRow
@@ -1160,9 +1143,7 @@ export default function UserManagementPage() {
                             <span className="w-3 h-3 font-bold">Memuat sessions...</span>
                         </div>
                     ) : groupedSessions.length === 0 ? (
-                        <div className="py-12 text-center text-[var(--color-text-muted)] w-4 h-4">
-                            {sessionSearch || sessionFilterRole ? 'Tidak ada session yang cocok' : 'Tidak ada session aktif'}
-                        </div>
+                        <EmptyState icon={Clock} title="Tidak Ada Session" description="Tidak ada session yang cocok dengan filter." variant="plain" color="slate" />
                     ) : (
                         <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
                             {groupedSessions.map(([userId, { profile, sessions: userSessions }]) => {

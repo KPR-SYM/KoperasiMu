@@ -1,7 +1,8 @@
-﻿import React, { memo } from 'react'
+import React, { memo } from 'react'
 import { Book, Suitcase, Calendar, CalendarCheck, CheckCircle, Copy, Fingerprint, GraduationCap, ClockCounterClockwise, IdentificationCard, Info, Envelope, MapPin, GenderMale, ChatCircle, Pencil, Phone, PresentationChart, Lightning, Briefcase, Note } from '@phosphor-icons/react'
 
 import { Modal, AuditTimeline } from '@shared/components'
+import { useErrorHandler } from '@hooks'
 
 
 const STATUS_CONFIG = {
@@ -15,6 +16,7 @@ export default memo(function TeacherProfileModal({
     profileTab, setProfileTab,
     canEdit, handleEdit, addToast, fetchData
 }) {
+    const { handleError } = useErrorHandler('TeacherProfileModal')
     if (!isOpen || !selectedTeacher) return null
 
     const copyToClipboard = async (text, label) => {
@@ -22,9 +24,7 @@ export default memo(function TeacherProfileModal({
         try {
             await navigator.clipboard.writeText(text)
             addToast(`${label} berhasil disalin`, 'success')
-        } catch (err) {
-            addToast('Gagal menyalin ke clipboard', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menyalin ke clipboard' }) }
     }
 
     const InfoRow = ({ label, value }) => (
@@ -47,8 +47,6 @@ export default memo(function TeacherProfileModal({
             title="Profil Guru & Karyawan"
             description="Detail informasi kepegawaian, jadwal kerja, statistik performa, dan jejak aktivitas."
             icon={PresentationChart}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-600"
             size="lg"
             mobileVariant="bottom-sheet"
             contentClassName="!pb-4"
@@ -73,7 +71,7 @@ export default memo(function TeacherProfileModal({
             }
         >
             <div className="space-y-4">
-                {/* ── Header Profile Card ── */}
+                {/* â”€â”€ Header Profile Card â”€â”€ */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white shadow-xl">
                     <div className="relative flex items-center gap-5">
                         <div className="relative shrink-0">
@@ -113,7 +111,7 @@ export default memo(function TeacherProfileModal({
                     </div>
                 </div>
 
-                {/* ── Tabs ── */}
+                {/* â”€â”€ Tabs â”€â”€ */}
                 <div className="flex bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)] overflow-x-auto no-scrollbar">
                     {[
                         { id: 'info', label: 'Info', icon: IdentificationCard },
@@ -133,10 +131,10 @@ export default memo(function TeacherProfileModal({
                     ))}
                 </div>
 
-                {/* ── Content Sections ── */}
+                {/* â”€â”€ Content Sections â”€â”€ */}
                 {profileTab === 'info' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {/* ── Rows: Identitas & Biodata ── */}
+                        {/* â”€â”€ Rows: Identitas & Biodata â”€â”€ */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
                                 <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -152,7 +150,7 @@ export default memo(function TeacherProfileModal({
                             </div>
                         </div>
 
-                        {/* ── Rows: Kepegawaian ── */}
+                        {/* â”€â”€ Rows: Kepegawaian â”€â”€ */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
                                 <div className="w-1 h-4 bg-emerald-500 rounded-full" />
@@ -168,7 +166,7 @@ export default memo(function TeacherProfileModal({
                             </div>
                         </div>
 
-                        {/* ── Rows: Pendidikan ── */}
+                        {/* â”€â”€ Rows: Pendidikan â”€â”€ */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
                                 <div className="w-1 h-4 bg-blue-500 rounded-full" />
@@ -185,7 +183,7 @@ export default memo(function TeacherProfileModal({
                             </div>
                         </div>
 
-                        {/* ── Rows: Kontak & Lokasi ── */}
+                        {/* â”€â”€ Rows: Kontak & Lokasi â”€â”€ */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                                 <div className="flex items-center gap-2.5 pt-1">

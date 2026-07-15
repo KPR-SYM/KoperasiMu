@@ -1,4 +1,4 @@
-﻿import React, { useState, memo, useCallback } from 'react'
+import React, { useState, memo, useCallback } from 'react'
 import { Calendar, Check, GraduationCap, IdentificationCard, Spinner, Buildings, Users, X } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
@@ -37,8 +37,6 @@ function EnrollmentConvertModal({
             title="Konversi ke Siswa Aktif"
             description="Aktifkan santri baru ini sebagai siswa aktif di sistem sekolah"
             icon={GraduationCap}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-600"
             size="md"
             mobileVariant="bottom-sheet"
             footer={

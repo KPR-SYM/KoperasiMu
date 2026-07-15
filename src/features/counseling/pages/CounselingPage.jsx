@@ -8,10 +8,12 @@ import {
     StatsCarousel,
     Pagination,
     RichSelect,
-    Modal
+    Modal,
+    EmptyState
 } from '@shared/components'
 import { askAi } from '@lib/ai'
 import { MagnifyingGlass, Plus, Trash, X, Pen, Calendar, User, Clock, WarningCircle, FileXls, DownloadSimple, Check, FileText, CheckCircle, Printer, Sparkle, Warning, Info , HandHeart } from '@phosphor-icons/react'
+import { useErrorHandler } from '@hooks'
 
 // Local storage key for fallback persistence
 const LS_COUNSELING_LOGS = 'koperasimu_counseling_logs'
@@ -85,6 +87,7 @@ const INITIAL_MOCK_LOGS = [
 ]
 
 export default function CounselingPage() {
+    const { handleError } = useErrorHandler('CounselingPage')
     const { addToast } = useToast()
     const { language, tNum } = useLanguage()
     const { profile } = useAuth()
@@ -198,10 +201,7 @@ export default function CounselingPage() {
                     localStorage.setItem(LS_COUNSELING_LOGS, JSON.stringify(INITIAL_MOCK_LOGS))
                 }
             }
-        } catch (err) {
-            console.error('[CounselingPage] Error loading data:', err)
-            addToast('Gagal terhubung dengan server, menggunakan cache lokal.', 'warning')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal terhubung dengan server, menggunakan cache lokal.' }) } finally {
             setLoading(false)
         }
     }
@@ -1000,26 +1000,7 @@ export default function CounselingPage() {
                             </button>
                         </div>
                     ) : (
-                        <div className="text-center py-20 rounded-2xl border-2 border-dashed border-[var(--color-border)] bg-[var(--color-surface-alt)]/20">
-                            <div className="w-14 h-14 bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl transform rotate-3 shadow-lg">
-                                <MagnifyingGlass className="w-6 h-6" />
-                            </div>
-                            <h3 className="text-lg font-black text-[var(--color-text)] mb-2">Pencarian Tidak Ditemukan</h3>
-                            <p className="text-sm text-[var(--color-text-muted)] max-w-xs mx-auto mb-6 opacity-70">
-                                Tidak ada santri yang sesuai dengan filter atau kata kunci pencarian Anda.
-                            </p>
-                            <button
-                                onClick={() => {
-                                    setSearchQuery('')
-                                    setSelectedCategoryFilter('All')
-                                    setSelectedUrgencyFilter('All')
-                                    setSelectedStatusFilter('All')
-                                }}
-                                className="h-9 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all active:scale-95"
-                            >
-                                Reset Funnel
-                            </button>
-                        </div>
+                        <EmptyState icon={MagnifyingGlass} title="Pencarian Tidak Ditemukan" description="Tidak ada santri yang sesuai dengan filter Anda." variant="dashed" color="slate" />
                     )
                 ) : viewMode === 'list' ? (
                     /* --- TABLE VIEW --- */

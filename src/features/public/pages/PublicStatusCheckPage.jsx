@@ -2,6 +2,7 @@
 import { Warning, ArrowLeft, Book, Calendar, CheckCircle, CaretRight, Clock, FileText, GraduationCap, Info, Buildings, Spinner, MapPin, Moon, Phone, MagnifyingGlass, Sun, UploadSimple, User, UserCheck, XCircle , Bank } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 
+import { EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useTheme } from '@context/Theme'
 
@@ -568,12 +569,7 @@ export default function PublicStatusCheckPage() {
                                             </>
                                         ) : (
                                             <>
-                                                <div className="w-8 h-8 rounded bg-[var(--color-border)]/30 flex items-center justify-center text-[var(--color-text-muted)] opacity-50 shrink-0">
-                                                    <UploadSimple />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-semibold text-[var(--color-text-muted)]">Belum ada bukti</p>
-                                                </div>
+                                                <EmptyState icon={UploadSimple} title="Belum Ada Bukti" description="Belum ada bukti pembayaran yang diunggah." variant="plain" color="slate" />
                                             </>
                                         )}
                                     </div>

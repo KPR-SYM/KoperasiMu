@@ -9,8 +9,10 @@ import {
     getMockTasks,
     getMockShiftLogs
 } from '@features/dorms/utils/dormMockData'
+import { useErrorHandler } from '@hooks'
 
 export function useDormsData(addToast) {
+    const { handleError } = useErrorHandler('DormsData')
     // --- UI Filter & Pagination States ---
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedClassFilter, setSelectedClassFilter] = useState('')
@@ -274,7 +276,7 @@ export function useDormsData(addToast) {
 
     useEffect(() => {
         fetchData()
-    }, [fetchData])
+    }, [addToast])
 
     // --- Filter Side-effects ---
     useEffect(() => {
@@ -1021,9 +1023,7 @@ export function useDormsData(addToast) {
             link.click()
             URL.revokeObjectURL(link.href)
             addToast('Berhasil mengunduh template impor', 'success')
-        } catch {
-            addToast('Gagal mengunduh template', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal mengunduh template' }) }
     }
 
     const importReadyRows = useMemo(() => {

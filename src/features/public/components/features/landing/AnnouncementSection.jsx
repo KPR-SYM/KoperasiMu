@@ -1,4 +1,5 @@
 import { MegaphoneSimple, Warning, CalendarBlank, Spinner, Megaphone } from '@phosphor-icons/react';
+import { EmptyState } from '@shared/components';
 import useAnnouncements from '../../../hooks/useAnnouncements';
 import useScrollReveal from '../../../hooks/useScrollReveal';
 import { formatDate } from '../../../utils/formatters';
@@ -139,19 +140,7 @@ export default function AnnouncementSection() {
                 )}
 
                 {!loading && !error && announcements.length === 0 && (
-                    <div className="max-w-md mx-auto text-center py-10">
-                        <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/[0.03]
-                        flex items-center justify-center mx-auto mb-4
-                        text-gray-300 dark:text-white/20">
-                            <Megaphone className="w-6 h-6" />
-                        </div>
-                        <p className="text-sm font-semibold text-gray-600 dark:text-white/60 mb-1">
-                            Belum ada pengumuman
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-white/30 leading-relaxed">
-                            Pengumuman terbaru akan muncul di sini
-                        </p>
-                    </div>
+                    <EmptyState icon={Megaphone} title="Belum Ada Pengumuman" variant="plain" color="slate" />
                 )}
             </div>
         </section>

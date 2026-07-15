@@ -138,8 +138,8 @@ const PeriodFormModal = memo(function PeriodFormModal({
             title={selectedItem?.id ? 'Update Tahun Pelajaran' : 'Tahun Pelajaran Baru'}
             description={selectedItem?.id ? 'Perbarui detail tahun pelajaran ini.' : 'Buat periode tahun pelajaran baru.'}
             icon={selectedItem?.id ? Pencil : PlusCircle}
-            iconBg={'bg-indigo-500/15'}
-            iconColor={'text-indigo-500'}
+            iconBg={'bg-[var(--color-primary)]/10'}
+            iconColor={'text-[var(--color-primary)]'}
             size="lg"
             mobileVariant="bottom-sheet"
             footer={
@@ -177,7 +177,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
             <div className="space-y-5">
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-1">
-                        <div className="w-1 h-4 bg-indigo-500 rounded-full" />
+                        <div className="w-1 h-4 bg-yellow-500 rounded-full" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Identitas & Periode</span>
                         <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
                     </div>
@@ -221,7 +221,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                                 {['Ganjil', 'Genap'].map(s => (
                                     <button key={s} type="button"
                                         onClick={() => handleChange('semester', s)}
-                                        className={`flex-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${formData.semester === s ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
+                                        className={`flex-1 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${formData.semester === s ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
                                         {s}
                                     </button>
                                 ))}
@@ -240,7 +240,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Mulai <span className="text-red-500">*</span></label>
                             <div className={`relative rounded-xl border transition-all ${formErrors.startDate ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none w-4 h-4 font-bold ${formData.startDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
+                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.startDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
                                     {formData.startDate ? (() => {
                                         const [y, m, d] = formData.startDate.split('-')
                                         return `${d}/${m}/${y}`
@@ -261,7 +261,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Selesai <span className="text-red-500">*</span></label>
                             <div className={`relative rounded-xl border transition-all ${formErrors.endDate ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none w-4 h-4 font-bold ${formData.endDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
+                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.endDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
                                     {formData.endDate ? (() => {
                                         const [y, m, d] = formData.endDate.split('-')
                                         return `${d}/${m}/${y}`
@@ -328,7 +328,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                                 <CheckCircle className="w-3 h-3" />
                             </div>
                             <div>
-                                <p className={`text-[11px] font-black ${formData.makeActive ? 'text-emerald-700' : 'text-[var(--color-text)]'}`}>Jadikan Tahun Aktif</p>
+                                <p className={`text-[12px] font-black ${formData.makeActive ? 'text-emerald-700' : 'text-[var(--color-text)]'}`}>Jadikan Tahun Aktif</p>
                                 <p className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-60 mt-0.5 uppercase tracking-tight">Otomatis menonaktifkan tahun lain</p>
                             </div>
                         </div>

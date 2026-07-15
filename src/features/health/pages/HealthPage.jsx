@@ -21,7 +21,7 @@ const LS_HEALTH_LOGS = 'koperasimu_health_logs'
 const LS_HEALTH_MEDS = 'koperasimu_health_medicines'
 
 const maskInfo = (str, vis = 3) => {
-    if (!str) return '—'
+    if (!str) return 'â€”'
     const s = String(str)
     if (s.length <= vis) return s.charAt(0) + '*'.repeat(s.length - 1)
     return s.slice(0, vis) + '*'.repeat(s.length - vis)
@@ -120,23 +120,23 @@ export default function HealthPage() {
     // Precomputed values & translations helper
     const tp = (key) => {
         const trans = {
-            title: { id: 'Klinik & Kesehatan', en: 'Clinic & Health', ar: 'العيادة والصحة' },
-            desc: { id: 'Pos Kesehatan Pesantren (Poskestren) & catatan rekam medis berkala santri.', en: 'Pesantren Health Center (Poskestren) & student medical record logs.', ar: 'مركز الصحة في المدرسة وسجلات تقarير الطلاب الطبية.' },
-            tabMedical: { id: 'Rekam Medis', en: 'Medical Records', ar: 'السجلات الطبية' },
-            tabResting: { id: 'Santri Observasi', en: 'Santri Observasi', ar: 'الطلاب في الملاحظة' },
-            tabInventory: { id: 'Stok & Inventaris Obat', en: 'Medicine Stock', ar: 'مخزون الأدوية' },
-            statTotal: { id: 'Total Rekam Medis', en: 'Total Records', ar: 'إجمالي السجلات' },
-            statResting: { id: 'Sedang Istirahat', en: 'Resting in UKS', ar: 'تحت الملاحظة حالياً' },
-            statLowStock: { id: 'Stok Obat Kritis', en: 'Low Medicine Stock', ar: 'أدوية منخفضة المخزون' },
-            statHealthy: { id: 'Status UKS', en: 'Clinic Status', ar: 'حالة العيادة' },
-            searchPlaceholder: { id: 'Cari nama santri, keluhan, obat...', en: 'MagnifyingGlass student, complaint, medicine...', ar: 'بحث عن اسم، شكوى، دواء...' },
-            btnRecordAdd: { id: 'Tambah Catatan', en: 'Add Medical Record', ar: 'إضافة سجل طبي' },
-            btnMedAdd: { id: 'Tambah Obat', en: 'Add New Medicine', ar: 'إضافة دواء جديد' },
-            emptyTitle: { id: 'Tidak Ada Data Medis', en: 'No Medical Records Found', ar: 'لا توجد سجلات طبية' },
-            emptyDesc: { id: 'Belum ada rekam medis yang dicatat atau data tidak sesuai dengan filter.', en: 'No medical records have been recorded or matching the current filters.', ar: 'لم يتم تسجيل أي سجل طبي أو لا توجد نتائج مطابقة للتصفية.' },
-            privacyModeOn: { id: 'Matikan Mode Privasi', en: 'Disable Privacy Mode', ar: 'تعطيل وضع الخصوصية' },
-            privacyModeOff: { id: 'Aktifkan Mode Privasi', en: 'Enable Privacy Mode', ar: 'تفعيل وضع الخصوصية' },
-            privacy: { id: 'Privasi', en: 'Privacy', ar: 'الخصوصية' }
+            title: { id: 'Klinik & Kesehatan', en: 'Clinic & Health', ar: 'Ø§Ù„Ø¹ÙŠØ§Ø¯Ø© ÙˆØ§Ù„ØµØ­Ø©' },
+            desc: { id: 'Pos Kesehatan Pesantren (Poskestren) & catatan rekam medis berkala santri.', en: 'Pesantren Health Center (Poskestren) & student medical record logs.', ar: 'Ù…Ø±ÙƒØ² Ø§Ù„ØµØ­Ø© ÙÙŠ Ø§Ù„Ù…Ø¯Ø±Ø³Ø© ÙˆØ³Ø¬Ù„Ø§Øª ØªÙ‚arÙŠØ± Ø§Ù„Ø·Ù„Ø§Ø¨ Ø§Ù„Ø·Ø¨ÙŠØ©.' },
+            tabMedical: { id: 'Rekam Medis', en: 'Medical Records', ar: 'Ø§Ù„Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ø·Ø¨ÙŠØ©' },
+            tabResting: { id: 'Santri Observasi', en: 'Santri Observasi', ar: 'Ø§Ù„Ø·Ù„Ø§Ø¨ ÙÙŠ Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø©' },
+            tabInventory: { id: 'Stok & Inventaris Obat', en: 'Medicine Stock', ar: 'Ù…Ø®Ø²ÙˆÙ† Ø§Ù„Ø£Ø¯ÙˆÙŠØ©' },
+            statTotal: { id: 'Total Rekam Medis', en: 'Total Records', ar: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø³Ø¬Ù„Ø§Øª' },
+            statResting: { id: 'Sedang Istirahat', en: 'Resting in UKS', ar: 'ØªØ­Øª Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø© Ø­Ø§Ù„ÙŠØ§Ù‹' },
+            statLowStock: { id: 'Stok Obat Kritis', en: 'Low Medicine Stock', ar: 'Ø£Ø¯ÙˆÙŠØ© Ù…Ù†Ø®ÙØ¶Ø© Ø§Ù„Ù…Ø®Ø²ÙˆÙ†' },
+            statHealthy: { id: 'Status UKS', en: 'Clinic Status', ar: 'Ø­Ø§Ù„Ø© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©' },
+            searchPlaceholder: { id: 'Cari nama santri, keluhan, obat...', en: 'MagnifyingGlass student, complaint, medicine...', ar: 'Ø¨Ø­Ø« Ø¹Ù† Ø§Ø³Ù…ØŒ Ø´ÙƒÙˆÙ‰ØŒ Ø¯ÙˆØ§Ø¡...' },
+            btnRecordAdd: { id: 'Tambah Catatan', en: 'Add Medical Record', ar: 'Ø¥Ø¶Ø§ÙØ© Ø³Ø¬Ù„ Ø·Ø¨ÙŠ' },
+            btnMedAdd: { id: 'Tambah Obat', en: 'Add New Medicine', ar: 'Ø¥Ø¶Ø§ÙØ© Ø¯ÙˆØ§Ø¡ Ø¬Ø¯ÙŠØ¯' },
+            emptyTitle: { id: 'Tidak Ada Data Medis', en: 'No Medical Records Found', ar: 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³Ø¬Ù„Ø§Øª Ø·Ø¨ÙŠØ©' },
+            emptyDesc: { id: 'Belum ada rekam medis yang dicatat atau data tidak sesuai dengan filter.', en: 'No medical records have been recorded or matching the current filters.', ar: 'Ù„Ù… ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø£ÙŠ Ø³Ø¬Ù„ Ø·Ø¨ÙŠ Ø£Ùˆ Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„ØªØµÙÙŠØ©.' },
+            privacyModeOn: { id: 'Matikan Mode Privasi', en: 'Disable Privacy Mode', ar: 'ØªØ¹Ø·ÙŠÙ„ ÙˆØ¶Ø¹ Ø§Ù„Ø®ØµÙˆØµÙŠØ©' },
+            privacyModeOff: { id: 'Aktifkan Mode Privasi', en: 'Enable Privacy Mode', ar: 'ØªÙØ¹ÙŠÙ„ ÙˆØ¶Ø¹ Ø§Ù„Ø®ØµÙˆØµÙŠØ©' },
+            privacy: { id: 'Privasi', en: 'Privacy', ar: 'Ø§Ù„Ø®ØµÙˆØµÙŠØ©' }
         }
         return trans[key]?.[language] || trans[key]?.id || key
     }
@@ -942,7 +942,7 @@ export default function HealthPage() {
     return (
         <DashboardLayout title={tp('title')}>
             <div className="p-4 sm:p-6 space-y-5">
-                {/* ─── PAGE HEADER WITH INTEGRATED BREADCRUMB ─── */}
+                {/* â”€â”€â”€ PAGE HEADER WITH INTEGRATED BREADCRUMB â”€â”€â”€ */}
                 <PageHeader
                     badge="Kesantrian"
                     title={tp('title')}
@@ -1016,7 +1016,7 @@ export default function HealthPage() {
                                 </div>
                             )}
 
-                            {/* Privasi — di tengah, selalu tampil */}
+                            {/* Privasi â€” di tengah, selalu tampil */}
                             <button
                                 onClick={() => setIsPrivacyMode(v => !v)}
                                 className={`h-9 px-3 rounded-xl border flex items-center gap-2 transition-all ${
@@ -1079,7 +1079,7 @@ export default function HealthPage() {
                     }
                 />
 
-                {/* ─── HIGH-DENSITY STATISTICS CAROUSEL ─── */}
+                {/* â”€â”€â”€ HIGH-DENSITY STATISTICS CAROUSEL â”€â”€â”€ */}
                 <StatsCarousel count={4} className="mb-5">
                     <StatCard
                         onClick={() => { setActiveTab('medical'); setSelectedStatusFilter('All'); }}
@@ -1113,7 +1113,7 @@ export default function HealthPage() {
                     />
                 </StatsCarousel>
 
-                {/* ─── NAVIGATION TABS ─── */}
+                {/* â”€â”€â”€ NAVIGATION TABS â”€â”€â”€ */}
                 <div className="flex gap-1 sm:gap-1.5 p-1 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] w-full sm:w-fit overflow-x-auto scrollbar-hide shrink-0">
                     <button
                         onClick={() => { setActiveTab('medical'); setSearchQuery(''); }}
@@ -1138,7 +1138,7 @@ export default function HealthPage() {
                     </button>
                 </div>
 
-                {/* ─── TAB: REKAM MEDIS (MEDICAL RECORDS) ─── */}
+                {/* â”€â”€â”€ TAB: REKAM MEDIS (MEDICAL RECORDS) â”€â”€â”€ */}
                 {activeTab === 'medical' && (
                     <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden animate-in fade-in duration-200">
                         {/* Toolbar */}
@@ -1334,7 +1334,7 @@ export default function HealthPage() {
                     </div>
                 )}
 
-                {/* ─── TAB: SANTRI OBSERVASI (UKS) ─── */}
+                {/* â”€â”€â”€ TAB: SANTRI OBSERVASI (UKS) â”€â”€â”€ */}
                 {activeTab === 'resting' && (
                     <div className="animate-in fade-in duration-200">
                         {restingStudents.length === 0 ? (
@@ -1379,7 +1379,7 @@ export default function HealthPage() {
                                                     </div>
                                                     <div>
                                                         <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-wider block font-bold">Rencana Tindakan & Obat</span>
-                                                        <p className={`text-[11px] text-[var(--color-text-muted)] ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>{isPrivacyMode ? maskInfo(log.treatment, 4) : log.treatment} • <strong className="text-[var(--color-text)] font-black">{log.medicine_name}</strong></p>
+                                                        <p className={`text-[11px] text-[var(--color-text-muted)] ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>{isPrivacyMode ? maskInfo(log.treatment, 4) : log.treatment} â€¢ <strong className="text-[var(--color-text)] font-black">{log.medicine_name}</strong></p>
                                                     </div>
                                                     <div className="pt-1 text-[10px] text-[var(--color-text-muted)] flex items-center gap-1.5">
                                                         <Clock className="w-3.5 h-3.5" />
@@ -1412,7 +1412,7 @@ export default function HealthPage() {
                     </div>
                 )}
 
-                {/* ─── TAB: INVENTARIS OBAT (INVENTORY) ─── */}
+                {/* â”€â”€â”€ TAB: INVENTARIS OBAT (INVENTORY) â”€â”€â”€ */}
                 {activeTab === 'inventory' && (
                     <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden animate-in fade-in duration-200">
                         {/* Toolbar */}
@@ -1545,7 +1545,7 @@ export default function HealthPage() {
                     </div>
                 )}
 
-                {/* ─── MODAL: TAMBAH / EDIT REKAM MEDIS ─── */}
+                {/* â”€â”€â”€ MODAL: TAMBAH / EDIT REKAM MEDIS â”€â”€â”€ */}
                 <Modal
                     isOpen={isRecordModalOpen}
                     onClose={() => setIsRecordModalOpen(false)}
@@ -1752,15 +1752,13 @@ export default function HealthPage() {
                     </form>
                 </Modal>
 
-                {/* ─── MODAL: TAMBAH / EDIT OBAT INVENTARIS ─── */}
+                {/* â”€â”€â”€ MODAL: TAMBAH / EDIT OBAT INVENTARIS â”€â”€â”€ */}
                 <Modal
                     isOpen={isMedModalOpen}
                     onClose={() => setIsMedModalOpen(false)}
                     title={activeMed ? 'Pen Data Obat' : 'Tambah Obat Baru'}
                     description={activeMed ? 'Perbarui stok dan kategori obat' : 'Tambahkan obat baru ke daftar inventaris Poskestren'}
                     icon={Pill}
-                    iconBg="bg-indigo-500/10"
-                    iconColor="text-indigo-600"
                     size="md"
                     footer={
                         <div className="flex items-center justify-between gap-2.5 w-full">
@@ -1868,7 +1866,7 @@ export default function HealthPage() {
                     </form>
                 </Modal>
 
-                {/* ─── MODAL: KONFIRMASI HAPUS CATATAN MEDIS ─── */}
+                {/* â”€â”€â”€ MODAL: KONFIRMASI HAPUS CATATAN MEDIS â”€â”€â”€ */}
                 <Modal
                     isOpen={isConfirmDeleteOpen}
                     onClose={() => setIsConfirmDeleteOpen(false)}
@@ -1901,7 +1899,7 @@ export default function HealthPage() {
                     </p>
                 </Modal>
 
-                {/* ─── MODAL: KONFIRMASI SUDAH SEMBUH ─── */}
+                {/* â”€â”€â”€ MODAL: KONFIRMASI SUDAH SEMBUH â”€â”€â”€ */}
                 <Modal
                     isOpen={isConfirmSembuhOpen}
                     onClose={() => setIsConfirmSembuhOpen(false)}

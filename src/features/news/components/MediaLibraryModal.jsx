@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, memo } from 'react'
 import { Check, CaretLeft, CaretRight, CloudArrowUp, Funnel, ImageSquare, Spinner, MagnifyingGlass, Trash, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
+import { EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useToast } from '@context'
 
@@ -60,9 +61,7 @@ const MediaLibraryModal = memo(({ isOpen, onClose, onSelect, currentSelection })
             if (!currentSelection && images.length > 0 && !selectedAsset) {
                 // Not auto-selecting to avoid confusion, but we could
             }
-        } catch (err) {
-            addToast(err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err) } finally {
             setLoading(false)
         }
     }, [addToast])
@@ -238,10 +237,7 @@ const MediaLibraryModal = memo(({ isOpen, onClose, onSelect, currentSelection })
                                 <p className="text-[10px] font-black uppercase tracking-widest">Memuat Library...</p>
                             </div>
                         ) : filteredImages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center gap-4 text-[var(--color-text-muted)] opacity-40">
-                                <ImageSquare size="5x" />
-                                <p className="font-bold text-center">Belum ada gambar {search ? 'yang cocok' : 'di folder ini'}.</p>
-                            </div>
+                            <EmptyState icon={ImageSquare} title="Belum Ada Gambar" description="Belum ada gambar yang diunggah di media library." variant="plain" color="slate" />
                         ) : (
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 {filteredImages.map(img => (

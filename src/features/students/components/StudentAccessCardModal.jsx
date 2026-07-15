@@ -46,8 +46,8 @@ export default function StudentAccessCardModal({
             title={newlyCreatedStudent ? "Registrasi Berhasil!" : isBulk ? `Cetak Kartu (${studentsToShow.length} Siswa)` : "Akses & Kartu"}
             description={newlyCreatedStudent ? "Data siswa telah tersimpan. Silakan simpan kode akses atau cetak kartu pelajar di bawah." : "Kelola akses portal orang tua dan cetak kartu identitas siswa."}
             icon={newlyCreatedStudent ? CheckCircle : Printer}
-            iconBg={newlyCreatedStudent ? "bg-emerald-500/10" : "bg-indigo-500/10"}
-            iconColor={newlyCreatedStudent ? "text-emerald-600" : "text-indigo-600"}
+            iconBg={newlyCreatedStudent ? "bg-emerald-500/10" : "bg-[var(--color-primary)]/10"}
+            iconColor={newlyCreatedStudent ? "text-emerald-600" : "text-[var(--color-primary)]"}
             size={isBulk ? "xl" : "lg"}
             mobileVariant="bottom-sheet"
         >

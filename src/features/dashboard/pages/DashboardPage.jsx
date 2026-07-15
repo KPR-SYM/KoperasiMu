@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState, useCallback, lazy, Suspense, useRef } from 'react'
-import { Money, CreditCard, FileText, TrendUp, Users, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Money, CreditCard, FileText, TrendUp, Users, ArrowCounterClockwise, CurrencyCircleDollar } from '@phosphor-icons/react'
 import StatsCarousel from '@shared/components/StatsCarousel'
 
 import { useNavigate } from 'react-router-dom'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import PageHeader from '@shared/components/PageHeader'
+import { EmptyState } from '@shared/components'
 import { StatCard } from '@shared/components/DataDisplay'
 
 // Lazy loaded widgets
@@ -277,7 +278,7 @@ export default function DashboardPage() {
                                     ))}
                                 </div>
                             ) : recentPayments.length === 0 ? (
-                                <p className="text-sm text-[var(--color-text-muted)] text-center py-8">Belum ada pembayaran hari ini.</p>
+                                <EmptyState icon={CurrencyCircleDollar} title="Belum Ada Pembayaran" description="Belum ada pembayaran hari ini." variant="plain" color="slate" />
                             ) : (
                                 <div className="space-y-2">
                                     {recentPayments.map((p) => (

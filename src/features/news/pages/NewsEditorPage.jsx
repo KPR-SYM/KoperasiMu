@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, TextAlignLeft, ArrowRight, TextB, BookOpenText, Check, CheckCircle, CaretDown, CaretLeft, Clock, CloudRain, CloudArrowUp, Coffee, ArrowSquareOut, Eye, EyeSlash, FastForward, Funnel, Globe, Hash, ImageSquare, Info, TextItalic, Keyboard, Leaf, Link, Spinner, ArrowsOutCardinal, Moon, MusicNote, NewspaperClipping, Pause, Pen, Play, Plus, Repeat, Rewind, FloppyDisk, ShareNetwork, Sparkle, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
+import { Warning, TextAlignLeft, ArrowRight, TextB, BookOpenText, Check, CheckCircle, CaretDown, CaretLeft, Clock, CloudRain, CloudArrowUp, Coffee, ArrowSquareOut, Eye, EyeSlash, FastForward, Funnel, Globe, Hash, ImageSquare, Info, TextItalic, Keyboard, Leaf, Link, Spinner, ArrowsOutCardinal, Moon, MusicNote, NewspaperClipping, Pause, Pen, Play, Plus, Repeat, Rewind, FloppyDisk, ShareNetwork, Sparkle, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper, ClockCounterClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -14,6 +14,7 @@ import { useSchoolSettings } from '@context/SchoolSettings'
 import MediaLibraryModal from '@features/news/components/MediaLibraryModal'
 import Modal from '@shared/components/Modal'
 import { askAi } from '@lib/ai'
+import { EmptyState } from '@shared/components'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 const slugify = (text) => text.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80)
@@ -2377,10 +2378,7 @@ function RevisionHistoryModal({ isOpen, onClose, id }) {
                         <p className="text-[10px] text-[var(--color-text-muted)] font-black uppercase tracking-widest">Snapshot konten artikel ini</p>
                     </div>
                 </div>
-                <div className="space-y-3 opacity-40 text-center py-12 border-2 border-dashed border-[var(--color-border)] rounded-2xl">
-                    <p className="text-[11px] font-black uppercase tracking-widest">Belum ada riwayat revisi</p>
-                    <p className="text-[9px]">Revisi akan tercatat otomatis setiap kali Anda klik Simpan.</p>
-                </div>
+                <EmptyState icon={ClockCounterClockwise} title="Belum Ada Riwayat Revisi" description="Revisi akan tercatat secara otomatis saat Anda menyimpan perubahan." variant="dashed" color="slate" />
                 <button onClick={onClose} className="w-full h-11 mt-6 rounded-xl border border-[var(--color-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)]">Tutup</button>
             </div>
         </div>, document.body

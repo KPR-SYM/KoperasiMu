@@ -14,7 +14,7 @@ import {
 import Papa from 'papaparse'
 
 import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
-import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline } from '@shared/components'
+import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline, EmptyState } from '@shared/components'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION 1: CONSTANTS
@@ -535,7 +535,7 @@ export default function LogsPage() {
         }
     }, [isAllowed, page, pageSize, debouncedSearch, filterSource, filterAction, filterTable, filterSeverity, filterRange, sortDir, addToast])
 
-    useEffect(() => { fetchLogs() }, [fetchLogs])
+    useEffect(() => { fetchLogs() }, [isAllowed, page, pageSize, debouncedSearch, filterSource, filterAction, filterTable, filterSeverity, filterRange, sortDir, addToast])
 
     // ── Helper: resolve actor name dari 1 user_id ──────────────────────────────
     const resolveActor = useCallback(async (row) => {
@@ -955,15 +955,7 @@ export default function LogsPage() {
                                 </div>
                             ))
                         ) : logs.length === 0 ? (
-                            <div className="py-20 flex flex-col items-center justify-center gap-4 text-center">
-                                <div className="w-16 h-16 rounded-3xl bg-[var(--color-surface-alt)] flex items-center justify-center">
-                                    <Database className="text-2xl text-[var(--color-text-muted)] opacity-20" />
-                                </div>
-                                <div>
-                                    <p className="w-4 h-4 font-black">Tidak Ada Jejak Audit</p>
-                                    <p className="text-[11px] text-[var(--color-text-muted)]">Belum ada aktivitas yang direkam untuk kriteria ini.</p>
-                                </div>
-                            </div>
+                            <EmptyState icon={Database} title="Tidak Ada Jejak Audit" description="Belum ada aktivitas yang direkam di log." variant="plain" color="slate" />
                         ) : (
                             logs.map(log => (
                                 <LogRow

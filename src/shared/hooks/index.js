@@ -1,5 +1,6 @@
-export { default as useCountUp } from './useCountUp'
+export { useCountUp } from './useCountUp'
 export { useDebounce } from './useDebounce'
 export { default as useLongPress } from './useLongPress'
 export { useNotifications } from './useNotifications'
-export { default as useSessionGuard } from './useSessionGuard'
+export { useSessionGuard } from './useSessionGuard'
+export { useErrorHandler } from './useErrorHandler'

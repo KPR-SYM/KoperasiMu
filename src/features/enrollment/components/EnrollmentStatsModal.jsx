@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react'
-import { CalendarBlank, CheckCircle, CaretRight, FileXls, Funnel, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves } from '@phosphor-icons/react'
+import { CalendarBlank, CheckCircle, CaretRight, FileXls, Funnel, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
 import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area
 } from 'recharts'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, RichSelect, EmptyState } from '@shared/components'
 
 export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, waves }) {
     const [selectedWave, setSelectedWave] = useState('all')
@@ -279,8 +279,6 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
             title="Analisis & Statistik PSB"
             description="Laporan grafik dan analisis distribusi pendaftaran santri baru secara real-time."
             icon={PieChartIcon}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-600"
             size="xl"
             mobileVariant="bottom-sheet"
             footer={
@@ -517,16 +515,8 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
             </div>
 
             {!hasData ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 border border-slate-200/60 flex items-center justify-center text-2xl mb-4 animate-bounce">
-                        <Tray />
-                    </div>
-                    <h3 className="w-4 h-4 font-black text-[var(--color-text)]">Tidak Ada Data Ditemukan</h3>
-                    <p className="text-[11px] text-[var(--color-text-muted)] mt-1 max-w-sm">
-                        {selectedWave !== 'all'
-                            ? 'Tidak ada calon santri terdaftar pada gelombang yang dipilih ini.'
-                            : 'Tambahkan calon pendaftar atau impor berkas terlebih dahulu untuk melihat dashboard analitik.'}
-                    </p>
+                <div className="py-8">
+                    <EmptyState icon={Tray} title="Tidak Ada Data Ditemukan" description="Tambahkan calon pendaftar untuk melihat statistik." variant="plain" color="slate" />
                 </div>
             ) : (
                 <div className="space-y-6 print:space-y-4">
@@ -536,7 +526,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             <div>
                                 <h1 className="text-2xl font-black tracking-tight text-indigo-950 uppercase">LAPORAN ANALISIS & STATISTIK PSB</h1>
                                 <p className="text-[10px] text-slate-500 font-extrabold mt-1">
-                                    Penerimaan Santri Baru · Muhammadiyah Boarding Buildings Tanggul
+                                    Penerimaan Santri Baru Â· Muhammadiyah Boarding Buildings Tanggul
                                 </p>
                             </div>
                             <div className="text-right">
@@ -592,7 +582,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             </div>
                             <div className="h-44 relative">
                                 {stats.programGenderData.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-[10px] text-[var(--color-text-muted)] italic">Belum ada data program</div>
+                                    <EmptyState icon={Book} title="Belum Ada Data Program" variant="plain" color="slate" />
                                 ) : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={stats.programGenderData} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>
@@ -617,7 +607,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             </div>
                             <div className="h-44 relative">
                                 {stats.statusData.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-[10px] text-[var(--color-text-muted)] italic">Belum ada data status</div>
+                                    <EmptyState icon={ChartPie} title="Belum Ada Data Status" variant="plain" color="slate" />
                                 ) : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
@@ -659,14 +649,14 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             </div>
                             <div className="flex-1 space-y-3.5 max-h-[180px] overflow-y-auto pr-1 custom-scrollbar">
                                 {stats.waveQuotaData.length === 0 ? (
-                                    <p className="text-[10px] text-[var(--color-text-muted)] italic text-center py-8">Tidak ada gelombang aktif</p>
+                                    <EmptyState icon={Calendar} title="Tidak Ada Gelombang Aktif" variant="plain" color="slate" />
                                 ) : (
                                     stats.waveQuotaData.map((w, idx) => (
                                         <div key={idx} className="space-y-1.5">
                                             <div className="flex justify-between items-center text-[10px] font-black">
                                                 <span className="text-[var(--color-text)]">{w.name}</span>
                                                 <span className="text-[var(--color-text-muted)]">
-                                                    {w.count} / <span className="text-[var(--color-text)]">{w.quota ? `${w.quota} Kuota` : '∞ (Tanpa Batas)'}</span>{w.quota ? ` (${w.percentage}%)` : ''}
+                                                    {w.count} / <span className="text-[var(--color-text)]">{w.quota ? `${w.quota} Kuota` : 'âˆž (Tanpa Batas)'}</span>{w.quota ? ` (${w.percentage}%)` : ''}
                                                 </span>
                                             </div>
                                             {/* Thicker progress bar with dynamic color indicators */}
@@ -700,7 +690,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             </div>
                             <div className="h-44 relative">
                                 {stats.schoolData.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-[10px] text-[var(--color-text-muted)] italic">Belum ada data sekolah</div>
+                                    <EmptyState icon={Buildings} title="Belum Ada Data Sekolah" variant="plain" color="slate" />
                                 ) : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={stats.schoolData} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>
@@ -737,7 +727,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                             </div>
                             <div className="h-44 relative">
                                 {!stats.cityData || stats.cityData.length === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-[10px] text-[var(--color-text-muted)] italic">Belum ada data wilayah</div>
+                                    <EmptyState icon={MapPin} title="Belum Ada Data Wilayah" variant="plain" color="slate" />
                                 ) : (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <BarChart data={stats.cityData} layout="vertical" margin={{ left: -10, right: 10, top: 5, bottom: 5 }}>
@@ -765,7 +755,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                         </div>
                         <div className="h-48 relative">
                             {stats.dailyData.length === 0 ? (
-                                <div className="h-full flex items-center justify-center text-[10px] text-[var(--color-text-muted)] italic">Belum ada data trend</div>
+                                    <EmptyState icon={ChartLineUp} title="Belum Ada Data Trend" variant="plain" color="slate" />
                             ) : (
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={stats.dailyData} margin={{ left: -20, right: 10, top: 5, bottom: 5 }}>

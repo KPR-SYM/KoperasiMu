@@ -86,10 +86,7 @@ export const handlePrintThermal = async (student, { addToast, setGeneratingPdf }
             recordId: student.id,
             newData: { format: 'THERMAL', via: 'print', name: student.name }
         })
-    } catch (e) {
-        console.error('Thermal print error:', e);
-        addToast('Gagal menyiapkan cetak thermal', 'error');
-    } finally { setGeneratingPdf(false); }
+    } catch (err) { handleError(err, { context: 'Gagal menyiapkan cetak thermal' }) } finally { setGeneratingPdf(false); }
 };
 
 // ── Save Card as PNG (html2canvas offscreen) ─────────────────────────────
@@ -175,10 +172,7 @@ export const handleSavePNG = async (student, { addToast, setGeneratingPdf }) => 
             recordId: student.id,
             newData: { format: 'PNG', via: 'save_image', name: student.name }
         })
-    } catch (e) {
-        console.error('PNG export error:', e);
-        addToast('Gagal menyimpan kartu sebagai gambar', 'error');
-    } finally { setGeneratingPdf(false); }
+    } catch (err) { handleError(err, { context: 'Gagal menyimpan kartu sebagai gambar' }) } finally { setGeneratingPdf(false); }
 };
 
 
@@ -778,10 +772,7 @@ export const generateStudentPDF = async (targets, captureRef = null, { addToast,
             recordId: targets.length === 1 ? targets[0].id : null,
             newData: { format: 'PDF', via: 'print_card', count: targets.length }
         })
-    } catch (e) {
-        console.error(e);
-        addToast('Gagal membuat dokumen PDF', 'error');
-    } finally {
+    } catch (err) { handleError(err, { context: 'Gagal membuat dokumen PDF' }) } finally {
         setGeneratingPdf(false);
     }
 };

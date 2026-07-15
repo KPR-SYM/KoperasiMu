@@ -687,10 +687,7 @@ function MobileCardView({ filteredStudents, dataMap, tahun, bulan, daysInMonth, 
         </div>
     )
     if (filteredStudents.length === 0) return (
-        <div className="py-16 flex flex-col items-center gap-2 text-[var(--color-text-muted)]">
-            <MagnifyingGlass className="text-2xl opacity-20" />
-            <p className="text-[12px] font-bold">Tidak ada siswa</p>
-        </div>
+        <EmptyState icon={MagnifyingGlass} title="Tidak Ada Siswa" description="Tidak ada siswa yang sesuai dengan filter." variant="plain" color="slate" />
     )
     return (
         <div className="p-3 space-y-2.5">
@@ -827,10 +824,7 @@ function MobileListView({ filteredStudents, dataMap, tahun, bulan, daysInMonth, 
     )
 
     if (filteredStudents.length === 0) return (
-        <div className="py-16 flex flex-col items-center gap-2 text-[var(--color-text-muted)]">
-            <MagnifyingGlass className="text-2xl opacity-20" />
-            <p className="text-[12px] font-bold">Tidak ada siswa</p>
-        </div>
+        <EmptyState icon={MagnifyingGlass} title="Tidak Ada Siswa" description="Tidak ada siswa yang sesuai dengan filter." variant="plain" color="slate" />
     )
 
     return (
@@ -1104,10 +1098,7 @@ function CommandPalette({ open, onClose, onAction, studentCount, bulan, tahun, c
                 {/* Results */}
                 <div className="overflow-y-auto flex-1">
                     {filtered.length === 0 ? (
-                        <div className="py-10 flex flex-col items-center gap-2 text-[var(--color-text-muted)]">
-                            <MagnifyingGlass className="text-xl opacity-20" />
-                            <p className="text-[12px] font-bold">Tidak ada perintah ditemukan</p>
-                        </div>
+                        <EmptyState icon={MagnifyingGlass} title="Tidak Ada Perintah Ditemukan" description="Tidak ada perintah yang sesuai." variant="plain" color="slate" />
                     ) : filtered.map(group => (
                         <div key={group.group}>
                             <p className="px-4 pt-3 pb-1 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">{group.group}</p>
@@ -2692,9 +2683,7 @@ function HistoryDrawer({ teacher, onClose, settings = DEFAULT_ATTENDANCE_SETTING
                             <Spinner className="animate-spin text-xl text-[var(--color-primary)]" />
                         </div>
                     ) : filtered.length === 0 ? (
-                        <div className="text-center py-12 text-[var(--color-text-muted)]">
-                            <p className="text-[12px] font-black">Belum ada data</p>
-                        </div>
+                        <EmptyState icon={CalendarBlank} title="Belum Ada Data" variant="plain" color="slate" />
                     ) : (
                         <div className="space-y-2">
                             {filtered.map(r => {
@@ -3189,7 +3178,7 @@ function GuruTab() {
         }
     }, [viewMode, selectedDate, tahun, bulan, addToast])
 
-    useEffect(() => { loadData() }, [loadData])
+    useEffect(() => { loadData() }, [viewMode, selectedDate, tahun, bulan, addToast])
 
     // â”€â”€ Jam kerja helper (shared di GuruTab) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const calcWorkMinutesG = (scanIn, scanOut) => {
@@ -3416,15 +3405,7 @@ function GuruTab() {
                         <Spinner className="animate-spin text-2xl text-[var(--color-primary)]" />
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 gap-3">
-                        <CalendarBlank className="text-3xl text-[var(--color-text-muted)] opacity-30" />
-                        <p className="text-[12px] font-black text-[var(--color-text)]">Belum ada data</p>
-                        <p className="text-[10px] text-[var(--color-text-muted)]">Import data dari Fingerspot untuk mulai</p>
-                        <button onClick={() => setShowImport(true)}
-                            className="h-8 px-4 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[10px] font-black border border-[var(--color-primary)]/20 hover:bg-[var(--color-primary)]/20 transition-all">
-                            Import Sekarang
-                        </button>
-                    </div>
+                    <EmptyState icon={CalendarBlank} title="Belum Ada Data" description="Import data presensi untuk mulai mencatat." variant="glass" color="primary" action={<button className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest">Import Sekarang</button>} />
                 ) : viewMode === 'harian' ? (
                     /* Daily view */
                     <>
@@ -3603,7 +3584,7 @@ function GuruTab() {
                                                 <StatusBadge status={r.status} size="xs" />
                                             </div>
                                         ))}
-                                        {t.records.length === 0 && <span className="text-[9px] text-[var(--color-text-muted)]">Tidak ada data minggu ini</span>}
+                                        {t.records.length === 0 && <EmptyState icon={CalendarBlank} title="Tidak Ada Data Minggu Ini" variant="plain" color="slate" />}
                                     </div>
                                 </div>
                                 <div className="text-right shrink-0">
@@ -3915,7 +3896,7 @@ export default function AttendancePage() {
         setCanUndo(false); setCanRedo(false)
     }, [classId, tahun, bulan])
 
-    useEffect(() => { loadData() }, [loadData])
+    useEffect(() => { loadData() }, [classId, tahun, bulan])
 
     const [, startDragTransition] = useTransition()
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, memo, useCallback } from 'react'
+import React, { useState, useRef, memo, useCallback } from 'react'
 import { Archive, ArrowRight, Bell, Book, Checks, CheckCircle, CheckSquare, CaretDown, ClipboardText, FileArrowDown, FileXls, FileArrowUp, Spinner, ChartPie, Buildings, MagnifyingGlass, Trash, XCircle, ArrowCounterClockwise, GenderFemale, GenderMale, SlidersHorizontal, UserPlus, Waves, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -870,8 +870,6 @@ export default function EnrollmentPage() {
                     title="Ubah Status Massal"
                     description={`Sesuaikan status untuk ${selectedIds.length} calon santri`}
                     icon={Trash}
-                    iconBg="bg-indigo-500/10"
-                    iconColor="text-indigo-600"
                     size="md"
                     mobileVariant="bottom-sheet"
                     footer={

@@ -12,6 +12,7 @@ import { useFlag } from '@context/FeatureFlags'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { useDebounce } from '@hooks/useDebounce'
+import { useErrorHandler } from '@hooks'
 import { TableSkeleton, CardSkeleton } from '@shared/components/Skeleton'
 import RichSelect from '@shared/components/RichSelect'
 import StatsCarousel from '@shared/components/StatsCarousel'
@@ -100,6 +101,7 @@ DebouncedSearchInput.displayName = 'DebouncedSearchInput'
 
 export default function ClassesPage() {
     const { addToast } = useToast()
+    const { handleError } = useErrorHandler('ClassesPage')
     const { profile } = useAuth()
     const { enabled: canEdit } = useFlag('access.teacher_classes')
 
@@ -320,7 +322,7 @@ export default function ClassesPage() {
             const { error } = await supabase.from('classes').update({ deleted_at: null }).eq('id', id)
             if (error) throw error
             addToast('Kelas berhasil dipulihkan', 'success'); await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: id, oldData: { id, restored: false }, newData: { deleted_at: null, restored: true } }); fetchArchived(); fetchData()
-        } catch { addToast('Gagal memulihkan kelas', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan kelas' }) }
     }
 
     const handlePermanentDelete = async (id) => {
@@ -329,7 +331,7 @@ export default function ClassesPage() {
             const { error } = await supabase.from('classes').delete().eq('id', id)
             if (error) throw error
             addToast('Kelas dihapus permanen', 'success'); await logAudit({ action: 'DELETE', source: 'SYSTEM', tableName: 'classes', recordId: id, oldData: { permanent_delete: true } }); fetchArchived()
-        } catch { addToast('Gagal menghapus permanen', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus permanen' }) }
     }
 
     const fetchDataRef = useRef(fetchData)
@@ -423,7 +425,7 @@ export default function ClassesPage() {
             if (selectedItem) { const { error } = await supabase.from('classes').update(payload).eq('id', selectedItem.id); if (error) throw error; addToast('Data kelas berhasil diupdate', 'success'); await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } }) }
             else { const { data: insData, error } = await supabase.from('classes').insert(payload).select().single(); if (error) throw error; addToast('Kelas baru berhasil ditambahkan', 'success'); await logAudit({ action: 'INSERT', source: 'SYSTEM', tableName: 'classes', recordId: insData?.id, newData: payload }) }
             setIsModalOpen(false); fetchData()
-        } catch (err) { addToast(err.message || 'Gagal menyimpan data', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menyimpan data' }) }
         finally { setSubmitting(false) }
     }
 
@@ -433,7 +435,7 @@ export default function ClassesPage() {
             const { error } = await supabase.from('classes').delete().eq('id', itemToDelete.id)
             if (error) throw error
             addToast('Kelas berhasil dihapus', 'success'); await logAudit({ action: 'DELETE', source: 'SYSTEM', tableName: 'classes', recordId: itemToDelete.id, oldData: itemToDelete }); setIsDeleteModalOpen(false); fetchData()
-        } catch { addToast('Gagal menghapus kelas', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus kelas' }) }
         finally { setSubmitting(false) }
     }
 
@@ -443,7 +445,7 @@ export default function ClassesPage() {
             const { error } = await supabase.from('classes').delete().in('id', selectedIds)
             if (error) throw error
             addToast(`${selectedIds.length} kelas berhasil dihapus`, 'success'); await logAudit({ action: 'DELETE', source: 'SYSTEM', tableName: 'classes', newData: { bulk: true, count: selectedIds.length, ids: selectedIds } }); setSelectedIds([]); setIsBulkDeleteOpen(false); fetchData()
-        } catch { addToast('Gagal menghapus kelas', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus kelas' }) }
         finally { setSubmitting(false) }
     }
 
@@ -521,7 +523,7 @@ export default function ClassesPage() {
                 }
             })
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export CSV', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export CSV' }) }
         finally { setExporting(false) }
     }
 
@@ -546,7 +548,7 @@ export default function ClassesPage() {
                 }
             })
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export Excel', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export Excel' }) }
         finally { setExporting(false) }
     }
 
@@ -677,7 +679,7 @@ export default function ClassesPage() {
             })
             setImportColumnMapping(mapping)
             setImportStep(2)
-        } catch { addToast('Gagal membaca file import', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal membaca file import' }) }
         finally { setImportLoading(false) }
     }
 
@@ -820,7 +822,7 @@ export default function ClassesPage() {
             setImportFileHeaders([])
             setImportColumnMapping({})
             fetchData()
-        } catch { addToast('Gagal import (cek constraint DB)', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB)' }) }
         finally { setImporting(false) }
     }
 

@@ -1,8 +1,9 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import { Warning, Archive, CaretLeft, CaretRight, Spinner, Buildings, Trash, ArrowCounterClockwise } from '@phosphor-icons/react'
 
 import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
+import { useErrorHandler } from '@hooks'
 
 export default function ClassArchiveModal({
     isOpen,
@@ -12,9 +13,9 @@ export default function ClassArchiveModal({
     setArchivedClasses,
     fetchArchivedClasses,
     fetchData,
-    fetchStats,
     addToast
 }) {
+    const { handleError } = useErrorHandler('ClassArchiveModal')
     const [archivePage, setArchivePage] = useState(1)
     const archivePageSize = 10
 
@@ -33,9 +34,7 @@ export default function ClassArchiveModal({
             setArchivedClasses(prev => prev.filter(c => c.id !== cls.id))
             fetchData?.()
             fetchStats?.()
-        } catch {
-            addToast('Gagal memulihkan kelas', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan kelas' }) } finally {
             setRestoring(false)
         }
     }

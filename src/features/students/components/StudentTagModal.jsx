@@ -2,6 +2,7 @@
 import { Check, CheckCircle, Info, Pen, Tag, Trash, X } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
+import { EmptyState } from '@shared/components'
 import { AvailableTags } from '@features/students/utils/studentsConstants'
 
 /**
@@ -140,10 +141,7 @@ const StudentTagModal = ({
                                         </span>
                                     </div>
                                     {studentTags.length === 0 ? (
-                                        <div className="w-full py-2 flex flex-col items-center justify-center opacity-30">
-                                            <Tag className="mb-1 w-4 h-4 text-[var(--color-text-muted)]" />
-                                            <span className="text-[8px] font-bold uppercase tracking-widest">Belum ada label</span>
-                                        </div>
+                                        <EmptyState icon={Tag} title="Belum Ada Label" variant="plain" color="slate" />
                                     ) : (
                                         studentTags.map(tag => (
                                             <button

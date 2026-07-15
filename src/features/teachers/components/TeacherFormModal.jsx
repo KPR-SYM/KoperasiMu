@@ -194,8 +194,8 @@ const TeacherFormModal = memo(function TeacherFormModal({
                 </div>
             }
             icon={selectedItem ? Pencil : Plus}
-            iconBg={selectedItem ? 'bg-indigo-500/10' : 'bg-emerald-500/10'}
-            iconColor={selectedItem ? 'text-indigo-500' : 'text-emerald-600'}
+            iconBg={selectedItem ? 'bg-[var(--color-primary)]/10' : 'bg-emerald-500/10'}
+            iconColor={selectedItem ? 'text-[var(--color-primary)]' : 'text-emerald-600'}
             size="lg"
             mobileVariant="bottom-sheet"
             footer={

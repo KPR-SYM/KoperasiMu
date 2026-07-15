@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Warning, Archive, Eraser, CheckCircle, Database, FileText, FolderOpen, ImageSquare, Spinner, ArrowCounterClockwise, MagnifyingGlass, Trash } from '@phosphor-icons/react'
+import { Warning, Archive, Eraser, CheckCircle, Database, FileText, Folder, FolderOpen, ImageSquare, Spinner, ArrowCounterClockwise, MagnifyingGlass, Trash } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
+import { EmptyState } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
+import { useErrorHandler } from '@hooks'
 
 export default function StoragePage() {
+    const { handleError } = useErrorHandler('StoragePage')
     const { addToast } = useToast()
     const { profile } = useAuth()
     const [buckets, setBuckets] = useState([])
@@ -77,10 +80,7 @@ export default function StoragePage() {
             allFiles.sort((a, b) => b.sizeBytes - a.sizeBytes)
             setLargeFiles(allFiles.slice(0, 10))
 
-        } catch (error) {
-            console.error(error)
-            addToast('Gagal memuat daftar bucket: ' + error.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memuat daftar bucket: ' }) } finally {
             setLoading(false)
             setLoadingFiles(false)
         }
@@ -196,10 +196,7 @@ export default function StoragePage() {
 
             addToast(`Ditemukan ${orphanFiles.length} file sampah`, 'info')
 
-        } catch (error) {
-            console.error(error)
-            addToast('Gagal memindai storage: ' + error.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memindai storage: ' }) } finally {
             setScanning(false)
         }
     }
@@ -236,10 +233,7 @@ export default function StoragePage() {
             setScanResults(null)
             fetchBuckets() // reload data
 
-        } catch (error) {
-            console.error(error)
-            addToast('Gagal menghapus file: ' + error.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal menghapus file: ' }) } finally {
             setScanning(false)
         }
     }
@@ -286,9 +280,7 @@ export default function StoragePage() {
                                     <span className="w-3 h-3 font-bold">Memuat buckets...</span>
                                 </div>
                             ) : buckets.length === 0 ? (
-                                <div className="py-10 text-center text-[var(--color-text-muted)] w-3 h-3">
-                                    Tidak ada bucket yang ditemukan atau akses ditolak.
-                                </div>
+                                <EmptyState icon={Database} title="Tidak Ada Bucket" description="Tidak ada bucket yang ditemukan atau akses ditolak." variant="plain" color="slate" />
                             ) : (
                                 <div className="grid sm:grid-cols-2 gap-4">
                                     {buckets.map(b => (
@@ -319,9 +311,7 @@ export default function StoragePage() {
                             </div>
 
                             {!loadingFiles && largeFiles.length === 0 ? (
-                                <div className="py-6 text-center text-[var(--color-text-muted)] w-3 h-3 border border-dashed border-[var(--color-border)] rounded-2xl bg-[var(--color-surface-alt)]/30">
-                                    Tidak ada file yang ditemukan.
-                                </div>
+                                <EmptyState icon={Folder} title="Tidak Ada File" description="Belum ada file yang diunggah di bucket ini." variant="dashed" color="slate" />
                             ) : (
                                 <div className="divide-y divide-[var(--color-border)] border border-[var(--color-border)] rounded-2xl overflow-hidden w-4 h-4 relative">
                                     {largeFiles.map((f, i) => {

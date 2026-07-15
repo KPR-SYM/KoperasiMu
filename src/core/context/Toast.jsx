@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { Warning, CheckCircle, CloudArrowUp, FileText, Info, X, XCircle, ArrowCounterClockwise } from '@phosphor-icons/react'
 
 import { useLanguage } from './Language'
@@ -142,8 +142,8 @@ export function ToastProvider({ children }) {
                                 />
                             )}
 
-                            <config.icon className="w-5 h-5 sm:w-5 h-5 shrink-0" />
-                            <span className="flex-1 text-[11px] sm:w-4 h-4 font-semibold">{toast.message}</span>
+                            <config.icon className="w-5 h-5 shrink-0" />
+                            <span className="flex-1 text-[11px] font-semibold leading-snug">{toast.message}</span>
 
                             {/* Tombol Batalkan — Hanya Tampil Untuk Toast Bertipe ArrowCounterClockwise */}
                             {isUndo && (

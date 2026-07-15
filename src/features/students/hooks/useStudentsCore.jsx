@@ -7,8 +7,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { calculateCompleteness } from '@features/students/utils/studentsConstants'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useAuth } from '@context/Auth'
+import { useErrorHandler } from '@hooks'
 
 export function useStudentsCore({ addToast, addUndoToast }) {
+    const { handleError } = useErrorHandler('StudentsCore')
     const navigate = useNavigate()
     const { profile } = useAuth()
 
@@ -117,6 +119,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     const [uploadingBulkPhotos, setUploadingBulkPhotos] = useState(false)
     const [allStudentsForBulk, setAllStudentsForBulk] = useState([])
     const [broadcastTemplate, setBroadcastTemplate] = useState('summary')
+    const [waTemplate, setWaTemplate] = useState('summary')
     const [customWaMsg, setCustomWaMsg] = useState('')
     const [broadcastIndex, setBroadcastIndex] = useState(-1)
     const [broadcastResults, setBroadcastResults] = useState({})
@@ -480,7 +483,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 fetchData()
                 addToast('Dibatalkan', 'success')
             })
-        } catch { addToast('Gagal', 'error') } finally { setSubmitting(false) }
+        } catch (err) { handleError(err, { context: 'Gagal' }) } finally { setSubmitting(false) }
     }
 
     const handleBulkDelete = async () => {
@@ -507,7 +510,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 await supabase.from('students').update({ deleted_at: null }).in('id', idsToDelete)
                 fetchData()
             })
-        } catch { addToast('Gagal', 'error') } finally { setSubmitting(false) }
+        } catch (err) { handleError(err, { context: 'Gagal' }) } finally { setSubmitting(false) }
     }
 
     const handleBulkRoomAssign = async () => {
@@ -542,7 +545,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 fetchData()
                 addToast('Dibatalkan', 'success')
             })
-        } catch { addToast('Gagal menetapkan kamar', 'error') } finally { setSubmitting(false) }
+        } catch (err) { handleError(err, { context: 'Gagal menetapkan kamar' }) } finally { setSubmitting(false) }
     }
 
     // ---- FUNCTIONS: ARCHIVE ----
@@ -555,7 +558,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 if (s.full_name !== undefined) { s.name = s.full_name; delete s.full_name }
                 return { ...s, className: s.classes?.name || '-' }
             }))
-        } catch { addToast('Gagal memuat arsip', 'error') } finally { setLoadingArchived(false) }
+        } catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally { setLoadingArchived(false) }
     }
 
     const handleRestoreStudent = async (student) => {
@@ -572,7 +575,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 newData: { ...student, deleted_at: null, restored: true }
             })
             fetchArchivedStudents(); fetchData(); fetchStats()
-        } catch { addToast('Gagal memulihkan', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
     }
 
     const handlePermanentDelete = async (student) => {
@@ -589,7 +592,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 oldData: student
             })
             fetchArchivedStudents()
-        } catch { addToast('Gagal hapus', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal hapus' }) }
     }
 
     // ---- FUNCTIONS: TAGS ----
@@ -660,7 +663,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                     fetchData(); fetchUsedTags()
                 })
             }
-        } catch { addToast('Gagal', 'error') } finally { setSubmitting(false) }
+        } catch (err) { handleError(err, { context: 'Gagal' }) } finally { setSubmitting(false) }
     }
 
     // ---- FUNCTIONS: PROFILE ACCESS ----
@@ -888,7 +891,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
             addToast(`PIN: ${pin}`, 'success')
             await logAudit({ action: 'UPDATE', tableName: 'students', recordId: student.id, newData: { pin_reset: true, name: student.name } })
             fetchData()
-        } catch { addToast('Gagal', 'error') } finally { setResettingPin(false) }
+        } catch (err) { handleError(err, { context: 'Gagal' }) } finally { setResettingPin(false) }
     }
 
     const checkDuplicate = async (name, classId) => {
@@ -927,7 +930,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
                 newData: payload
             })
             fetchData(); fetchStats()
-        } catch { addToast('Gagal', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal' }) }
     }
 
     const handleInlineSubmit = async (payloadOverride = null) => {
@@ -1014,7 +1017,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
     }
 
     // ---- AUTO LOAD DATA ----
-    useEffect(() => { fetchData() }, [fetchData])
+    useEffect(() => { fetchData() }, [page, pageSize, sortBy, filterGender, filterStatus, filterTag, filterMissing, debouncedSearch, filterClasses, filterClass, addToast])
     useEffect(() => { fetchStats() }, [fetchStats])
     useEffect(() => { fetchUsedTags() }, [fetchUsedTags])
 
@@ -1049,7 +1052,7 @@ export function useStudentsCore({ addToast, addUndoToast }) {
         handleViewProfile,
         handleResetPin, checkDuplicate, fetchClassHistory, handleViewClassHistory,
         handleInlineUpdate, handleTogglePin, handlePhotoUpload, uploadingPhoto,
-        handleInlineSubmit, handleViewQR, handleViewPrint, handleBulkWA, buildWAMessage, openWAForStudent, waTemplate,
+        handleInlineSubmit, handleViewQR, handleViewPrint, handleBulkWA, buildWAMessage, openWAForStudent, waTemplate, setWaTemplate,
         generateStudentPDF, handlePrintSingle, handlePrintThermal, handleSavePNG, handleBulkPrint,
         handleBulkPhotoMatch, handleBulkPhotoUpload, handleClassBreakdown,
         bulkPhotoMatches, uploadingBulkPhotos, setBulkPhotoMatches, allStudentsForBulk, matchingPhotos,

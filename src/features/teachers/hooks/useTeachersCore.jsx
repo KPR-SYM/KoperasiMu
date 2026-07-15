@@ -1,14 +1,16 @@
-﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { STATUS_CONFIG } from '@features/teachers/components/TeacherRow'
 import { useDebounce } from '@hooks'
+import { useErrorHandler } from '@hooks'
 
 const LS_FILTERS = 'teachers_filters'
 const LS_COLS = 'teachers_columns'
 const LS_PAGE_SIZE = 'teachers_page_size'
 
 export function useTeachersCore({ addToast, profile }) {
+    const { handleError } = useErrorHandler('TeachersCore')
     // core
     const [teachers, setTeachers] = useState([])
     const [loading, setLoading] = useState(true)
@@ -216,7 +218,7 @@ export function useTeachersCore({ addToast, profile }) {
             if (allSubj) setSubjectsList([...new Set(allSubj.map(r => r.subject).filter(Boolean))].sort())
             const { data: cls } = await supabase.from('classes').select('id,name').order('name')
             if (cls) setClassesList(cls)
-        } catch { addToast('Gagal memuat data guru', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
         finally { setLoading(false) }
     }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, addToast])
 
@@ -278,9 +280,7 @@ export function useTeachersCore({ addToast, profile }) {
             setTeacherToAction(null)
             fetchData()
             fetchStats()
-        } catch {
-            addToast('Gagal mengarsipkan', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal mengarsipkan' }) } finally {
             setSubmitting(false)
         }
     }, [teacherToAction, fetchData, fetchStats, addToast])
@@ -294,9 +294,7 @@ export function useTeachersCore({ addToast, profile }) {
             setArchivedTeachers(prev => prev.filter(t => t.id !== teacher.id))
             fetchData()
             fetchStats()
-        } catch {
-            addToast('Gagal memulihkan', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
     }, [fetchData, fetchStats, addToast])
 
     const fetchArchived = useCallback(async () => {
@@ -305,9 +303,7 @@ export function useTeachersCore({ addToast, profile }) {
             const { data, error } = await supabase.from('teachers').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
             if (error) throw error
             setArchivedTeachers(data || [])
-        } catch {
-            addToast('Gagal memuat arsip', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally {
             setLoadingArchived(false)
         }
     }, [addToast])
@@ -391,9 +387,7 @@ export function useTeachersCore({ addToast, profile }) {
             setQuickStatusId(null)
             fetchData()
             fetchStats()
-        } catch {
-            addToast('Gagal update status', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal update status' }) }
     }, [fetchData, fetchStats, addToast])
 
     // ── profile ───────────────────────────────────────────────────────────────
@@ -424,9 +418,7 @@ export function useTeachersCore({ addToast, profile }) {
             setIsBulkModalOpen(false)
             fetchData()
             fetchStats()
-        } catch {
-            addToast('Gagal arsip massal', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal arsip massal' }) } finally {
             setSubmitting(false)
         }
     }, [selectedIds, fetchData, fetchStats, addToast])

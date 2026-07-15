@@ -1,9 +1,10 @@
-﻿import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import { Warning, ArrowsLeftRight, ArrowsDownUp, Bed, Eraser, Calendar, CheckCircle, CheckSquare, ClipboardText, FileXls, FileText, FileArrowUp, Hash, TextH, House, IdentificationCard, List, Spinner, Buildings, GearSix, SlidersHorizontal, Star, Tag, User, Users, GenderIntersex, Warehouse } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
 import { useLanguage } from '@context'
 import { buildPrintHTML, openPrintWindow } from '@shared/utils/printTemplate'
+import { useErrorHandler } from '@hooks'
 
 // Column definitions for each dataset
 const DATASETS = {
@@ -74,6 +75,7 @@ export default function DormsExportModal({
     selectedIds = [],
     addToast
 }) {
+    const { handleError } = useErrorHandler('DormsExportModal')
     const { t, tNum, language } = useLanguage()
     const [dataset, setDataset] = useState(defaultDataset) // 'plotting' | 'cleanliness' | 'inventory'
     const [exportScope, setExportScope] = useState('all') // 'all' | 'assigned' | 'unassigned' | 'selected'
@@ -221,10 +223,7 @@ export default function DormsExportModal({
             const csv = Papa.unparse(rows, { header: options.includeHeader !== false })
             downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8;' }), `${filename || 'export_asrama'}.csv`)
             addToast(t('dorms.export.exportCsvSuccess').replace('{count}', tNum(rows.length)), 'success')
-        } catch (e) {
-            console.error(e)
-            addToast(t('dorms.export.exportCsvFailed'), 'error')
-        } finally { setExporting(false) }
+        } catch (err) { handleError(err, { context: 'Terjadi kesalahan' }) } finally { setExporting(false) }
     }, [getExportData, downloadBlob, addToast, t, tNum])
 
     const handleExportExcel = useCallback(async (filename) => {
@@ -240,10 +239,7 @@ export default function DormsExportModal({
             const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
             downloadBlob(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), `${filename || 'export_asrama'}.xlsx`)
             addToast(t('dorms.export.exportExcelSuccess').replace('{count}', tNum(data.length)), 'success')
-        } catch (e) {
-            console.error(e)
-            addToast(t('dorms.export.exportExcelFailed'), 'error')
-        } finally { setExporting(false) }
+        } catch (err) { handleError(err, { context: 'Terjadi kesalahan' }) } finally { setExporting(false) }
     }, [getExportData, downloadBlob, addToast, currentDatasetDef, t, tNum])
 
     const handleExportPDF = useCallback(async (filename, options = {}) => {
@@ -362,10 +358,7 @@ export default function DormsExportModal({
 
             openPrintWindow(html)
             addToast(t('dorms.export.pdfPrepareSuccess'), 'success')
-        } catch (e) {
-            console.error(e)
-            addToast(t('dorms.export.pdfPrepareFailed'), 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Terjadi kesalahan' }) } finally {
             setExporting(false)
         }
     }, [getExportData, addToast, dataset, exportScope, students, audits, inventories, t, tNum, language])

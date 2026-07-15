@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
+import { useErrorHandler } from '@hooks'
 
 export const SYSTEM_COLS = [
     { key: 'name', label: 'Nama Pendaftar', synonyms: ['nama', 'name', 'nama lengkap', 'full name', 'pendaftar', 'nama pendaftar', 'calon santri'] },
@@ -34,6 +35,7 @@ export function useEnrollmentImportExport({
     debouncedSearch,
     sortBy
 }) {
+    const { handleError } = useErrorHandler('EnrollmentImportExport')
     // ---- STATE ----
     const [isImportModalOpen, setIsImportModalOpen] = useState(false)
     const [isExportModalOpen, setIsExportModalOpen] = useState(false)
@@ -445,10 +447,7 @@ export function useEnrollmentImportExport({
             })
             setImportColumnMapping(mapping)
             setImportStep(2)
-        } catch (e) {
-            console.error(e)
-            addToast('Gagal membaca file import', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal membaca file import' }) } finally {
             setImportLoading(false)
         }
     }
@@ -559,10 +558,7 @@ export function useEnrollmentImportExport({
             setImportFileName('')
             setImportStep(1)
             await fetchData()
-        } catch (e) {
-            console.error(e)
-            addToast('Gagal melakukan import data', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal melakukan import data' }) } finally {
             setImporting(false)
         }
     }
@@ -594,10 +590,7 @@ export function useEnrollmentImportExport({
                 action: 'EXPORT', source: 'OPERATIONAL', tableName: 'enrollments',
                 newData: { format: 'CSV', count: rows.length, scope: exportScope }
             })
-        } catch (e) {
-            console.error(e)
-            addToast('Gagal export CSV', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal export CSV' }) } finally {
             setExporting(false)
         }
     }
@@ -620,10 +613,7 @@ export function useEnrollmentImportExport({
                 action: 'EXPORT', source: 'OPERATIONAL', tableName: 'enrollments',
                 newData: { format: 'XLSX', count: data.length, scope: exportScope }
             })
-        } catch (e) {
-            console.error(e)
-            addToast('Gagal export Excel', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal export Excel' }) } finally {
             setExporting(false)
         }
     }
@@ -692,10 +682,7 @@ export function useEnrollmentImportExport({
                 action: 'EXPORT', source: 'OPERATIONAL', tableName: 'enrollments',
                 newData: { format: 'PDF', count: allRows.length, scope: exportScope }
             })
-        } catch (e) {
-            console.error(e)
-            addToast('Gagal export PDF', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal export PDF' }) } finally {
             setExporting(false)
         }
     }

@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, Funnel, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
+import { EmptyState } from '@shared/components'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -433,9 +434,7 @@ export default function TasksPage() {
                             </div>
                             <div className="divide-y divide-[var(--color-border)] max-h-[400px] overflow-y-auto">
                                 {filteredLogs.length === 0 ? (
-                                    <div className="p-10 text-center text-[var(--color-text-muted)] text-[11px] font-bold opacity-50">
-                                        {logs.length === 0 ? 'Belum ada log eksekusi' : 'Tidak ada log yang sesuai'}
-                                    </div>
+                                    <EmptyState icon={Clock} title={logs.length === 0 ? "Belum Ada Log Eksekusi" : "Tidak Ada Log"} description="Belum ada aktivitas eksekusi untuk task ini." variant="plain" color="slate" />
                                 ) : filteredLogs.map(log => {
                                     const taskInfo = tasks.find(t => t.id === log.task)
                                     return (

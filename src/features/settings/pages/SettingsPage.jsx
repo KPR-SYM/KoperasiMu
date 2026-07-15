@@ -8,6 +8,7 @@ import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
+import { useErrorHandler } from '@hooks'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -208,9 +209,7 @@ function AvatarUpload({ profile, onAvatarChange }) {
                 source: 'SECURITY',
                 newData: { avatar_url: url }
             })
-        } catch (err) {
-            addToast('Gagal upload: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal upload: ' }) } finally {
             setUploading(false)
             if (fileRef.current) fileRef.current.value = ''
         }
@@ -248,9 +247,7 @@ function AvatarUpload({ profile, onAvatarChange }) {
                 source: 'SECURITY',
                 newData: { avatar_url: null }
             })
-        } catch (err) {
-            addToast('Gagal menghapus: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal menghapus: ' }) } finally {
             setDeleting(false)
         }
     }
@@ -317,6 +314,7 @@ function AvatarUpload({ profile, onAvatarChange }) {
 export default function SettingsPage() {
     const { isDark, toggleTheme } = useTheme()
     const { addToast } = useToast()
+    const { handleError } = useErrorHandler('SettingsPage')
     // `updateProfile` = setter dari AuthContext untuk patch profile di state secara langsung
     // Tambahkan di AuthContext kamu:
     //   const updateProfile = (patch) => setProfile(p => ({ ...p, ...patch }))
@@ -380,9 +378,7 @@ export default function SettingsPage() {
                 oldData: { name: profile.name },
                 newData: { name: name.trim() }
             })
-        } catch (err) {
-            addToast('Gagal menyimpan: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal menyimpan: ' }) } finally {
             setSavingProfile(false)
         }
     }
@@ -412,9 +408,7 @@ export default function SettingsPage() {
                 source: 'SECURITY',
                 newData: { password_change: true }
             })
-        } catch (err) {
-            addToast('Gagal mengubah password: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal mengubah password: ' }) } finally {
             setSavingPw(false)
         }
     }

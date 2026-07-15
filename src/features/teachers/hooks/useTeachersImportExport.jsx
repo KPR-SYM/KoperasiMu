@@ -3,6 +3,7 @@ import Papa from 'papaparse'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { STATUS_CONFIG } from '@features/teachers/components/TeacherRow'
+import { useErrorHandler } from '@hooks'
 
 const SYSTEM_COLS = [
     { key: 'name', label: 'Nama Lengkap', synonyms: ['nama', 'name', 'nama lengkap', 'nama guru', 'guru'] },
@@ -62,6 +63,7 @@ export function useTeachersImportExport({
     setIsImportModalOpen,
     setIsExportModalOpen
 }) {
+    const { handleError } = useErrorHandler('TeachersImportExport')
     // import
     const [importStep, setImportStep] = useState(1)
     const [importFileName, setImportFileName] = useState('')
@@ -124,7 +126,7 @@ export function useTeachersImportExport({
             })
             setImportColumnMapping(mapping)
             setImportStep(2)
-        } catch { addToast('Gagal membaca file import', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal membaca file import' }) }
         finally { setImportLoading(false) }
     }, [addToast])
 
@@ -327,7 +329,7 @@ export function useTeachersImportExport({
             setImportStep(1)
             fetchData()
             fetchStats()
-        } catch { addToast('Gagal import (cek constraint DB / duplikat)', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB / duplikat)' }) }
         finally { setImporting(false) }
     }, [importPreview, hasImportBlockingErrors, fetchData, fetchStats, addToast, setIsImportModalOpen])
 
@@ -393,7 +395,7 @@ export function useTeachersImportExport({
 
             addToast(`Export CSV berhasil (${rows.length} guru)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export CSV', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export CSV' }) }
         finally { setExporting(false) }
     }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen])
 
@@ -423,7 +425,7 @@ export function useTeachersImportExport({
 
             addToast(`Export Excel berhasil (${rows.length} guru)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export Excel', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export Excel' }) }
         finally { setExporting(false) }
     }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen])
 

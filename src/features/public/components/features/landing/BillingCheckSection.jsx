@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { checkPublicBilling } from '../../../services/studentService';
-import { Spinner, MagnifyingGlass, WarningCircle, CheckCircle, CreditCard, Calendar, Info, ShieldCheck, Eye, EyeSlash, Clock, Wallet, TrendUp, Sparkle, ChatCircle, ShoppingBag } from '@phosphor-icons/react';
+import { Spinner, MagnifyingGlass, WarningCircle, CheckCircle, CreditCard, Calendar, Info, ShieldCheck, Eye, EyeSlash, Clock, Wallet, TrendUp, Sparkle, ChatCircle, ShoppingBag, Receipt } from '@phosphor-icons/react';
+import { EmptyState } from '@shared/components';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
 
@@ -484,7 +485,7 @@ export default function BillingCheckSection() {
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <p className="text-gray-500 dark:text-white/30 text-xs italic py-2">Tidak ada data tagihan.</p>
+                                                    <EmptyState icon={Receipt} title="Tidak Ada Data Tagihan" variant="plain" color="slate" />
                                                 )
                                             )}
 
@@ -509,7 +510,7 @@ export default function BillingCheckSection() {
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <p className="text-gray-500 dark:text-white/30 text-xs italic py-2">Belum ada riwayat pembayaran.</p>
+                                                    <EmptyState icon={Clock} title="Belum Ada Riwayat Pembayaran" variant="plain" color="slate" />
                                                 )
                                             )}
 
@@ -530,10 +531,7 @@ export default function BillingCheckSection() {
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="text-center py-6">
-                                                        <ShoppingBag className="w-6 h-6 text-gray-300 dark:text-white/20 mx-auto mb-1.5" />
-                                                        <p className="text-gray-500 dark:text-white/30 text-xs italic">Belum ada transaksi pembelian di koperasi.</p>
-                                                    </div>
+                                                    <EmptyState icon={ShoppingBag} title="Belum Ada Transaksi" description="Belum ada transaksi pembelian di koperasi." variant="plain" color="slate" />
                                                 )
                                             )}
                                         </div>

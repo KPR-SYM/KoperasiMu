@@ -158,7 +158,7 @@ function InventoryModalContent({
                                                     </div>
                                                 </td>
 
-                                                {/* Aksi — toggle button */}
+                                                {/* Aksi â€” toggle button */}
                                                 <td className="px-2 py-3.5 text-center">
                                                     <button
                                                         onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
@@ -249,8 +249,6 @@ export function DormsInventoryModal({
             title={t('dorms.inventory.title').replace('{dorm}', inventoryModalDorm?.id || '')}
             description={t('dorms.inventory.description')}
             icon={ClipboardText}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-500"
             size="md"
             noPadding
             mobileVariant="bottom-sheet"
@@ -315,7 +313,7 @@ export function DormsInventoryFormModal({
                 setEditingInventoryItem(null)
             }}
             title={editingInventoryItem ? t('dorms.inventoryForm.titleEdit') : t('dorms.inventoryForm.titleAdd')}
-            description={t('dorms.inventoryForm.descRoom').replace('{room}', selectedDormForInventory || '—')}
+            description={t('dorms.inventoryForm.descRoom').replace('{room}', selectedDormForInventory || 'â€”')}
             icon={ClipboardText}
             size="sm"
             mobileVariant="bottom-sheet"

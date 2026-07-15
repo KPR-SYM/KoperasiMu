@@ -28,6 +28,7 @@ import { MobileListSkeleton, MobileCardSkeleton } from '@shared/components/Skele
 import StudentArchiveModal from '@features/students/components/StudentArchiveModal'
 import StudentBulkPhotoModal from '@features/students/components/StudentBulkPhotoModal'
 import StudentGSheetsModal from '@features/students/components/StudentGSheetsModal'
+import { useErrorHandler } from '@hooks'
 import StudentFormModal from '@features/students/components/StudentFormModal'
 import StudentInlineAddRow from '@features/students/components/StudentInlineAddRow'
 import { StudentRow, StudentMobileCard, StudentMobileListRow, StudentSkeletonRow, StudentSkeletonCard } from '@features/students/components/StudentRow'
@@ -61,7 +62,7 @@ function getPortalContainer(id) {
     }
     return el;
 }
-// ── Isolated TelegramLogo Input ────────────────────────────────────────────────────
+// â”€â”€ Isolated TelegramLogo Input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const DebouncedSearchInput = memo(({ searchQuery, onSearch, inputRef, isLoading }) => {
     const [value, setValue] = useState(searchQuery)
 
@@ -220,6 +221,7 @@ const SelectedStudentsCarousel = memo(({
 
 export default function StudentsPage() {
     const { addToast, addUndoToast } = useToast()
+    const { handleError } = useErrorHandler('StudentsPage')
     const { dir } = useLanguage()
     const { enabled: canEdit } = useFlag('access.teacher_students')
     const [classSearchQuery, setClassSearchQuery] = useState('')
@@ -499,7 +501,7 @@ export default function StudentsPage() {
                 {!canEdit && (
                     <div className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
                         <EyeSlash className="text-rose-500 shrink-0 w-3 h-3" />
-                        <p className="text-[11px] font-bold text-rose-600">Mode Read-only —” Pen data siswa dinonaktifkan oleh administrator.</p>
+                        <p className="text-[11px] font-bold text-rose-600">Mode Read-only â€”â€ Pen data siswa dinonaktifkan oleh administrator.</p>
                     </div>
                 )}
 
@@ -1030,7 +1032,7 @@ export default function StudentsPage() {
                                 </div>
                             </div>
 
-                            {/* Row 2: Quick actions + Export — full width, all screens */}
+                            {/* Row 2: Quick actions + Export â€” full width, all screens */}
                             <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--color-border)]/30">
                                 <div className="flex flex-wrap items-center gap-1.5">
                                     {[
@@ -1061,7 +1063,7 @@ export default function StudentsPage() {
                                                     const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
                                                     downloadBlob(blob, `export_filter_${new Date().toISOString().slice(0, 10)}.xlsx`)
                                                     addToast(`${rows.length} baris berhasil diekspor sebagai Excel`, 'success')
-                                                } catch { addToast('Gagal export', 'error') }
+                                                } catch (err) { handleError(err, { context: 'Gagal export' }) }
                                             }}
                                             className="h-8 px-3 rounded-lg bg-teal-500/10 text-teal-600 hover:bg-teal-500 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 border border-teal-500/20"
                                         >
@@ -1155,13 +1157,13 @@ export default function StudentsPage() {
                                                     <th className="px-4 py-4 text-center w-28">Label</th>
                                                 )}
 
-                                                {/* COLUMN TOGGLE BUTTON —” di dalam header Aksi */}
+                                                {/* COLUMN TOGGLE BUTTON â€”â€ di dalam header Aksi */}
                                                 <th className="px-4 py-4 text-center pr-4 relative w-[280px]">
                                                     <div className="flex items-center justify-center">
                                                         {visibleColumns.aksi && <span>Aksi</span>}
                                                     </div>
 
-                                                    {/* Toggle Button —” absolute kanan, seperti checkbox di kiri */}
+                                                    {/* Toggle Button â€”â€ absolute kanan, seperti checkbox di kiri */}
                                                     <div className="absolute right-6 top-1/2 -translate-y-1/2" ref={colMenuRef}>
                                                         <button
                                                             onClick={(e) => {
@@ -1191,7 +1193,7 @@ export default function StudentsPage() {
                                                             </svg>
                                                         </button>
 
-                                                        {/* Dropdown List —” Portal agar tidak ter-clip oleh overflow tabel */}
+                                                        {/* Dropdown List â€”â€ Portal agar tidak ter-clip oleh overflow tabel */}
                                                         {isColMenuOpen && createPortal(
                                                             <div
                                                                 id="portal-column-menu"
@@ -1313,7 +1315,7 @@ export default function StudentsPage() {
                                 </div>
                             )}
 
-                            {/* Quick Add trigger FOR DESKTOP — stays below table */}
+                            {/* Quick Add trigger FOR DESKTOP â€” stays below table */}
                             {!isMobile && !isInlineAddOpen && canEdit && canAddStudent && (
                                 <div className="hidden md:block p-4 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/5">
                                     <button
@@ -1525,7 +1527,7 @@ export default function StudentsPage() {
                                                     </div>
                                                 )}
 
-                                                {/* Quick Add trigger — stays below list */}
+                                                {/* Quick Add trigger â€” stays below list */}
                                                 {!isInlineAddOpen && canEdit && canAddStudent && (
                                                     <button
                                                         onClick={() => {
@@ -1539,7 +1541,7 @@ export default function StudentsPage() {
                                                     </button>
                                                 )}
 
-                                                {/* Quick Add form — BELOW the list (correct position) */}
+                                                {/* Quick Add form â€” BELOW the list (correct position) */}
                                                 {isInlineAddOpen && canEdit && canAddStudent && (
                                                     <div ref={quickAddRef} className="p-3 rounded-2xl border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/[0.02] shadow-sm mt-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
                                                         <div className="flex items-center justify-between gap-3 mb-2">
@@ -1898,7 +1900,7 @@ export default function StudentsPage() {
                         />
                     )}
                 </React.Suspense>
-                {/* Modal Detail Profil Siswa —” lazy loaded */}
+                {/* Modal Detail Profil Siswa â€”â€ lazy loaded */}
                 {
                     activeModal === 'profile' && selectedStudent && (
                         <React.Suspense fallback={null}>
@@ -2092,12 +2094,7 @@ export default function StudentsPage() {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 py-1">
                                         {classesList.filter(c => c.name.toLowerCase().includes(classSearchQuery.toLowerCase())).length === 0 ? (
-                                            <div className="col-span-full py-12 text-center space-y-3 bg-[var(--color-surface-alt)] rounded-3xl border-2 border-dashed border-[var(--color-border)]">
-                                                <div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/5 text-[var(--color-primary)] flex items-center justify-center mx-auto opacity-20">
-                                                    <MagnifyingGlass className="text-xl" />
-                                                </div>
-                                                <p className="text-[11px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-40">Kelas tidak ditemukan</p>
-                                            </div>
+                                            <EmptyState icon={MagnifyingGlass} title="Kelas Tidak Ditemukan" description="Tidak ada kelas yang sesuai dengan filter." variant="dashed" color="slate" />
                                         ) : classesList
                                             .filter(c => c.name.toLowerCase().includes(classSearchQuery.toLowerCase()))
                                             .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))
@@ -2291,11 +2288,9 @@ export default function StudentsPage() {
                         <Modal
                             isOpen={activeModal === 'classBreakdown'}
                             onClose={() => closeModal()}
-                            title={`Statistik Kelas — ${classBreakdownData?.className || ''}`}
+                            title={`Statistik Kelas â€” ${classBreakdownData?.className || ''}`}
                             description="Ringkasan data dan demografi per kelas."
                             icon={MapPin}
-                            iconBg="bg-indigo-500/10"
-                            iconColor="text-indigo-600"
                             size="md"
                             mobileVariant="bottom-sheet"
                         >
@@ -2332,7 +2327,7 @@ export default function StudentsPage() {
                 }
 
 
-                {/* Modal Kelola Label —” lazy loaded */}
+                {/* Modal Kelola Label â€”â€ lazy loaded */}
                 {
                     activeModal === 'tag' && (
                         <React.Suspense fallback={null}>
@@ -2388,7 +2383,7 @@ export default function StudentsPage() {
                                         <div className="min-w-0">
                                             <p className="text-[10px] font-bold text-[var(--color-text)] truncate">{photoZoom.name}</p>
                                             <p className="text-[8px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider truncate">
-                                                {[photoZoom.registrationCode, photoZoom.className].filter(Boolean).join(' • ')}
+                                                {[photoZoom.registrationCode, photoZoom.className].filter(Boolean).join(' â€¢ ')}
                                             </p>
                                         </div>
                                     </div>
@@ -2622,11 +2617,9 @@ export default function StudentsPage() {
                         <Modal
                             isOpen={activeModal === 'bulkTag'}
                             onClose={() => closeModal()}
-                            title={`Aksi Label Massal — ${selectedStudentIds.length} Siswa`}
+                            title={`Aksi Label Massal â€” ${selectedStudentIds.length} Siswa`}
                             description="Tambah atau hapus label untuk rombongan siswa terpilih."
                             icon={Trash}
-                            iconBg="bg-indigo-500/10"
-                            iconColor="text-indigo-600"
                             size="sm"
                             mobileVariant="bottom-sheet"
                             footer={
@@ -2709,7 +2702,7 @@ export default function StudentsPage() {
                         <Modal
                             isOpen={activeModal === 'bulkRoom'}
                             onClose={() => closeModal()}
-                            title={`Penetapan Kamar Massal — ${selectedStudentIds.length} Siswa`}
+                            title={`Penetapan Kamar Massal â€” ${selectedStudentIds.length} Siswa`}
                             description="Pindahkan santri terpilih ke kamar asrama secara sekaligus."
                             icon={DownloadSimple}
                             iconBg="bg-teal-500/10"

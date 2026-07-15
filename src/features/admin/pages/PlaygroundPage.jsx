@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, memo, createContext,
 import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Funnel, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Modal, Pagination, Skeleton } from '@shared/components'
+import { Modal, Pagination, Skeleton, EmptyState } from '@shared/components'
 import { useToast } from '@context'
 
 // ─── VS Code Syntax Highlighter ────────────────────────────────────────────────
@@ -431,7 +431,7 @@ const CommandPalettePreview = memo(() => {
             </div>
             <div className="max-h-48 overflow-y-auto">
                 {filtered.length === 0 ? (
-                    <div className="py-8 text-center text-[10px] text-[var(--color-text-muted)]">Tidak ada hasil untuk "{q}"</div>
+                    <EmptyState icon={MagnifyingGlass} title={`Tidak Ada Hasil untuk "${q}"`} variant="plain" color="slate" />
                 ) : (
                     <>
                         <p className="px-4 pt-2 pb-1 text-[8px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50">Halaman</p>
@@ -854,7 +854,7 @@ const SearchFilterFormPreview = memo(() => {
             </div>
             <div className="flex items-center justify-between"><p className="text-[9px] text-[var(--color-text-muted)]"><span className="font-black text-[var(--color-text)]">{filtered.length}</span> hasil</p><div className="flex items-center gap-1"><span className="text-[8px] text-[var(--color-text-muted)] opacity-60">Urut:</span><button onClick={() => setSortBy(p => p === 'nama' ? 'nilai' : 'nama')} className="text-[8px] font-black text-[var(--color-primary)] hover:underline capitalize">{sortBy}</button></div></div>
             <div className="space-y-1">
-                {filtered.length === 0 ? <div className="py-4 text-center text-[10px] font-black text-[var(--color-text-muted)] opacity-50">Tidak ada hasil</div> : filtered.map(d => (
+                {filtered.length === 0 ? <EmptyState icon={MagnifyingGlass} title="Tidak Ada Hasil" variant="plain" color="slate" /> : filtered.map(d => (
                     <div key={d.n} className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[var(--color-surface-alt)] transition-colors">
                         <div className="w-7 h-7 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[8px] font-black flex items-center justify-center shrink-0">{d.n.split(' ').map(x => x[0]).join('')}</div>
                         <span className="flex-1 text-[10px] font-black text-[var(--color-text)]">{d.n}</span>

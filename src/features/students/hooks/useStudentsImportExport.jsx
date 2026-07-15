@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { useErrorHandler } from '@hooks'
 
 export const SYSTEM_COLS = [
     { key: 'full_name', label: 'Nama', synonyms: ['nama', 'name', 'nama lengkap', 'full name', 'student name', 'siswa', 'nama siswa'] },
@@ -49,6 +50,7 @@ export function useStudentsImportExport({
     fetchingGSheets,
     profile // NEW: for forensic audit
 }) {
+    const { handleError } = useErrorHandler('StudentsImportExport')
     // ---- STATE ----
     // =========================================
     // Advanced Import and Export System
@@ -253,9 +255,7 @@ export function useStudentsImportExport({
                 action: 'READ', source: 'SYSTEM', tableName: 'students',
                 newData: { via: 'gsheets', row_count: rows.length, url: gSheetsUrl }
             })
-        } catch (err) {
-            addToast(err.message || 'Gagal mengambil data dari Google Sheets', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal mengambil data dari Google Sheets' }) } finally {
             setFetchingGSheets(false)
         }
     }

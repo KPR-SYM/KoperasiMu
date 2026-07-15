@@ -2,6 +2,7 @@
 import { ArrowRight, Calendar, CaretLeft, CaretRight, Clock, List, Moon, NewspaperClipping, Printer, MagnifyingGlass, Sun, User, X, Newspaper } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 
+import { EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useTheme } from '@context/Theme'
 import { useAuth } from '@context/Auth'
@@ -273,7 +274,7 @@ export default function InformationPage() {
         setLoading(false)
     }, [search, activeCategory, page])
 
-    useEffect(() => { fetchNews() }, [fetchNews])
+    useEffect(() => { fetchNews() }, [search, activeCategory, page])
 
     useEffect(() => {
         const ch = supabase.channel('news-pub')
@@ -289,7 +290,7 @@ export default function InformationPage() {
             })
             .subscribe()
         return () => supabase.removeChannel(ch)
-    }, [fetchNews])
+    }, [search, activeCategory, page])
 
     useEffect(() => {
         const fn = (e) => { if (e.key === 'Escape') setSelectedNews(null) }
@@ -382,19 +383,15 @@ export default function InformationPage() {
                         {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
                     </div>
                 ) : news.length === 0 ? (
-                    <div className="flex flex-col items-center py-32 text-center">
-                        <div className="w-20 h-20 rounded-full bg-[var(--color-surface-alt)] flex items-center justify-center mb-6">
-                            <Newspaper className="text-3xl text-[var(--color-text-muted)] opacity-30" />
-                        </div>
-                        <h3 className="text-xl font-black text-[var(--color-text)] mb-2">Tidak ada informasi</h3>
-                        <p className="w-4 h-4 text-[var(--color-text-muted)]">{search ? `Tidak ada yang cocok dengan "${search}".` : 'Belum ada informasi dipublikasikan.'}</p>
-                        {(search || activeCategory !== 'Semua') && (
+                    <EmptyState icon={Newspaper} title="Tidak Ada Informasi" description={search ? `Tidak ada yang cocok dengan "${search}".` : "Belum ada informasi yang dipublikasikan saat ini."} variant="glass" color="slate" />
+                    {(search || activeCategory !== 'Semua') && (
+                        <div className="flex justify-center mt-6">
                             <button onClick={() => { setInputVal(''); setSearch(''); setActiveCategory('Semua'); setPage(1) }}
-                                className="mt-6 px-6 py-3 rounded-2xl bg-[var(--color-primary)] text-white text-sm font-bold hover:brightness-110 transition-all">
+                                className="px-6 py-3 rounded-2xl bg-[var(--color-primary)] text-white text-sm font-bold hover:brightness-110 transition-all">
                                 Lihat semua
                             </button>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -8,6 +8,7 @@ import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
+import { EmptyState } from '@shared/components'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -434,7 +435,7 @@ export default function NewsListPage() {
         setLoading(false)
     }, [addToast, page, search, filterStatus, sortBy])
 
-    useEffect(() => { fetchNews() }, [fetchNews])
+    useEffect(() => { fetchNews() }, [page, search, filterStatus, sortBy, addToast])
 
     // ── Fetch Global Stats ────────────────────────────────────────────────────
     const fetchGlobalStats = useCallback(async () => {
@@ -926,35 +927,7 @@ export default function NewsListPage() {
                         {Array.from({ length: PAGE_SIZE }).map((_, i) => <NewsSkeleton key={i} />)}
                     </div>
                 ) : newsList.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 px-6 glass rounded-[3rem] border border-dashed border-[var(--color-border)] animate-in fade-in zoom-in-95 duration-500">
-                        <div className="relative mb-6">
-                            <div className="w-24 h-24 rounded-full bg-blue-500/5 flex items-center justify-center text-blue-500/20 text-5xl">
-                                <MagnifyingGlass />
-                            </div>
-                            <div className="absolute -top-1 -right-1 w-10 h-10 rounded-full bg-white shadow-xl flex items-center justify-center text-rose-500 border border-[var(--color-border)]">
-                                <X className="w-4 h-4" />
-                            </div>
-                        </div>
-                        <h3 className="text-xl font-black text-[var(--color-text)] mb-2">Informasi Tidak Ditemukan</h3>
-                        <p className="text-[11px] text-[var(--color-text-muted)] opacity-60 font-medium text-center max-w-xs mb-8 leading-relaxed">
-                            {search ? `Kami tidak menemukan berita yang cocok dengan "${search}".` : 'Belum ada konten berita yang dibuat.'}
-                        </p>
-                        <div className="flex gap-3">
-                            {(search || filterStatus !== 'all') ? (
-                                <button onClick={() => { setSearchInput(''); setSearch(''); setFilterStatus('all') }}
-                                    className="h-11 px-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2">
-                                    <ArrowCounterClockwise className="w-2 h-2" />
-                                    Reset semua filter
-                                </button>
-                            ) : (
-                                <button onClick={() => navigate('/admin/news/create')}
-                                    className="h-11 px-8 rounded-2xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-[var(--color-primary)]/20">
-                                    <Plus className="w-3 h-3" />
-                                    Buat Informasi Pertama
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                        <EmptyState icon={Newspaper} title="Informasi Tidak Ditemukan" description="Belum ada konten berita yang dibuat." variant="glass" color="slate" />
                 ) : (
                     <>
                         {viewMode === 'grid' ? (

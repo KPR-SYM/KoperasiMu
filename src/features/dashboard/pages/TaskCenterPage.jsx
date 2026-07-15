@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Circle, Warning, ArrowRight, ShoppingCart, Package, Sparkle, Wallet, ClipboardText, ArrowClockwise, MagnifyingGlass, Check } from '@phosphor-icons/react'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import PageHeader from '@shared/components/PageHeader'
+import { EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useAuth } from '@context/Auth'
 import { useToast } from '@context/Toast'
@@ -415,15 +416,7 @@ export default function TaskCenterPage() {
 
         {/* TASK GRID */}
         {filteredTasks.length === 0 ? (
-          <div className="glass rounded-[2rem] border border-[var(--color-border)] p-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-alt)] flex items-center justify-center mx-auto mb-4 text-[var(--color-text-muted)]">
-              <Sparkle className="w-5 h-5" />
-            </div>
-            <h3 className="text-sm font-black text-[var(--color-text)]">Tidak ada tugas ditemukan</h3>
-            <p className="text-[11px] text-[var(--color-text-muted)] mt-1 max-w-xs mx-auto leading-relaxed">
-              Coba ganti filter pencarian atau peran yang Anda pilih untuk melihat tugas lain.
-            </p>
-          </div>
+          <EmptyState icon={Sparkle} title="Tidak Ada Tugas Ditemukan" description="Coba ganti filter atau kata kunci pencarian." variant="glass" color="slate" />
         ) : (
           <div className="grid md:grid-cols-2 xl:grid-cols-2 gap-6 items-start">
             {taskGroups

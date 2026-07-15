@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Camera, Check, ArrowsInSimple, Spinner, Trash, User } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
@@ -81,8 +81,6 @@ export default function StudentBulkPhotoModal({
             title="Bulk Match Foto Siswa"
             description="Unggah banyak foto sekaligus. Sistem akan mencocokkan nama file dengan data siswa secara otomatis."
             icon={Camera}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-600"
             size="lg"
             mobileVariant="bottom-sheet"
             footer={

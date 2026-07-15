@@ -5,6 +5,7 @@ import { StatsCarousel } from '@shared/components'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast, useAuth } from '@context'
 import { supabase } from '@lib/supabase'
+import { useErrorHandler } from '@hooks'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -331,6 +332,7 @@ function IntegrityRow({ check, result, isExpanded, onToggle, onRepair }) {
 export default function DatabasePage() {
     const { profile } = useAuth()
     const { addToast } = useToast()
+    const { handleError } = useErrorHandler('DatabasePage')
     const isAllowed = ALLOWED_ROLES.includes(profile?.role)
 
     const [tableData, setTableData] = useState({})
@@ -527,10 +529,7 @@ export default function DatabasePage() {
                 }))
             }
 
-        } catch (err) {
-            console.error(err)
-            addToast('Gagal cek integritas: ' + err.message, 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal cek integritas: ' }) }
 
         setIntegrityResults(results)
         setLoadingIntegrity(false)
@@ -587,7 +586,7 @@ export default function DatabasePage() {
 
     // ── Initial load ──────────────────────────────────────────────────────────
 
-    useEffect(() => { fetchTableCounts() }, [fetchTableCounts])
+    useEffect(() => { fetchTableCounts() }, [isAllowed])
 
     // ── Auto refresh ──────────────────────────────────────────────────────────
 
@@ -595,7 +594,7 @@ export default function DatabasePage() {
         if (!autoRefresh) return
         const iv = setInterval(() => fetchTableCounts(true), 60000)
         return () => clearInterval(iv)
-    }, [autoRefresh, fetchTableCounts])
+    }, [autoRefresh, isAllowed])
 
     // ── Computed stats ────────────────────────────────────────────────────────
 

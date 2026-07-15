@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Modal, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, RichSelect } from '@shared/components'
+import { Modal, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, RichSelect, EmptyState } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
@@ -21,6 +21,7 @@ import TeacherArchiveModal from '@features/teachers/components/TeacherArchiveMod
 
 import Papa from 'papaparse'
 import { useDebounce } from '@hooks/useDebounce'
+import { useErrorHandler } from '@hooks'
 
 // STATUS_CONFIG imported from TeacherRow component
 const LS_FILTERS = 'teachers_filters'
@@ -126,6 +127,7 @@ const DebouncedSearchInput = memo(({ searchQuery, onSearch, inputRef, isLoading 
 DebouncedSearchInput.displayName = 'DebouncedSearchInput'
 
 export default function TeachersPage() {
+    const { handleError } = useErrorHandler('TeachersPage')
     // core
     const [teachers, setTeachers] = useState([])
     const [loading, setLoading] = useState(true)
@@ -351,7 +353,7 @@ export default function TeachersPage() {
             if (allSubj) setSubjectsList([...new Set(allSubj.map(r => r.subject).filter(Boolean))].sort())
             const { data: cls } = await supabase.from('classes').select('id,name').order('name')
             if (cls) setClassesList(cls)
-        } catch { addToast('Gagal memuat data guru', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
         finally { setLoading(false) }
     }, [page, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, searchQuery, addToast])
 
@@ -436,16 +438,16 @@ export default function TeachersPage() {
     const handleArchive = async () => {
         if (!teacherToAction) return; setSubmitting(true)
         try { const { error } = await supabase.from('teachers').update({ deleted_at: new Date().toISOString() }).eq('id', teacherToAction.id); if (error) throw error; addToast(`"${teacherToAction.name}" diarsipkan`, 'success'); await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacherToAction.id, oldData: teacherToAction, newData: { ...teacherToAction, deleted_at: new Date().toISOString() } }); setIsArchiveModalOpen(false); setTeacherToAction(null); fetchData(); fetchStats() }
-        catch { addToast('Gagal mengarsipkan', 'error') } finally { setSubmitting(false) }
+        catch (err) { handleError(err, { context: 'Gagal mengarsipkan' }) } finally { setSubmitting(false) }
     }
     const handleRestore = async teacher => {
         try { const { error } = await supabase.from('teachers').update({ deleted_at: null }).eq('id', teacher.id); if (error) throw error; addToast(`"${teacher.name}" dipulihkan`, 'success'); await logAudit({ action: 'RESTORE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, deleted_at: null } }); setArchivedTeachers(prev => prev.filter(t => t.id !== teacher.id)); fetchData(); fetchStats() }
-        catch { addToast('Gagal memulihkan', 'error') }
+        catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
     }
     const fetchArchived = async () => {
         setLoadingArchived(true)
         try { const { data, error } = await supabase.from('teachers').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false }); if (error) throw error; setArchivedTeachers(data || []) }
-        catch { addToast('Gagal memuat arsip', 'error') } finally { setLoadingArchived(false) }
+        catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally { setLoadingArchived(false) }
     }
 
     // ── pin ───────────────────────────────────────────────────────────────────
@@ -521,7 +523,7 @@ export default function TeachersPage() {
     // ── quick status ──────────────────────────────────────────────────────────
     const handleQuickStatus = async (teacher, newStatus) => {
         try { const { error } = await supabase.from('teachers').update({ status: newStatus }).eq('id', teacher.id); if (error) throw error; addToast(`Status ${teacher.name} → ${STATUS_CONFIG[newStatus].label}`, 'success'); await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, status: newStatus } }); setQuickStatusId(null); fetchData(); fetchStats() }
-        catch { addToast('Gagal update status', 'error') }
+        catch (err) { handleError(err, { context: 'Gagal update status' }) }
     }
 
     // ── profile ───────────────────────────────────────────────────────────────
@@ -539,7 +541,7 @@ export default function TeachersPage() {
     const handleBulkArchive = async () => {
         setSubmitting(true)
         try { const idsSnap = [...selectedIds]; const { error } = await supabase.from('teachers').update({ deleted_at: new Date().toISOString() }).in('id', idsSnap); if (error) throw error; addToast(`${idsSnap.length} guru diarsipkan`, 'success'); await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', newData: { bulk_archive: true, count: idsSnap.length, ids: idsSnap } }); setSelectedIds([]); setIsBulkModalOpen(false); fetchData(); fetchStats() }
-        catch { addToast('Gagal arsip massal', 'error') } finally { setSubmitting(false) }
+        catch (err) { handleError(err, { context: 'Gagal arsip massal' }) } finally { setSubmitting(false) }
     }
     const bulkWATeachers = useMemo(() => teachers.filter(t => selectedIds.includes(t.id) && t.phone), [teachers, selectedIds])
     const startBulkWA = () => { if (!bulkWATeachers.length) { addToast('Tidak ada guru terpilih dengan nomor WA', 'warning'); return }; setBulkWAIndex(0); setBulkWAResults({}); setIsBulkWAOpen(true) }
@@ -604,7 +606,7 @@ export default function TeachersPage() {
             })
             setImportColumnMapping(mapping)
             setImportStep(2)
-        } catch { addToast('Gagal membaca file import', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal membaca file import' }) }
         finally { setImportLoading(false) }
     }
 
@@ -839,7 +841,7 @@ export default function TeachersPage() {
             await logAudit({ action: 'INSERT', source: 'OPERATIONAL', tableName: 'teachers', newData: { bulk_import: true, count: validRows.length, data: validRows } })
             setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1)
             fetchData(); fetchStats()
-        } catch { addToast('Gagal import (cek constraint DB / duplikat)', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB / duplikat)' }) }
         finally { setImporting(false) }
     }
 
@@ -905,7 +907,7 @@ export default function TeachersPage() {
 
             addToast(`Export CSV berhasil (${rows.length} guru)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export CSV', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export CSV' }) }
         finally { setExporting(false) }
     }
 
@@ -935,7 +937,7 @@ export default function TeachersPage() {
 
             addToast(`Export Excel berhasil (${rows.length} guru)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export Excel', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export Excel' }) }
         finally { setExporting(false) }
     }
 
@@ -1658,24 +1660,7 @@ export default function TeachersPage() {
                                     {teachers.length === 0 ? (
                                         <tr>
                                             <td colSpan={10} className="px-6 py-28 text-center align-middle">
-                                                <div className="w-full h-full flex flex-col items-center justify-center text-center mx-auto animate-in fade-in zoom-in-95 duration-700">
-                                                    <div className="relative mb-6">
-                                                        <div className="absolute inset-0 bg-[var(--color-primary)]/10 blur-3xl rounded-full scale-150 animate-pulse" />
-                                                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-alt)] border border-[var(--color-border)] shadow-xl flex items-center justify-center">
-                                                            <MagnifyingGlass className="text-4xl text-[var(--color-primary)]/30" />
-                                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-[var(--color-surface)] shadow-lg flex items-center justify-center border border-[var(--color-border)]">
-                                                                <X className="text-red-500 w-4 h-4" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <h3 className="w-5 h-5 font-black text-[var(--color-text)] mb-2">Pencarian Tidak Ditemukan</h3>
-                                                    <p className="text-xs font-bold text-[var(--color-text-muted)] max-w-sm leading-relaxed mb-6">
-                                                        Tidak ada guru atau karyawan yang cocok dengan kriteria pencarian. Coba ubah kata kunci atau reset filter.
-                                                    </p>
-                                                    <button onClick={resetAllFilters} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition mb-4">
-                                                        Reset Semua Funnel
-                                                    </button>
-                                                </div>
+                                                <EmptyState icon={MagnifyingGlass} title="Pencarian Tidak Ditemukan" description="Tidak ada guru atau karyawan yang cocok dengan filter Anda." variant="glass" color="slate" action={<button onClick={resetAllFilters} className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest">Reset Semua Filter</button>} />
                                             </td>
                                         </tr>
                                     ) : teachers.map(teacher => (
@@ -1706,22 +1691,7 @@ export default function TeachersPage() {
                         <div className="md:hidden divide-y divide-[var(--color-border)]">
                             {teachers.length === 0 ? (
                                 <div className="py-24 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-700">
-                                    <div className="relative mb-6">
-                                        <div className="absolute inset-0 bg-[var(--color-primary)]/10 blur-3xl rounded-full scale-150 animate-pulse" />
-                                        <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-alt)] border border-[var(--color-border)] shadow-xl flex items-center justify-center">
-                                            <MagnifyingGlass className="text-4xl text-[var(--color-primary)]/30" />
-                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-[var(--color-surface)] shadow-lg flex items-center justify-center border border-[var(--color-border)]">
-                                                <X className="text-red-500 w-4 h-4" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h3 className="w-5 h-5 font-black text-[var(--color-text)] mb-2">Pencarian Tidak Ditemukan</h3>
-                                    <p className="text-xs font-bold text-[var(--color-text-muted)] max-w-[280px] leading-relaxed mb-6">
-                                        Tidak ada guru atau karyawan yang cocok dengan kriteria pencarian. Coba ubah kata kunci atau reset filter.
-                                    </p>
-                                    <button onClick={resetAllFilters} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition mb-4">
-                                        Reset Semua Funnel
-                                    </button>
+                                    <EmptyState icon={MagnifyingGlass} title="Pencarian Tidak Ditemukan" description="Tidak ada guru atau karyawan yang cocok dengan filter Anda." variant="glass" color="slate" action={<button onClick={resetAllFilters} className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest">Reset Semua Filter</button>} />
                                 </div>
                             ) : teachers.map(teacher => (
                                 <TeacherMobileCard

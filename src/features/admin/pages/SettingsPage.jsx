@@ -1,9 +1,10 @@
-﻿import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
-import { WarningCircle, Warning, Check, CheckCircle, CaretRight, Code, Compass, Eye, FileText, ClockCounterClockwise, Info, StackSimple, Spinner, ChatCircle, Palette, ChartPie, ArrowClockwise, FloppyDisk, Buildings, MagnifyingGlass, GearSix, Trash, UploadSimple, Lightning, ArrowCounterClockwise, ToggleRight, X } from '@phosphor-icons/react'
+import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
+import { WarningCircle, Warning, Check, CheckCircle, CaretRight, Code, Compass, Eye, FileText, Clock, ClockCounterClockwise, Info, StackSimple, Spinner, ChatCircle, Palette, ChartPie, ArrowClockwise, FloppyDisk, Buildings, MagnifyingGlass, GearSix, Trash, UploadSimple, Lightning, ArrowCounterClockwise, ToggleRight, X } from '@phosphor-icons/react'
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
+import { EmptyState } from '@shared/components'
 import Pagination from '@shared/components/Pagination'
 import { useToast } from '@context/Toast'
 import { supabase } from '@lib/supabase'
@@ -12,6 +13,7 @@ import { useSchoolSettings, DEFAULT_SETTINGS } from '@context/SchoolSettings'
 import { useAuth } from '@context/Auth'
 import { fmtRelative } from '@utils/formatters'
 import mbsLogo from '@assets/images/logos/logo-mbs.png'
+import { useErrorHandler } from '@hooks'
 
 // â”€â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TABS = [
@@ -545,7 +547,7 @@ function ActivityFeed({ refreshKey, flags }) {
                                     ))
                                 ) : filteredLogs.length === 0 ? (
                                     <tr>
-                                        <td colSpan={5} className="px-5 py-12 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-50">Tidak ada data</td>
+                                        <td colSpan={5} className="px-5 py-12"><EmptyState icon={Clock} title="Tidak Ada Data" description="Belum ada data yang tersedia." variant="plain" color="slate" /></td>
                                     </tr>
                                 ) : (
                                     filteredLogs.map((log, idx) => (
@@ -663,10 +665,7 @@ function ActivityFeed({ refreshKey, flags }) {
                                             )
                                         })}
                                         {stats.length === 0 && (
-                                            <div className="h-full flex flex-col items-center justify-center opacity-30 py-12">
-                                                <ChartPie className="text-4xl mb-3" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest">Belum ada data tersedia</p>
-                                            </div>
+                                            <EmptyState icon={ChartPie} title="Belum Ada Data Tersedia" variant="plain" color="slate" />
                                         )}
                                     </div>
                                 </div>
@@ -734,9 +733,7 @@ function ActivityFeed({ refreshKey, flags }) {
                                         </div>
                                     ))}
                                     {logs.length === 0 && (
-                                        <div className="col-span-3 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-40">
-                                            Tidak ada riwayat aktivitas terbaru
-                                        </div>
+                                        <EmptyState icon={Clock} title="Tidak Ada Riwayat" description="Belum ada aktivitas terbaru." variant="plain" color="slate" />
                                     )}
                                 </div>
                             </div>
@@ -763,6 +760,7 @@ function ActivityFeed({ refreshKey, flags }) {
 
 export default function AdminSettingsPage() {
     const { addToast } = useToast()
+    const { handleError } = useErrorHandler('AdminSettingsPage')
     const { settings, loading: settingsLoading, saveSettings } = useSchoolSettings()
     const { profile, isDemoMode } = useAuth()
     const hasDbCredentials = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
@@ -940,7 +938,7 @@ export default function AdminSettingsPage() {
         setLoading(false); setRefreshing(false)
     }, [addToast])
 
-    useEffect(() => { fetchFlags() }, [fetchFlags])
+    useEffect(() => { fetchFlags() }, [addToast])
 
     // --- Enterprise Self-Healing Logic ---
     const handleSyncFlags = async () => {
@@ -964,9 +962,7 @@ export default function AdminSettingsPage() {
 
             addToast(`${missingFlags.length} flag baru berhasil disinkronisasi`, 'success')
             fetchFlags(true)
-        } catch (err) {
-            addToast('Gagal sinkronisasi: ' + err.message, 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal sinkronisasi: ' }) } finally {
             setSyncingFlags(false)
         }
     }
@@ -1260,19 +1256,7 @@ export default function AdminSettingsPage() {
 
                                                 {activeFlagRows.length === 0 ? (
                                                     (activeCategory === 'system' && !flagSearch.trim()) ? null : (
-                                                        <div className="col-span-full py-12 flex flex-col items-center justify-center opacity-30 gap-3 bg-[var(--color-surface-alt)]/30 rounded-3xl border border-dashed border-[var(--color-border)]">
-                                                            <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-alt)] flex items-center justify-center mb-1">
-                                                                <ToggleRight className="text-xl text-[var(--color-text-muted)] opacity-20" />
-                                                            </div>
-                                                            <div className="text-center">
-                                                                <p className="text-[13px] font-black text-[var(--color-text)]">
-                                                                    {flagSearch ? 'Tidak ada flag yang cocok' : 'Belum ada flag di kategori ini'}
-                                                                </p>
-                                                                <p className="text-[11px] text-[var(--color-text-muted)] mt-1 max-w-[240px] mx-auto leading-relaxed">
-                                                                    {flagSearch ? 'Coba ubah kata kunci pencarian Anda.' : 'Klik tombol di bawah untuk mendaftarkan fitur standar ke kategori ini.'}
-                                                                </p>
-                                                            </div>
-                                                        </div>
+                                                        <EmptyState icon={ToggleRight} title="Belum Ada Flag" description="Klik tombol Tambah Flag untuk membuat yang baru." variant="dashed" color="slate" />
                                                     )
                                                 ) : (
                                                     activeFlagRows.map(flag => (
@@ -1399,15 +1383,7 @@ export default function AdminSettingsPage() {
                                         <p className="text-[11px] text-[var(--color-text-muted)] mt-2 font-bold uppercase tracking-widest">Memuat data...</p>
                                     </div>
                                 ) : signaturesList.length === 0 ? (
-                                    <div className="p-12 flex flex-col items-center justify-center text-center opacity-40">
-                                        <div className="w-16 h-16 rounded-2xl bg-[var(--color-surface-alt)] flex items-center justify-center mb-3">
-                                            <UploadSimple className="text-xl text-[var(--color-text-muted)]" />
-                                        </div>
-                                        <p className="text-[13px] font-black text-[var(--color-text)]">Belum ada tanda tangan digital</p>
-                                        <p className="text-[11px] text-[var(--color-text-muted)] mt-1 max-w-[280px]">
-                                            Silakan unggah tanda tangan digital guru/pengasuh melalui panel di sebelah kiri.
-                                        </p>
-                                    </div>
+                                    <EmptyState icon={UploadSimple} title="Belum Ada Tanda Tangan Digital" description="Silakan unggah tanda tangan digital Anda." variant="plain" color="slate" />
                                 ) : (
                                     <div className="p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                         {signaturesList.map(sig => (

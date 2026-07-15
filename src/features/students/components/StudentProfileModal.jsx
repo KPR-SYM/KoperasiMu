@@ -1,9 +1,10 @@
-﻿import React, { memo } from 'react'
+import React, { memo } from 'react'
 import { SealCheck, Calendar, Copy, DoorOpen, GraduationCap, HandHeart, Heart, ClockCounterClockwise, IdentificationCard, Info, MapPin, GenderMale, ChatCircle, Pencil, Plus, Tag, UserCheck, Users, Lightning } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
 
 import { AuditTimeline } from '@shared/components'
+import { useErrorHandler } from '@hooks'
 
 
 export default memo(function StudentProfileModal({
@@ -12,6 +13,7 @@ export default memo(function StudentProfileModal({
     addToast, onOpenTagModal,
     buildWAMessage, openWAForStudent
 }) {
+    const { handleError } = useErrorHandler('StudentProfileModal')
     if (!isOpen || !selectedStudent) return null
 
     const copyToClipboard = async (text, label) => {
@@ -20,9 +22,7 @@ export default memo(function StudentProfileModal({
         try {
             await navigator.clipboard.writeText(text)
             addToast(`${label} berhasil disalin`, 'success')
-        } catch (err) {
-            addToast('Gagal menyalin ke clipboard', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menyalin ke clipboard' }) }
     }
 
     const InfoRow = ({ label, value, icon }) => (
@@ -91,8 +91,6 @@ export default memo(function StudentProfileModal({
             title="Profil Siswa"
             description="Detail informasi akademik, statistik perilaku, histori laporan perizinan, dan rekapan raport siswa."
             icon={UserCheck}
-            iconBg="bg-indigo-500/10"
-            iconColor="text-indigo-600"
             size="lg"
             mobileVariant="bottom-sheet"
             footer={
@@ -203,7 +201,7 @@ export default memo(function StudentProfileModal({
                                 </div>
                             </div>
 
-                            {/* ── Data Orang Tua & Wali (Unified GridFour) ── */}
+                            {/* â”€â”€ Data Orang Tua & Wali (Unified GridFour) â”€â”€ */}
                             <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-6">
                                 <div className="flex items-center gap-2.5 pt-1">
                                     <div className="w-1 h-4 bg-indigo-500 rounded-full" />

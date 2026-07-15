@@ -5,6 +5,7 @@ import { logAudit } from '@utils/auditLogger'
 import {
     ENROLLMENT_STATUS, getStatusConfig, REQUIRED_DOCUMENTS
 } from '@features/enrollment/utils/enrollmentConstants'
+import { useErrorHandler } from '@hooks'
 
 const STATUS_ORDER = {
     'mendaftar': 1,
@@ -17,6 +18,7 @@ const STATUS_ORDER = {
 
 
 export function useEnrollmentCore({ addToast, addUndoToast }) {
+    const { handleError } = useErrorHandler('EnrollmentCore')
     // ── DATA ──
     const [enrollments, setEnrollments] = useState([])
     const [waves, setWaves] = useState([])
@@ -242,15 +244,12 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             })
 
             setEnrollments(transformed)
-        } catch (err) {
-            console.error('[useEnrollmentCore] Fetch data error:', err)
-            addToast('Gagal memuat data pendaftaran dari database', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memuat data pendaftaran dari database' }) } finally {
             setLoading(false)
         }
     }, [page, pageSize, filterWave, filterStatus, filterGender, filterProgram, filterDateFrom, filterDateTo, sortBy, debouncedSearch, fetchWaves, addToast])
 
-    useEffect(() => { fetchData() }, [fetchData])
+    useEffect(() => { fetchData() }, [page, pageSize, filterWave, filterStatus, filterGender, filterProgram, filterDateFrom, filterDateTo, sortBy, debouncedSearch, fetchWaves, addToast])
 
     // Self-healing: auto-link enrollments without wave_id to the active wave
     useEffect(() => {
@@ -281,7 +280,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             }
         }
         patchUnlinked()
-    }, [enrollments, waves, loading, fetchData])
+    }, [enrollments, waves, loading, page, pageSize, filterWave, filterStatus, filterGender, filterProgram, filterDateFrom, filterDateTo, sortBy, debouncedSearch, fetchWaves, addToast])
 
     // ── CRUD MUTATION ACTIONS ──
     const handleAdd = useCallback(() => {
@@ -385,10 +384,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setIsFormOpen(false)
             setSelectedEnrollment(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Submit error:', err)
-            addToast('Gagal menyimpan data pendaftaran', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal menyimpan data pendaftaran' }) } finally {
             setSubmitting(false)
         }
     }, [selectedEnrollment, addToast, fetchData, globalStats])
@@ -497,10 +493,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setActiveModal(null)
             setEnrollmentToDelete(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Archive error:', err)
-            addToast('Gagal mengarsipkan data pendaftaran', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal mengarsipkan data pendaftaran' }) }
     }, [enrollmentToDelete, addToast, fetchData, checkForWaitingListPromotion])
 
     // ── ARCHIVE FUNCTIONS ──
@@ -517,10 +510,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
                 ...e,
                 waveName: e.enrollment_waves?.name || '-'
             })))
-        } catch (err) {
-            console.error('Fetch archived error:', err)
-            addToast('Gagal memuat arsip', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally {
             setLoadingArchived(false)
         }
     }, [addToast])
@@ -547,10 +537,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             })
             fetchArchivedEnrollments()
             fetchData()
-        } catch (err) {
-            console.error('Restore error:', err)
-            addToast('Gagal memulihkan', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
     }, [fetchArchivedEnrollments, fetchData, addToast])
 
     const handlePermanentDeleteEnrollment = useCallback(async (enrollment) => {
@@ -570,10 +557,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
                 oldData: enrollment
             })
             fetchArchivedEnrollments()
-        } catch (err) {
-            console.error('Permanent delete error:', err)
-            addToast('Gagal menghapus data', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus data' }) }
     }, [fetchArchivedEnrollments, addToast])
 
     // ── HELPERS & NOTIFICATIONS ──
@@ -680,11 +664,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             addToast(`Berhasil mengirimkan ${sentCount} pengingat dokumen kurang via WhatsApp.`, 'success')
             fetchData()
             return { count: targets.length, sent: sentCount }
-        } catch (err) {
-            console.error('[useEnrollmentCore] Send document reminders error:', err)
-            addToast('Gagal mengirimkan pengingat dokumen', 'error')
-            return { count: 0, sent: 0 }
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal mengirimkan pengingat dokumen' }) } finally {
             setSendingReminders(false)
         }
     }, [addToast, fetchData])
@@ -814,11 +794,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setConvertingEnrollment(null)
             fetchData()
             return true
-        } catch (err) {
-            console.error('[useEnrollmentCore] Conversion error:', err)
-            addToast('Gagal mengonversi pendaftar menjadi siswa aktif: ' + err.message, 'error')
-            return false
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal mengonversi pendaftar menjadi siswa aktif: ' }) } finally {
             setConverting(false)
         }
     }, [addToast, generateCode, fetchData])
@@ -858,11 +834,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             })
 
             return true
-        } catch (err) {
-            console.error('[useEnrollmentCore] Save notes error:', err)
-            addToast('Gagal menyimpan catatan internal', 'error')
-            return false
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menyimpan catatan internal' }) }
     }, [addToast, fetchData])
 
     const updateOrientation = useCallback(async (enrollment, orientationData) => {
@@ -894,11 +866,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             })
 
             return true
-        } catch (err) {
-            console.error('[useEnrollmentCore] Save orientation error:', err)
-            addToast('Gagal menyimpan jadwal orientasi', 'error')
-            return false
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menyimpan jadwal orientasi' }) }
     }, [addToast, fetchData])
 
     const sendOrientationNotification = useCallback(async (enrollment) => {
@@ -1013,11 +981,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             })
 
             return true
-        } catch (err) {
-            console.error('[useEnrollmentCore] Save payment status error:', err)
-            addToast('Gagal mengubah status pembayaran', 'error')
-            return false
-        }
+        } catch (err) { handleError(err, { context: 'Gagal mengubah status pembayaran' }) }
     }, [addToast, fetchData])
 
     // ── STATUS TRANSITIONS ──
@@ -1100,10 +1064,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             if (isForward) {
                 triggerNotification(enrollment, newStatus)
             }
-        } catch (err) {
-            console.error('[useEnrollmentCore] Status transition error:', err)
-            addToast('Gagal memperbarui status pendaftar', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal memperbarui status pendaftar' }) }
     }, [addToast, fetchData, triggerNotification, checkForWaitingListPromotion])
 
     const handleAssessmentSubmit = useCallback(async (formData) => {
@@ -1273,10 +1234,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setSelectedIds([])
             setActiveModal(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Bulk approve error:', err)
-            addToast('Gagal menerima pendaftar secara massal', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menerima pendaftar secara massal' }) }
     }, [selectedIds, selectedEnrollments, addToast, fetchData, triggerNotification])
 
     const handleBulkReject = useCallback(async () => {
@@ -1303,10 +1261,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setSelectedIds([])
             setActiveModal(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Bulk reject error:', err)
-            addToast('Gagal menolak pendaftar secara massal', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal menolak pendaftar secara massal' }) }
     }, [selectedIds, selectedEnrollments, addToast, fetchData, triggerNotification, checkForWaitingListPromotion])
 
     const handleBulkArchive = useCallback(async () => {
@@ -1342,10 +1297,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setSelectedIds([])
             setActiveModal(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Bulk archive error:', err)
-            addToast('Gagal mengarsipkan pendaftar secara massal', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal mengarsipkan pendaftar secara massal' }) }
     }, [selectedIds, selectedEnrollments, addToast, fetchData, checkForWaitingListPromotion])
 
     const handleBulkStatusChange = useCallback(async (newStatus) => {
@@ -1380,10 +1332,7 @@ export function useEnrollmentCore({ addToast, addUndoToast }) {
             setSelectedIds([])
             setActiveModal(null)
             fetchData()
-        } catch (err) {
-            console.error('[useEnrollmentCore] Bulk status change error:', err)
-            addToast('Gagal memperbarui status secara massal', 'error')
-        }
+        } catch (err) { handleError(err, { context: 'Gagal memperbarui status secara massal' }) }
     }, [selectedIds, selectedEnrollments, addToast, fetchData, triggerNotification, checkForWaitingListPromotion])
 
     // ── PHOTO UPLOAD ──

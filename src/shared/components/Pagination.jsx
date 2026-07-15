@@ -131,7 +131,7 @@ export default function Pagination({
                     <div className="flex flex-col items-center sm:items-start text-left">
                         <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 leading-none mb-1">{s.statusPrefix} {label}</p>
                         <p className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
-                            {s.showing} <span className="text-[var(--color-primary)]">{fromRow}â€”{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
+                            {s.showing} <span className="text-[var(--color-primary)]">{fromRow}–{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
                         </p>
                     </div>
                     <div className="h-8 w-px bg-[var(--color-border)] hidden sm:block mx-1 opacity-50" />

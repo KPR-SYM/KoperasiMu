@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
-import { Archive, ArrowLeft, ArrowRight, Money, Bell, Book, Calendar, CheckCircle, ClipboardText, Clock, GraduationCap, Heart, ClockCounterClockwise, Spinner, MapPin, GenderMale, Pen, Phone, Buildings, TShirt, Star, Trash, User, Users, GenderFemale, X, XCircle } from '@phosphor-icons/react'
+import { Archive, ArrowLeft, ArrowRight, Money, Bell, Book, Calendar, CheckCircle, ClipboardText, Clock, GraduationCap, Heart, ClockCounterClockwise, Spinner, MapPin, GenderMale, Pen, Phone, Buildings, TShirt, Star, Trash, User, Users, GenderFemale, X, XCircle, NotePencil } from '@phosphor-icons/react'
 
-import { Modal } from '@shared/components'
+import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import {
     getStatusConfig, getQuranLevelConfig, getProgramLabel,
@@ -617,18 +617,20 @@ function EnrollmentProfileModal({ isOpen, onClose, enrollment, onEdit, onDelete,
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-center py-4">
-                                    <p className="text-[11px] text-[var(--color-text-muted)] opacity-60 mb-2.5">Belum ada jadwal Orientasi / MOS yang diatur.</p>
+                                <div className="py-4">
+                                    <EmptyState icon={Calendar} title="Belum Ada Jadwal Orientasi" description="Belum ada jadwal Orientasi / MOS yang diatur." variant="plain" color="slate" />
                                     {canEdit && (
-                                        <button
-                                            onClick={() => {
-                                                setOrientationForm({ date: '', time: '', location: '', notes: '' })
-                                                setIsEditingOrientation(true)
-                                            }}
-                                            className="px-4 py-2 rounded-xl border border-dashed border-indigo-500/40 text-[10px] font-bold text-indigo-600 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.06] hover:border-indigo-500/60 transition-all inline-flex items-center gap-1.5"
-                                        >
-                                            <Calendar className="w-3 h-3" /> Buat Jadwal Orientasi
-                                        </button>
+                                        <div className="flex justify-center mt-3">
+                                            <button
+                                                onClick={() => {
+                                                    setOrientationForm({ date: '', time: '', location: '', notes: '' })
+                                                    setIsEditingOrientation(true)
+                                                }}
+                                                className="px-4 py-2 rounded-xl border border-dashed border-indigo-500/40 text-[10px] font-bold text-indigo-600 bg-indigo-500/[0.02] hover:bg-indigo-500/[0.06] hover:border-indigo-500/60 transition-all inline-flex items-center gap-1.5"
+                                            >
+                                                <Calendar className="w-3 h-3" /> Buat Jadwal Orientasi
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             )}
@@ -765,15 +767,17 @@ function EnrollmentProfileModal({ isOpen, onClose, enrollment, onEdit, onDelete,
                         ) : notes ? (
                             <p className="text-[12px] text-[var(--color-text)] whitespace-pre-line leading-relaxed">{notes}</p>
                         ) : (
-                            <div className="text-center py-4">
-                                <p className="text-[11px] text-[var(--color-text-muted)] opacity-60 mb-2.5">Belum ada catatan internal untuk pendaftar ini.</p>
+                            <div className="py-4">
+                                <EmptyState icon={NotePencil} title="Belum Ada Catatan Internal" description="Belum ada catatan internal untuk pendaftar ini." variant="plain" color="slate" />
                                 {canEdit && (
-                                    <button
-                                        onClick={() => setIsEditingNotes(true)}
-                                        className="px-4 py-2 rounded-xl border border-dashed border-amber-500/40 text-[10px] font-bold text-amber-600 bg-amber-500/[0.02] hover:bg-amber-500/[0.06] hover:border-amber-500/60 transition-all inline-flex items-center gap-1.5"
-                                    >
-                                        <ClipboardText className="w-3 h-3" /> Tambah Catatan Internal
-                                    </button>
+                                    <div className="flex justify-center mt-3">
+                                        <button
+                                            onClick={() => setIsEditingNotes(true)}
+                                            className="px-4 py-2 rounded-xl border border-dashed border-amber-500/40 text-[10px] font-bold text-amber-600 bg-amber-500/[0.02] hover:bg-amber-500/[0.06] hover:border-amber-500/60 transition-all inline-flex items-center gap-1.5"
+                                        >
+                                            <ClipboardText className="w-3 h-3" /> Tambah Catatan Internal
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         )}

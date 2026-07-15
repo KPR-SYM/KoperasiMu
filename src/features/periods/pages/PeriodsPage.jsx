@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
-import { Archive, Calendar, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Copy, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Fingerprint, GraduationCap, DotsSix, ClockCounterClockwise, Keyboard, StackSimple, List, Spinner, Pencil, Plus, MagnifyingGlass, SlidersHorizontal, ClockClockwise, Trash, X, ArrowCounterClockwise } from '@phosphor-icons/react'
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
+import { Archive, Calendar, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, CircleDashed, Clock, Copy, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Fingerprint, GraduationCap, DotsSix, ClockCounterClockwise, Keyboard, StackSimple, List, Spinner, Pencil, Plus, MagnifyingGlass, SlidersHorizontal, ClockClockwise, Trash, X, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -10,10 +10,12 @@ import { useFlag } from '@context/FeatureFlags'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { useDebounce } from '@hooks/useDebounce'
+import { useErrorHandler } from '@hooks'
 import {
     PageHeader,
     Modal,
     Pagination,
+    RichSelect,
     TableSkeleton,
     CardSkeleton,
     AuditTimeline,
@@ -22,7 +24,7 @@ import {
     EmptyState
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
-import { ArchiveModal, DeactivateModal } from '@features/periods/components/PeriodActionModals'
+import { ArchiveModal, DeactivateModal } from '@features/periods/components/PeriodConfirmModals'
 import PeriodArchiveModal from '@features/periods/components/PeriodArchiveModal'
 
 
@@ -99,147 +101,115 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
                 icon={MagnifyingGlass}
                 title="Tidak Ada Data Ditemukan"
                 description="Sesuaikan filter atau kata kunci pencarian Anda"
-                color="indigo"
+                color="slate"
             />
         )
     }
 
     const sorted = [...years].sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
 
+    const getTimeStatus = (start, end) => {
+        if (!start || !end) return null
+        const now = new Date(); const s = new Date(start); const e = new Date(end)
+        if (now < s) return { label: 'Akan Datang', cls: 'bg-blue-500/10 text-blue-600 border-blue-500/20' }
+        if (now > e) return { label: 'Selesai', cls: 'bg-gray-500/10 text-gray-500 border-gray-500/20' }
+        return { label: 'Berjalan', cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' }
+    }
+
+    const getDuration = (start, end) => {
+        if (!start || !end) return null
+        const months = Math.round((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24 * 30))
+        return months > 0 ? `${months} bulan` : null
+    }
+
     return (
-        <div className="relative w-full overflow-hidden bg-[var(--color-surface-alt)]/10">
-            {/* ── Premium Ambient Background ── */}
-            <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-1/4 w-[200px] h-[200px] bg-[var(--color-primary)]/10 blur-[80px] rounded-full animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-[200px] h-[200px] bg-indigo-500/10 blur-[80px] rounded-full" />
-            </div>
+        <div className="relative w-full">
+            <div className="relative overflow-x-auto pb-6 pt-6 no-scrollbar select-none flex justify-start lg:justify-center" style={{ minHeight: '280px' }}>
+                <div className="flex items-start px-6 md:px-16 relative mx-auto z-10" style={{ minWidth: 'max-content' }}>
+                    {/* Horizontal timeline line */}
+                    <div className="absolute top-5 left-0 right-0 h-[2px] bg-[var(--color-border)] opacity-50" />
 
-            <div className="relative overflow-x-auto pb-8 pt-12 no-scrollbar select-none flex justify-start lg:justify-center" style={{ minHeight: '400px' }}>
-
-                {/* ── Premium Ambient Background ── */}
-                <div className="absolute inset-0 pointer-events-none opacity-[0.05] dark:opacity-[0.08]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--color-text) 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10rem] md:text-[16rem] font-black font-heading tracking-widest text-[var(--color-text)] opacity-5 dark:opacity-10 pointer-events-none whitespace-nowrap select-none flex items-center justify-center">
-                    TIMELINE
-                </div>
-
-                <div className="flex items-start px-8 md:px-32 relative mx-auto z-10" style={{ minWidth: 'max-content' }}>
-                    {/* ── Global ClockClockwise Path (Infinite) ── */}
-                    <div className="absolute top-[72px] left-[-2000px] right-[-2000px] h-[3px] bg-gradient-to-r from-transparent via-[var(--color-border)] to-transparent opacity-60 pointer-events-none" />
-
-                    {/* Active Gradient Path (Card Width) */}
-                    <div className="absolute top-[72px] left-16 right-16 md:left-32 md:right-32 h-[3px] bg-gradient-to-r from-transparent via-[var(--color-primary)]/80 to-transparent shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.5)] pointer-events-none" />
-
-                    {sorted.map((year, idx) => {
+                    {sorted.map((year) => {
                         const isActive = year.is_active
                         const isGanjil = year.semester === 'Ganjil'
+                        const ts = getTimeStatus(year.start_date, year.end_date)
+                        const dur = getDuration(year.start_date, year.end_date)
 
                         return (
-                            <div key={year.id} className="relative flex flex-col items-center group/item shrink-0" style={{ width: '260px' }}>
-                                {/* ── Interactive Node Anchor ── */}
-                                <div className="relative z-10 flex items-center justify-center w-14 h-14 mb-8">
-                                    {/* Heartbeat Aura for Active */}
-                                    {isActive && (
-                                        <>
-                                            <div className="absolute inset-0 bg-[var(--color-primary)]/20 rounded-full animate-ping duration-[3000ms]" />
-                                            <div className="absolute inset-2 bg-[var(--color-primary)]/30 rounded-full animate-pulse duration-[2000ms]" />
-                                        </>
-                                    )}
-
-                                    {/* Multi-layered Premium Node */}
-                                    <div className={`relative flex items-center justify-center w-10 h-10 rounded-full border-[4px] border-[var(--color-surface)] transition-all duration-700 group-hover/item:scale-125 shadow-xl ${isActive ? 'bg-[var(--color-primary)] border-[var(--color-surface)] shadow-[0_0_25px_rgba(var(--color-primary-rgb),0.5)] scale-110' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] group-hover/item:border-[var(--color-primary)]'}`}>
-                                        <div className={`w-3 h-3 rounded-full transition-all duration-500 ${isActive ? 'bg-white scale-110 shadow-[0_0_10px_white]' : 'bg-[var(--color-border)] group-hover/item:bg-[var(--color-primary)] shadow-none'}`} />
+                            <div key={year.id} className="relative flex flex-col items-center group/item shrink-0" style={{ width: '220px' }}>
+                                {/* Node */}
+                                <div className="relative z-10 flex items-center justify-center w-10 h-10 mb-4">
+                                    {isActive && <div className="absolute inset-0 rounded-full bg-[var(--color-primary)]/15 animate-pulse" />}
+                                    <div className={`relative flex items-center justify-center w-7 h-7 rounded-full border-[3px] border-[var(--color-surface)] transition-all duration-300 group-hover/item:scale-125 shadow-md ${isActive ? 'bg-[var(--color-primary)] shadow-[0_0_15px_rgba(var(--color-primary-rgb),0.35)]' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] group-hover/item:border-[var(--color-primary)]'}`}>
+                                        <div className={`w-2 h-2 rounded-full transition-all duration-300 ${isActive ? 'bg-white' : 'bg-[var(--color-border)] group-hover/item:bg-[var(--color-primary)]'}`} />
                                     </div>
                                 </div>
 
-                                {/* ── Visual Stalk (Connection) ── */}
-                                <div className="relative w-[3px] h-12 -mt-8 mb-4 overflow-hidden rounded-full">
-                                    <div className={`absolute inset-0 bg-gradient-to-b from-[var(--color-primary)]/80 to-transparent transition-opacity duration-700 ${isActive ? 'opacity-100' : 'opacity-0 group-hover/item:opacity-100'}`} />
-                                    <div className={`absolute inset-0 bg-gradient-to-b from-[var(--color-border)] to-transparent transition-opacity duration-700 ${isActive ? 'opacity-0' : 'opacity-100 group-hover/item:opacity-0'}`} />
-                                    {/* Micro-node anchor on path */}
-                                    <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full shadow-sm ${isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
-                                </div>
+                                {/* Stalk */}
+                                <div className={`w-[2px] h-6 -mt-3 mb-2 rounded-full transition-colors duration-300 ${isActive ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`} />
 
-                                {/* ── Premium Card (Centered Layout) ── */}
-                                <div className={`px-4 w-full transition-all duration-700 ${isActive ? 'opacity-100' : 'opacity-70 grayscale-[30%] group-hover/item:opacity-100 group-hover/item:grayscale-0'}`}>
-                                    <div className={`relative group/card glass rounded-[1.5rem] p-5 border-2 transition-all duration-700 hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] flex flex-col items-center text-center ${isActive ? 'border-[var(--color-primary)]/50 shadow-xl shadow-[var(--color-primary)]/10 ring-4 ring-[var(--color-primary)]/5' : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/40 shadow-lg shadow-black/[0.02]'}`}>
-                                        {/* Dynamic Glow Layer */}
-                                        <div className={`absolute -inset-3 rounded-[2.5rem] opacity-0 group-hover/card:opacity-10 dark:group-hover/card:opacity-20 transition-opacity duration-1000 pointer-events-none blur-xl ${isActive ? 'bg-[var(--color-primary)]' : 'bg-indigo-500'}`} />
-
-                                        {/* Card Header & Badges (Centered) */}
-                                        <div className="flex items-center justify-center gap-1.5 mb-3 flex-wrap">
-                                            <div className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest shrink-0 ${isGanjil ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/10' : 'bg-purple-500/10 text-purple-600 border border-purple-500/10'}`}>
+                                {/* Card */}
+                                <div className={`px-3 w-full transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-70 group-hover/item:opacity-100'}`}>
+                                    <div className={`relative rounded-2xl p-4 border transition-all duration-300 hover:-translate-y-1 ${isActive ? 'bg-[var(--color-surface)] border-[var(--color-primary)]/40 shadow-lg shadow-[var(--color-primary)]/5' : 'bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-primary)]/30 shadow-sm'}`}>
+                                        {/* Badges */}
+                                        <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                                            <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest ${isGanjil ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'bg-purple-500/10 text-purple-600'}`}>
                                                 {year.semester}
                                             </div>
                                             {isActive && (
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-black shadow-sm border border-emerald-500/20">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
+                                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[7px] font-black">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                                                     AKTIF
                                                 </div>
                                             )}
-                                            {year.is_locked && (
-                                                <span className="px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest bg-rose-500/10 text-rose-600 border border-rose-500/20 flex items-center gap-1">
-                                                    <Archive className="w-2 h-2" />
-                                                    TUTUP
-                                                </span>
-                                            )}
+                                            {ts && <div className={`px-1.5 py-0.5 rounded-full text-[7px] font-bold ${ts.cls}`}>{ts.label}</div>}
+                                            {year.is_locked && <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">TUTUP</div>}
                                         </div>
 
-                                        {/* Content Block (Centered) */}
-                                        <div className="relative space-y-1.5 w-full">
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-50 leading-none">Periode Akademik</p>
-                                            <h4 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)] leading-none group-hover/card:text-[var(--color-primary)] transition-colors duration-500">
-                                                {year.academic_year}
-                                            </h4>
+                                        {/* Year */}
+                                        <h4 className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors">
+                                            {year.academic_year}
+                                        </h4>
 
-                                            {/* Duration */}
-                                            <div className="flex items-center justify-center gap-2 pt-3 mt-3 border-t border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] font-bold">
-                                                <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 bg-[var(--color-surface)] border border-[var(--color-border)] group-hover/card:border-[var(--color-primary)]/30 group-hover/card:text-[var(--color-primary)] transition-all`}>
-                                                    <Calendar className="w-3 h-3" />
-                                                </div>
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-[7px] font-black uppercase tracking-widest opacity-50 leading-none mb-0.5">Masa Berlaku</span>
-                                                    <span className="leading-tight text-[9px] text-[var(--color-text)]">{new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} — {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
-                                                </div>
-                                            </div>
+                                        {/* Dates */}
+                                        <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
+                                            <Calendar className="w-3 h-3 opacity-50 shrink-0" />
+                                            <span>{new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} – {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
                                         </div>
+                                        {dur && <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">{dur}</div>}
 
-                                        {/* Abstract Decorative SVG (Watermark) */}
-                                        <div className="absolute right-4 bottom-4 opacity-[0.03] pointer-events-none group-hover/card:scale-150 group-hover/card:opacity-10 transition-all duration-1000 grayscale flex items-center justify-center">
-                                            <ClockClockwise className="text-6xl" />
-                                        </div>
-
-                                        {/* Premium Action Layer */}
-                                        <div className="mt-4 pt-3 border-t border-[var(--color-border)] flex flex-col gap-2.5 opacity-0 group-hover/card:opacity-100 translate-y-3 group-hover/card:translate-y-0 transition-all duration-500 w-full">
-                                            {/* Primary Action (Full Width) */}
-                                            {canEdit && !isActive && !year.is_locked && (
-                                                <button onClick={() => onSetActive(year)} className="w-full h-8 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-[0.1em] hover:shadow-[0_10px_20px_-5px_rgba(var(--color-primary-rgb),0.4)] hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-2">
-                                                    Aktifkan Periode
-                                                </button>
-                                            )}
-
-                                            {/* Secondary Actions (Icon Row) */}
-                                            <div className="flex items-center justify-center gap-2 w-full">
-                                                {canEdit && (
-                                                    <button onClick={() => onEdit(year)} className="w-8 h-8 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all flex items-center justify-center">
-                                                        <Pencil className="w-3 h-3" />
+                                        {/* Actions — always visible */}
+                                        <div className="mt-3 pt-2.5 border-t border-[var(--color-border)]/50 flex items-center justify-between gap-1">
+                                            <div className="flex items-center gap-1 min-w-0 flex-1">
+                                                {canEdit && !isActive && !year.is_locked && (
+                                                    <button onClick={() => onSetActive(year)} className="h-6 px-2 rounded-lg bg-[var(--color-primary)] text-white text-[8px] font-black uppercase tracking-wider hover:brightness-110 transition-all flex items-center gap-1 shrink-0">
+                                                        <Check className="w-2 h-2" /> Aktifkan
                                                     </button>
                                                 )}
-                                                <button onClick={() => onHistory(year)} className="w-8 h-8 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-indigo-500 hover:border-indigo-500 transition-all flex items-center justify-center">
-                                                    <ClockCounterClockwise className="w-3 h-3" />
+                                                {isActive && <span className="text-[8px] font-black text-emerald-600 uppercase tracking-wider">Aktif</span>}
+                                            </div>
+                                            <div className="flex items-center gap-0.5 shrink-0">
+                                                {canEdit && (
+                                                    <button onClick={() => onEdit(year)} className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all flex items-center justify-center">
+                                                        <Pencil className="w-2.5 h-2.5" />
+                                                    </button>
+                                                )}
+                                                <button onClick={() => onHistory(year)} className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all flex items-center justify-center">
+                                                    <ClockCounterClockwise className="w-2.5 h-2.5" />
                                                 </button>
                                                 {canEdit && (
-                                                    <button onClick={() => onDuplicate(year)} title="Duplikat" className="w-8 h-8 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-emerald-500 hover:border-emerald-500 transition-all flex items-center justify-center">
-                                                        <Copy className="w-3 h-3" />
+                                                    <button onClick={() => onDuplicate(year)} title="Duplikat" className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-emerald-500 transition-all flex items-center justify-center">
+                                                        <Copy className="w-2.5 h-2.5" />
                                                     </button>
                                                 )}
                                                 {canEdit && !isActive && (
-                                                    <button onClick={() => onToggleLock(year)} title={year.is_locked ? "Buka Buku" : "Tutup Buku"} className={`w-8 h-8 rounded-xl transition-all flex items-center justify-center ${year.is_locked ? 'bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border border-rose-500/20' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-rose-500 hover:border-rose-500'}`}>
-                                                        {year.is_locked ? <ArrowCounterClockwise className="w-3 h-3" /> : <Archive className="w-3 h-3" />}
+                                                    <button onClick={() => onToggleLock(year)} title={year.is_locked ? "Buka Buku" : "Tutup Buku"} className={`w-6 h-6 rounded-lg transition-all flex items-center justify-center ${year.is_locked ? 'bg-rose-500/10 text-rose-500' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-rose-500'}`}>
+                                                        {year.is_locked ? <ArrowCounterClockwise className="w-2.5 h-2.5" /> : <Archive className="w-2.5 h-2.5" />}
                                                     </button>
                                                 )}
                                                 {canEdit && isActive && (
-                                                    <button onClick={() => onDelete(year)} className="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
-                                                        <Archive className="w-3 h-3" />
+                                                    <button onClick={() => onDelete(year)} className="w-6 h-6 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
+                                                        <Archive className="w-2.5 h-2.5" />
                                                     </button>
                                                 )}
                                             </div>
@@ -260,6 +230,7 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
 
 export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast()
+    const { handleError } = useErrorHandler('PeriodsPage')
     const { dir } = useLanguage()
     const { profile } = useAuth()
     const { enabled: canEdit } = useFlag('access.teacher_academic')
@@ -376,18 +347,19 @@ export default function PeriodsPage() {
         try {
             const { data, error } = await supabase
                 .from('periods')
-                .select('id,academic_year,semester,start_date,end_date,is_active,deleted_at,created_at,is_locked')
+                .select('id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked')
+                .eq('is_active', true)
                 .order('academic_year', { ascending: false })
             if (error) throw error
-            const active = (data || []).filter(y => y.deleted_at === undefined || y.deleted_at === null)
-            setYears(active)
+            const rows = data || []
+            setYears(rows)
             setStats({
-                total: active.length,
-                active: active.filter(y => y.is_active).length,
-                ganjil: active.filter(y => y.semester === 'Ganjil').length,
-                genap: active.filter(y => y.semester === 'Genap').length,
+                total: rows.length,
+                active: rows.filter(y => y.is_active).length,
+                ganjil: rows.filter(y => y.semester === 'Ganjil').length,
+                genap: rows.filter(y => y.semester === 'Genap').length,
             })
-        } catch { addToast('Gagal memuat data tahun pelajaran', 'error') }
+        } catch (err) { console.error('[PeriodsPage] fetchData error:', err); addToast('Gagal memuat data tahun pelajaran', 'error') }
         finally { setLoading(false) }
     }, [addToast])
 
@@ -397,15 +369,20 @@ export default function PeriodsPage() {
         try {
             const { data } = await supabase
                 .from('periods')
-                .select('id,academic_year,semester,start_date,end_date,is_active,deleted_at,created_at,is_locked')
-                .not('deleted_at', 'is', null)
+                .select('id,academic_year,semester,start_date,end_date,is_active,created_at,updated_at,is_locked')
+                .eq('is_active', false)
                 .order('created_at', { ascending: false })
             setArchivedYears(data || [])
         } catch { }
         finally { setLoadingArchived(false) }
     }, [])
 
-    useEffect(() => { fetchData() }, [fetchData])
+    const fetchDataOnce = useRef(false)
+    useEffect(() => {
+        if (fetchDataOnce.current) return
+        fetchDataOnce.current = true
+        fetchData()
+    }, [fetchData])
 
     useEffect(() => {
         const handler = (e) => {
@@ -483,13 +460,13 @@ export default function PeriodsPage() {
             })[0]
 
             if (latest.semester === 'Ganjil') {
-                nextSuggested = { ...latest, id: undefined, semester: 'Genap', is_active: false }
+                nextSuggested = { id: undefined, academic_year: latest.academic_year, semester: 'Genap', is_active: false }
             } else {
                 const match = latest.academic_year.match(/(\d{4})\/(\d{4})/)
                 if (match) {
                     const nextStart = parseInt(match[1]) + 1
                     const nextEnd = parseInt(match[2]) + 1
-                    nextSuggested = { ...latest, id: undefined, academic_year: `${nextStart}/${nextEnd}`, semester: 'Ganjil', is_active: false }
+                    nextSuggested = { id: undefined, academic_year: `${nextStart}/${nextEnd}`, semester: 'Ganjil', is_active: false }
                 }
             }
         }
@@ -652,7 +629,7 @@ export default function PeriodsPage() {
             setIsDeactivateConfirmOpen(false)
             setItemToDeactivate(null)
             fetchData()
-        } catch (err) { addToast(err.message || 'Gagal menonaktifkan', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menonaktifkan' }) }
         finally { setSubmitting(false) }
     }
 
@@ -685,23 +662,23 @@ export default function PeriodsPage() {
         setSubmitting(true)
         const archived = itemToDelete
         try {
-            await supabase.from('periods').update({ deleted_at: new Date().toISOString() }).eq('id', archived.id)
-            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: archived.id, newData: { deleted_at: new Date().toISOString() } })
+            await supabase.from('periods').update({ is_active: false }).eq('id', archived.id)
+            await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: archived.id, newData: { is_active: false } })
             setIsDeleteModalOpen(false); fetchData()
             addUndoToast(`${archived.academic_year} diarsipkan.`, async () => {
-                await supabase.from('periods').update({ deleted_at: null }).eq('id', archived.id)
+                await supabase.from('periods').update({ is_active: true }).eq('id', archived.id)
                 fetchData()
             }, 6000)
-        } catch { addToast('Gagal mengarsipkan', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal mengarsipkan' }) }
         finally { setSubmitting(false); setItemToDelete(null) }
     }
 
     const handleRestore = async (item) => {
         try {
-            await supabase.from('periods').update({ deleted_at: null }).eq('id', item.id)
+            await supabase.from('periods').update({ is_active: true }).eq('id', item.id)
             addToast('Berhasil dipulihkan', 'success')
             fetchArchived(); fetchData()
-        } catch { addToast('Gagal memulihkan', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
     }
 
     const handlePermanentDelete = async (item) => {
@@ -709,16 +686,16 @@ export default function PeriodsPage() {
             await supabase.from('periods').delete().eq('id', item.id)
             addToast('Data dihapus permanen', 'success')
             setIsPermanentDeleteOpen(false); fetchArchived()
-        } catch { addToast('Gagal menghapus permanen', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus permanen' }) }
     }
 
     const handleBulkDelete = async () => {
         setSubmitting(true)
         try {
-            await supabase.from('periods').update({ deleted_at: new Date().toISOString() }).in('id', selectedIds)
+            await supabase.from('periods').update({ is_active: false }).in('id', selectedIds)
             addToast(`${selectedIds.length} data diarsipkan`, 'success')
             setSelectedIds([]); setIsBulkDeleteOpen(false); fetchData()
-        } catch { addToast('Gagal menghapus massal', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal menghapus massal' }) }
         finally { setSubmitting(false) }
     }
 
@@ -733,11 +710,11 @@ export default function PeriodsPage() {
     }
 
     // Count active filters
-    const activeFilterCount = (filterSemester ? 1 : 0) + (filterTimeStatus ? 1 : 0) + (searchQuery ? 1 : 0)
+    const activeFilterCount = (filterSemester ? 1 : 0) + (filterStatus ? 1 : 0) + (filterLock ? 1 : 0) + (filterTimeStatus ? 1 : 0) + (searchQuery ? 1 : 0)
 
     // ── EXPORT HANDLERS ──────────────────────────────────────────────────────
     const getExportData = async () => {
-        let q = supabase.from('periods').select('academic_year,semester,start_date,end_date,is_active,is_locked').is('deleted_at', null)
+        let q = supabase.from('periods').select('academic_year,semester,start_date,end_date,is_active,is_locked').eq('is_active', true)
 
         if (exportScope === 'selected' && selectedIds.length > 0) {
             q = q.in('id', selectedIds)
@@ -794,7 +771,7 @@ export default function PeriodsPage() {
 
             addToast(`Export CSV berhasil (${rows.length} periode)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export CSV', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export CSV' }) }
         finally { setExporting(false) }
     }
 
@@ -819,7 +796,7 @@ export default function PeriodsPage() {
 
             addToast(`Export Excel berhasil (${rows.length} periode)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export Excel', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export Excel' }) }
         finally { setExporting(false) }
     }
 
@@ -886,7 +863,7 @@ export default function PeriodsPage() {
 
             addToast(`Export PDF berhasil (${allRows.length} periode)`, 'success')
             setIsExportModalOpen(false)
-        } catch { addToast('Gagal export PDF', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal export PDF' }) }
         finally { setExporting(false) }
     }
 
@@ -942,9 +919,7 @@ export default function PeriodsPage() {
             })
             setImportColumnMapping(map)
             setImportStep(2)
-        } catch {
-            addToast('Gagal membaca file Excel/CSV', 'error')
-        } finally {
+        } catch (err) { handleError(err, { context: 'Gagal membaca file Excel/CSV' }) } finally {
             setImportLoading(false)
         }
     }
@@ -1092,7 +1067,7 @@ export default function PeriodsPage() {
             await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', newData: { bulk_import: true, count: validRows.length, data: validRows } })
             setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1)
             fetchData()
-        } catch { addToast('Gagal import (cek constraint DB / duplikat)', 'error') }
+        } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB / duplikat)' }) }
         finally { setImporting(false) }
     }
 
@@ -1334,9 +1309,9 @@ export default function PeriodsPage() {
                     ))}
                 </StatsCarousel>
 
-                {/* ── Funnel Bar ── */}
+                {/* ── Filter Bar ── */}
                 <div className="glass rounded-[1.5rem] mb-4 border border-[var(--color-border)] overflow-hidden">
-                    <div className="flex flex-row items-center gap-2 p-3">
+                    <div className="flex items-center gap-2 p-2.5 lg:p-3">
                         <div className="flex-1 min-w-[120px] transition-all duration-300">
                             <DebouncedSearchInput
                                 searchQuery={searchQuery}
@@ -1345,7 +1320,55 @@ export default function PeriodsPage() {
                                 isLoading={loading}
                             />
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
+
+                        {/* Quick Funnel Chips */}
+                        <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
+                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {[
+                                    { id: 'Ganjil', label: 'Ganjil', icon: CaretLeft },
+                                    { id: 'Genap', label: 'Genap', icon: CaretRight },
+                                ].map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setFilterSemester(filterSemester === s.id ? '' : s.id)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
+                                            ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                                            : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]'
+                                            }`}
+                                    >
+                                        <s.icon className={`w-3 h-3 ${filterSemester === s.id ? 'opacity-100' : 'opacity-30'}`} />
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {[
+                                    { id: 'active', label: 'Aktif', icon: CheckCircle },
+                                    { id: 'inactive', label: 'Nonaktif', icon: CircleDashed },
+                                ].map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setFilterStatus(filterStatus === s.id ? '' : s.id)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
+                                            ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                                            : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]'
+                                            }`}
+                                    >
+                                        <s.icon className={`w-3 h-3 ${filterStatus === s.id ? 'opacity-100' : 'opacity-30'}`} />
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
+
+                        <div className="flex items-center justify-end gap-2 shrink-0 lg:ml-auto">
                             <div className="hidden md:flex items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 p-1 shadow-none">
                                 <button onClick={() => setViewMode('table')} className={`h-7 px-3 rounded-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-wider transition-all ${viewMode === 'table' ? 'bg-[var(--color-primary)] text-white shadow-md' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
                                     <List className="w-3 h-3" />
@@ -1356,20 +1379,38 @@ export default function PeriodsPage() {
                                     <span>Linimasa</span>
                                 </button>
                             </div>
+
+                            <button
+                                onClick={toggleSelectAll}
+                                className={`h-8 px-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 ${selectedIds.length > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
+                                title="Pilih Semua / Batal"
+                            >
+                                <Check className="w-3 h-3" />
+                                <span className="hidden xs:inline">{selectedIds.length > 0 ? 'Terpilih' : 'Pilih'}</span>
+                                {selectedIds.length > 0 && (
+                                    <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[9px] font-black flex items-center justify-center">
+                                        {selectedIds.length}
+                                    </span>
+                                )}
+                            </button>
+
                             <button
                                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                                className={`h-9 px-3 sm:px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${isFilterOpen || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                                className={`h-8 px-2.5 sm:px-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 ${isFilterOpen || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
                             >
-                                <SlidersHorizontal />
-                                <span className="hidden xs:inline">Funnel</span>
-                                {activeFilterCount > 0 && <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">{activeFilterCount}</span>}
+                                <SlidersHorizontal className="w-3 h-3" />
+                                <span className="hidden xs:inline">Lainnya</span>
+                                {activeFilterCount > 0 && (
+                                    <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">
+                                        {activeFilterCount}
+                                    </span>
+                                )}
                             </button>
-                            {activeFilterCount > 0 && <button onClick={resetAllFilters} className="h-9 px-3 rounded-xl border border-red-500/20 bg-red-500/5 text-red-500 text-[10px] font-black uppercase tracking-widest transition-all hover:bg-red-500/10 flex items-center gap-1.5"><X /><span className="hidden sm:inline">Reset</span></button>}
                         </div>
                     </div>
 
                     {/* Active Chips */}
-                    {(searchQuery || filterSemester || filterTimeStatus) && (
+                    {(searchQuery || filterSemester || filterStatus || filterLock || filterTimeStatus || sortBy !== 'name_desc') && (
                         <div className="px-3 pb-3 -mt-1 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
                             {searchQuery && (
                                 <button type="button" onClick={() => setSearchQuery('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/40 text-[10px] font-black text-[var(--color-text)]">
@@ -1384,13 +1425,30 @@ export default function PeriodsPage() {
                                     <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
                                 </button>
                             )}
+                            {filterStatus && (
+                                <button type="button" onClick={() => setFilterStatus('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-[10px] font-black text-emerald-600">
+                                    <span>{filterStatus === 'active' ? 'Aktif' : 'Nonaktif'}</span>
+                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
+                                </button>
+                            )}
+                            {filterLock && (
+                                <button type="button" onClick={() => setFilterLock('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600">
+                                    <span>{filterLock === 'open' ? 'Bisa Diedit' : 'Terkunci'}</span>
+                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
+                                </button>
+                            )}
                             {filterTimeStatus && (
-                                <button type="button" onClick={() => setFilterTimeStatus('')}
-                                    className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600">
-                                    Status: {filterTimeStatus}
-                                    <span className="w-5 h-5 rounded-lg bg-white/70 dark:bg-[var(--color-surface)] border border-amber-500/20 flex items-center justify-center text-amber-600 opacity-70 group-hover:opacity-100 transition-opacity">
-                                        <X className="w-3 h-3" />
-                                    </span>
+                                <button type="button" onClick={() => setFilterTimeStatus('')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-[10px] font-black text-cyan-600">
+                                    <ClockClockwise className="w-3 h-3 opacity-40" />
+                                    <span>{filterTimeStatus}</span>
+                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
+                                </button>
+                            )}
+                            {sortBy !== 'name_desc' && (
+                                <button type="button" onClick={() => setSortBy('name_desc')} className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-[10px] font-black text-amber-600">
+                                    <ArrowCounterClockwise className="w-3 h-3 opacity-40" />
+                                    <span>{sortBy === 'name_asc' ? 'Terlama' : 'Terdekat'}</span>
+                                    <X className="w-2 h-2 opacity-40 group-hover:text-red-500 transition-colors" />
                                 </button>
                             )}
                             <button onClick={resetAllFilters} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black text-red-500 hover:bg-red-500/5 transition-all">
@@ -1402,13 +1460,12 @@ export default function PeriodsPage() {
 
                     {isFilterOpen && (
                         <div className="border-t border-[var(--color-border)] p-3.5 bg-[var(--color-surface-alt)]/60 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
-                            {/* Header Panel with Standardized "Vertical Bar" Pattern */}
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="w-1 h-3.5 bg-indigo-500 rounded-full" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 flex items-center gap-2">
+                                    <div className="w-1 h-3.5 bg-[var(--color-primary)] rounded-full" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-primary)] flex items-center gap-2">
                                         <SlidersHorizontal className="w-3 h-3 opacity-60" />
-                                        Funnel Lanjutan
+                                        Filter Lanjutan
                                     </span>
                                 </div>
                                 <button
@@ -1420,58 +1477,76 @@ export default function PeriodsPage() {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-1 xl:grid-cols-[1fr_auto] gap-4">
-                                {/* Primary GridFour: Selects */}
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    <div className="space-y-1.5">
-                                        <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Semester</label>
-                                        <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)} className="w-full h-9 px-3 text-xs font-bold bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl appearance-none outline-none focus:border-[var(--color-primary)]">
-                                            <option value="">Semua Semester</option>
-                                            <option value="Ganjil">Ganjil</option>
-                                            <option value="Genap">Genap</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Status</label>
-                                        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="w-full h-9 px-3 text-xs font-bold bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl appearance-none outline-none focus:border-[var(--color-primary)]">
-                                            <option value="">Semua Status</option>
-                                            <option value="active">Aktif</option>
-                                            <option value="inactive">Tidak Aktif</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Kunci Data</label>
-                                        <select value={filterLock} onChange={e => setFilterLock(e.target.value)} className="w-full h-9 px-3 text-xs font-bold bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl appearance-none outline-none focus:border-[var(--color-primary)]">
-                                            <option value="">Semua</option>
-                                            <option value="open">Bisa Diedit</option>
-                                            <option value="locked">Terkunci (Read-only)</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Urutan</label>
-                                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="w-full h-9 px-3 text-xs font-bold bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl appearance-none outline-none focus:border-[var(--color-primary)]">
-                                            <option value="name_desc">Terupate</option>
-                                            <option value="name_asc">Terlama</option>
-                                            <option value="start_asc">Terdekat</option>
-                                        </select>
-                                    </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-3 mb-3">
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Semester</label>
+                                    <RichSelect
+                                        value={filterSemester}
+                                        onChange={(val) => { setFilterSemester(val); setPage(1) }}
+                                        options={[
+                                            { id: '', name: 'Semua Semester' },
+                                            { id: 'Ganjil', name: 'Ganjil' },
+                                            { id: 'Genap', name: 'Genap' },
+                                        ]}
+                                        placeholder="Semua Semester"
+                                        small
+                                    />
                                 </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Status Aktif</label>
+                                    <RichSelect
+                                        value={filterStatus}
+                                        onChange={(val) => { setFilterStatus(val); setPage(1) }}
+                                        options={[
+                                            { id: '', name: 'Semua Status' },
+                                            { id: 'active', name: 'Aktif' },
+                                            { id: 'inactive', name: 'Tidak Aktif' },
+                                        ]}
+                                        placeholder="Semua Status"
+                                        small
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Kunci Data</label>
+                                    <RichSelect
+                                        value={filterLock}
+                                        onChange={(val) => { setFilterLock(val); setPage(1) }}
+                                        options={[
+                                            { id: '', name: 'Semua' },
+                                            { id: 'open', name: 'Bisa Diedit' },
+                                            { id: 'locked', name: 'Terkunci (Read-only)' },
+                                        ]}
+                                        placeholder="Semua"
+                                        small
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Urutkan</label>
+                                    <RichSelect
+                                        value={sortBy}
+                                        onChange={(val) => setSortBy(val)}
+                                        options={[
+                                            { id: 'name_desc', name: 'Terupdate' },
+                                            { id: 'name_asc', name: 'Terlama' },
+                                            { id: 'start_asc', name: 'Terdekat' },
+                                        ]}
+                                        placeholder="Urutkan"
+                                        small
+                                    />
+                                </div>
+                            </div>
 
-                                {/* Secondary GridFour: Actions */}
-                                <div className="space-y-1.5 flex flex-col">
-                                    <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5 opacity-0 hidden xl:block">Aksi</label>
-                                    <div className="flex items-center gap-2 mt-auto h-9">
-                                        <button onClick={toggleSelectAll} className="h-full px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all">
-                                            {selectedIds.length === paged.length && paged.length > 0 ? 'Batal Pilih' : 'Pilih Semua'}
-                                        </button>
-                                    </div>
-                                </div>
+                            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[var(--color-border)]/30">
+                                <button
+                                    onClick={() => setIsFilterOpen(false)}
+                                    className="h-8 px-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
+                                >
+                                    Tutup Panel
+                                </button>
                             </div>
                         </div>
                     )}
                 </div>
-
-
 
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
@@ -1563,10 +1638,10 @@ export default function PeriodsPage() {
                                                                             <span className="relative z-10">{year.academic_year?.slice(2, 4) || '??'}</span>
                                                                         </div>
                                                                         <div className="flex flex-col min-w-0 flex-1">
-                                                                            <span className="font-extrabold w-4 h-4 text-[var(--color-text)] leading-snug truncate">
+                                                                            <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
                                                                                 {year.academic_year}
                                                                             </span>
-                                                                            <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">ID: {year.id.slice(0, 8)}</p>
+                                                                            <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">ID: {year.id}</p>
                                                                         </div>
                                                                     </div>
                                                                 </td>
@@ -1639,7 +1714,7 @@ export default function PeriodsPage() {
                                                                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border ${year.semester === 'Ganjil' ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' : 'bg-purple-500/10 text-purple-600 border-purple-500/20'}`}>{year.semester}</span>
                                                                         <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{formatDate(year.start_date)} — {formatDate(year.end_date)}</span>
                                                                     </div>
-                                                                    <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">ID: {year.id.slice(0, 8)}</p>
+                                                                    <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">ID: {year.id}</p>
                                                                 </div>
                                                                 <div className="flex items-center gap-1">
                                                                     {canEdit && <button onClick={() => handleEdit(year)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Pencil className="text-xs" /></button>}
@@ -1703,8 +1778,8 @@ export default function PeriodsPage() {
                     })()}
                 </Modal>
 
-                <Modal isOpen={isHistoryOpen} onClose={() => { setIsHistoryOpen(false); setHistoryItem(null) }} title={`Riwayat · ${historyItem?.academic_year || ''}`} description="Audit log untuk rekaman ini." icon={Fingerprint} iconBg="bg-orange-500/10" iconColor="text-orange-500" size="lg">
-                    {historyItem && <div className="h-[60vh] overflow-hidden"><AuditTimeline tableName="academic_years" recordId={historyItem.id} limit={30} /></div>}
+                <Modal isOpen={isHistoryOpen} onClose={() => { setIsHistoryOpen(false); setHistoryItem(null) }} title={`Riwayat · ${historyItem?.academic_year || ''}`} description="Audit log untuk rekaman ini." icon={Fingerprint} iconBg="bg-orange-500/10" iconColor="text-orange-500" size="md">
+                    {historyItem && <div className="h-[40vh] min-h-[200px] overflow-auto"><AuditTimeline tableName="academic_years" recordId={historyItem.id} limit={30} /></div>}
                 </Modal>
 
                 <Modal isOpen={isBulkDeleteOpen} onClose={() => setIsBulkDeleteOpen(false)} title="Arsipkan Massal" description={`Pindahkan ${selectedIds.length} data ke arsip.`} icon={Archive} iconBg="bg-red-500/10" iconColor="text-red-500" size="sm" footer={<div className="flex gap-3"><button onClick={() => setIsBulkDeleteOpen(false)} className="h-9 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black text-[var(--color-text-muted)] transition-all">Batal</button><div className="flex-1" /><button onClick={handleBulkDelete} disabled={submitting} className="h-9 px-5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-black text-[10px] transition-all flex items-center gap-2">Arsipkan Sekarang</button></div>}>

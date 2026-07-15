@@ -3,6 +3,7 @@ import { Warning, CaretDown, CaretRight, Clock, Database, Fingerprint, ClockCoun
 import { supabase } from '@lib/supabase'
 
 import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
+import { EmptyState } from './DataDisplay'
 
 const SEVERITY_STYLES = {
     LOW: { label: 'Low', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20', icon: Info },
@@ -90,10 +91,7 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
     const keys = Object.keys(diff)
 
     if (keys.length === 0) return (
-        <div className="flex flex-col items-center justify-center py-8 opacity-40">
-            <Info className="text-xl mb-2" />
-            <p className="text-[10px] font-bold uppercase tracking-widest">Tidak ada perubahan terbaca</p>
-        </div>
+        <EmptyState icon={Info} title="Tidak Ada Perubahan Terbaca" description="Tidak ada field yang berubah pada record ini." variant="plain" color="slate" />
     )
 
     return (
@@ -323,28 +321,24 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     )
 
     if (loading) return (
-        <div className="space-y-4 p-2">
-            {[1, 2, 3].map(i => (
-                <div key={i} className="flex gap-4 animate-pulse">
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-surface-alt)]" />
-                    <div className="flex-1 space-y-2">
-                        <div className="h-3 w-1/2 bg-[var(--color-surface-alt)] rounded" />
-                        <div className="h-2 w-1/4 bg-[var(--color-surface-alt)] rounded opacity-50" />
+        <div className="flex flex-col items-center justify-center h-full min-h-[160px] space-y-4 p-2">
+            <div className="space-y-4 w-full max-w-xs">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="flex gap-4 animate-pulse">
+                        <div className="w-8 h-8 rounded-full bg-[var(--color-surface-alt)]" />
+                        <div className="flex-1 space-y-2">
+                            <div className="h-3 w-1/2 bg-[var(--color-surface-alt)] rounded" />
+                            <div className="h-2 w-1/4 bg-[var(--color-surface-alt)] rounded opacity-50" />
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
         </div>
     )
 
     if (logs.length === 0) return (
-        <div className="py-12 flex flex-col items-center justify-center text-center opacity-30 gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-alt)] flex items-center justify-center">
-                <ClockCounterClockwise className="text-xl" />
-            </div>
-            <div>
-                <p className="text-[10px] font-black uppercase tracking-widest">Belum ada jejak audit</p>
-                <p className="text-[9px] font-bold">Aktivitas forensik untuk data ini tidak ditemukan.</p>
-            </div>
+        <div className="flex items-center justify-center h-full min-h-[160px]">
+            <EmptyState icon={ClockCounterClockwise} title="Belum Ada Jejak Audit" description="Aktivitas forensik untuk data ini tidak ditemukan." variant="plain" color="slate" />
         </div>
     )
 
