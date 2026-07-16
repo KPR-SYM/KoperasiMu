@@ -597,7 +597,7 @@ export default function PeriodsPage() {
 
             const payload = {
                 academic_year: formData.name.trim(),
-                semester: String(formData.semester || '').trim().toLowerCase(),
+                semester: String(formData.semester || '').trim(),
                 start_date: formData.startDate,
                 end_date: formData.endDate,
                 registration_start: formData.registrationStart || null,
