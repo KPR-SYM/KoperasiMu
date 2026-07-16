@@ -3,6 +3,8 @@ import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle,
 
 import { Modal } from '@shared/components'
 
+// --- Static config (module scope) ---
+
 const COLUMN_DEFS = [
     { key: 'academic_year', label: 'Tahun Pelajaran', icon: Calendar },
     { key: 'semester', label: 'Semester', icon: TextH },
@@ -16,6 +18,20 @@ const PRESETS = [
     { id: 'all', label: 'Data Lengkap', cols: ['academic_year', 'semester', 'start_date', 'end_date', 'is_active', 'is_locked'] },
     { id: 'general', label: 'Umum', cols: ['academic_year', 'semester', 'is_active'] },
     { id: 'schedule', label: 'Jadwal', cols: ['academic_year', 'semester', 'start_date', 'end_date'] },
+]
+
+const DEFAULT_COLUMNS = ['academic_year', 'semester']
+const ALL_COLUMN_KEYS = COLUMN_DEFS.map(c => c.key)
+
+// advanced options toggles
+const HEADER_OPTIONS = [
+    { v: true, l: 'Ya' },
+    { v: false, l: 'Tidak' },
+]
+
+const ORIENTATION_OPTIONS = [
+    { v: 'landscape', l: 'Landscape', icon: ArrowsLeftRight },
+    { v: 'portrait', l: 'Portrait', icon: ArrowsDownUp },
 ]
 
 export default function PeriodExportModal({
@@ -101,6 +117,19 @@ export default function PeriodExportModal({
         )
     })
 
+    // scope options — `desc` is filled in-render using current years/selectedIds
+    const scopeOptions = [
+        { val: 'filtered', label: 'Funnel Aktif', desc: `${years.length} periode`, icon: SlidersHorizontal, disabled: false },
+        { val: 'selected', label: 'Dipilih', desc: `${selectedIds.length} periode`, icon: CheckCircle, disabled: selectedIds.length === 0 },
+        { val: 'all', label: 'Semua', desc: 'Tanpa filter', icon: Users, disabled: false },
+    ]
+
+    const exportFormatButtons = [
+        { label: 'CSV', icon: FileXls, desc: 'Universal', onClick: () => handleExportCSV(fileName, exportOptions), color: 'hover:border-slate-400 hover:bg-slate-50', iconColor: 'text-slate-500' },
+        { label: 'Excel', icon: FileXls, desc: '.xlsx', onClick: () => handleExportExcel(fileName), color: 'hover:border-emerald-400 hover:bg-emerald-50 text-emerald-700', iconColor: 'text-emerald-500' },
+        { label: 'PDF Tabel', icon: FileText, desc: 'Tabel', onClick: () => handleExportPDF(fileName, exportOptions), color: 'hover:border-rose-400 hover:bg-rose-50 text-rose-700', iconColor: 'text-rose-500' },
+    ]
+
     const exportOptions = {
         includeHeader,
         orientation: pdfOrientation
@@ -137,7 +166,7 @@ export default function PeriodExportModal({
                             <div className="relative w-16 h-16">
                                 <div className="absolute inset-0 rounded-full bg-[var(--color-primary)]/10 animate-ping opacity-75"></div>
                                 <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]/10"></div>
-                                <div 
+                                <div
                                     className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--color-primary)] border-r-[var(--color-primary)] animate-spin"
                                     style={{ filter: 'drop-shadow(0 0 4px var(--color-primary))' }}
                                 ></div>
@@ -164,19 +193,15 @@ export default function PeriodExportModal({
                     <div className="space-y-3">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 — Jangkauan Data</p>
                         <div className="grid grid-cols-3 gap-2.5">
-                            {[
-                                { val: 'filtered', label: 'Funnel Aktif', desc: `${years.length} periode`, icon: SlidersHorizontal },
-                                { val: 'selected', label: 'Dipilih', desc: `${selectedIds.length} periode`, icon: CheckCircle, disabled: selectedIds.length === 0 },
-                                { val: 'all', label: 'Semua', desc: 'Tanpa filter', icon: Users },
-                            ].map(({ val, label, desc, icon: Icon, disabled }) => (
+                            {scopeOptions.map(({ val, label, desc, icon: Icon, disabled }) => (
                                 <button
                                     key={val}
                                     onClick={() => !disabled && setExportScope(val)}
                                     disabled={disabled}
                                     className={`group p-3 rounded-2xl border-2 text-left transition-all
                                     ${exportScope === val
-                                            ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
-                                            : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-surface-alt)]'}
+                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
+                                        : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-surface-alt)]'}
                                     ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-95'}
                                     `}
                                 >
@@ -184,7 +209,7 @@ export default function PeriodExportModal({
                                         ${exportScope === val ? 'bg-[var(--color-primary)] text-white shadow-lg' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] group-hover:bg-[var(--color-primary)]/10'}`}>
                                         <Icon className="w-3 h-3" />
                                     </div>
-                                    <div className="w-3 h-3 font-black text-[var(--color-text)] mb-0.5">{label}</div>
+                                    <div className="text-[10px] font-black text-[var(--color-text)] mb-0.5">{label}</div>
                                     <div className="text-[9px] font-bold text-[var(--color-text-muted)] leading-tight">{desc}</div>
                                 </button>
                             ))}
@@ -195,8 +220,8 @@ export default function PeriodExportModal({
                         <div className="flex items-center justify-between">
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">2 — Kolom & Presets</p>
                             <div className="flex gap-2">
-                                <button onClick={() => handlePresetClick(COLUMN_DEFS.map(c => c.key))} className="text-[9px] font-black text-[var(--color-primary)] hover:underline uppercase tracking-widest bg-[var(--color-primary)]/5 px-2 py-1 rounded-lg transition-colors">Semua</button>
-                                <button onClick={() => handlePresetClick(['academic_year', 'semester'])} className="text-[9px] font-black text-rose-500 hover:underline uppercase tracking-widest bg-rose-500/5 px-2 py-1 rounded-lg transition-colors">Reset</button>
+                                <button onClick={() => handlePresetClick(ALL_COLUMN_KEYS)} className="text-[9px] font-black text-[var(--color-primary)] hover:underline uppercase tracking-widest bg-[var(--color-primary)]/5 px-2 py-1 rounded-lg transition-colors">Semua</button>
+                                <button onClick={() => handlePresetClick(DEFAULT_COLUMNS)} className="text-[9px] font-black text-rose-500 hover:underline uppercase tracking-widest bg-rose-500/5 px-2 py-1 rounded-lg transition-colors">Reset</button>
                             </div>
                         </div>
 
@@ -271,7 +296,7 @@ export default function PeriodExportModal({
                                         Sertakan Header
                                     </label>
                                     <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]">
-                                        {[{ v: true, l: 'Ya' }, { v: false, l: 'Tidak' }].map(opt => (
+                                        {HEADER_OPTIONS.map(opt => (
                                             <button
                                                 key={String(opt.v)}
                                                 onClick={() => setIncludeHeader(opt.v)}
@@ -288,10 +313,7 @@ export default function PeriodExportModal({
                                         PDF Orientasi
                                     </label>
                                     <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]">
-                                        {[
-                                            { v: 'landscape', l: 'Landscape', icon: ArrowsLeftRight },
-                                            { v: 'portrait', l: 'Portrait', icon: ArrowsDownUp }
-                                        ].map(opt => (
+                                        {ORIENTATION_OPTIONS.map(opt => (
                                             <button
                                                 key={opt.v}
                                                 onClick={() => setPdfOrientation(opt.v)}
@@ -310,11 +332,7 @@ export default function PeriodExportModal({
                     <div className="space-y-3">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">4 — Mulai Ekspor</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                            {[
-                                { label: 'CSV', icon: FileXls, desc: 'Universal', onClick: () => handleExportCSV(fileName, exportOptions), color: 'hover:border-slate-400 hover:bg-slate-50', iconColor: 'text-slate-500' },
-                                { label: 'Excel', icon: FileXls, desc: '.xlsx', onClick: () => handleExportExcel(fileName), color: 'hover:border-emerald-400 hover:bg-emerald-50 text-emerald-700', iconColor: 'text-emerald-500' },
-                                { label: 'PDF Tabel', icon: FileText, desc: 'Tabel', onClick: () => handleExportPDF(fileName, exportOptions), color: 'hover:border-rose-400 hover:bg-rose-50 text-rose-700', iconColor: 'text-rose-500' },
-                            ].map(({ label, icon: Icon, desc, onClick, color, iconColor }) => (
+                            {exportFormatButtons.map(({ label, icon: Icon, desc, onClick, color, iconColor }) => (
                                 <button
                                     key={label}
                                     onClick={onClick}
@@ -332,8 +350,8 @@ export default function PeriodExportModal({
                     </div>
 
                     {exportColumns.length === 0 && (
-                        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-600 w-3 h-3 font-black uppercase tracking-tight animate-pulse">
-                            <Warning />
+                        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-600 text-[10px] font-black uppercase tracking-tight animate-pulse">
+                            <Warning className="w-4 h-4 shrink-0" />
                             Pilih minimal satu kolom untuk melanjutkan
                         </div>
                     )}

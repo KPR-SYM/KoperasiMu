@@ -283,6 +283,7 @@ export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast()
     const { handleError } = useErrorHandler('PeriodsPage')
     const { enabled: canEdit } = useFlag('access.teacher_academic')
+    const { profile } = useAuth()
 
     const [years, setYears] = useState([])
     const [archivedYears, setArchivedYears] = useState([])
@@ -401,7 +402,6 @@ export default function PeriodsPage() {
             const { data, error } = await supabase
                 .from('periods')
                 .select('id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked')
-                .eq('is_active', true)
                 .order('academic_year', { ascending: false })
             if (error) throw error
             const rows = data || []
@@ -409,8 +409,8 @@ export default function PeriodsPage() {
             setStats({
                 total: rows.length,
                 active: rows.filter(y => y.is_active).length,
-                ganjil: rows.filter(y => y.semester === 'Ganjil').length,
-                genap: rows.filter(y => y.semester === 'Genap').length,
+                ganjil: rows.filter(y => y.semester.toLowerCase() === 'ganjil').length,
+                genap: rows.filter(y => y.semester.toLowerCase() === 'genap').length,
             })
         } catch (err) { console.error('[PeriodsPage] fetchData error:', err); addToast('Gagal memuat data tahun pelajaran', 'error') }
         finally { setLoading(false) }
@@ -552,6 +552,22 @@ export default function PeriodsPage() {
         if (!formData.endDate) errors.endDate = 'Tanggal selesai wajib diisi'
         if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate) errors.endDate = 'Tanggal selesai harus setelah tanggal mulai'
 
+        // Validasi Periode Pendaftaran (opsional, tapi jika diisi harus lengkap & dalam rentang periode)
+        const rs = formData.registrationStart
+        const re = formData.registrationEnd
+        if (rs || re) {
+            if (!rs || !re) {
+                if (!rs) errors.registrationStart = 'Tanggal mulai & selesai pendaftaran wajib diisi bersama'
+                if (!re) errors.registrationEnd = 'Tanggal mulai & selesai pendaftaran wajib diisi bersama'
+            } else if (re <= rs) {
+                errors.registrationEnd = 'Selesai pendaftaran harus setelah mulai pendaftaran'
+            } else if (formData.startDate && formData.endDate) {
+                if (rs < formData.startDate || re > formData.endDate) {
+                    errors.registrationEnd = 'Periode pendaftaran harus berada dalam rentang periode akademik'
+                }
+            }
+        }
+
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors)
             setSubmitting(false)
@@ -584,6 +600,8 @@ export default function PeriodsPage() {
                 semester: String(formData.semester || '').trim().toLowerCase(),
                 start_date: formData.startDate,
                 end_date: formData.endDate,
+                registration_start: formData.registrationStart || null,
+                registration_end: formData.registrationEnd || null,
             }
 
             if (selectedItem?.id) {
@@ -601,17 +619,16 @@ export default function PeriodsPage() {
                 addToast('Tahun pelajaran berhasil diupdate', 'success')
                 try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             } else {
-                const { data, error } = await supabase.from('periods').insert({ ...payload, is_active: false }).select()
+                const { data, error } = await supabase.from('periods').insert({ ...payload, is_active: true }).select()
                 if (error) throw error
                 if (!data || data.length === 0) throw new Error('Gagal menambahkan data')
 
                 if (formData.makeActive && data[0]?.id) {
                     await supabase.from('periods').update({ is_active: false }).neq('id', data[0].id)
-                    await supabase.from('periods').update({ is_active: true }).eq('id', data[0].id)
                 }
 
                 addToast('Tahun pelajaran berhasil ditambahkan', 'success')
-                try { await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', recordId: data?.[0]?.id, newData: { ...payload, is_active: formData.makeActive } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
+                try { await logAudit({ action: 'INSERT', source: 'MASTER', tableName: 'periods', recordId: data?.[0]?.id, newData: { ...payload, is_active: true } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             }
             setIsModalOpen(false)
             setSelectedItem(null)
@@ -659,10 +676,14 @@ export default function PeriodsPage() {
         setSubmitting(true)
         try {
             const newStatus = !item.is_locked
-            const { error } = await supabase.from('periods').update({ is_locked: newStatus }).eq('id', item.id)
+            // Saat mengunci: catat waktu & user (audit). Saat membuka: reset audit.
+            const updatePayload = newStatus
+                ? { is_locked: true, locked_at: new Date().toISOString(), locked_by: profile?.id ?? null }
+                : { is_locked: false, locked_at: null, locked_by: null }
+            const { error } = await supabase.from('periods').update(updatePayload).eq('id', item.id)
             if (error) throw error
             addToast(`Tahun pelajaran berhasil di${newStatus ? 'tutup' : 'buka'}`, 'success')
-            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, is_locked: newStatus } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: item.id, oldData: item, newData: { ...item, ...updatePayload } }) } catch (e) { console.warn('[PeriodsPage] logAudit skip:', e.message) }
             fetchData()
         } catch (err) { addToast(err?.message || 'Gagal mengubah status', 'error') }
         finally { setSubmitting(false) }
@@ -1063,7 +1084,7 @@ export default function PeriodsPage() {
             for (let i = 0; i < validRows.length; i += CHUNK) {
                 const chunk = validRows.slice(i, i + CHUNK).map(r => ({
                     academic_year: r.academic_year,
-                    semester: r.semester,
+                    semester: String(r.semester || '').trim().toLowerCase(),
                     start_date: r.start_date,
                     end_date: r.end_date,
                     is_active: false
