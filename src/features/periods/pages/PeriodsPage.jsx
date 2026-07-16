@@ -217,7 +217,7 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
                                             {year.is_locked && <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">TUTUP</div>}
                                         </div>
 
-{/* Year */}
+                                        {/* Year */}
                                         <h4 className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors">
                                             {maskValue(year.academic_year, 'year')}
                                         </h4>
@@ -225,16 +225,20 @@ function TimelineView({ years, onEdit, onHistory, onSetActive, onDuplicate, onDe
                                         {/* Dates */}
                                         <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
                                             <Calendar className="w-3 h-3 opacity-50 shrink-0" />
-                                            <span>{isPrivacyMode ? maskValue(null, 'date') + ' \u2013 ' + maskValue(null, 'date') : new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} \u2013 {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}</span>
+                                            <span className={isPrivacyMode ? 'blur-sm select-none transition-all duration-200' : ''}>
+                                                {new Date(year.start_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                {' \u2013 '}
+                                                {new Date(year.end_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' })}
+                                            </span>
                                         </div>
-                                        {dur && <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">{isPrivacyMode ? maskValue(null, 'date') : dur}</div>}
+                                        {dur && <div className={`mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60 ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>{dur}</div>}
 
                                         {/* Actions — always visible */}
                                         <div className="mt-3 pt-2.5 border-t border-[var(--color-border)]/50 flex items-center justify-between gap-1">
                                             <div className="flex items-center gap-1 min-w-0 flex-1">
                                                 {canEdit && !isActive && !year.is_locked && (
-                                                    <button onClick={() => onSetActive(year)} className="h-6 px-2 rounded-lg bg-[var(--color-primary)] text-white text-[8px] font-black uppercase tracking-wider hover:brightness-110 transition-all flex items-center gap-1 shrink-0">
-                                                        <Check className="w-2 h-2" /> Aktifkan
+                                                    <button onClick={() => onSetActive(year)} className="w-6 h-6 rounded-lg bg-[var(--color-primary)] text-white transition-all flex items-center justify-center shrink-0 hover:brightness-110" title="Aktifkan">
+                                                        <Check className="w-2.5 h-2.5" />
                                                     </button>
                                                 )}
                                                 {isActive && <span className="text-[8px] font-black text-emerald-600 uppercase tracking-wider">Aktif</span>}
@@ -324,7 +328,7 @@ export default function PeriodsPage() {
     const colMenuPortalRef = useRef(null)
 
     // UI
-    const [isPrivacyMode, setIsPrivacyMode] = useState(false)
+    const { isPrivacyMode, togglePrivacyMode, maskValue } = usePrivacyMode({ idleTimeout: 30000 })
     const [isShortcutOpen, setIsShortcutOpen] = useState(false)
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
     const headerMenuBtnRef = useRef(null)
@@ -342,18 +346,6 @@ export default function PeriodsPage() {
     const [viewMode, setViewMode] = useState(() => {
         try { return localStorage.getItem('periods_view_mode') || 'table' } catch { return 'table' }
     }) // 'table' | 'timeline' | 'card'
-
-    // Privacy mode masking helper
-    const maskValue = (value, type) => {
-        if (!isPrivacyMode) return value
-        switch (type) {
-            case 'year': return '****/****'
-            case 'semester': return '******'
-            case 'date': return '****-**-**'
-            case 'duration': return '** bulan'
-            default: return '****'
-        }
-    }
 
     // Selection & Data state
     const [selectedItem, setSelectedItem] = useState(null)
@@ -1299,10 +1291,7 @@ export default function PeriodsPage() {
                             )}
 
                             {/* Privasi toggle */}
-                            <button onClick={() => {
-                                const next = !isPrivacyMode
-                                setIsPrivacyMode(next)
-                            }}
+                            <button onClick={togglePrivacyMode}
                                 className={`h-9 w-9 sm:w-auto sm:px-3 rounded-lg border flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
                                 title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}>
                                 {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1716,7 +1705,7 @@ export default function PeriodsPage() {
                                                                         </div>
                                                                         <div className="flex flex-col min-w-0 flex-1">
                                                                             <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
-                                                                                {maskValue(year.academic_year, 'year')}
+                                                                                <PrivacyValue active={isPrivacyMode}>{year.semester}</PrivacyValue>
                                                                             </span>
                                                                             <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">{maskValue(`ID: ${year.id}`, 'id')}</p>
                                                                         </div>
@@ -1733,8 +1722,8 @@ export default function PeriodsPage() {
                                                             {visibleCols.duration && (
                                                                 <td className="px-6 py-4">
                                                                     <div className="flex flex-col">
-                                                                        <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">{isPrivacyMode ? maskValue(null, 'date') + ' — ' + maskValue(null, 'date') : formatDate(year.start_date) + ' — ' + formatDate(year.end_date)}</span>
-                                                                        <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{isPrivacyMode ? maskValue(null, 'date') : getDuration(year.start_date, year.end_date)}</span>
+                                                                        <span className={`text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>{formatDate(year.start_date)}{' — '}{formatDate(year.end_date)}</span>
+                                                                        <span className={`text-[10px] text-[var(--color-text-muted)] mt-0.5 ${isPrivacyMode ? 'blur-sm select-none' : ''}`}>{getDuration(year.start_date, year.end_date)}</span>
                                                                     </div>
                                                                 </td>
                                                             )}
