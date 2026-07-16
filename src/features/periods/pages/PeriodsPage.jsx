@@ -401,7 +401,6 @@ export default function PeriodsPage() {
             const { data, error } = await supabase
                 .from('periods')
                 .select('id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked')
-                .eq('is_active', true)
                 .order('academic_year', { ascending: false })
             if (error) throw error
             const rows = data || []
@@ -581,7 +580,7 @@ export default function PeriodsPage() {
 
             const payload = {
                 academic_year: formData.name.trim(),
-                semester: String(formData.semester || '').trim().toLowerCase(),
+                semester: String(formData.semester || '').trim(),
                 start_date: formData.startDate,
                 end_date: formData.endDate,
             }
