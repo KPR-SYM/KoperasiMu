@@ -12,7 +12,7 @@ import {
     EmptyState
 } from '@shared/components'
 import { askAi } from '@lib/ai'
-import { MagnifyingGlass, Plus, Trash, X, Pen, Calendar, User, Clock, WarningCircle, FileXls, DownloadSimple, Check, FileText, CheckCircle, Printer, Sparkle, Warning, Info , HandHeart } from '@phosphor-icons/react'
+import { MagnifyingGlass, Plus, Trash, X, Pen, Calendar, User, Clock, WarningCircle, FileXls, DownloadSimple, Check, FileText, CheckCircle, Printer, Sparkle, Warning, Info, HandHeart } from '@phosphor-icons/react'
 import { useErrorHandler } from '@hooks'
 
 // Local storage key for fallback persistence
@@ -840,7 +840,6 @@ export default function CounselingPage() {
                 <PageHeader
                     title="Bimbingan & Konseling (BK)"
                     subtitle="Pusat pembinaan karakter, solusi psikososial, dan arahan karir santri MBS Tanggul."
-                    badge="Kesantrian"
                     actions={
                         <>
                             <button
@@ -1057,8 +1056,8 @@ export default function CounselingPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(log)}
                                                     className={`py-1 px-3 rounded-full text-[9px] font-black uppercase tracking-wider border transition-all ${log.status === 'selesai'
-                                                            ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20'
-                                                            : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 animate-pulse'
+                                                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20'
+                                                        : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 animate-pulse'
                                                         }`}
                                                 >
                                                     {log.status === 'selesai' ? '✓ Selesai' : '⏳ Pembinaan'}
@@ -1179,8 +1178,8 @@ export default function CounselingPage() {
                                                         <button
                                                             onClick={() => handleToggleStatus(log)}
                                                             className={`py-1 px-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider border transition-all ${log.status === 'selesai'
-                                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20'
-                                                                    : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 animate-pulse'
+                                                                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20'
+                                                                : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 animate-pulse'
                                                                 }`}
                                                         >
                                                             {log.status === 'selesai' ? 'Selesai' : '⏳ Pembinaan'}

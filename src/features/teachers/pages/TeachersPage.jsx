@@ -1051,7 +1051,6 @@ export default function TeachersPage() {
 
                 {/* ── Header ── */}
                 <PageHeader
-                    badge="Master Data"
                     title="Data Guru"
                     subtitle={`Kelola ${stats.total} data ${filterType === 'karyawan' ? 'karyawan' : filterType === 'guru' ? 'guru' : 'guru dan karyawan'} dalam sistem.`}
                     actions={

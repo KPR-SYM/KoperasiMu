@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
+import React, { useState, useRef, useMemo } from 'react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Tag, Trash, UploadSimple, Lightning, CheckSquare, Checks, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, RichSelect, EmptyState } from '@shared/components'
 
 // --- Static config (module scope) ---
 
@@ -13,10 +13,10 @@ const STEPS = [
 ]
 
 const TEMPLATE_COLS = [
-    { l: 'A', k: 'ACADEMIC_YEAR', n: 'Tahun Pelajaran', w: 'w-[25%]' },
-    { l: 'B', k: 'SEMESTER', n: 'Semester', w: 'w-[25%]' },
-    { l: 'C', k: 'START', n: 'Tanggal Mulai', w: 'w-[25%]' },
-    { l: 'D', k: 'END', n: 'Tanggal Selesai', w: 'w-[25%]' },
+    { l: 'A', k: 'academic_year', n: 'Tahun Pelajaran', w: 'w-[25%]' },
+    { l: 'B', k: 'semester', n: 'Semester', w: 'w-[25%]' },
+    { l: 'C', k: 'start_date', n: 'Tanggal Mulai', w: 'w-[25%]' },
+    { l: 'D', k: 'end_date', n: 'Tanggal Selesai', w: 'w-[25%]' },
 ]
 
 const SAMPLE_ROWS = [
@@ -73,6 +73,101 @@ const hasRowIssue = (r) => r._hasError || r._isDupe || r._hasWarn
 const isMappingComplete = (mapping) =>
     mapping.academic_year && mapping.semester && mapping.start_date && mapping.end_date
 
+// --- EditableCell Component ---
+const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImportEditCell, handleImportCellEdit }) => {
+    const isEditing = importEditCell?.row === rowIdx && importEditCell?.col === colKey
+    const cellRef = useRef(null)
+    const [coords, setCoords] = useState(null)
+
+    React.useLayoutEffect(() => {
+        if (isEditing && cellRef.current) {
+            const rect = cellRef.current.getBoundingClientRect()
+            setCoords({
+                anchorTop: rect.top,
+                left: rect.left,
+                width: rect.width
+            })
+        } else {
+            setCoords(null)
+        }
+    }, [isEditing])
+
+    const renderDropdown = (content) => {
+        if (!coords) return null
+
+        return createPortal(
+            <div
+                className="fixed z-[9999]"
+                style={{
+                    bottom: (window.innerHeight - coords.anchorTop) + 8,
+                    left: coords.left,
+                    minWidth: Math.max(coords.width, 140)
+                }}
+            >
+                <div className="flex flex-col bg-[var(--color-surface)] border border-[var(--color-primary)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border-t-[var(--color-primary)]">
+                    {content}
+                </div>
+                <div className="fixed inset-0 -z-10 bg-black/0" onClick={() => setImportEditCell(null)} />
+            </div>,
+            document.body
+        )
+    }
+
+    if (isEditing) {
+        if (colKey === 'semester') {
+            return (
+                <div ref={cellRef} className="relative">
+                    <div className="bg-[var(--color-primary)]/10 rounded-lg px-2 py-1 text-[var(--color-primary)] font-black uppercase text-center border border-[var(--color-primary)] shadow-sm">
+                        {value || '-'}
+                    </div>
+                    {renderDropdown(
+                        <div className="py-1">
+                            {SEMESTER_OPTIONS.map(opt => (
+                                <button
+                                    key={opt.id}
+                                    className="w-full px-4 py-2.5 text-left text-[10px] font-bold hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors flex items-center justify-between"
+                                    onClick={() => {
+                                        handleImportCellEdit(rowIdx, colKey, opt.id)
+                                        setImportEditCell(null)
+                                    }}
+                                >
+                                    <span>{opt.name}</span>
+                                    {value === opt.id && <Check className="w-2 h-2" />}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )
+        }
+
+        return (
+            <input
+                autoFocus
+                className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-primary)] rounded-lg px-2 py-1 text-[10px] font-black outline-none shadow-lg transition-all"
+                value={value || ''}
+                onChange={(e) => handleImportCellEdit(rowIdx, colKey, e.target.value)}
+                onBlur={() => setImportEditCell(null)}
+                onKeyDown={(e) => e.key === 'Enter' && setImportEditCell(null)}
+            />
+        )
+    }
+
+    const isCentered = ['semester'].includes(colKey)
+    const displayValue = value || '-'
+    const isEmpty = !value || value === '-'
+
+    return (
+        <div
+            className={`group cursor-pointer hover:bg-[var(--color-primary)]/5 px-1.5 py-0.5 -mx-1.5 rounded-md transition-all flex items-center ${isCentered ? 'justify-center' : 'justify-between'} gap-2 min-h-[20px] ${isEmpty ? 'text-red-500/40 italic font-normal' : ''}`}
+            onClick={() => setImportEditCell({ row: rowIdx, col: colKey })}
+        >
+            <span className={isCentered ? '' : 'truncate'}>{displayValue}</span>
+            {!isCentered && <Pen className="w-2 h-2 opacity-0 group-hover:opacity-30 transition-opacity" />}
+        </div>
+    )
+})
+
 export default function PeriodImportModal(props) {
     const {
         isOpen,
@@ -81,7 +176,6 @@ export default function PeriodImportModal(props) {
         importStep,
         setImportStep,
         importPreview,
-        importDuplicates,
         importFileName,
         importFileInputRef,
         importDragOver,
@@ -113,122 +207,40 @@ export default function PeriodImportModal(props) {
     } = props
 
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
-
-    const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImportEditCell, handleImportCellEdit }) => {
-        const isEditing = importEditCell?.row === rowIdx && importEditCell?.col === colKey
-        const cellRef = useRef(null)
-        const [coords, setCoords] = useState(null)
-
-        React.useLayoutEffect(() => {
-            if (isEditing && cellRef.current) {
-                const rect = cellRef.current.getBoundingClientRect()
-                setCoords({
-                    anchorTop: rect.top,
-                    left: rect.left,
-                    width: rect.width
-                })
-            } else {
-                setCoords(null)
-            }
-        }, [isEditing])
-
-        const renderDropdown = (content) => {
-            if (!coords) return null
-
-            return createPortal(
-                <div
-                    className="fixed z-[9999]"
-                    style={{
-                        bottom: (window.innerHeight - coords.anchorTop) + 8,
-                        left: coords.left,
-                        minWidth: Math.max(coords.width, 140)
-                    }}
-                >
-                    <div className="flex flex-col bg-[var(--color-surface)] border border-[var(--color-primary)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border-t-[var(--color-primary)]">
-                        {content}
-                    </div>
-                    <div className="fixed inset-0 -z-10 bg-black/0" onClick={() => setImportEditCell(null)} />
-                </div>,
-                document.body
-            )
-        }
-
-        if (isEditing) {
-            if (colKey === 'semester') {
-                return (
-                    <div ref={cellRef} className="relative">
-                        <div className="bg-[var(--color-primary)]/10 rounded-lg px-2 py-1 text-[var(--color-primary)] font-black uppercase text-center border border-[var(--color-primary)] shadow-sm">
-                            {value || '-'}
-                        </div>
-                        {renderDropdown(
-                            <div className="py-1">
-                                {SEMESTER_OPTIONS.map(opt => (
-                                    <button
-                                        key={opt.id}
-                                        className="w-full px-4 py-2.5 text-left text-[10px] font-bold hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors flex items-center justify-between"
-                                        onClick={() => {
-                                            handleImportCellEdit(rowIdx, colKey, opt.id)
-                                            setImportEditCell(null)
-                                        }}
-                                    >
-                                        <span>{opt.name}</span>
-                                        {value === opt.id && <Check className="w-2 h-2" />}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )
-            }
-
-            return (
-                <input
-                    autoFocus
-                    className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-primary)] rounded-lg px-2 py-1 text-[10px] font-black outline-none shadow-lg transition-all"
-                    value={value || ''}
-                    onChange={(e) => handleImportCellEdit(rowIdx, colKey, e.target.value)}
-                    onBlur={() => setImportEditCell(null)}
-                    onKeyDown={(e) => e.key === 'Enter' && setImportEditCell(null)}
-                />
-            )
-        }
-
-        const isCentered = ['semester'].includes(colKey)
-        const displayValue = value || '-'
-        const isEmpty = !value || value === '-'
-
-        return (
-            <div
-                className={`group cursor-pointer hover:bg-[var(--color-primary)]/5 px-1.5 py-0.5 -mx-1.5 rounded-md transition-all flex items-center ${isCentered ? 'justify-center' : 'justify-between'} gap-2 min-h-[20px] ${isEmpty ? 'text-red-500/40 italic font-normal' : ''}`}
-                onClick={() => setImportEditCell({ row: rowIdx, col: colKey })}
-            >
-                <span className={isCentered ? '' : 'truncate'}>{displayValue}</span>
-                {!isCentered && <Pen className="w-2 h-2 opacity-0 group-hover:opacity-30 transition-opacity" />}
-            </div>
-        )
+    const [colMenuOpen, setColMenuOpen] = useState(false)
+    const colMenuBtnRef = useRef(null)
+    const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
+    const [visibleCols, setVisibleCols] = useState({
+        period: true,
+        semester: true,
+        start_date: true,
+        end_date: true,
     })
 
-    if (!isOpen) return null
-
     // derived view data for review table
-    const visiblePreview = importPreview
-        .map((r, originalIdx) => ({ ...r, originalIdx }))
-        .filter(r => !filterIssuesOnly || hasRowIssue(r))
-    const visibleRows = visiblePreview.slice(0, 300)
+    const visiblePreview = useMemo(() =>
+        importPreview
+            .map((r, originalIdx) => ({ ...r, originalIdx }))
+            .filter(r => !filterIssuesOnly || hasRowIssue(r))
+    , [importPreview, filterIssuesOnly])
 
-    const statValues = {
+    const visibleRows = useMemo(() => visiblePreview.slice(0, 300), [visiblePreview])
+
+    const statValues = useMemo(() => ({
         total: importPreview.length,
         ready: importReadyRows.length,
         dupe: importPreview.filter(r => r._isDupe).length,
         error: importPreview.filter(r => r._hasError).length,
-    }
+    }), [importPreview, importReadyRows])
+
+    if (!isOpen) return null
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
             title="Import Data Tahun Pelajaran"
-            description="Unggah data periode akademik secara masal dari file Excel atau CSV."
+            description="Unggah data periode masal dari file Excel/CSV"
             icon={FileArrowDown}
             iconBg="bg-emerald-500/10"
             iconColor="text-emerald-600"
@@ -550,82 +562,188 @@ export default function PeriodImportModal(props) {
                                         {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
                                         <span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span>
                                     </button>
+
+                                    {/* Column Visibility Toggle */}
+                                    <div className="relative">
+                                        <button
+                                            ref={colMenuBtnRef}
+                                            onClick={(e) => {
+                                                const rect = e.currentTarget.getBoundingClientRect()
+                                                const menuHeight = 220
+                                                const spaceBelow = window.innerHeight - rect.bottom
+                                                const showUp = spaceBelow < menuHeight && rect.top > menuHeight
+                                                setColMenuPos({
+                                                    top: showUp ? (rect.top + window.scrollY - menuHeight - 8) : (rect.bottom + window.scrollY + 8),
+                                                    right: window.innerWidth - rect.right,
+                                                    showUp
+                                                })
+                                                setColMenuOpen(v => !v)
+                                            }}
+                                            title="Atur tampilan kolom"
+                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${colMenuOpen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                                        >
+                                            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg>
+                                        </button>
+                                        {colMenuOpen && createPortal(
+                                            <div className={`fixed z-[9999] w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'}`}
+                                                style={{ top: colMenuPos.top, right: colMenuPos.right }}>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Atur Kolom</p>
+                                                {[
+                                                    { key: 'period', label: 'Tahun Pelajaran' },
+                                                    { key: 'semester', label: 'Semester' },
+                                                    { key: 'start_date', label: 'Tanggal Mulai' },
+                                                    { key: 'end_date', label: 'Tanggal Selesai' },
+                                                ].map(({ key, label }) => (
+                                                    <button key={key} onClick={() => setVisibleCols(p => ({ ...p, [key]: !p[key] }))} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left">
+                                                        <span className="text-[11px] font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">{label}</span>
+                                                        <div className={`w-8 h-4.5 rounded-full transition-all flex items-center px-0.5 ${visibleCols[key] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`}>
+                                                            <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all ${visibleCols[key] ? 'translate-x-[14px]' : 'translate-x-0'}`} />
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>,
+                                            document.body
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
                                 <div className="max-h-[40vh] overflow-auto scrollbar-none">
-                                    <table className="w-full border-collapse table-fixed">
-                                        <thead>
-                                            <tr className="border-b border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
-                                                <th className="px-2 py-2 text-left text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[25%]">Tahun Pelajaran</th>
-                                                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[15%]">Semester</th>
-                                                <th className="px-2 py-2 text-left text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[20%]">Tanggal Mulai</th>
-                                                <th className="px-2 py-2 text-left text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[20%]">Tanggal Selesai</th>
-                                                <th className="px-2 py-2 text-center text-[8px] font-black uppercase tracking-tighter text-[var(--color-text-muted)] w-[8%]">Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {visibleRows.map((r) => {
-                                                const i = r.originalIdx
-                                                const status = getRowStatus(r)
-                                                const rowBg = status === 'error' ? 'bg-red-500/3' : status === 'dupe' ? 'bg-violet-500/3' : ''
-                                                const statusIcon = getStatusIcon(status)
-                                                return (
-                                                    <tr key={i} className={`hover:bg-[var(--color-surface-alt)]/40 transition-colors border-b border-[var(--color-border)]/30 last:border-0 ${rowBg}`}>
-                                                        <td className="px-2 py-0.5 font-bold text-[var(--color-text)] text-[10px] truncate">
-                                                            <EditableCell
-                                                                rowIdx={i} colKey="academic_year" value={r.academic_year}
-                                                                importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                handleImportCellEdit={handleImportCellEdit}
-                                                            />
+                                    {/* Desktop Table */}
+                                    <div className="hidden md:block overflow-x-auto">
+                                        <table className="w-full border-collapse table-fixed">
+                                            <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
+                                                <tr className="border-b border-[var(--color-border)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                                                    <th className="px-4 py-3 text-center w-12">
+                                                        <input type="checkbox" className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" disabled />
+                                                    </th>
+                                                    {visibleCols.period && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
+                                                    {visibleCols.semester && <th className="px-4 py-3 text-center w-24">Semester</th>}
+                                                    {visibleCols.start_date && <th className="px-4 py-3 text-left w-32">Tanggal Mulai</th>}
+                                                    {visibleCols.end_date && <th className="px-4 py-3 text-left w-32">Tanggal Selesai</th>}
+                                                    <th className="px-4 py-3 text-center w-20">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[var(--color-border)]/50">
+                                                {visibleRows.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan="6" className="py-16 text-center">
+                                                            <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" />
                                                         </td>
-                                                        <td className="px-2 py-0.5 text-center text-[var(--color-text-muted)] font-bold text-[10px]">
-                                                            <EditableCell
-                                                                rowIdx={i} colKey="semester" value={r.semester}
-                                                                importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                handleImportCellEdit={handleImportCellEdit}
-                                                            />
-                                                        </td>
-                                                        <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate">
-                                                            <EditableCell
-                                                                rowIdx={i} colKey="start_date" value={r.start_date}
-                                                                importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                handleImportCellEdit={handleImportCellEdit}
-                                                            />
-                                                        </td>
-                                                        <td className="px-2 py-0.5 text-[var(--color-text-muted)] font-bold text-[10px] truncate">
-                                                            <EditableCell
-                                                                rowIdx={i} colKey="end_date" value={r.end_date}
-                                                                importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                handleImportCellEdit={handleImportCellEdit}
-                                                            />
-                                                        </td>
-                                                        <td className="px-2 py-1">
-                                                            <div className="flex items-center justify-center gap-2">
+                                                    </tr>
+                                                ) : visibleRows.map((r) => {
+                                                    const i = r.originalIdx
+                                                    const status = getRowStatus(r)
+                                                    const rowBg = status === 'error' ? 'bg-red-500/3 border-l-2 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-2 border-l-violet-500' : ''
+                                                    const statusIcon = getStatusIcon(status)
+                                                    return (
+                                                        <tr key={i} className={`hover:bg-[var(--color-surface-alt)]/40 transition-colors ${rowBg}`}>
+                                                            <td className="px-4 py-3">
+                                                                <input type="checkbox" disabled className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
+                                                            </td>
+                                                            {visibleCols.period && (
+                                                                <td className="px-4 py-3">
+                                                                    <EditableCell
+                                                                        rowIdx={i} colKey="academic_year" value={r.academic_year}
+                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                                                        handleImportCellEdit={handleImportCellEdit}
+                                                                    />
+                                                                </td>
+                                                            )}
+                                                            {visibleCols.semester && (
+                                                                <td className="px-4 py-3 text-center">
+                                                                    <EditableCell
+                                                                        rowIdx={i} colKey="semester" value={r.semester}
+                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                                                        handleImportCellEdit={handleImportCellEdit}
+                                                                    />
+                                                                </td>
+                                                            )}
+                                                            {visibleCols.start_date && (
+                                                                <td className="px-4 py-3">
+                                                                    <EditableCell
+                                                                        rowIdx={i} colKey="start_date" value={r.start_date}
+                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                                                        handleImportCellEdit={handleImportCellEdit}
+                                                                    />
+                                                                </td>
+                                                            )}
+                                                            {visibleCols.end_date && (
+                                                                <td className="px-4 py-3">
+                                                                    <EditableCell
+                                                                        rowIdx={i} colKey="end_date" value={r.end_date}
+                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                                                        handleImportCellEdit={handleImportCellEdit}
+                                                                    />
+                                                                </td>
+                                                            )}
+                                                            <td className="px-4 py-3 text-center">
+                                                                <div className="flex items-center justify-center gap-2">
+                                                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
+                                                                        <statusIcon.Icon className="w-3.5 h-3.5" />
+                                                                    </span>
+
+                                                                    <button
+                                                                        onClick={() => handleRemoveImportRow(i)}
+                                                                        className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center group/del"
+                                                                        title="Hapus Baris"
+                                                                    >
+                                                                        <Trash className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    )
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Mobile Card View */}
+                                    <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3">
+                                        {visibleRows.length === 0 ? (
+                                            <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
+                                        ) : visibleRows.map((r) => {
+                                            const i = r.originalIdx
+                                            const status = getRowStatus(r)
+                                            const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
+                                            const statusIcon = getStatusIcon(status)
+                                            return (
+                                                <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
+                                                    <div className="flex items-start justify-between gap-2 mb-2">
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
                                                                 <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
                                                                     <statusIcon.Icon className="w-3 h-3" />
                                                                 </span>
-
-                                                                <button
-                                                                    onClick={() => handleRemoveImportRow(i)}
-                                                                    className="w-5 h-5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center group/del"
-                                                                    title="Hapus Baris"
-                                                                >
-                                                                    <Trash className="w-3 h-3 group-hover/del:scale-110 transition-transform" />
-                                                                </button>
+                                                                <span className="font-bold text-[var(--color-text)] text-sm truncate">{r.academic_year || '-'}</span>
                                                             </div>
-                                                        </td>
-                                                    </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                            <div className="flex flex-wrap gap-2 text-[11px] text-[var(--color-text-muted)]">
+                                                                {visibleCols.semester && <span className={`px-2 py-0.5 rounded-lg font-black uppercase tracking-wider ${r.semester === 'Ganjil' ? 'bg-indigo-500/10 text-indigo-600' : 'bg-purple-500/10 text-purple-600'}`}>{r.semester}</span>}
+                                                                {visibleCols.start_date && <span className="font-mono">{r.start_date || '-'}</span>}
+                                                                {visibleCols.end_date && <span className="font-mono">{r.end_date || '-'}</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center justify-end">
+                                                        <button
+                                                            onClick={() => handleRemoveImportRow(i)}
+                                                            className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                                            title="Hapus Baris"
+                                                        >
+                                                            <Trash className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                 </div>
-                                <div className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex items-center justify-between">
+                                <div className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
                                     <div className="flex items-center gap-4">
-                                        <span>Menampilkan {Math.min(visiblePreview.length, 300)} dari {importPreview.length} total baris</span>
-                                        <div className="w-px h-3 bg-[var(--color-border)]" />
+                                        <span>Menampilkan {Math.min(visibleRows.length, 300)} dari {importPreview.length} total baris</span>
+                                        <div className="w-px h-4 bg-[var(--color-border)]" />
                                         <span className="text-emerald-600 flex items-center gap-1.5">
                                             <CheckCircle className="w-2 h-2" />
                                             {importReadyRows.length} baris siap diimport
