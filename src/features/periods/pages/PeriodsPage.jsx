@@ -68,6 +68,7 @@ import {
     StatCard,
     EmptyState,
     BulkActionsBar,
+    ConfirmDialog,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
 import { ArchiveModal } from "@features/periods/components/PeriodConfirmModals";
@@ -251,6 +252,7 @@ function TimelineView({
                 title="Tidak Ada Data Ditemukan"
                 description="Sesuaikan filter atau kata kunci pencarian Anda"
                 color="slate"
+                variant="plain"
             />
         );
     }
@@ -550,7 +552,7 @@ export default function PeriodsPage() {
 
     // UI
     const { isPrivacyMode, togglePrivacyMode, maskValue } = usePrivacyMode({
-        idleTimeout: 30000,
+        idleTimeout: 0,
     });
     const [isShortcutOpen, setIsShortcutOpen] = useState(false);
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
@@ -592,6 +594,7 @@ export default function PeriodsPage() {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+    const [isGenerateConfirmOpen, setIsGenerateConfirmOpen] = useState(false);
 
     // Import State
     const [importStep, setImportStep] = useState(1);
@@ -2331,7 +2334,7 @@ export default function PeriodsPage() {
                                             <button
                                                 onClick={() => {
                                                     setIsHeaderMenuOpen(false);
-                                                    handleGenerateNextYear();
+                                                    setIsGenerateConfirmOpen(true);
                                                 }}
                                                 disabled={submitting || years.length === 0}
                                                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group disabled:opacity-40 disabled:cursor-not-allowed"
@@ -3563,6 +3566,30 @@ export default function PeriodsPage() {
                     fetchData={fetchData}
                     addToast={addToast}
                 />
+
+                <ConfirmDialog
+                    isOpen={isGenerateConfirmOpen}
+                    onClose={() => setIsGenerateConfirmOpen(false)}
+                    onConfirm={() => {
+                        setIsGenerateConfirmOpen(false);
+                        handleGenerateNextYear();
+                    }}
+                    title="Generate Tahun Pelajaran Baru"
+                    description={`Buat Periode untuk tahun berikutnya secara otomatis.`}
+                    icon={ArrowClockwise}
+                    iconBg="bg-indigo-500/10"
+                    iconColor="text-indigo-500"
+                    confirmText="Generate Sekarang"
+                    confirmIcon={ArrowClockwise}
+                    confirmClassName="h-9 px-5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    submitting={submitting}
+                >
+                    <p className="text-[11px] text-[var(--color-text-muted)] p-4 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)]">
+                        Sistem akan membuat{" "}
+                        <span className="font-black text-[var(--color-text)]">2 periode baru</span>{" "}
+                        (Ganjil + Genap) berdasarkan tahun pelajaran terakhir yang ada.
+                    </p>
+                </ConfirmDialog>
 
                 <React.Suspense fallback={null}>
                     {isExportModalOpen && (

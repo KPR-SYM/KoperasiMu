@@ -1,0 +1,136 @@
+﻿src/core/layouts/Sidebar.jsx:197:    // Funnel groups based on role
+src/core/layouts/SlimTopBar.jsx:144:    // ΓöÇΓöÇ Funnel search results ΓöÇΓöÇ
+src/core/layouts/TopNav.jsx:244:    // ΓöÇΓöÇ Funnel nav items by feature flags
+src/core/layouts/TopNav.jsx:253:    // Funnel master items by nav flags
+src/core/layouts/navItems.js:103: * Funnel nav items based on feature flags and role.
+src/features/admin/pages/LogsPage.jsx:2:import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, Funnel, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
+src/features/admin/pages/LogsPage.jsx:447:    // Funnel state
+src/features/admin/pages/LogsPage.jsx:805:                                <Funnel /> Funnel
+src/features/admin/pages/LogsPage.jsx:828:                    {/* Funnel panel */}
+src/features/admin/pages/LogsPage.jsx:850:                            {/* Funnel Aksi */}
+src/features/admin/pages/LogsPage.jsx:870:                            {/* Funnel Severity */}
+src/features/admin/pages/PlaygroundPage.jsx:2:import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Funnel, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
+src/features/admin/pages/PlaygroundPage.jsx:350:                    <Plus className="w-2 h-2" /> Funnel
+src/features/admin/pages/PlaygroundPage.jsx:1562:        { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Funnel] },
+src/features/admin/pages/PlaygroundPage.jsx:1659:                                        { tab: 'library', items: ['Data Table', 'Funnel Bar', 'Export', 'Pagination', 'TerminalWindow Palette', 'Tabs', 'Dropdown', 'Stat Cards', 'Profile Card', 'Onboarding', 'Wizard', 'Toast', 'Confirm Dialog', 'Notification', 'Drawer', 'Accordion', 'ClockClockwise', 'File UploadSimple', 'Rich TextT', 'Date Picker', 'Kanban', 'Rating', 'Permission', 'Inline Pen', 'OTP Input', 'Tag Input', 'Combobox'] },
+src/features/admin/pages/PlaygroundPage.jsx:1661:                                        { tab: 'forms', items: ['Login Form', 'Register Form', 'MagnifyingGlass & Funnel', 'Forgot Password', 'GearSix Form', 'Multi-field Form', 'Validation Patterns', 'Dynamic Fields'] },
+src/features/admin/pages/PlaygroundPage.jsx:2141:                                    code={`const iconGroups = [\n  { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Funnel] },\n  { label: 'Actions',    icons: [Plus, Trash, Copy, DownloadSimple, GearSix] },\n  { label: 'Status',     icons: [Check, X, Warning, Info, Bell] },\n  { label: 'Users',      icons: [User, Users, ShieldCheck, Key, Lock] },\n  { label: 'Content',    icons: [FileText, ChartLine, Calendar, Globe, Camera] },\n]\n\n{iconGroups.map(({ label, icons }) => (\n  <div key={label}>\n    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 mb-3">{label}</p>\n    <div className="flex flex-wrap gap-3">\n      {icons.map((icon, i) => (\n        <div key={i} className="w-10 h-10 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]/20 active:scale-90 transition-all cursor-pointer">\n          <icon className="text-sm" />\n        </div>\n      ))}\n    </div>\n  </div>\n))}`}
+src/features/admin/pages/PlaygroundPage.jsx:2388:                                                    cta: { label: 'Reset Funnel', color: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
+src/features/admin/pages/PlaygroundPage.jsx:2787:                                    <UIBlock fullWidth title="02 ┬╖ Funnel Bar" children={<FilterBarPreview />} code={`const [filters, setFilters] = useState([\n  { id: 'kelas', label: 'Kelas', value: '6A' },\n  { id: 'status', label: 'Status', value: 'Aktif' },\n])\n\nconst removeFilter = id =>\n  setFilters(prev => prev.filter(f => f.id !== id))\n\n<div className="flex flex-wrap items-center gap-2">\n  {filters.map(f => (\n    <div key={f.id} className="flex items-center gap-1.5 h-8 px-3 rounded-lg border text-[10px] font-black bg-sky-500/10 border-sky-500/20 text-sky-700">\n      {f.label}: {f.value}\n      <button onClick={() => removeFilter(f.id)}>\n        <X className="w-2 h-2" />\n      </button>\n    </div>\n  ))}\n</div>`} />
+src/features/admin/pages/PlaygroundPage.jsx:3198:                                    <UIBlock fullWidth title="03 ┬╖ MagnifyingGlass & Funnel Form" children={<SearchFilterFormPreview />} code={`const [q, setQ] = useState('')\nconst [kelas, setKelas] = useState('semua')\nconst [status, setStatus] = useState('semua')\n\nconst filtered = data\n  .filter(d =>\n    (q === '' || d.nama.toLowerCase().includes(q.toLowerCase())) &&\n    (kelas === 'semua' || d.kelas === kelas) &&\n    (status === 'semua' || d.status === status)\n  )`} />
+src/features/admin/pages/PlaygroundPage.jsx:3810:                                                { icon: MagnifyingGlass, bg: 'bg-amber-500/10 text-amber-600', title: 'Tidak ditemukan', desc: 'Tidak ada siswa yang cocok dengan "kelas 99". Coba kata lain.', cta: 'Reset Funnel', ctaColor: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
+src/features/admin/pages/SettingsPage.jsx:99:    { key: 'students.filters_advanced', label: 'Funnel Lanjutan', category: 'students', description: 'Panel filter detail (Gender, Status, Poin, dll)', sort_order: 15 },
+src/features/admin/pages/TasksPage.jsx:2:import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, Funnel, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
+src/features/admin/pages/TasksPage.jsx:408:                                        <Funnel className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] pointer-events-none" />
+src/features/admin/pages/UserPage.jsx:2:import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Funnel, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
+src/features/admin/pages/UserPage.jsx:680:                    {/* Funnel Role */}
+src/features/admin/pages/UserPage.jsx:692:                    {/* Funnel Linked */}
+src/features/admin/pages/UserPage.jsx:760:                                            {hasFilters && <div className="flex justify-center mt-4"><button onClick={resetFilters} className="h-8 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black hover:bg-[var(--color-surface-alt)] transition-all">Reset Funnel</button></div>}
+src/features/admin/pages/ai/AiInsightsPage.jsx:2:import { Warning, Robot, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Coins, Cpu, DownloadSimple, Eye, Funnel, DotsSix, ChartLine, List, PenNibStraight, ArrowClockwise, MagnifyingGlass, ShieldCheck, SlidersHorizontal, Sparkle, Square, Terminal, X, Lightning, ArrowCounterClockwise , ChatCircle } from '@phosphor-icons/react'
+src/features/admin/pages/ai/AiInsightsPage.jsx:407:                        {/* Funnel Toggle */}
+src/features/admin/pages/ai/AiInsightsPage.jsx:413:                            <span className="hidden sm:inline">Funnel</span>
+src/features/attendance/pages/AttendancePage.jsx:5:import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, Check, CheckCircle, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, Crosshair, DoorOpen, Eye, EyeSlash, FileText, FileArrowDown, FileArrowUp, Funnel, GridNine, Heartbeat, ClockCounterClockwise, Keyboard, Lightbulb, Link, LinkBreak, List, ListChecks, Spinner, Cursor, PresentationChart, Printer, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, MagnifyingGlass, GearSix, Sparkle, Table, TrendDown, TrendUp, UploadSimple, User, UserCheck, Users, X, XCircle, Lightning , Note } from '@phosphor-icons/react'
+src/features/attendance/pages/AttendancePage.jsx:1049:                { id: 'filter-alpa', label: 'Funnel: siswa alpa', desc: 'Tampilkan hanya yang sering alpa', icon: Funnel, color: '#dc2626', action: () => onAction('filterAlpa') },
+src/features/attendance/pages/AttendancePage.jsx:2667:                    {/* Funnel bulan */}
+src/features/attendance/pages/AttendancePage.jsx:3689:    // ├óΓÇ¥Γé¼├óΓÇ¥Γé¼ Feature 4: Funnel row siswa ├óΓÇ¥Γé¼├óΓÇ¥Γé¼
+src/features/attendance/pages/AttendancePage.jsx:4619:                                    {/* Funnel siswa */}
+src/features/attendance/pages/AttendancePage.jsx:4622:                                            <Funnel className="w-3 h-3" />
+src/features/attendance/pages/AttendancePage.jsx:4623:                                            Funnel Siswa
+src/features/attendance/pages/AttendancePage.jsx:4843:                                                                            icon={Funnel}
+src/features/attendance/pages/AttendancePage.jsx:4845:                                                                            description="Funnel aktif tidak menemukan siswa"
+src/features/classes/components/ClassExportModal.jsx:173:                                { val: 'filtered', label: 'Funnel Aktif', desc: `${classes.length} kelas`, icon: SlidersHorizontal },
+src/features/classes/components/ClassImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Trash, UploadSimple } from '@phosphor-icons/react'
+src/features/classes/components/ClassImportModal.jsx:325:                                    <button onClick={() => setFilterIssuesOnly(!filterIssuesOnly)} className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${filterIssuesOnly ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}>{filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}<span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span></button>
+src/features/classes/components/ClassImportModal.jsx:374:                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+src/features/classes/pages/ClassesPage.jsx:2:import { Archive, ArrowDown, Bed, Buildings, Check, Checks, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Funnel, Keyboard, Link, Spinner, GenderMale, Plus, MagnifyingGlass, SlidersHorizontal, Trash, UploadSimple, UserCheck, Users, GenderFemale, X, ArrowCounterClockwise } from '@phosphor-icons/react'
+src/features/classes/pages/ClassesPage.jsx:351:    // Funnel & Sort Logic
+src/features/classes/pages/ClassesPage.jsx:570:            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}  |  Total: ${allRows.length} kelas  |  Scope: ${exportScope === 'filtered' ? 'Funnel Aktif' : exportScope === 'selected' ? 'Dipilih' : 'Semua'}`, 14, 18)
+src/features/classes/pages/ClassesPage.jsx:1072:                {/* ΓöÇΓöÇ Funnel Bar ΓöÇΓöÇ */}
+src/features/classes/pages/ClassesPage.jsx:1086:                        {/* Quick Funnel Chips - Desktop Only */}
+src/features/classes/pages/ClassesPage.jsx:1114:                            {/* UsersThree 2: Funnel Cepat */}
+src/features/classes/pages/ClassesPage.jsx:1176:                                <span className="hidden xs:inline">Funnel</span>
+src/features/classes/pages/ClassesPage.jsx:1182:                    {/* Active Funnel Chips */}
+src/features/classes/pages/ClassesPage.jsx:1249:                                        Funnel Lanjutan
+src/features/classes/pages/ClassesPage.jsx:1257:                                    Reset Semua Funnel
+src/features/classes/pages/ClassesPage.jsx:1410:                                                                    Reset Semua Funnel
+src/features/classes/pages/ClassesPage.jsx:1454:                                                    Reset Semua Funnel
+src/features/counseling/pages/CounselingPage.jsx:465:    // --- Funnel & MagnifyingGlass Logic ---
+src/features/counseling/pages/CounselingPage.jsx:891:                {/* MagnifyingGlass & Funnel Toolbar */}
+src/features/dorms/ui/DormTabCleanliness.jsx:41:                    {/* Funnel Bar */}
+src/features/dorms/ui/DormTabCleanliness.jsx:44:                        {/* Room Funnel ΓÇö RichSelect compact */}
+src/features/dorms/ui/DormTabPlotting.jsx:82:                    {/* Quick Funnel Chips - Desktop Only */}
+src/features/dorms/ui/DormTabPlotting.jsx:158:                        {/* Advanced Funnel Sliders */}
+src/features/dorms/ui/DormTabPlotting.jsx:177:                {/* Active Funnel Chips */}
+src/features/dorms/ui/DormTabPlotting.jsx:204:                {/* Row 2: Advanced Funnel Panel */}
+src/features/dorms/ui/DormsImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, House, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, User, GenderIntersex, Lightning } from '@phosphor-icons/react'
+src/features/dorms/ui/DormsImportModal.jsx:487:                                {/* Funnel & Controls */}
+src/features/dorms/ui/DormsImportModal.jsx:497:                                        <Funnel className="w-2 h-2" />
+src/features/dorms/ui/DormsInventoryModal.jsx:83:                        {/* Funnel pills */}
+src/features/enrollment/components/EnrollmentExportModal.jsx:181:                                { val: 'filtered', label: 'Funnel Aktif', desc: `${enrollments.length} pendaftar`, icon: SlidersHorizontal },
+src/features/enrollment/components/EnrollmentImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning, Waves } from '@phosphor-icons/react'
+src/features/enrollment/components/EnrollmentImportModal.jsx:631:                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
+src/features/enrollment/components/EnrollmentImportModal.jsx:764:                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+src/features/enrollment/components/EnrollmentStatsModal.jsx:2:import { CalendarBlank, CheckCircle, CaretRight, FileXls, Funnel, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
+src/features/enrollment/components/EnrollmentStatsModal.jsx:21:    // 1. Funnel enrollments array locally by selected wave!
+src/features/enrollment/components/EnrollmentStatsModal.jsx:33:                funnel: { total: 0, verified: 0, test: 0, accepted: 0 },
+src/features/enrollment/components/EnrollmentStatsModal.jsx:47:        // Funnel Seleksi Calculations
+src/features/enrollment/components/EnrollmentStatsModal.jsx:51:        const funnel = { total, verified, test, accepted }
+src/features/enrollment/components/EnrollmentStatsModal.jsx:192:            funnel,
+src/features/enrollment/components/EnrollmentStatsModal.jsx:220:                ['Pendaftar Terverifikasi', stats.funnel.verified],
+src/features/enrollment/components/EnrollmentStatsModal.jsx:221:                ['Mengikuti Tes Seleksi', stats.funnel.test],
+src/features/enrollment/components/EnrollmentStatsModal.jsx:222:                ['Diterima', stats.funnel.accepted],
+src/features/enrollment/components/EnrollmentStatsModal.jsx:478:                    /* Force funnel steps to render side-by-side in print */
+src/features/enrollment/components/EnrollmentStatsModal.jsx:503:            {/* Header Toolbar: Wave Funnel directly in statistics */}
+src/features/enrollment/components/EnrollmentStatsModal.jsx:541:                    {/* Corong Seleksi Flow - Highly Visual Funnel with Arrow Connectors */}
+src/features/enrollment/components/EnrollmentStatsModal.jsx:544:                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Corong Seleksi (Funnel Pendaftaran)</span>
+src/features/enrollment/components/EnrollmentStatsModal.jsx:545:                            <Funnel className="text-violet-500 w-3 h-3" />
+src/features/enrollment/components/EnrollmentStatsModal.jsx:550:                                { title: 'Pendaftaran', sub: 'Santri Baru', count: stats.funnel.total, pct: '100%', bg: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+src/features/enrollment/components/EnrollmentStatsModal.jsx:551:                                { title: 'Terverifikasi', sub: 'Berkas Lengkap', count: stats.funnel.verified, pct: `${stats.funnel.total > 0 ? Math.round((stats.funnel.verified / stats.funnel.total) * 100) : 0}%`, bg: 'bg-amber-50 border-amber-200 text-amber-700' },
+src/features/enrollment/components/EnrollmentStatsModal.jsx:552:                                { title: 'Tahap Seleksi', sub: 'Mengikuti Ujian', count: stats.funnel.test, pct: `${stats.funnel.total > 0 ? Math.round((stats.funnel.test / stats.funnel.total) * 100) : 0}%`, bg: 'bg-blue-50 border-blue-200 text-blue-700' },
+src/features/enrollment/components/EnrollmentStatsModal.jsx:553:                                { title: 'Diterima', sub: 'Lolos Seleksi', count: stats.funnel.accepted, pct: `${stats.funnel.total > 0 ? Math.round((stats.funnel.accepted / stats.funnel.total) * 100) : 0}%`, bg: 'bg-emerald-50 border-emerald-200 text-emerald-700' }
+src/features/enrollment/pages/EnrollmentPage.jsx:256:                {/* Funnel Bar */}
+src/features/enrollment/pages/EnrollmentPage.jsx:325:                                <span className="hidden xs:inline">Funnel</span>
+src/features/enrollment/pages/EnrollmentPage.jsx:391:                                        Funnel Lanjutan
+src/features/enrollment/pages/EnrollmentPage.jsx:399:                                    Reset Semua Funnel
+src/features/enrollment/pages/EnrollmentPage.jsx:533:                                                        <ArrowCounterClockwise className="w-3 h-3" /> Reset Semua Funnel
+src/features/enrollment/pages/EnrollmentPage.jsx:572:                                            Reset Funnel
+src/features/health/pages/HealthPage.jsx:251:        // Funnel out non-selected medicines
+src/features/health/pages/HealthPage.jsx:1217:                                            Reset Funnel
+src/features/health/pages/HealthPage.jsx:1455:                                            Reset Funnel
+src/features/news/components/MediaLibraryModal.jsx:2:import { Check, CaretLeft, CaretRight, CloudArrowUp, Funnel, ImageSquare, Spinner, MagnifyingGlass, Trash, X } from '@phosphor-icons/react'
+src/features/news/pages/NewsEditorPage.jsx:2:import { Warning, TextAlignLeft, ArrowRight, TextB, BookOpenText, Check, CheckCircle, CaretDown, CaretLeft, Clock, CloudRain, CloudArrowUp, Coffee, ArrowSquareOut, Eye, EyeSlash, FastForward, Funnel, Globe, Hash, ImageSquare, Info, TextItalic, Keyboard, Leaf, Link, Spinner, ArrowsOutCardinal, Moon, MusicNote, NewspaperClipping, Pause, Pen, Play, Plus, Repeat, Rewind, FloppyDisk, ShareNetwork, Sparkle, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper, ClockCounterClockwise } from '@phosphor-icons/react'
+src/features/news/pages/NewsEditorPage.jsx:1116:                                { id: 'settings', label: 'Pengaturan', icon: Funnel },
+src/features/news/pages/NewsEditorPage.jsx:2219:                    <Funnel className="text-[var(--color-text-muted)] opacity-30" />
+src/features/news/pages/NewsListPage.jsx:2:import { Warning, TextAlignLeft, Archive, BookOpenText, Calendar, Check, CheckSquare, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, ArrowSquareOut, Eye, EyeSlash, Funnel, Globe, DotsSix, Hash, ImageSquare, List, Spinner, NewspaperClipping, Pen, Plus, Rocket, MagnifyingGlass, SlidersHorizontal, Sparkle, Square, Star, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
+src/features/news/pages/NewsListPage.jsx:377:    // ΓöÇΓöÇ Get Current User Name for Funnel ΓöÇΓöÇ
+src/features/news/pages/NewsListPage.jsx:478:    // ΓöÇΓöÇ Fetch Authors & Tag for Funnel ΓöÇΓöÇ
+src/features/news/pages/NewsListPage.jsx:737:                {/* ΓöÇΓöÇ Toolbar (MagnifyingGlass & Funnel) ΓöÇΓöÇ */}
+src/features/news/pages/NewsListPage.jsx:774:                            {/* Funnel toggle */}
+src/features/news/pages/NewsListPage.jsx:780:                                <span className="hidden xs:inline">Funnel</span>
+src/features/periods/components/PeriodExportModal.jsx:122:        { val: 'filtered', label: 'Funnel Aktif', desc: `${years.length} periode`, icon: SlidersHorizontal, disabled: false },
+src/features/periods/components/PeriodImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Tag, Trash, UploadSimple, Lightning, CheckSquare, Checks, MagnifyingGlass, X } from '@phosphor-icons/react'
+src/features/periods/components/PeriodImportModal.jsx:562:                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
+src/features/periods/components/PeriodImportModal.jsx:752:                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+src/features/periods/pages/PeriodsPage.jsx:512:    // MagnifyingGlass & Funnel
+src/features/periods/pages/PeriodsPage.jsx:1734:                `Tanggal: ${new Date().toLocaleDateString("id-ID")}  |  Total: ${allRows.length} periode  |  Scope: ${exportScope === "filtered" ? "Funnel Aktif" : exportScope === "selected" ? "Dipilih" : "Semua"}`,
+src/features/periods/pages/PeriodsPage.jsx:2583:                        {/* Quick Funnel Chips */}
+src/features/students/components/StudentExportModal.jsx:190:                                { val: 'filtered', label: 'Funnel Aktif', desc: `${students.length} siswa`, icon: SlidersHorizontal },
+src/features/students/components/StudentImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
+src/features/students/components/StudentImportModal.jsx:613:                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
+src/features/students/components/StudentImportModal.jsx:739:                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+src/features/students/pages/StudentsPage.jsx:778:                        {/* Quick Funnel Chips - Desktop Only */}
+src/features/students/pages/StudentsPage.jsx:878:                    {/* Active Funnel Chips */}
+src/features/students/pages/StudentsPage.jsx:1062:                                                    XLSX.utils.book_append_sheet(wb, ws, 'Funnel')
+src/features/teachers/components/TeacherExportModal.jsx:191:                                { val: 'filtered', label: 'Funnel Aktif', desc: `${teachers.length} guru`, icon: SlidersHorizontal },
+src/features/teachers/components/TeacherImportModal.jsx:2:import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Book, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
+src/features/teachers/components/TeacherImportModal.jsx:632:                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
+src/features/teachers/components/TeacherImportModal.jsx:733:                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+src/features/teachers/pages/TeachersPage.jsx:808:        // Funnel out dupes if skip is enabled (need to check against DB for real dupe check)
+src/features/teachers/pages/TeachersPage.jsx:959:            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}  |  Total: ${allRows.length} guru  |  Scope: ${exportScope === 'filtered' ? 'Funnel Aktif' : exportScope === 'selected' ? 'Dipilih' : 'Semua'}`, 14, 18)
+src/features/teachers/pages/TeachersPage.jsx:1269:                {/* ΓöÇΓöÇ Funnel Bar ΓöÇΓöÇ */}
+src/features/teachers/pages/TeachersPage.jsx:1283:                        {/* Quick Funnel Chips - Desktop Only */}
+src/features/teachers/pages/TeachersPage.jsx:1383:                                <span className="hidden xs:inline">Funnel</span>
+src/features/teachers/pages/TeachersPage.jsx:1389:                    {/* Active Funnel Chips */}
+src/features/teachers/pages/TeachersPage.jsx:1468:                                        Funnel Lanjutan
+src/features/teachers/pages/TeachersPage.jsx:1476:                                    Reset Semua Funnel
+src/shared/components/RichSelect.jsx:238:            {/* Dynamic Grouping Funnel Pills */}

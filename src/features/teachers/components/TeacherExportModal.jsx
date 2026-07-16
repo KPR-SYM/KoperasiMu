@@ -158,7 +158,7 @@ export default function TeacherExportModal({
                                 {/* Track ring */}
                                 <div className="absolute inset-0 rounded-full border-2 border-[var(--color-primary)]/10"></div>
                                 {/* Spinning active ring with premium glow filter */}
-                                <div 
+                                <div
                                     className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--color-primary)] border-r-[var(--color-primary)] animate-spin"
                                     style={{ filter: 'drop-shadow(0 0 4px var(--color-primary))' }}
                                 ></div>
@@ -188,7 +188,7 @@ export default function TeacherExportModal({
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 â€” Jangkauan Data</p>
                         <div className="grid grid-cols-3 gap-2.5">
                             {[
-                                { val: 'filtered', label: 'Funnel Aktif', desc: `${teachers.length} guru`, icon: SlidersHorizontal },
+                                { val: 'filtered', label: 'Filter Aktif', desc: `${teachers.length} guru`, icon: SlidersHorizontal },
                                 { val: 'selected', label: 'Dipilih', desc: `${selectedTeacherIds.length} guru`, icon: CheckCircle, disabled: selectedTeacherIds.length === 0 },
                                 { val: 'all', label: 'Semua', desc: 'Tanpa filter', icon: Users },
                             ].map(({ val, label, desc, icon, disabled }) => (

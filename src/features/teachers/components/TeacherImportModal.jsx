@@ -423,8 +423,8 @@ export default function TeacherImportModal(props) {
                                     <button
                                         onClick={() => setShowSubjectsDropdown(!showSubjectsDropdown)}
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-300
-                                            ${showSubjectsDropdown 
-                                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' 
+                                            ${showSubjectsDropdown
+                                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20'
                                                 : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text)] hover:border-emerald-500/50 hover:bg-emerald-500/5'}`}
                                     >
                                         <span className="text-[10px] font-black uppercase tracking-widest">Daftar Mapel Valid</span>
@@ -730,7 +730,7 @@ export default function TeacherImportModal(props) {
                                             {importReadyRows.length} baris siap diimport
                                         </span>
                                     </div>
-                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Filter "Hanya Isu" Aktif</span>}
                                 </div>
                             </div>
 
