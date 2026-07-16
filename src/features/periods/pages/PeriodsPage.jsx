@@ -45,7 +45,7 @@ import {
     Lock,
     LockOpen,
     CheckSquare as CheckSquareIcon,
-    RotateCw,
+    ArrowClockwise,
 } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
@@ -70,7 +70,6 @@ import {
     BulkActionsBar,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
-import PeriodCalendarView from "@features/periods/components/PeriodCalendarView";
 import { ArchiveModal } from "@features/periods/components/PeriodConfirmModals";
 import PeriodArchiveModal from "@features/periods/components/PeriodArchiveModal";
 
@@ -575,10 +574,7 @@ export default function PeriodsPage() {
         } catch {
             return "table";
         }
-    }); // 'table' | 'timeline' | 'calendar'
-
-    const [viewDate, setViewDate] = useState(() => new Date());
-    const [selectedPeriodId, setSelectedPeriodId] = useState(null);
+    }); // 'table' | 'timeline'
 
     // Selection & Data state
     const [selectedItem, setSelectedItem] = useState(null);
@@ -664,8 +660,9 @@ export default function PeriodsPage() {
             const { data, error } = await supabase
                 .from("periods")
                 .select(
-                    "id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked",
+                    "id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked,deleted_at",
                 )
+                .is("deleted_at", null)
                 .order("academic_year", { ascending: false });
             if (error) throw error;
             const rows = data || [];
@@ -692,10 +689,10 @@ export default function PeriodsPage() {
             const { data } = await supabase
                 .from("periods")
                 .select(
-                    "id,academic_year,semester,start_date,end_date,is_active,created_at,updated_at,is_locked",
+                    "id,academic_year,semester,start_date,end_date,is_active,created_at,updated_at,is_locked,deleted_at",
                 )
-                .eq("is_active", false)
-                .order("created_at", { ascending: false });
+                .not("deleted_at", "is", null)
+                .order("deleted_at", { ascending: false });
             setArchivedYears(data || []);
         } catch (err) {
             console.warn("[PeriodsPage] fetchArchived failed:", err);
@@ -1259,10 +1256,11 @@ export default function PeriodsPage() {
         if (!itemToDelete) return;
         setSubmitting(true);
         const archived = itemToDelete;
+        const now = new Date().toISOString();
         try {
             await supabase
                 .from("periods")
-                .update({ is_active: false })
+                .update({ deleted_at: now })
                 .eq("id", archived.id);
             try {
                 await logAudit({
@@ -1270,7 +1268,7 @@ export default function PeriodsPage() {
                     source: "MASTER",
                     tableName: "periods",
                     recordId: archived.id,
-                    newData: { is_active: false },
+                    newData: { deleted_at: now },
                 });
             } catch (e) {
                 console.warn("[PeriodsPage] logAudit skip:", e.message);
@@ -1282,7 +1280,7 @@ export default function PeriodsPage() {
                 async () => {
                     await supabase
                         .from("periods")
-                        .update({ is_active: true })
+                        .update({ deleted_at: null })
                         .eq("id", archived.id);
                     fetchData();
                 },
@@ -1297,10 +1295,11 @@ export default function PeriodsPage() {
 
     const handleBulkDelete = async () => {
         setSubmitting(true);
+        const now = new Date().toISOString();
         try {
             await supabase
                 .from("periods")
-                .update({ is_active: false })
+                .update({ deleted_at: now })
                 .in("id", selectedIds);
             addToast(`${selectedIds.length} data diarsipkan`, "success");
             setSelectedIds([]);
@@ -2338,7 +2337,7 @@ export default function PeriodsPage() {
                                                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group disabled:opacity-40 disabled:cursor-not-allowed"
                                             >
                                                 <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <RotateCw className="w-3 h-3" />
+                                                    <ArrowClockwise className="w-3 h-3" />
                                                 </div>
                                                 <div className="text-left">
                                                     <p className="text-[11px] font-black leading-tight">
@@ -2593,8 +2592,8 @@ export default function PeriodsPage() {
                                             setFilterSemester(filterSemester === s.id ? "" : s.id)
                                         }
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
-                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                                : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
                                             }`}
                                     >
                                         <s.icon
@@ -2618,8 +2617,8 @@ export default function PeriodsPage() {
                                             setFilterStatus(filterStatus === s.id ? "" : s.id)
                                         }
                                         className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
-                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                                : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
                                             }`}
                                     >
                                         <s.icon
@@ -2648,13 +2647,6 @@ export default function PeriodsPage() {
                                 >
                                     <ClockClockwise className="w-3 h-3" />
                                     <span>Linimasa</span>
-                                </button>
-                                <button
-                                    onClick={() => setViewMode("calendar")}
-                                    className={`h-7 px-3 rounded-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-wider transition-all ${viewMode === "calendar" ? "bg-[var(--color-primary)] text-white shadow-md" : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"}`}
-                                >
-                                    <Calendar className="w-3 h-3" />
-                                    <span>Kalender</span>
                                 </button>
                             </div>
 
@@ -2976,26 +2968,6 @@ export default function PeriodsPage() {
                                     submitting={submitting}
                                     isPrivacyMode={isPrivacyMode}
                                     maskValue={maskValue}
-                                />
-                            ) : viewMode === "calendar" ? (
-                                <PeriodCalendarView
-                                    periods={filtered}
-                                    onEdit={handleEdit}
-                                    onDelete={(y) => {
-                                        setItemToDelete(y);
-                                        setIsDeleteModalOpen(true);
-                                    }}
-                                    onSetActive={handleSetActive}
-                                    onToggleLock={handleToggleLock}
-                                    onDuplicate={handleDuplicate}
-                                    onOpenHistory={handleOpenHistory}
-                                    canEdit={canEdit}
-                                    isPrivacyMode={isPrivacyMode}
-                                    maskValue={maskValue}
-                                    viewDate={viewDate}
-                                    setViewDate={setViewDate}
-                                    selectedPeriodId={selectedPeriodId}
-                                    setSelectedPeriodId={setSelectedPeriodId}
                                 />
                             ) : (
                                 <>

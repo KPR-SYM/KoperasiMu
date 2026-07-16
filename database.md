@@ -53,6 +53,7 @@
 | `locked_by` | `uuid` |  Nullable |
 | `created_at` | `timestamptz` |  Nullable |
 | `updated_at` | `timestamptz` |  Nullable |
+| `deleted_at` | `timestamptz` |  Nullable |
 
 ## Table `enrollment_waves`
 

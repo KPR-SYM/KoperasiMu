@@ -76,7 +76,6 @@ export default function DormsPage() {
             <div className="p-4 sm:p-6 space-y-5">
                 {/* --- HEADER --- */}
                 <PageHeader
-                    badge={t('dorms.badge')}
                     title={t('dorms.title')}
                     subtitle={t('dorms.subtitle')}
                     actions={
@@ -91,16 +90,15 @@ export default function DormsPage() {
                                         }
                                         setIsHeaderMenuOpen(v => !v)
                                     }}
-                                    className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-all ${
-                                        isHeaderMenuOpen
+                                    className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-all ${isHeaderMenuOpen
                                             ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]'
                                             : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                    }`}
+                                        }`}
                                     title={t('dorms.dataOptions')}
                                 >
                                     <Sliders className="w-4 h-4" />
                                 </button>
-                                
+
                                 {headerMenuMounted && headerMenuRect && createPortal(
                                     <>
                                         <div
@@ -108,9 +106,8 @@ export default function DormsPage() {
                                             onClick={() => setIsHeaderMenuOpen(false)}
                                         />
                                         <div
-                                            className={`fixed z-[9991] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-2 transition-[opacity,transform] duration-200 ease-out origin-top-right ${
-                                                isHeaderMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'
-                                            }`}
+                                            className={`fixed z-[9991] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-2 transition-[opacity,transform] duration-200 ease-out origin-top-right ${isHeaderMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'
+                                                }`}
                                             style={{ top: headerMenuRect.bottom + 8, left: Math.max(10, headerMenuRect.right - 224) }}
                                         >
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">{t('dorms.dataOptions')}</p>
@@ -152,11 +149,10 @@ export default function DormsPage() {
                             {/* Privasi */}
                             <button
                                 onClick={() => setIsPrivacyMode(v => !v)}
-                                className={`h-9 px-3 rounded-lg border flex items-center gap-2 transition-all ${
-                                    isPrivacyMode
+                                className={`h-9 px-3 rounded-lg border flex items-center gap-2 transition-all ${isPrivacyMode
                                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-600'
                                         : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                                }`}
+                                    }`}
                                 title={isPrivacyMode ? t('dorms.privacyModeOn') : t('dorms.privacyModeOff')}
                             >
                                 {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

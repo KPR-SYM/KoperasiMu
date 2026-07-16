@@ -247,7 +247,7 @@ export default function HealthPage() {
         }
 
         const selectedStudent = studentsList.find(s => s.id === formLog.student_id)
-        
+
         // Funnel out non-selected medicines
         const activeMedsList = selectedMeds.filter(m => m.medicine_id)
         const primaryMed = activeMedsList[0] || null
@@ -309,7 +309,7 @@ export default function HealthPage() {
                     const medObj = medicines.find(m => m.id === item.medicine_id)
                     if (medObj && item.qty > 0) {
                         const nextStock = Math.max(0, medObj.stock - Number(item.qty))
-                        
+
                         await supabase
                             .from('health_medicines')
                             .update({ stock: nextStock })
@@ -327,7 +327,7 @@ export default function HealthPage() {
             setActiveLog(null)
         } catch (err) {
             console.error('[HealthPage] Gagal menyimpan ke Supabase, fallback ke local:', err.message)
-            
+
             // Fallback localStorage flow
             const backupId = activeLog ? activeLog.id : `log-${Date.now()}`
             const backupObj = {
@@ -476,7 +476,7 @@ export default function HealthPage() {
             setActiveMed(null)
         } catch (err) {
             console.warn('[HealthPage] Gagal simpan obat ke Supabase, fallback ke lokal:', err.message)
-            
+
             const backupId = activeMed ? activeMed.id : `med-${Date.now()}`
             const backupMed = {
                 id: backupId,
@@ -507,25 +507,25 @@ export default function HealthPage() {
         if (!formLog.complaint.trim()) return
 
         setAiLoading(true)
-        
+
         try {
             // 1. Try calling the powerful Groq AI model
             const rawResponse = await askAi(formLog.complaint, "medical")
-            
+
             // Check if response contains an error or isn't structured JSON
             if (rawResponse && !rawResponse.startsWith("Error") && !rawResponse.includes("API Key Groq")) {
                 const parsed = JSON.parse(rawResponse)
-                
+
                 if (parsed.diagnosis && parsed.treatment) {
                     let mappedMeds = []
 
                     // Match multiple medicines dynamically from local database using comma-separated keywords from Groq
                     if (parsed.medicine_keyword) {
                         const keywords = parsed.medicine_keyword.split(',').map(k => k.trim().toLowerCase()).filter(Boolean)
-                        
+
                         for (const kw of keywords) {
-                            const matchedMed = medicines.find(m => 
-                                m.name.toLowerCase().includes(kw) || 
+                            const matchedMed = medicines.find(m =>
+                                m.name.toLowerCase().includes(kw) ||
                                 kw.includes(m.name.toLowerCase())
                             )
                             if (matchedMed) {
@@ -565,7 +565,7 @@ export default function HealthPage() {
         // 2. Local Fallback Engine (Runs completely offline, instant, zero latency)
         setTimeout(() => {
             const complaintLower = formLog.complaint.toLowerCase()
-            
+
             let guessedDiagnosis = 'Pemeriksaan UKS'
             let guessedTreatment = 'Istirahat di ruang UKS dan pantau kondisi fisik santri secara berkala.'
             let guessedMedicineId = '' // Default: Tidak ada obat / obat luar saja
@@ -573,9 +573,9 @@ export default function HealthPage() {
 
             // 1. Demam / Panas / Menggigil
             if (
-                complaintLower.includes('panas') || 
-                complaintLower.includes('demam') || 
-                complaintLower.includes('gigil') || 
+                complaintLower.includes('panas') ||
+                complaintLower.includes('demam') ||
+                complaintLower.includes('gigil') ||
                 complaintLower.includes('suhu') ||
                 complaintLower.includes('hangat')
             ) {
@@ -589,9 +589,9 @@ export default function HealthPage() {
             }
             // 2. Pusing / Sakit Kepala
             else if (
-                complaintLower.includes('pusing') || 
-                complaintLower.includes('sakit kepala') || 
-                complaintLower.includes('migrain') || 
+                complaintLower.includes('pusing') ||
+                complaintLower.includes('sakit kepala') ||
+                complaintLower.includes('migrain') ||
                 complaintLower.includes('pening') ||
                 complaintLower.includes('nyut')
             ) {
@@ -605,11 +605,11 @@ export default function HealthPage() {
             }
             // 3. Maag Kambuh / Mual / Lambung
             else if (
-                complaintLower.includes('maag') || 
-                complaintLower.includes('lambung') || 
-                complaintLower.includes('mual') || 
-                complaintLower.includes('muntah') || 
-                complaintLower.includes('ulu hati') || 
+                complaintLower.includes('maag') ||
+                complaintLower.includes('lambung') ||
+                complaintLower.includes('mual') ||
+                complaintLower.includes('muntah') ||
+                complaintLower.includes('ulu hati') ||
                 complaintLower.includes('perih perut') ||
                 complaintLower.includes('asam lambung')
             ) {
@@ -623,11 +623,11 @@ export default function HealthPage() {
             }
             // 4. Gatal-gatal / Alergi
             else if (
-                complaintLower.includes('gatal') || 
-                complaintLower.includes('alergi') || 
-                complaintLower.includes('ruam') || 
-                complaintLower.includes('bintik') || 
-                complaintLower.includes('panu') || 
+                complaintLower.includes('gatal') ||
+                complaintLower.includes('alergi') ||
+                complaintLower.includes('ruam') ||
+                complaintLower.includes('bintik') ||
+                complaintLower.includes('panu') ||
                 complaintLower.includes('kurap') ||
                 complaintLower.includes('kudis')
             ) {
@@ -641,10 +641,10 @@ export default function HealthPage() {
             }
             // 5. Batuk / Pilek / Flu
             else if (
-                complaintLower.includes('batuk') || 
-                complaintLower.includes('pilek') || 
-                complaintLower.includes('flu') || 
-                complaintLower.includes('bersin') || 
+                complaintLower.includes('batuk') ||
+                complaintLower.includes('pilek') ||
+                complaintLower.includes('flu') ||
+                complaintLower.includes('bersin') ||
                 complaintLower.includes('tenggorokan') ||
                 complaintLower.includes('sanaflu')
             ) {
@@ -658,11 +658,11 @@ export default function HealthPage() {
             }
             // 6. Luka Lecet / Terjatuh / Keseleo
             else if (
-                complaintLower.includes('luka') || 
-                complaintLower.includes('jatuh') || 
-                complaintLower.includes('lecet') || 
-                complaintLower.includes('darah') || 
-                complaintLower.includes('keseleo') || 
+                complaintLower.includes('luka') ||
+                complaintLower.includes('jatuh') ||
+                complaintLower.includes('lecet') ||
+                complaintLower.includes('darah') ||
+                complaintLower.includes('keseleo') ||
                 complaintLower.includes('terkilir') ||
                 complaintLower.includes('sobek')
             ) {
@@ -676,9 +676,9 @@ export default function HealthPage() {
             }
             // 7. Diare / Mencret / Mules
             else if (
-                complaintLower.includes('diare') || 
-                complaintLower.includes('mencret') || 
-                complaintLower.includes('mules') || 
+                complaintLower.includes('diare') ||
+                complaintLower.includes('mencret') ||
+                complaintLower.includes('mules') ||
                 complaintLower.includes('sakit perut mules')
             ) {
                 guessedDiagnosis = 'Gastroenteritis Ringan / Diare'
@@ -691,8 +691,8 @@ export default function HealthPage() {
             }
             // 8. Sakit Gigi
             else if (
-                complaintLower.includes('gigi') || 
-                complaintLower.includes('gusi') || 
+                complaintLower.includes('gigi') ||
+                complaintLower.includes('gusi') ||
                 complaintLower.includes('geraham')
             ) {
                 guessedDiagnosis = 'Sakit Gigi / Odontalgia'
@@ -705,8 +705,8 @@ export default function HealthPage() {
             }
             // 9. Sakit Mata / Iritasi
             else if (
-                complaintLower.includes('mata') || 
-                complaintLower.includes('belekan') || 
+                complaintLower.includes('mata') ||
+                complaintLower.includes('belekan') ||
                 complaintLower.includes('merah mata')
             ) {
                 guessedDiagnosis = 'Iritasi Mata Ringan'
@@ -719,9 +719,9 @@ export default function HealthPage() {
             }
             // 10. Herpes / Cacar Air / Varicella
             else if (
-                complaintLower.includes('herpes') || 
-                complaintLower.includes('cacar') || 
-                complaintLower.includes('dompo') || 
+                complaintLower.includes('herpes') ||
+                complaintLower.includes('cacar') ||
+                complaintLower.includes('dompo') ||
                 complaintLower.includes('bintil air')
             ) {
                 guessedDiagnosis = 'Infeksi Herpes Zoster / Cacar Air'
@@ -944,7 +944,6 @@ export default function HealthPage() {
             <div className="p-4 sm:p-6 space-y-5">
                 {/* â”€â”€â”€ PAGE HEADER WITH INTEGRATED BREADCRUMB â”€â”€â”€ */}
                 <PageHeader
-                    badge="Kesantrian"
                     title={tp('title')}
                     subtitle={tp('desc')}
                     actions={
@@ -960,11 +959,10 @@ export default function HealthPage() {
                                             }
                                             setIsDataMenuOpen(v => !v)
                                         }}
-                                        className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-all ${
-                                            isDataMenuOpen
+                                        className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-all ${isDataMenuOpen
                                                 ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]'
                                                 : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                        }`}
+                                            }`}
                                         title="Opsi Cetak & Ekspor"
                                     >
                                         <Sliders className="w-4 h-4" />
@@ -978,9 +976,8 @@ export default function HealthPage() {
                                             />
                                             <div
                                                 id="portal-health-header-menu"
-                                                className={`fixed z-[9991] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-2 transition-[opacity,transform] duration-200 ease-out origin-top-right ${
-                                                    isDataMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'
-                                                }`}
+                                                className={`fixed z-[9991] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-2 transition-[opacity,transform] duration-200 ease-out origin-top-right ${isDataMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'
+                                                    }`}
                                                 style={{ top: dataMenuRect.bottom + 8, left: Math.max(10, dataMenuRect.right - 224) }}
                                             >
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Opsi Data</p>
@@ -1019,11 +1016,10 @@ export default function HealthPage() {
                             {/* Privasi â€” di tengah, selalu tampil */}
                             <button
                                 onClick={() => setIsPrivacyMode(v => !v)}
-                                className={`h-9 px-3 rounded-xl border flex items-center gap-2 transition-all ${
-                                    isPrivacyMode
+                                className={`h-9 px-3 rounded-xl border flex items-center gap-2 transition-all ${isPrivacyMode
                                         ? 'bg-amber-500/10 border-amber-500/30 text-amber-600'
                                         : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                                }`}
+                                    }`}
                                 title={isPrivacyMode ? tp('privacyModeOn') : tp('privacyModeOff')}
                             >
                                 {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -1524,7 +1520,7 @@ export default function HealthPage() {
                                                                 onClick={async () => {
                                                                     try {
                                                                         await supabase.from('health_medicines').delete().eq('id', med.id)
-                                                                    } catch {}
+                                                                    } catch { }
                                                                     setMedicines(prev => prev.filter(m => m.id !== med.id))
                                                                     addToast('Obat berhasil dihapus dari inventaris', 'success')
                                                                 }}
@@ -1619,11 +1615,10 @@ export default function HealthPage() {
                                             type="button"
                                             onClick={handleAIAnalyze}
                                             disabled={aiLoading}
-                                            className={`text-[8.5px] font-black uppercase tracking-wider flex items-center gap-1 px-2 py-0.5 rounded-lg transition-all duration-300 ${
-                                                aiLoading
+                                            className={`text-[8.5px] font-black uppercase tracking-wider flex items-center gap-1 px-2 py-0.5 rounded-lg transition-all duration-300 ${aiLoading
                                                     ? 'bg-purple-100 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400 animate-pulse'
                                                     : 'bg-purple-500/10 text-purple-600 hover:bg-purple-600 hover:text-white dark:bg-purple-500/20 dark:text-purple-400 dark:hover:bg-purple-600 dark:hover:text-white active:scale-95'
-                                            }`}
+                                                }`}
                                             title="Gunakan AI untuk mendeteksi Diagnosis Awal, Tindakan, dan Obat secara otomatis"
                                         >
                                             <Sparkle className={`w-2.5 h-2.5 ${aiLoading ? 'animate-spin' : ''}`} />

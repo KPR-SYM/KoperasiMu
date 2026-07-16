@@ -28,7 +28,7 @@ export default function PeriodArchiveModal({
     const handleRestoreYear = async (year) => {
         setRestoring(true)
         try {
-            const { error } = await supabase.from('periods').update({ is_active: true }).eq('id', year.id)
+            const { error } = await supabase.from('periods').update({ deleted_at: null }).eq('id', year.id)
             if (error) throw error
             addToast(`${year.academic_year} ${year.semester} berhasil dipulihkan`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== year.id))
@@ -137,7 +137,7 @@ export default function PeriodArchiveModal({
                 {loadingArchived ? (
                     <div className="text-center py-12 text-[var(--color-text-muted)]">
                         <Spinner className="fa-spin mb-3 text-xl" />
-                                        <p className="font-bold">Memuat arsip...</p>
+                        <p className="font-bold">Memuat arsip...</p>
                     </div>
                 ) : archivedYears.length === 0 ? (
                     <EmptyState
@@ -166,7 +166,7 @@ export default function PeriodArchiveModal({
                                                 <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Semester {y.semester}</p>
                                             </td>
                                             <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
-                                                {formatRelativeDate(y.updated_at)}
+                                                {formatRelativeDate(y.deleted_at)}
                                             </td>
                                             <td className="px-3 py-2.5 text-right">
                                                 <div className="flex items-center justify-end gap-1.5">

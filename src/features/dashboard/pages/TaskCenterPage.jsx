@@ -274,7 +274,6 @@ export default function TaskCenterPage() {
       <div className="p-4 md:p-6 max-w-[1800px] mx-auto space-y-6">
         {/* PAGE HEADER */}
         <PageHeader
-          badge="Koperasi"
           title="Pusat Tugas Koperasi"
           subtitle="Dashboard koordinasi harian dan checklist verifikasi tugas operasional toko koperasi."
           actions={
