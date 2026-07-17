@@ -127,7 +127,7 @@ export default function PeriodExportModal({
     const exportFormatButtons = [
         { label: 'CSV', icon: FileXls, desc: 'Universal', onClick: () => handleExportCSV(fileName, exportOptions), color: 'hover:border-slate-400 hover:bg-slate-50', iconColor: 'text-slate-500' },
         { label: 'Excel', icon: FileXls, desc: '.xlsx', onClick: () => handleExportExcel(fileName), color: 'hover:border-emerald-400 hover:bg-emerald-50 text-emerald-700', iconColor: 'text-emerald-500' },
-        { label: 'PDF Tabel', icon: FileText, desc: 'Tabel', onClick: () => handleExportPDF(fileName, exportOptions), color: 'hover:border-rose-400 hover:bg-rose-50 text-rose-700', iconColor: 'text-rose-500' },
+        { label: 'PDF Premium', icon: FileText, desc: 'Cetak Premium', onClick: () => handleExportPDF(fileName, exportOptions), color: 'hover:border-rose-400 hover:bg-rose-50 text-rose-700', iconColor: 'text-rose-500' },
     ]
 
     const exportOptions = {
@@ -140,7 +140,7 @@ export default function PeriodExportModal({
             isOpen={isOpen}
             onClose={onClose}
             title="Export Data Tahun Pelajaran"
-            description="Cadangkan atau pindahkan data periode akademik ke format CSV, Excel, atau PDF dengan opsi enterprise."
+            description="Cadangkan atau pindahkan data periode akademik ke format CSV, Excel, atau PDF Premium dengan template letterhead KoperasiSenyumMu."
             icon={FileArrowUp}
             iconBg="bg-amber-500/10"
             iconColor="text-amber-600"

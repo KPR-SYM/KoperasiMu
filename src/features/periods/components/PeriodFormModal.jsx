@@ -2,6 +2,7 @@ import React, { useState, useEffect, memo } from 'react'
 import { Warning, Calendar, CheckCircle, Spinner, Pencil, PlusCircle } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
+import { findOverlappingPeriod } from '@features/periods/utils/periodValidation'
 
 const PeriodFormModal = memo(function PeriodFormModal({
     isOpen,
@@ -66,14 +67,15 @@ const PeriodFormModal = memo(function PeriodFormModal({
             return
         }
 
-        const overlap = (years || []).find(y => {
-            if (selectedItem?.id && y.id === selectedItem.id) return false
-            const ys = new Date(y.start_date)
-            const ye = new Date(y.end_date)
-            return (s >= ys && s <= ye) || (e >= ys && e <= ye) || (s <= ys && e >= ye)
+        const overlap = findOverlappingPeriod({
+            semester: formData.semester,
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            excludeId: selectedItem?.id || null,
+            periods: years || [],
         })
 
-        setIsOverlapping(overlap || null)
+        setIsOverlapping(overlap)
     }, [formData.startDate, formData.endDate, years, selectedItem, isOpen])
 
     const getDuration = (start, end) => {

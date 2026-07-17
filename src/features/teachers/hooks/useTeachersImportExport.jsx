@@ -163,6 +163,9 @@ export function useTeachersImportExport({
                     data.phone = data.phone.toString().replace(/[\s-]/g, '')
                     if (data.phone.startsWith('62')) data.phone = '0' + data.phone.slice(2)
                 }
+                if (data.subject) {
+                    data.subject = data.subject.replace(/^-\s*/, '').trim()
+                }
 
                 return { ...data, _row: i }
             })

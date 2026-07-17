@@ -203,21 +203,22 @@ export default function BulkActionsBar({
             {/* Divider */}
             <div className="w-px h-7 bg-white/10 mx-1 hidden sm:block shrink-0" />
 
-            {/* Actions Area - Responsive Grid */}
-            <div className={`flex items-center gap-2 flex-1 ${actionCount <= 2 ? 'justify-center' : 'justify-end'}`}>
+            {/* Actions Area */}
+            <div className="flex items-center gap-1.5 flex-1 justify-center">
               {secondaryActions.map((action, idx) => (
                 <button
                   key={idx}
                   onClick={action.onClick}
                   disabled={action.disabled}
-                  className={`h-9 px-4 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap min-w-[80px] sm:min-w-[90px] ${action.variant === 'destructive'
+                  title={action.title}
+                  className={`h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 whitespace-nowrap ${action.variant === 'destructive'
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
                     : action.variant === 'primary'
                       ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30'
                       : 'bg-white/5 text-white/80 border border-white/10 hover:bg-white/10'
                     } ${action.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
-                  {action.icon && <span className="w-3.5 h-3.5 flex-shrink-0">{action.icon}</span>}
+                  {action.icon && <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{action.icon}</span>}
                   <span>{action.label}</span>
                 </button>
               ))}
@@ -225,7 +226,7 @@ export default function BulkActionsBar({
                 <button
                   onClick={primaryAction.onClick}
                   disabled={primaryAction.disabled || primaryAction.loading}
-                  className={`h-9 px-5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap min-w-[100px] sm:min-w-[120px] shadow-lg ${primaryAction.variant === 'destructive'
+                  className={`h-8 px-4 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-lg ${primaryAction.variant === 'destructive'
                     ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/40'
                     : 'bg-[var(--color-primary)] text-white hover:brightness-110 shadow-[var(--color-primary)]/40'
                     } ${primaryAction.disabled || primaryAction.loading ? 'opacity-50 cursor-wait' : ''}`}
@@ -234,7 +235,7 @@ export default function BulkActionsBar({
                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin flex-shrink-0" />
                   ) : (
                     <>
-                      {primaryAction.icon && <span className="w-3.5 h-3.5 flex-shrink-0">{primaryAction.icon}</span>}
+                      {primaryAction.icon && <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{primaryAction.icon}</span>}
                       <span>{primaryAction.label}</span>
                     </>
                   )}
