@@ -6,8 +6,8 @@
 | **Module** | Master Data — Tahun Pelajaran / Academic Periods |
 | **Primary Surface** | `src/features/periods/pages/PeriodsPage.jsx` |
 | **Classification** | Internal — Engineering & Product |
-| **Status** | Draft — Pending stakeholder sign-off |
-| **Version** | 1.0 |
+| **Status** | In Progress — Phase 2 complete |
+| **Version** | 1.2 |
 | **Last Updated** | 2026-07-17 |
 | **Owner** | Engineering (Frontend) |
 | **Reviewers** | Product, QA, Data/Backend |
@@ -37,6 +37,42 @@ Dokumen ini mendefinisikan **remediation program** tingkat enterprise: prioritas
 | Audit timeline broken | SOX-style change tracking gagal untuk modul master |
 | Import case corruption | Filter semester & reporting Ganjil/Genap tidak reliable |
 | RBAC bypass | Guru/staff read-only masih mutasi master data |
+
+---
+
+## 1.2 Implementation Progress
+
+| Phase | PR | Status | Completed | Notes |
+|-------|-----|--------|-----------|-------|
+| 0 — Kickoff | — | ⏳ Pending | — | Baseline recording & issue tickets |
+| **1 — Hotfix & Display** | PR-AP-01 | ✅ Done | 2026-07-17 | AP-001, AP-002, AP-009 |
+| **2 — Data Integrity** | PR-AP-02 | ✅ Done | 2026-07-17 | AP-003, AP-004, AP-006, AP-008 |
+| 3 — Export/Audit | PR-AP-03 | ⬜ Not started | — | AP-005, AP-007 |
+| 4 — Validation | PR-AP-04 | ⬜ Not started | — | AP-013, AP-014 |
+| 5 — UX Parity | PR-AP-05 | ⬜ Not started | — | AP-010, AP-011, AP-012 |
+| 6 — RBAC & Gating | PR-AP-06 | ⬜ Not started | — | AP-015, AP-016 |
+| 7 — Tech Debt | PR-AP-07 | ⬜ Backlog | — | Optional post-release |
+
+### Issue-level tracker
+
+| ID | Status | Phase | Done |
+|----|--------|-------|------|
+| AP-001 | ✅ Fixed | 1 | Import `Warning` dari `@phosphor-icons/react` |
+| AP-002 | ✅ Fixed | 1 | `handleAdd` smart-default pakai `start_date`/`end_date` |
+| AP-003 | ✅ Fixed | 2 | Insert pakai `is_active: Boolean(formData.makeActive)` |
+| AP-004 | ✅ Fixed | 2 | Bulk activate hanya 1 seleksi (Option A) |
+| AP-005 | ⬜ Open | 3 | Export hard-filter aktif saja |
+| AP-006 | ✅ Fixed | 2 | Import normalisasi semester → `Ganjil`/`Genap` |
+| AP-007 | ⬜ Open | 3 | AuditTimeline `academic_years` vs `periods` |
+| AP-008 | ✅ Fixed | 2 | `fetchData` include registration + lock fields |
+| AP-009 | ✅ Fixed | 1 | Kolom utama tampil `academic_year`; semester di subtitle |
+| AP-010 | ⬜ Open | 5 | Timeline archive hanya untuk aktif |
+| AP-011 | ⬜ Open | 5 | Page tidak reset saat filter berubah |
+| AP-012 | ⬜ Open | 5 | `colSpan="5"` statis |
+| AP-013 | ⬜ Open | 4 | Overlap check tidak konsisten |
+| AP-014 | ⬜ Open | 4 | Locked period masih bisa diedit |
+| AP-015 | ⬜ Open | 6 | RBAC tidak enforced merata |
+| AP-016 | ⬜ Open | 6 | Feature flag `module.periods` tidak dicek |
 
 ---
 
@@ -468,6 +504,8 @@ Program dianggap **COMPLETE** when all conditions met:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-07-17 | Engineering | Initial remediation plan from code audit |
+| 1.1 | 2026-07-17 | Engineering | Phase 1 implemented (AP-001, AP-002, AP-009); added §1.2 progress tracker |
+| 1.2 | 2026-07-17 | Engineering | Phase 2 complete (AP-003, AP-004, AP-006, AP-008); import semester normalization |
 
 ### Related Documents
 

@@ -46,6 +46,7 @@ import {
     LockOpen,
     CheckSquare as CheckSquareIcon,
     ArrowClockwise,
+    Warning,
 } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 import { useSearchParams } from "react-router-dom";
@@ -109,6 +110,12 @@ function getPortalContainer(id) {
 }
 
 // ── Helper: Generate next academic year pair (Ganjil + Genap) ─────────────────────
+function normalizeSemester(value) {
+    const trimmed = String(value || "").trim();
+    const map = { ganjil: "Ganjil", genap: "Genap" };
+    return map[trimmed.toLowerCase()] || trimmed;
+}
+
 function generateNextAcademicYears(latestYear) {
     const match = latestYear.match(/(\d{4})\/(\d{4})/);
     if (!match) return null;
@@ -663,7 +670,7 @@ export default function PeriodsPage() {
             const { data, error } = await supabase
                 .from("periods")
                 .select(
-                    "id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked,deleted_at",
+                    "id,academic_year,semester,start_date,end_date,registration_start,registration_end,is_active,created_at,is_locked,locked_at,locked_by,deleted_at",
                 )
                 .is("deleted_at", null)
                 .order("academic_year", { ascending: false });
@@ -871,8 +878,8 @@ export default function PeriodsPage() {
                     academic_year: latest.academic_year,
                     semester: "Genap",
                     is_active: false,
-                    startDate: genapStart,
-                    endDate: `${parseInt(latest.academic_year.split("/")[1])}-06-30`,
+                    start_date: genapStart,
+                    end_date: `${parseInt(latest.academic_year.split("/")[1])}-06-30`,
                 };
             } else {
                 const match = latest.academic_year.match(/(\d{4})\/(\d{4})/);
@@ -887,8 +894,8 @@ export default function PeriodsPage() {
                         academic_year: `${nextStart}/${nextEnd}`,
                         semester: "Ganjil",
                         is_active: false,
-                        startDate: ganjilStart,
-                        endDate: ganjilEnd,
+                        start_date: ganjilStart,
+                        end_date: ganjilEnd,
                     };
                 }
             }
@@ -1036,20 +1043,19 @@ export default function PeriodsPage() {
                     console.warn("[PeriodsPage] logAudit skip:", e.message);
                 }
             } else {
+                const makeActive = Boolean(formData.makeActive);
+
+                if (makeActive) {
+                    await supabase.from("periods").update({ is_active: false });
+                }
+
                 const { data, error } = await supabase
                     .from("periods")
-                    .insert({ ...payload, is_active: true })
+                    .insert({ ...payload, is_active: makeActive })
                     .select();
                 if (error) throw error;
                 if (!data || data.length === 0)
                     throw new Error("Gagal menambahkan data");
-
-                if (formData.makeActive && data[0]?.id) {
-                    await supabase
-                        .from("periods")
-                        .update({ is_active: false })
-                        .neq("id", data[0].id);
-                }
 
                 addToast("Tahun pelajaran berhasil ditambahkan", "success");
                 try {
@@ -1058,7 +1064,7 @@ export default function PeriodsPage() {
                         source: "MASTER",
                         tableName: "periods",
                         recordId: data?.[0]?.id,
-                        newData: { ...payload, is_active: true },
+                        newData: { ...payload, is_active: makeActive },
                     });
                 } catch (e) {
                     console.warn("[PeriodsPage] logAudit skip:", e.message);
@@ -1317,20 +1323,16 @@ export default function PeriodsPage() {
 
     // ── NEW: Bulk Action Handlers ──────────────────────────────────────────────
     const handleBulkSetActive = async () => {
-        if (submitting || selectedIds.length === 0) return;
+        if (submitting || selectedIds.length !== 1) return;
         setSubmitting(true);
         try {
-            // First deactivate all
-            await supabase
-                .from("periods")
-                .update({ is_active: false })
-                .neq("id", selectedIds[0]);
-            // Then activate selected
+            const targetId = selectedIds[0];
+            await supabase.from("periods").update({ is_active: false });
             await supabase
                 .from("periods")
                 .update({ is_active: true })
-                .in("id", selectedIds);
-            addToast(`${selectedIds.length} periode diaktifkan`, "success");
+                .eq("id", targetId);
+            addToast("Periode diaktifkan", "success");
             setSelectedIds([]);
             fetchData();
         } catch (err) {
@@ -1907,7 +1909,10 @@ export default function PeriodsPage() {
                 const data = {
                     academic_year:
                         row[nameCol] !== undefined ? String(row[nameCol]).trim() : "",
-                    semester: row[semCol] !== undefined ? String(row[semCol]).trim() : "",
+                    semester:
+                        row[semCol] !== undefined
+                            ? normalizeSemester(row[semCol])
+                            : "",
                     start_date:
                         row[startCol] !== undefined ? String(row[startCol]).trim() : "",
                     end_date: row[endCol] !== undefined ? String(row[endCol]).trim() : "",
@@ -1960,7 +1965,7 @@ export default function PeriodsPage() {
     const handleImportCellEdit = (rowIdx, colKey, newValue) => {
         setImportPreview((prev) => {
             const next = [...prev];
-            next[rowIdx] = { ...next[rowIdx], [colKey]: newValue };
+            next[rowIdx] = { ...next[rowIdx], [colKey]: colKey === "semester" ? normalizeSemester(newValue) : newValue };
 
             const rowIssues = [];
             if (!next[rowIdx].academic_year)
@@ -2059,9 +2064,7 @@ export default function PeriodsPage() {
             for (let i = 0; i < validRows.length; i += CHUNK) {
                 const chunk = validRows.slice(i, i + CHUNK).map((r) => ({
                     academic_year: r.academic_year,
-                    semester: String(r.semester || "")
-                        .trim()
-                        .toLowerCase(),
+                    semester: normalizeSemester(r.semester),
                     start_date: r.start_date,
                     end_date: r.end_date,
                     is_active: false,
@@ -2218,7 +2221,13 @@ export default function PeriodsPage() {
                             icon: <CheckCircle className="w-3 h-3" />,
                             variant: "primary",
                             onClick: handleBulkSetActive,
-                            disabled: submitting || selectedIds.length === 0,
+                            disabled: submitting || selectedIds.length !== 1,
+                            title:
+                                selectedIds.length > 1
+                                    ? "Hanya satu periode yang boleh diaktifkan sekaligus"
+                                    : selectedIds.length === 0
+                                      ? "Pilih satu periode untuk diaktifkan"
+                                      : undefined,
                         },
                         {
                             label: "Kunci",
@@ -3170,10 +3179,13 @@ export default function PeriodsPage() {
                                                                             <div className="flex flex-col min-w-0 flex-1">
                                                                                 <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
                                                                                     <PrivacyValue active={isPrivacyMode}>
-                                                                                        {year.semester}
+                                                                                        {year.academic_year}
                                                                                     </PrivacyValue>
                                                                                 </span>
                                                                                 <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">
+                                                                                    <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-md mr-1 ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600" : "bg-purple-500/10 text-purple-600"}`}>
+                                                                                        {maskValue(year.semester, "semester")}
+                                                                                    </span>
                                                                                     {maskValue(`ID: ${year.id}`, "id")}
                                                                                 </p>
                                                                             </div>
