@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo, createContext, useContext } from 'react'
-import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Funnel, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Filter, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { Modal, Pagination, Skeleton, EmptyState } from '@shared/components'
@@ -347,7 +347,7 @@ const FilterBarPreview = memo(() => {
                     </div>
                 ))}
                 <button className="h-8 px-3 rounded-lg border border-dashed border-[var(--color-border)] text-[10px] font-black text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all flex items-center gap-1.5">
-                    <Plus className="w-2 h-2" /> Funnel
+                    <Plus className="w-2 h-2" /> Filter
                 </button>
                 {filters.length > 0 && <button onClick={() => setFilters([])} className="text-[9px] font-black text-rose-400 hover:text-rose-600 ml-auto transition-colors">Reset semua</button>}
             </div>
@@ -1559,7 +1559,7 @@ export default function PlaygroundPage() {
     }), [])
 
     const iconGroups = useMemo(() => [
-        { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Funnel] },
+        { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Filter] },
         { label: 'Actions', icons: [Plus, Trash, Copy, DownloadSimple, GearSix] },
         { label: 'Status', icons: [Check, X, Warning, Info, Bell] },
         { label: 'Users', icons: [User, Users, ShieldCheck, Key, Lock] },
@@ -1656,9 +1656,9 @@ export default function PlaygroundPage() {
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-xl z-50 overflow-hidden">
                                     {[
                                         { tab: 'atoms', items: ['Typography', 'Color System', 'SealCheck & Pills', 'Avatar', 'Spacing', 'Border Radius', 'Dividers', 'Loading', 'Tooltip', 'Iconography', 'Toggle', 'Checkbox', 'Input States', 'Elevation', 'Opacity', 'Motion', 'Empty States', 'Z-Index', 'Select', 'Range Slider', 'Color Tokens', 'Breadcrumb'] },
-                                        { tab: 'library', items: ['Data Table', 'Funnel Bar', 'Export', 'Pagination', 'TerminalWindow Palette', 'Tabs', 'Dropdown', 'Stat Cards', 'Profile Card', 'Onboarding', 'Wizard', 'Toast', 'Confirm Dialog', 'Notification', 'Drawer', 'Accordion', 'ClockClockwise', 'File UploadSimple', 'Rich TextT', 'Date Picker', 'Kanban', 'Rating', 'Permission', 'Inline Pen', 'OTP Input', 'Tag Input', 'Combobox'] },
+                                        { tab: 'library', items: ['Data Table', 'Filter Bar', 'Export', 'Pagination', 'TerminalWindow Palette', 'Tabs', 'Dropdown', 'Stat Cards', 'Profile Card', 'Onboarding', 'Wizard', 'Toast', 'Confirm Dialog', 'Notification', 'Drawer', 'Accordion', 'ClockClockwise', 'File UploadSimple', 'Rich TextT', 'Date Picker', 'Kanban', 'Rating', 'Permission', 'Inline Pen', 'OTP Input', 'Tag Input', 'Combobox'] },
                                         { tab: 'layout', items: ['Sidebar', 'Topbar', 'Mobile Bottom Nav', 'FAB', 'Dashboard Shell', 'Auth Page', 'GearSix Page', 'Split Panel', 'Chat', 'Breakpoints', 'GridFour System', 'Card GridFour', 'Calendar', 'Gallery', 'Modal', 'Overlay Stack', 'Tooltip Positioning', 'Scroll Sticky', 'Page Header', 'Stepper', 'Responsive Table', 'Skeleton', 'Empty State', 'Error Pages', 'Print Layout'] },
-                                        { tab: 'forms', items: ['Login Form', 'Register Form', 'MagnifyingGlass & Funnel', 'Forgot Password', 'GearSix Form', 'Multi-field Form', 'Validation Patterns', 'Dynamic Fields'] },
+                                        { tab: 'forms', items: ['Login Form', 'Register Form', 'MagnifyingGlass & Filter', 'Forgot Password', 'GearSix Form', 'Multi-field Form', 'Validation Patterns', 'Dynamic Fields'] },
                                         { tab: 'dataviz', items: ['Bar Chart', 'Line Chart', 'Donut Chart', 'Sparkline KPI', 'Heatmap', 'Area Chart'] },
                                         { tab: 'tokens', items: ['Color Tokens', 'Spacing Tokens', 'Typography Scale', 'Shadow Scale'] },
                                     ].flatMap(({ tab, items }) => items.filter(i => i.toLowerCase().includes(searchQ.toLowerCase())).map(item => ({ tab, item }))).slice(0, 8).map(({ tab, item }, i) => (
@@ -2138,7 +2138,7 @@ export default function PlaygroundPage() {
                                             ))}
                                         </div>
                                     }
-                                    code={`const iconGroups = [\n  { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Funnel] },\n  { label: 'Actions',    icons: [Plus, Trash, Copy, DownloadSimple, GearSix] },\n  { label: 'Status',     icons: [Check, X, Warning, Info, Bell] },\n  { label: 'Users',      icons: [User, Users, ShieldCheck, Key, Lock] },\n  { label: 'Content',    icons: [FileText, ChartLine, Calendar, Globe, Camera] },\n]\n\n{iconGroups.map(({ label, icons }) => (\n  <div key={label}>\n    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 mb-3">{label}</p>\n    <div className="flex flex-wrap gap-3">\n      {icons.map((icon, i) => (\n        <div key={i} className="w-10 h-10 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]/20 active:scale-90 transition-all cursor-pointer">\n          <icon className="text-sm" />\n        </div>\n      ))}\n    </div>\n  </div>\n))}`}
+                                    code={`const iconGroups = [\n  { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Filter] },\n  { label: 'Actions',    icons: [Plus, Trash, Copy, DownloadSimple, GearSix] },\n  { label: 'Status',     icons: [Check, X, Warning, Info, Bell] },\n  { label: 'Users',      icons: [User, Users, ShieldCheck, Key, Lock] },\n  { label: 'Content',    icons: [FileText, ChartLine, Calendar, Globe, Camera] },\n]\n\n{iconGroups.map(({ label, icons }) => (\n  <div key={label}>\n    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 mb-3">{label}</p>\n    <div className="flex flex-wrap gap-3">\n      {icons.map((icon, i) => (\n        <div key={i} className="w-10 h-10 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]/20 active:scale-90 transition-all cursor-pointer">\n          <icon className="text-sm" />\n        </div>\n      ))}\n    </div>\n  </div>\n))}`}
                                 />
                             </section></LazySection>
 
@@ -2385,7 +2385,7 @@ export default function PlaygroundPage() {
                                                     iconBg: 'bg-amber-500/10 text-amber-600',
                                                     title: 'Hasil tidak ditemukan',
                                                     desc: 'Tidak ada yang cocok dengan "guru kelas 6". Coba kata kunci lain.',
-                                                    cta: { label: 'Reset Funnel', color: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
+                                                    cta: { label: 'Reset Filter', color: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
                                                     type: 'no-results',
                                                 },
                                                 {
@@ -2784,7 +2784,7 @@ export default function PlaygroundPage() {
                                             { prop: 'loading', type: 'boolean', defaultVal: 'false', desc: 'Tampilkan skeleton rows saat data sedang dimuat' },
                                         ]}
                                     />
-                                    <UIBlock fullWidth title="02 · Funnel Bar" children={<FilterBarPreview />} code={`const [filters, setFilters] = useState([\n  { id: 'kelas', label: 'Kelas', value: '6A' },\n  { id: 'status', label: 'Status', value: 'Aktif' },\n])\n\nconst removeFilter = id =>\n  setFilters(prev => prev.filter(f => f.id !== id))\n\n<div className="flex flex-wrap items-center gap-2">\n  {filters.map(f => (\n    <div key={f.id} className="flex items-center gap-1.5 h-8 px-3 rounded-lg border text-[10px] font-black bg-sky-500/10 border-sky-500/20 text-sky-700">\n      {f.label}: {f.value}\n      <button onClick={() => removeFilter(f.id)}>\n        <X className="w-2 h-2" />\n      </button>\n    </div>\n  ))}\n</div>`} />
+                                    <UIBlock fullWidth title="02 · Filter Bar" children={<FilterBarPreview />} code={`const [filters, setFilters] = useState([\n  { id: 'kelas', label: 'Kelas', value: '6A' },\n  { id: 'status', label: 'Status', value: 'Aktif' },\n])\n\nconst removeFilter = id =>\n  setFilters(prev => prev.filter(f => f.id !== id))\n\n<div className="flex flex-wrap items-center gap-2">\n  {filters.map(f => (\n    <div key={f.id} className="flex items-center gap-1.5 h-8 px-3 rounded-lg border text-[10px] font-black bg-sky-500/10 border-sky-500/20 text-sky-700">\n      {f.label}: {f.value}\n      <button onClick={() => removeFilter(f.id)}>\n        <X className="w-2 h-2" />\n      </button>\n    </div>\n  ))}\n</div>`} />
                                     <div className="grid lg:grid-cols-2 gap-8">
                                         <UIBlock title="03 · Export Panel" children={
                                             <div className="space-y-4">
@@ -3195,7 +3195,7 @@ export default function PlaygroundPage() {
                             <LazySection><section className="space-y-10">
                                 <SectionHeader icon={MagnifyingGlass} number="B" title="Data Forms" />
                                 <div className="grid lg:grid-cols-2 gap-8">
-                                    <UIBlock fullWidth title="03 · MagnifyingGlass & Funnel Form" children={<SearchFilterFormPreview />} code={`const [q, setQ] = useState('')\nconst [kelas, setKelas] = useState('semua')\nconst [status, setStatus] = useState('semua')\n\nconst filtered = data\n  .filter(d =>\n    (q === '' || d.nama.toLowerCase().includes(q.toLowerCase())) &&\n    (kelas === 'semua' || d.kelas === kelas) &&\n    (status === 'semua' || d.status === status)\n  )`} />
+                                    <UIBlock fullWidth title="03 · MagnifyingGlass & Filter Form" children={<SearchFilterFormPreview />} code={`const [q, setQ] = useState('')\nconst [kelas, setKelas] = useState('semua')\nconst [status, setStatus] = useState('semua')\n\nconst filtered = data\n  .filter(d =>\n    (q === '' || d.nama.toLowerCase().includes(q.toLowerCase())) &&\n    (kelas === 'semua' || d.kelas === kelas) &&\n    (status === 'semua' || d.status === status)\n  )`} />
                                     <UIBlock title="04 · Forgot Password" children={
                                         <div className="space-y-4">
                                             <div className="text-center space-y-2"><div className="w-12 h-12 rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center mx-auto"><Envelope className="text-lg" /></div><h3 className="text-[13px] font-black text-[var(--color-text)]">Lupa Password?</h3><p className="text-[9px] text-[var(--color-text-muted)] leading-relaxed">Masukkan email terdaftar, kami akan kirim link reset password.</p></div>
@@ -3807,7 +3807,7 @@ export default function PlaygroundPage() {
                                         <div className="space-y-4">
                                             {[
                                                 { icon: ClipboardText, bg: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]', title: 'Belum ada laporan', desc: 'Buat laporan pertama untuk mulai melacak perkembangan siswa.', cta: '+ Buat Laporan', ctaColor: 'bg-[var(--color-primary)] text-white' },
-                                                { icon: MagnifyingGlass, bg: 'bg-amber-500/10 text-amber-600', title: 'Tidak ditemukan', desc: 'Tidak ada siswa yang cocok dengan "kelas 99". Coba kata lain.', cta: 'Reset Funnel', ctaColor: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
+                                                { icon: MagnifyingGlass, bg: 'bg-amber-500/10 text-amber-600', title: 'Tidak ditemukan', desc: 'Tidak ada siswa yang cocok dengan "kelas 99". Coba kata lain.', cta: 'Reset Filter', ctaColor: 'bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]' },
                                             ].map(({ icon, bg, title, desc, cta, ctaColor }) => (
                                                 <div key={title} className="flex flex-col items-center text-center p-6 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] gap-3">
                                                     <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center`}><icon className="text-lg" /></div>

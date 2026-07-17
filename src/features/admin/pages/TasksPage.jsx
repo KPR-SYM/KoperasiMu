@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, Funnel, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
+import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, Filter, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
 import { EmptyState } from '@shared/components'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -405,7 +405,7 @@ export default function TasksPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="relative flex-1 sm:flex-none">
-                                        <Funnel className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] pointer-events-none" />
+                                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] pointer-events-none" />
                                         <input type="text" placeholder="Cari log..." value={searchLog}
                                             onChange={e => setSearchLog(e.target.value)}
                                             className="h-8 pl-8 pr-3 w-full sm:w-48 text-[11px] font-medium bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl outline-none focus:border-[var(--color-primary)] transition-all" />

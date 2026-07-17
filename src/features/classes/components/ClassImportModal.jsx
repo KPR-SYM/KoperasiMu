@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Trash, UploadSimple } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, Filter, List, Spinner, Pen, Buildings, Trash, UploadSimple } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { Modal, RichSelect } from '@shared/components'
@@ -322,7 +322,7 @@ export default function ClassImportModal(props) {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button onClick={() => setImportSkipDupes(!importSkipDupes)} className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${importSkipDupes ? 'bg-blue-500 text-white border-blue-500 shadow-md shadow-blue-500/20' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-blue-500/40 hover:text-blue-600'}`}><Copy className="w-3 h-3" /><span className="hidden sm:inline">{importSkipDupes ? 'Lewati Duplikat' : 'Ikutkan Duplikat'}</span><span className="sm:hidden">{importSkipDupes ? 'Lewati' : 'Ikut'}</span></button>
-                                    <button onClick={() => setFilterIssuesOnly(!filterIssuesOnly)} className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${filterIssuesOnly ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}>{filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}<span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span></button>
+                                    <button onClick={() => setFilterIssuesOnly(!filterIssuesOnly)} className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all ${filterIssuesOnly ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}>{filterIssuesOnly ? <Check className="w-3 h-3" /> : <Filter className="w-3 h-3" />}<span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span></button>
                                 </div>
                             </div>
                             <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
@@ -371,7 +371,7 @@ export default function ClassImportModal(props) {
                                         <div className="w-px h-3 bg-[var(--color-border)]" />
                                         <span className="text-emerald-600 flex items-center gap-1.5"><CheckCircle className="w-2 h-2" /> {importReadyRows.length} baris siap diimport</span>
                                     </div>
-                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Filter "Hanya Isu" Aktif</span>}
                                 </div>
                             </div>
 

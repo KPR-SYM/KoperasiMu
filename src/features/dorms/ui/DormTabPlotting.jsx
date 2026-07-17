@@ -79,7 +79,7 @@ export default function DormTabPlotting({
                         </div>
                     </div>
 
-                    {/* Quick Funnel Chips - Desktop Only */}
+                    {/* Quick Filter Chips - Desktop Only */}
                     <div className="hidden lg:flex flex-initial items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 min-w-0 h-full">
                         <div className="h-4 w-px bg-[var(--color-border)] mx-1" />
 
@@ -155,7 +155,7 @@ export default function DormTabPlotting({
                             )}
                         </button>
 
-                        {/* Advanced Funnel Sliders */}
+                        {/* Advanced Filter Sliders */}
                         <button
                             onClick={() => setShowAdvFilter(v => !v)}
                             className={`h-9 px-2.5 xs:px-3 sm:px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${showAdvFilter || activeFilters.length > 0
@@ -174,7 +174,7 @@ export default function DormTabPlotting({
                     </div>
                 </div>
 
-                {/* Active Funnel Chips */}
+                {/* Active Filter Chips */}
                 {activeFilters.length > 0 && (
                     <div className="px-3 pb-3 -mt-1 flex flex-wrap gap-2">
                         {activeFilters.map((f, i) => (
@@ -201,7 +201,7 @@ export default function DormTabPlotting({
                     </div>
                 )}
 
-                {/* Row 2: Advanced Funnel Panel */}
+                {/* Row 2: Advanced Filter Panel */}
                 {showAdvFilter && (
                     <div className="border-t border-[var(--color-border)] p-3.5 bg-[var(--color-surface-alt)]/60 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
                         {/* Header Panel with Standardized "Vertical Bar" Pattern */}

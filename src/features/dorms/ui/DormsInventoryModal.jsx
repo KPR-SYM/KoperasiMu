@@ -80,7 +80,7 @@ function InventoryModalContent({
                 {/* Filters & Count Row */}
                 <div className="flex items-center justify-between gap-2 w-full sm:w-auto shrink-0">
                     <div className="flex items-center gap-1.5">
-                        {/* Funnel pills */}
+                        {/* Filter pills */}
                         {['all', 'good', 'damaged'].map(f => (
                             <button
                                 key={f}

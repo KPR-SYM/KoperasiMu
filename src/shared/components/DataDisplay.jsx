@@ -215,6 +215,28 @@ export function StatCard({
     )
 }
 
+export function StatsInline({ items, label, separator = true, className = '' }) {
+    return (
+        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--color-surface-alt)]/40 border border-[var(--color-border)]/50 ${className}`}>
+            {label && (
+                <>
+                    <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>
+                    {separator && <span className="w-1 h-1 rounded-full bg-[var(--color-border)] shrink-0" />}
+                </>
+            )}
+            {items.map((item, i) => (
+                <React.Fragment key={item.label || i}>
+                    {i > 0 && separator && <span className="w-1 h-1 rounded-full bg-[var(--color-border)] shrink-0" />}
+                    <span className="text-xs font-bold whitespace-nowrap">
+                        <span className={item.color || 'text-[var(--color-text)]'}>{item.value}</span>
+                        <span className="text-[var(--color-text-muted)] ml-1 text-[10px]">{item.label}</span>
+                    </span>
+                </React.Fragment>
+            ))}
+        </div>
+    );
+}
+
 export function DataTable({ columns, data, onRowClick, loading, emptyMessage = 'Tidak ada data' }) {
     if (loading) {
         return (

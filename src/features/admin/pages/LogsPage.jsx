@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, Funnel, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
+import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, Filter, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -444,7 +444,7 @@ export default function LogsPage() {
     // Sync pageRef setiap kali page berubah
     useEffect(() => { pageRef.current = page }, [page])
 
-    // Funnel state
+    // Filter state
     const [filterSource, setFilterSource] = useState(() => initialSource)
     const [filterAction, setFilterAction] = useState(() => initialAction)
     const [filterTable, setFilterTable] = useState(() => initialTable)
@@ -802,7 +802,7 @@ export default function LogsPage() {
                                 onClick={() => setShowFilters(!showFilters)}
                                 className={`h-10 px-4 rounded-xl border font-black text-[11px] flex items-center gap-2 transition-all ${showFilters ? 'bg-[var(--color-primary)] text-white border-transparent' : 'border-[var(--color-border)] bg-[var(--color-surface-alt)]'}`}
                             >
-                                <Funnel /> Funnel
+                                <Filter /> Filter
                             </button>
                             <div className="h-8 w-px bg-[var(--color-border)] mx-1" />
                             <div className="flex items-center gap-1.5">
@@ -825,7 +825,7 @@ export default function LogsPage() {
                         </div>
                     </div>
 
-                    {/* Funnel panel */}
+                    {/* Filter panel */}
                     {showFilters && (
                         <div className="px-3 pb-3 border-t border-[var(--color-border)] pt-4 flex flex-wrap gap-4 items-end animate-in fade-in duration-200">
                             <div className="space-y-1.5">
@@ -847,7 +847,7 @@ export default function LogsPage() {
                                     ))}
                                 </div>
                             </div>
-                            {/* Funnel Aksi */}
+                            {/* Filter Aksi */}
                             <div className="space-y-1.5">
                                 <label className="text-[9px] font-black uppercase text-[var(--color-text-muted)] px-1">Aksi</label>
                                 <div className="flex gap-1 bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)]">
@@ -867,7 +867,7 @@ export default function LogsPage() {
                                     ))}
                                 </div>
                             </div>
-                            {/* Funnel Severity */}
+                            {/* Filter Severity */}
                             <div className="space-y-1.5">
                                 <label className="text-[9px] font-black uppercase text-[var(--color-text-muted)] px-1">Severity</label>
                                 <div className="flex gap-1 bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)]">

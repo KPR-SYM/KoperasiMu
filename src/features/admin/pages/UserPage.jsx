@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Funnel, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
+import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Filter, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -677,7 +677,7 @@ export default function UserManagementPage() {
                         )}
                     </div>
 
-                    {/* Funnel Role */}
+                    {/* Filter Role */}
                     <div className="flex gap-1 flex-wrap">
                         {[{ key: '', label: 'Semua' }, ...ROLES].map(r => (
                             <button key={r.key || 'all'} onClick={() => { setFilterRole(r.key || ''); setPage(1) }}
@@ -689,7 +689,7 @@ export default function UserManagementPage() {
                         ))}
                     </div>
 
-                    {/* Funnel Linked */}
+                    {/* Filter Linked */}
                     <select value={filterLinked} onChange={e => { setFilterLinked(e.target.value); setPage(1) }}
                         className="h-8 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-all">
                         <option value="">Semua (link status)</option>
@@ -757,7 +757,7 @@ export default function UserManagementPage() {
                                     {pagedUsers.length === 0 ? (
                                         <tr><td colSpan={4} className="px-5 py-12">
                                             <EmptyState icon={Users} title="Tidak Ada User Ditemukan" description="Coba ubah filter atau kata kunci pencarian Anda." variant="plain" color="slate" />
-                                            {hasFilters && <div className="flex justify-center mt-4"><button onClick={resetFilters} className="h-8 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black hover:bg-[var(--color-surface-alt)] transition-all">Reset Funnel</button></div>}
+                                            {hasFilters && <div className="flex justify-center mt-4"><button onClick={resetFilters} className="h-8 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black hover:bg-[var(--color-surface-alt)] transition-all">Reset Filter</button></div>}
                                         </td></tr>
                                     ) : pagedUsers.map(user => (
                                         <UserRow

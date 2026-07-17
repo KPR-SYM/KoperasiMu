@@ -141,7 +141,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
         return items
     }, [role, flags, tNav, tNavDesc, tGroup])
 
-    // ── Funnel search results ──
+    // ── Filter search results ──
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return []
         const q = searchQuery.toLowerCase()

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Warning, Robot, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Coins, Cpu, DownloadSimple, Eye, Funnel, DotsSix, ChartLine, List, PenNibStraight, ArrowClockwise, MagnifyingGlass, ShieldCheck, SlidersHorizontal, Sparkle, Square, Terminal, X, Lightning, ArrowCounterClockwise , ChatCircle } from '@phosphor-icons/react'
+import { Warning, Robot, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Coins, Cpu, DownloadSimple, Eye, Filter, DotsSix, ChartLine, List, PenNibStraight, ArrowClockwise, MagnifyingGlass, ShieldCheck, SlidersHorizontal, Sparkle, Square, Terminal, X, Lightning, ArrowCounterClockwise , ChatCircle } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import {
@@ -404,13 +404,13 @@ export default function AiInsightsPage() {
                             )}
                         </div>
 
-                        {/* Funnel Toggle */}
+                        {/* Filter Toggle */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
                             className={`h-9 px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 ${showFilters || filterType !== 'all' || filterSecurity !== 'all' ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-indigo-500/30'}`}
                         >
                             <SlidersHorizontal className="w-3 h-3" />
-                            <span className="hidden sm:inline">Funnel</span>
+                            <span className="hidden sm:inline">Filter</span>
                             {(filterType !== 'all' || filterSecurity !== 'all') && (
                                 <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[8px] font-black flex items-center justify-center">
                                     {(filterType !== 'all' ? 1 : 0) + (filterSecurity !== 'all' ? 1 : 0)}

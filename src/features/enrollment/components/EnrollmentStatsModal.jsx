@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { CalendarBlank, CheckCircle, CaretRight, FileXls, Funnel, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
+import { CalendarBlank, CheckCircle, CaretRight, FileXls, Filter, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
 import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area
 } from 'recharts'
@@ -18,7 +18,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
         return opts
     }, [waves])
 
-    // 1. Funnel enrollments array locally by selected wave!
+    // 1. Filter enrollments array locally by selected wave!
     const filteredEnrollments = useMemo(() => {
         if (!enrollments) return []
         if (selectedWave === 'all') return enrollments
@@ -44,7 +44,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
 
         const total = filteredEnrollments.length
 
-        // Funnel Seleksi Calculations
+        // Filter Seleksi Calculations
         const verified = filteredEnrollments.filter(e => ['verifikasi', 'tes', 'diterima'].includes(e.status)).length
         const test = filteredEnrollments.filter(e => ['tes', 'diterima'].includes(e.status)).length
         const accepted = filteredEnrollments.filter(e => e.status === 'diterima').length
@@ -500,7 +500,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                 }
             `}} />
 
-            {/* Header Toolbar: Wave Funnel directly in statistics */}
+            {/* Header Toolbar: Wave Filter directly in statistics */}
             <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center pb-4 mb-4 border-b border-[var(--color-border)]/50 print:hidden">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Saring Gelombang:</span>
@@ -538,11 +538,11 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                         </div>
                     </div>
 
-                    {/* Corong Seleksi Flow - Highly Visual Funnel with Arrow Connectors */}
+                    {/* Corong Seleksi Flow - Highly Visual Filter with Arrow Connectors */}
                     <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Corong Seleksi (Funnel Pendaftaran)</span>
-                            <Funnel className="text-violet-500 w-3 h-3" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Corong Seleksi (Filter Pendaftaran)</span>
+                            <Filter className="text-violet-500 w-3 h-3" />
                         </div>
 
                         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">

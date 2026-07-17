@@ -448,7 +448,7 @@ export function usePeriodsImportExport({
             const allRows = getExportData();
             if (!allRows.length) return addToast("Tidak ada data untuk diekspor", "warning");
 
-            const scopeLabel = exportScope === "filtered" ? "Funnel Aktif" : exportScope === "selected" ? "Dipilih" : "Semua";
+            const scopeLabel = exportScope === "filtered" ? "Filter Aktif" : exportScope === "selected" ? "Dipilih" : "Semua";
             const tableHeaders = Object.keys(allRows[0]);
             const tableRowsHTML = allRows.map((row, i) => {
                 const cells = tableHeaders.map((h, ci) => `<td${ci === 0 ? ' style="text-align:center;color:#aaa;font-size:10px"' : ''}>${row[h] ?? ''}</td>`).join('');
@@ -479,7 +479,7 @@ export function usePeriodsImportExport({
                 showSignature: false,
                 paperSize: options.orientation === "portrait" ? "A4 portrait" : "A4 landscape",
                 footerAppTitle: "KoperasiSenyumMu",
-                footerAppSubtitle: "Data Tahun Pelajaran — Export Premium",
+                footerAppSubtitle: "Data Tahun Pelajaran",
             });
 
             const opened = openPrintWindow(html);
@@ -488,16 +488,16 @@ export function usePeriodsImportExport({
             try {
                 await logAudit({
                     action: "EXPORT", source: "MASTER", tableName: "periods",
-                    newData: { format: "pdf_premium", scope: exportScope, columns: exportColumns, count: allRows.length },
+                    newData: { format: "pdf", scope: exportScope, columns: exportColumns, count: allRows.length },
                 });
             } catch (e) {
                 console.warn("[usePeriodsImportExport] logAudit skip:", e.message);
             }
 
-            addToast(`Export PDF Premium berhasil (${allRows.length} periode) — gunakan "Save as PDF" di dialog cetak`, "success");
+            addToast(`Export PDF berhasil (${allRows.length} periode) — gunakan "Save as PDF" di dialog cetak`, "success");
             setIsExportModalOpen(false);
         } catch (err) {
-            handleError(err, { context: "Gagal export PDF Premium" });
+            handleError(err, { context: "Gagal export PDF" });
         } finally {
             setExporting(false);
         }

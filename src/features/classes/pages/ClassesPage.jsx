@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
-import { Archive, ArrowDown, Bed, Buildings, Check, Checks, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Funnel, Keyboard, Link, Spinner, GenderMale, Plus, MagnifyingGlass, SlidersHorizontal, Trash, UploadSimple, UserCheck, Users, GenderFemale, X, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Archive, ArrowDown, Bed, Buildings, Check, Checks, CheckCircle, CheckSquare, CaretDown, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, DownloadSimple, Eye, EyeSlash, FileArrowDown, FileArrowUp, Filter, Keyboard, Link, Spinner, GenderMale, Plus, MagnifyingGlass, SlidersHorizontal, Trash, UploadSimple, UserCheck, Users, GenderFemale, X, ArrowCounterClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 
@@ -348,7 +348,7 @@ export default function ClassesPage() {
         return () => supabase.removeChannel(ch)
     }, [])
 
-    // Funnel & Sort Logic
+    // Filter & Sort Logic
     const filteredClasses = useMemo(() => {
         let result = classes.filter(c => {
             const q = searchQuery.toLowerCase()
@@ -567,7 +567,7 @@ export default function ClassesPage() {
             doc.setFontSize(13)
             doc.text('Laporan Data Kelas', 14, 12)
             doc.setFontSize(8)
-            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}  |  Total: ${allRows.length} kelas  |  Scope: ${exportScope === 'filtered' ? 'Funnel Aktif' : exportScope === 'selected' ? 'Dipilih' : 'Semua'}`, 14, 18)
+            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}  |  Total: ${allRows.length} kelas  |  Scope: ${exportScope === 'filtered' ? 'Filter Aktif' : exportScope === 'selected' ? 'Dipilih' : 'Semua'}`, 14, 18)
 
             const headers = Object.keys(allRows[0])
             const rows = allRows.map(r => headers.map(h => String(r[h] ?? '')))
@@ -1069,7 +1069,7 @@ export default function ClassesPage() {
                     </div>
                 )}
 
-                {/* ── Funnel Bar ── */}
+                {/* ── Filter Bar ── */}
                 <div className="glass rounded-[1.5rem] mb-4 border border-[var(--color-border)] overflow-hidden">
                     {/* Row 1: MagnifyingGlass + Quick Filters + Action Buttons */}
                     <div className="flex items-center gap-2 p-2.5 lg:p-3">
@@ -1083,7 +1083,7 @@ export default function ClassesPage() {
                             />
                         </div>
 
-                        {/* Quick Funnel Chips - Desktop Only */}
+                        {/* Quick Filter Chips - Desktop Only */}
                         <div className="hidden lg:flex flex-1 items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 min-w-0 pr-8 h-full [mask-image:linear-gradient(to_right,black_calc(100%-32px),transparent)]">
                             <div className="h-4 w-px bg-[var(--color-border)] mx-1 hidden lg:block" />
 
@@ -1111,7 +1111,7 @@ export default function ClassesPage() {
                             {/* Separator */}
                             <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
 
-                            {/* UsersThree 2: Funnel Cepat */}
+                            {/* UsersThree 2: Filter Cepat */}
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {[
                                     { id: 'no_teacher', label: 'Tanpa Wali', icon: UserCheck, active: filterNoTeacher, onClick: () => { setFilterNoTeacher(!filterNoTeacher); setPage(1) }, activeCls: 'bg-amber-500 border-amber-500' },
@@ -1173,13 +1173,13 @@ export default function ClassesPage() {
                                 className={`h-9 px-3 sm:px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${showAdvFilter || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
                             >
                                 <SlidersHorizontal />
-                                <span className="hidden xs:inline">Funnel</span>
+                                <span className="hidden xs:inline">Filter</span>
                                 {activeFilterCount > 0 && <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">{activeFilterCount}</span>}
                             </button>
                         </div>
                     </div>
 
-                    {/* Active Funnel Chips */}
+                    {/* Active Filter Chips */}
                     {(searchQuery || filterLevel || filterProgram || filterNoTeacher || filterCrowded) && (
                         <div className="px-3 pb-3 -mt-1">
                             <div className="flex flex-wrap gap-2">
@@ -1246,7 +1246,7 @@ export default function ClassesPage() {
                                     <div className="w-1 h-3.5 bg-indigo-500 rounded-full" />
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 flex items-center gap-2">
                                         <SlidersHorizontal className="w-3 h-3 opacity-60" />
-                                        Funnel Lanjutan
+                                        Filter Lanjutan
                                     </span>
                                 </div>
                                 <button
@@ -1254,7 +1254,7 @@ export default function ClassesPage() {
                                     className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 border border-transparent hover:border-red-100"
                                 >
                                     <ArrowCounterClockwise className="w-3 h-3" />
-                                    Reset Semua Funnel
+                                    Reset Semua Filter
                                 </button>
                             </div>
 
@@ -1407,7 +1407,7 @@ export default function ClassesPage() {
                                                                     onClick={resetAllFilters}
                                                                     className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition"
                                                                 >
-                                                                    Reset Semua Funnel
+                                                                    Reset Semua Filter
                                                                 </button>
                                                             ) : (
                                                                 <button
@@ -1451,7 +1451,7 @@ export default function ClassesPage() {
                                                     onClick={resetAllFilters}
                                                     className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition"
                                                 >
-                                                    Reset Semua Funnel
+                                                    Reset Semua Filter
                                                 </button>
                                             ) : (
                                                 <button

@@ -100,7 +100,7 @@ export const ROUTE_FLAG_MAP = {
 }
 
 /**
- * Funnel nav items based on feature flags and role.
+ * Filter nav items based on feature flags and role.
  * @param {Array} items - Array of nav items
  * @param {Object} flags - Feature flags map
  * @param {string} role - User role (lowercase)

@@ -775,7 +775,7 @@ export default function StudentsPage() {
                             />
                         </div>
 
-                        {/* Quick Funnel Chips - Desktop Only */}
+                        {/* Quick Filter Chips - Desktop Only */}
                         <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
                             <div className="h-4 w-px bg-[var(--color-border)] mx-1 hidden lg:block" />
 
@@ -875,7 +875,7 @@ export default function StudentsPage() {
                     </div>
 
 
-                    {/* Active Funnel Chips */}
+                    {/* Active Filter Chips */}
                     {(searchQuery || filterClass || filterGender || filterStatus || filterTag || filterMissing) && (
                         <div className="px-3 pb-3 -mt-1">
                             <div className="flex flex-wrap gap-2">
@@ -1059,7 +1059,7 @@ export default function StudentsPage() {
                                                     const rows = await fetchFilteredForExport()
                                                     const ws = XLSX.utils.json_to_sheet(rows)
                                                     const wb = XLSX.utils.book_new()
-                                                    XLSX.utils.book_append_sheet(wb, ws, 'Funnel')
+                                                    XLSX.utils.book_append_sheet(wb, ws, 'Filter')
                                                     const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' })
                                                     const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
                                                     downloadBlob(blob, `export_filter_${new Date().toISOString().slice(0, 10)}.xlsx`)

@@ -187,7 +187,7 @@ export default function StudentExportModal({
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 â€” Jangkauan Data</p>
                         <div className="grid grid-cols-3 gap-2.5">
                             {[
-                                { val: 'filtered', label: 'Funnel Aktif', desc: `${students.length} siswa`, icon: SlidersHorizontal },
+                                { val: 'filtered', label: 'Filter Aktif', desc: `${students.length} siswa`, icon: SlidersHorizontal },
                                 { val: 'selected', label: 'Dipilih', desc: `${selectedStudentIds.length} siswa`, icon: CheckCircle, disabled: selectedStudentIds.length === 0 },
                                 { val: 'all', label: 'Semua', desc: 'Tanpa filter', icon: Users },
                             ].map(({ val, label, desc, icon, disabled }) => (

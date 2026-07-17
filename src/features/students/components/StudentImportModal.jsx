@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Funnel, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Filter, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import Modal from '@shared/components/Modal'
@@ -610,7 +610,7 @@ export default function StudentImportModal(props) {
                                                 ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20'
                                                 : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}
                                     >
-                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Funnel className="w-3 h-3" />}
+                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <Filter className="w-3 h-3" />}
                                         <span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span>
                                     </button>
                                 </div>
@@ -736,7 +736,7 @@ export default function StudentImportModal(props) {
                                             {importReadyRows.length} baris siap diimport
                                         </span>
                                     </div>
-                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Funnel "Hanya Isu" Aktif</span>}
+                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Filter "Hanya Isu" Aktif</span>}
                                 </div>
                             </div>
 

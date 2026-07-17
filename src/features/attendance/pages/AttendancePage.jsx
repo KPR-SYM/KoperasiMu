@@ -2,7 +2,7 @@
     useState, useEffect, useCallback, useRef,
     useMemo, memo, useDeferredValue, useTransition,
 } from 'react'
-import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, Check, CheckCircle, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, Crosshair, DoorOpen, Eye, EyeSlash, FileText, FileArrowDown, FileArrowUp, Funnel, GridNine, Heartbeat, ClockCounterClockwise, Keyboard, Lightbulb, Link, LinkBreak, List, ListChecks, Spinner, Cursor, PresentationChart, Printer, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, MagnifyingGlass, GearSix, Sparkle, Table, TrendDown, TrendUp, UploadSimple, User, UserCheck, Users, X, XCircle, Lightning , Note } from '@phosphor-icons/react'
+import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, Check, CheckCircle, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, Crosshair, DoorOpen, Eye, EyeSlash, FileText, FileArrowDown, FileArrowUp, Filter, GridNine, Heartbeat, ClockCounterClockwise, Keyboard, Lightbulb, Link, LinkBreak, List, ListChecks, Spinner, Cursor, PresentationChart, Printer, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, MagnifyingGlass, GearSix, Sparkle, Table, TrendDown, TrendUp, UploadSimple, User, UserCheck, Users, X, XCircle, Lightning , Note } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -1046,7 +1046,7 @@ function CommandPalette({ open, onClose, onAction, studentCount, bulan, tahun, c
             group: 'Tampilan',
             items: [
                 { id: 'hide-weekend', label: hideWeekend ? 'Tampilkan weekend' : 'Sembunyikan weekend', desc: 'Toggle kolom Sabtu & Minggu', icon: hideWeekend ? Eye : EyeSlash, color: '#6366f1', action: () => onAction('toggleWeekend') },
-                { id: 'filter-alpa', label: 'Funnel: siswa alpa', desc: 'Tampilkan hanya yang sering alpa', icon: Funnel, color: '#dc2626', action: () => onAction('filterAlpa') },
+                { id: 'filter-alpa', label: 'Filter: siswa alpa', desc: 'Tampilkan hanya yang sering alpa', icon: Filter, color: '#dc2626', action: () => onAction('filterAlpa') },
                 { id: 'filter-all', label: 'Reset filter', desc: 'Tampilkan semua siswa', icon: ArrowCounterClockwise, color: '#888', action: () => onAction('filterAll'), disabled: filterMode === 'all' },
                 { id: 'today', label: 'Scroll ke hari ini', desc: 'Auto-focus kolom aktif', icon: Crosshair, color: '#6366f1', action: () => onAction('scrollToToday') },
                 { id: 'view-card', label: 'View: Card', desc: 'Tampilan dot grid per siswa (mobile)', icon: GridNine, color: '#6366f1', action: () => onAction('setMobileView', 'card') },
@@ -2664,7 +2664,7 @@ function HistoryDrawer({ teacher, onClose, settings = DEFAULT_ATTENDANCE_SETTING
                         </div>
                     )}
 
-                    {/* Funnel bulan */}
+                    {/* Filter bulan */}
                     <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
                         className="w-full h-9 px-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[11px] font-black text-[var(--color-text)] outline-none focus:border-[var(--color-primary)]">
                         <option value="">Semua Bulan</option>
@@ -3686,7 +3686,7 @@ export default function AttendancePage() {
     const tableBodyRef = useRef(null)
     // â”€â”€ Feature 3: Hide weekend â”€â”€
     const [hideWeekend, setHideWeekend] = useState(false)
-    // â”€â”€ Feature 4: Funnel row siswa â”€â”€
+    // â”€â”€ Feature 4: Filter row siswa â”€â”€
     const [filterMode, setFilterMode] = useState('all') // 'all' | 'alpa' | 'empty' | 'belum'
     // â”€â”€ Feature 5: Scroll ke hari ini handled via ref â”€â”€
     const todayColRef = useRef(null)
@@ -4616,11 +4616,11 @@ export default function AttendancePage() {
                                         </div>
                                     </button>
 
-                                    {/* Funnel siswa */}
+                                    {/* Filter siswa */}
                                     <div className="px-4 py-3 rounded-xl border border-[var(--color-border)]">
                                         <p className="text-[11px] font-black text-[var(--color-text)] mb-2 flex items-center gap-2">
-                                            <Funnel className="w-3 h-3" />
-                                            Funnel Siswa
+                                            <Filter className="w-3 h-3" />
+                                            Filter Siswa
                                         </p>
                                         <div className="flex flex-col gap-1.5">
                                             {[
@@ -4840,9 +4840,9 @@ export default function AttendancePage() {
                                                                     ) : filterMode !== 'all' ? (
                                                                         // Empty: filter active
                                                                         <EmptyState 
-                                                                            icon={Funnel}
+                                                                            icon={Filter}
                                                                             title="Tidak ada siswa yang cocok"
-                                                                            description="Funnel aktif tidak menemukan siswa"
+                                                                            description="Filter aktif tidak menemukan siswa"
                                                                             variant="plain"
                                                                             color="slate"
                                                                             action={

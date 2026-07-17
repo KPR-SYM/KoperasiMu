@@ -38,10 +38,10 @@ export default function DormTabCleanliness({
                         </button>
                     </div>
 
-                    {/* Funnel Bar */}
+                    {/* Filter Bar */}
                     <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl bg-[var(--color-surface-alt)]/40 border border-[var(--color-border)]">
 
-                        {/* Room Funnel — RichSelect compact */}
+                        {/* Room Filter — RichSelect compact */}
                         <div className="flex-1 min-w-[110px]">
                             <RichSelect
                                 icon={Bed}

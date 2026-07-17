@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
-import { Warning, TextAlignLeft, Archive, BookOpenText, Calendar, Check, CheckSquare, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, ArrowSquareOut, Eye, EyeSlash, Funnel, Globe, DotsSix, Hash, ImageSquare, List, Spinner, NewspaperClipping, Pen, Plus, Rocket, MagnifyingGlass, SlidersHorizontal, Sparkle, Square, Star, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
+import { Warning, TextAlignLeft, Archive, BookOpenText, Calendar, Check, CheckSquare, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, ArrowSquareOut, Eye, EyeSlash, Filter, Globe, DotsSix, Hash, ImageSquare, List, Spinner, NewspaperClipping, Pen, Plus, Rocket, MagnifyingGlass, SlidersHorizontal, Sparkle, Square, Star, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 
@@ -374,7 +374,7 @@ export default function NewsListPage() {
     }, [searchInput])
 
     // ── Fetch current user name from profiles ──────────────────────────────────
-    // ── Get Current User Name for Funnel ──
+    // ── Get Current User Name for Filter ──
     useEffect(() => {
         if (authProfile) {
             setCurrentUserName(authProfile.name || authProfile.full_name || authProfile.email?.split('@')[0] || 'Admin')
@@ -475,7 +475,7 @@ export default function NewsListPage() {
 
     useEffect(() => { fetchGlobalStats() }, [fetchGlobalStats, newsList])
 
-    // ── Fetch Authors & Tag for Funnel ──
+    // ── Fetch Authors & Tag for Filter ──
     useEffect(() => {
         const fetchFilters = async () => {
             const { data, error } = await supabase.from('news').select('display_name, tag')
@@ -734,7 +734,7 @@ export default function NewsListPage() {
                     </div>
                 )}
 
-                {/* ── Toolbar (MagnifyingGlass & Funnel) ── */}
+                {/* ── Toolbar (MagnifyingGlass & Filter) ── */}
                 <div className="bg-[var(--color-surface)] rounded-[1.5rem] border border-[var(--color-border)] shadow-sm overflow-hidden">
 
                     {/* Row 1: MagnifyingGlass + action buttons — always one row */}
@@ -771,13 +771,13 @@ export default function NewsListPage() {
                                 </button>
                             )}
 
-                            {/* Funnel toggle */}
+                            {/* Filter toggle */}
                             <button
                                 onClick={() => setShowFilter(!showFilter)}
                                 className={`h-9 px-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${showFilter || filterStatus !== 'all' || sortBy !== 'newest' ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
                             >
                                 <SlidersHorizontal />
-                                <span className="hidden xs:inline">Funnel</span>
+                                <span className="hidden xs:inline">Filter</span>
                                 {(filterStatus !== 'all' || sortBy !== 'newest') && (
                                     <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">
                                         {(filterStatus !== 'all' ? 1 : 0) + (sortBy !== 'newest' ? 1 : 0)}

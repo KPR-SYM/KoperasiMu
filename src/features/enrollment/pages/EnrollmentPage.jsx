@@ -253,7 +253,7 @@ export default function EnrollmentPage() {
                     <StatCard icon={XCircle} label="Ditolak" value={globalStats.ditolak} color="rose" />
                 </StatsCarousel>
 
-                {/* Funnel Bar */}
+                {/* Filter Bar */}
                 <div className="glass rounded-[1.5rem] mb-4 border border-[var(--color-border)] overflow-hidden">
                     <div className="flex items-center gap-2 p-2.5 lg:p-3">
                         <div className="flex-initial w-full lg:w-[232px] xl:w-[352px] min-w-[120px]">
@@ -322,7 +322,7 @@ export default function EnrollmentPage() {
                                 className={`h-9 px-3 sm:px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${showAdvancedFilter || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
                             >
                                 <SlidersHorizontal />
-                                <span className="hidden xs:inline">Funnel</span>
+                                <span className="hidden xs:inline">Filter</span>
                                 {activeFilterCount > 0 && (
                                     <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">
                                         {activeFilterCount}
@@ -388,7 +388,7 @@ export default function EnrollmentPage() {
                                     <div className="w-1 h-3.5 bg-indigo-500 rounded-full" />
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 flex items-center gap-2">
                                         <SlidersHorizontal className="w-3 h-3 opacity-60" />
-                                        Funnel Lanjutan
+                                        Filter Lanjutan
                                     </span>
                                 </div>
                                 <button
@@ -396,7 +396,7 @@ export default function EnrollmentPage() {
                                     className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 border border-transparent hover:border-red-100"
                                 >
                                     <ArrowCounterClockwise className="w-3 h-3" />
-                                    Reset Semua Funnel
+                                    Reset Semua Filter
                                 </button>
                             </div>
 
@@ -530,7 +530,7 @@ export default function EnrollmentPage() {
                                                 description="Maaf, kami tidak menemukan data pendaftar dengan kriteria tersebut. Coba ubah kata kunci atau reset filter."
                                                 action={
                                                     <button onClick={resetAllFilters} className="px-5 py-2.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)] w-3 h-3 font-black uppercase tracking-widest text-[var(--color-text)] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-1.5 mx-auto">
-                                                        <ArrowCounterClockwise className="w-3 h-3" /> Reset Semua Funnel
+                                                        <ArrowCounterClockwise className="w-3 h-3" /> Reset Semua Filter
                                                     </button>
                                                 }
                                             />
@@ -569,7 +569,7 @@ export default function EnrollmentPage() {
                                     description="Ubah kata kunci atau reset filter"
                                     action={
                                         <button onClick={resetAllFilters} className="px-4 py-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] w-3 h-3 font-black uppercase tracking-widest text-[var(--color-text)] transition-all">
-                                            Reset Funnel
+                                            Reset Filter
                                         </button>
                                     }
                                     variant="dashed"

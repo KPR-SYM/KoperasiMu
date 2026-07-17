@@ -96,7 +96,7 @@ const KNOWN_FLAGS = [
     { key: 'students.stats', label: 'Dashboard Statistik', category: 'students', description: 'Tampilkan carousel statistik ringkasan di bagian atas', sort_order: 12 },
     { key: 'students.print_card', label: 'Cetak Kartu Siswa', category: 'students', description: 'Fitur pembuatan ID Card / Kartu Pelajar otomatis', sort_order: 13 },
     { key: 'students.privacy_mode', label: 'Mode Privasi (Masking)', category: 'students', description: 'Sensor NISN dan nomor HP pada tabel untuk keamanan', sort_order: 14 },
-    { key: 'students.filters_advanced', label: 'Funnel Lanjutan', category: 'students', description: 'Panel filter detail (Gender, Status, Poin, dll)', sort_order: 15 },
+    { key: 'students.filters_advanced', label: 'Filter Lanjutan', category: 'students', description: 'Panel filter detail (Gender, Status, Poin, dll)', sort_order: 15 },
     { key: 'students.bulk_room', label: 'Pindah Kamar Masal', category: 'students', description: 'Fitur pengaturan kamar untuk banyak siswa sekaligus', sort_order: 16 },
 
     // Nav

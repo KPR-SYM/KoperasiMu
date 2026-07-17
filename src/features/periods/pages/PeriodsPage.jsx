@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
     Archive,
     Calendar,
@@ -9,7 +9,6 @@ import {
     CaretLeft,
     CaretRight,
     CircleDashed,
-    Clock,
     Copy,
     Eye,
     EyeSlash,
@@ -47,10 +46,9 @@ import {
     Pagination,
     RichSelect,
     AuditTimeline,
-    StatsCarousel,
-    StatCard,
     EmptyState,
     BulkActionsBar,
+    StatsInline,
     ConfirmDialog,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
@@ -116,7 +114,7 @@ const DebouncedSearchInput = memo(
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="Cari nama tahun pelajaran (contoh: 2024/2025)... (Ctrl+K)"
-                    className="input-field pl-10 w-full h-9 text-xs sm:text-sm bg-[var(--color-surface-alt)]/50 border-[var(--color-border)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all rounded-xl font-bold placeholder:font-normal placeholder:opacity-40"
+                    className="input-field w-full h-9 text-xs sm:text-sm bg-[var(--color-surface-alt)]/50 border-[var(--color-border)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all rounded-xl font-bold placeholder:font-normal placeholder:opacity-40"
                 />
             </div>
         );
@@ -480,10 +478,8 @@ export default function PeriodsPage() {
         isExportModalOpen, setIsExportModalOpen,
     });
 
-    const STAT_CARD_COUNT = 4;
-
     // ── Inline Cell Editor ──────────────────────────────────────────────────
-    const InlineCell = ({ id, field, value, displayValue, type = "text", options, className = "", canEdit: cellEditable = true }) => {
+    const InlineCell = useCallback(({ id, field, value, displayValue, type = "text", options, className = "", canEdit: cellEditable = true }) => {
         const isEditing = inlineEditCell?.id === id && inlineEditCell?.field === field;
 
         if (!cellEditable || !canEdit) {
@@ -589,7 +585,7 @@ export default function PeriodsPage() {
                 {displayValue ?? value ?? "-"}
             </span>
         );
-    };
+    }, [inlineEditCell, setInlineEditCell, handleInlineSave, canEdit]);
 
     if (!moduleEnabled) {
         return (
@@ -610,19 +606,17 @@ export default function PeriodsPage() {
         );
     }
 
+    const selectedItemsData = selectedIds.map(id => years.find(y => y.id === id)).filter(Boolean);
+    const allLocked = selectedItemsData.length > 0 && selectedItemsData.every(y => y.is_locked);
+    const allUnlocked = selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked);
+    const singleItem = selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null;
+
+    const overlaps = findOverlappingPeriods(years.filter((y) => y.is_active));
     return (
         <DashboardLayout title="Tahun Pelajaran">
             <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
-                {(() => {
-                    const selectedItemsData = selectedIds.map(id => years.find(y => y.id === id)).filter(Boolean);
-                    const allLocked = selectedItemsData.length > 0 && selectedItemsData.every(y => y.is_locked);
-                    const allUnlocked = selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked);
-                    const hasLocked = selectedItemsData.some(y => y.is_locked);
-                    const hasUnlocked = selectedItemsData.some(y => !y.is_locked);
-                    const singleItem = selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null;
-
-                    return (
-                        <BulkActionsBar
+                {selectedIds.length > 0 && (
+                    <BulkActionsBar
                     selectedCount={selectedIds.length}
                     onClear={() => setSelectedIds([])}
                     title="Data Terpilih"
@@ -674,8 +668,7 @@ export default function PeriodsPage() {
                         },
                     ]}
                 />
-                    );
-                })()}
+                )}
 
                 {!canEdit && (
                     <div className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
@@ -947,70 +940,34 @@ export default function PeriodsPage() {
                 />
 
                 {/* ── Stats ── */}
-                <StatsCarousel count={STAT_CARD_COUNT} cols={4}>
-                    {[
-                        {
-                            icon: StackSimple,
-                            label: "Total Periode",
-                            value: stats.total,
-                            borderColor: "border-t-blue-500",
-                            iconBg: "bg-blue-500/10 text-blue-500",
-                        },
-                        {
-                            icon: CheckCircle,
-                            label: "Status Aktif",
-                            value: stats.active,
-                            borderColor: "border-t-emerald-500",
-                            iconBg: "bg-emerald-500/10 text-emerald-500",
-                        },
-                        {
-                            icon: GraduationCap,
-                            label: "Smt. Ganjil",
-                            value: stats.ganjil,
-                            borderColor: "border-t-indigo-500",
-                            iconBg: "bg-indigo-500/10 text-indigo-500",
-                        },
-                        {
-                            icon: GraduationCap,
-                            label: "Smt. Genap",
-                            value: stats.genap,
-                            borderColor: "border-t-purple-500",
-                            iconBg: "bg-purple-500/10 text-purple-500",
-                        },
-                    ].map((s, i) => (
-                        <StatCard
-                            key={i}
-                            icon={s.icon}
-                            label={s.label}
-                            value={s.value}
-                            borderColor={s.borderColor}
-                            iconBg={s.iconBg}
-                        />
-                    ))}
-                </StatsCarousel>
+                <StatsInline
+                    items={[
+                        { label: "Periode", value: stats.total, color: "text-[var(--color-text)]" },
+                        { label: "Aktif", value: stats.active, color: "text-emerald-600" },
+                        { label: "Ganjil", value: stats.ganjil, color: "text-indigo-500" },
+                        { label: "Genap", value: stats.genap, color: "text-purple-500" },
+                    ]}
+                />
 
                 {/* ── Conflict Detection Badge ── */}
-                {(() => {
-                    const overlaps = findOverlappingPeriods(years.filter((y) => y.is_active));
-                    if (overlaps.length === 0) return null;
-                    return (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 mb-4 animate-in fade-in slide-in-from-top-2">
-                            <Warning className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            <span className="text-[11px] font-black text-red-600">
-                                ⚠ {overlaps.length} periode tumpang tindih (overlap) terdeteksi
-                            </span>
-                            <button
-                                onClick={() => setFilterTimeStatus("Sedang Berjalan")}
-                                className="ml-auto px-2 py-1 text-[9px] font-black uppercase tracking-wider bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                            >
-                                Filter
-                            </button>
-                        </div>
-                    );
-                })()}
+                {overlaps.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 animate-in fade-in slide-in-from-top-2">
+                        <Warning className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <span className="text-[11px] font-black text-red-600">
+                            ⚠ {overlaps.length} periode tumpang tindih (overlap) terdeteksi
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => setFilterTimeStatus("Sedang Berjalan")}
+                            className="ml-auto px-2 py-1 text-[9px] font-black uppercase tracking-wider bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                            Filter
+                        </button>
+                    </div>
+                )}
 
                 {/* ── Filter Bar ── */}
-                <div className="glass rounded-[1.5rem] mb-4 border border-[var(--color-border)] overflow-hidden">
+                <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
                     <div className="flex items-center gap-2 p-2.5 lg:p-3">
                         <div className="flex-1 min-w-[120px] transition-all duration-300">
                             <DebouncedSearchInput
@@ -1021,58 +978,59 @@ export default function PeriodsPage() {
                             />
                         </div>
 
-                        {/* Quick Funnel Chips */}
-                        <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
-                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+                        {totalRows >= 5 && (
+                            <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
+                                <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
 
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                {[
-                                    { id: "Ganjil", label: "Ganjil", icon: CaretLeft },
-                                    { id: "Genap", label: "Genap", icon: CaretRight },
-                                ].map((s) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() =>
-                                            setFilterSemester(filterSemester === s.id ? "" : s.id)
-                                        }
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
-                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
-                                            }`}
-                                    >
-                                        <s.icon
-                                            className={`w-3 h-3 ${filterSemester === s.id ? "opacity-100" : "opacity-30"}`}
-                                        />
-                                        {s.label}
-                                    </button>
-                                ))}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {[
+                                        { id: "Ganjil", label: "Ganjil", icon: CaretLeft },
+                                        { id: "Genap", label: "Genap", icon: CaretRight },
+                                    ].map((s) => (
+                                        <button
+                                            key={s.id}
+                                            onClick={() =>
+                                                setFilterSemester(filterSemester === s.id ? "" : s.id)
+                                            }
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
+                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                                : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                                }`}
+                                        >
+                                            <s.icon
+                                                className={`w-3 h-3 ${filterSemester === s.id ? "opacity-100" : "opacity-30"}`}
+                                            />
+                                            {s.label}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {[
+                                        { id: "active", label: "Aktif", icon: CheckCircle },
+                                        { id: "inactive", label: "Nonaktif", icon: CircleDashed },
+                                    ].map((s) => (
+                                        <button
+                                            key={s.id}
+                                            onClick={() =>
+                                                setFilterStatus(filterStatus === s.id ? "" : s.id)
+                                            }
+                                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
+                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                                : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                                }`}
+                                        >
+                                            <s.icon
+                                                className={`w-3 h-3 ${filterStatus === s.id ? "opacity-100" : "opacity-30"}`}
+                                            />
+                                            {s.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-
-                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
-
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                {[
-                                    { id: "active", label: "Aktif", icon: CheckCircle },
-                                    { id: "inactive", label: "Nonaktif", icon: CircleDashed },
-                                ].map((s) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() =>
-                                            setFilterStatus(filterStatus === s.id ? "" : s.id)
-                                        }
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
-                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
-                                            }`}
-                                    >
-                                        <s.icon
-                                            className={`w-3 h-3 ${filterStatus === s.id ? "opacity-100" : "opacity-30"}`}
-                                        />
-                                        {s.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        )}
 
                         <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
 
@@ -1409,7 +1367,6 @@ export default function PeriodsPage() {
                                     onToggleLock={handleToggleLock}
                                     onHistory={handleOpenHistory}
                                     canEdit={canEdit}
-                                    submitting={isSaving}
                                     isPrivacyMode={isPrivacyMode}
                                     maskValue={maskValue}
                                 />
@@ -1573,13 +1530,22 @@ export default function PeriodsPage() {
                                                 {isEmpty ? (
                                                     <tr>
                                                         <td colSpan={1 + Object.values(visibleCols).filter(Boolean).length + 1} className="py-24 text-center">
-                                                            <EmptyState
-                                                                icon={MagnifyingGlass}
-                                                                title="Tidak ada data ditemukan"
-                                                                description="Sesuaikan filter atau kata kunci pencarian Anda"
-                                                                color="slate"
-                                                                variant="plain"
-                                                            />
+                                                            {years.length === 0 ? (
+                                                                <EmptyState
+                                                                    icon={GraduationCap}
+                                                                    title="Belum Ada Tahun Pelajaran"
+                                                                    description="Tambahkan periode akademik pertama untuk mulai menggunakan modul ini."
+                                                                    color="primary"
+                                                                />
+                                                            ) : (
+                                                                <EmptyState
+                                                                    icon={MagnifyingGlass}
+                                                                    title="Tidak ada data ditemukan"
+                                                                    description="Sesuaikan filter atau kata kunci pencarian Anda"
+                                                                    color="slate"
+                                                                    variant="plain"
+                                                                />
+                                                            )}
                                                         </td>
                                                     </tr>
                                                 ) : (
@@ -1605,12 +1571,9 @@ export default function PeriodsPage() {
                                                                             <div
                                                                                 className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}
                                                                             >
-                                                                                <span className="relative z-10">
-                                                                                    {isPrivacyMode
-                                                                                        ? "??"
-                                                                                        : year.academic_year?.slice(2, 4) ||
-                                                                                        "??"}
-                                                                                </span>
+                                                                             <span className="relative z-10">
+                                                                                 <Calendar className="w-4 h-4" />
+                                                                             </span>
                                                                             </div>
                                                                             <div className="flex flex-col min-w-0 flex-1">
                                                                                 <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
@@ -1619,10 +1582,9 @@ export default function PeriodsPage() {
                                                                                     </PrivacyValue>
                                                                                 </span>
                                                                                 <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">
-                                                                                    <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-md mr-1 ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600" : "bg-purple-500/10 text-purple-600"}`}>
+                                                                                    <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-md ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600" : "bg-purple-500/10 text-purple-600"}`}>
                                                                                         {maskValue(year.semester, "semester")}
                                                                                     </span>
-                                                                                    {maskValue(`ID: ${year.id}`, "id")}
                                                                                 </p>
                                                                             </div>
                                                                         </div>
@@ -1758,7 +1720,18 @@ export default function PeriodsPage() {
                                         </table>
                                     </div>
                                     <div className="md:hidden divide-y divide-[var(--color-border)]">
-                                        {paged.map((year) => {
+                                        {paged.length === 0 ? (
+                                            <div className="p-8 text-center">
+                                                <EmptyState
+                                                    icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
+                                                    title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
+                                                    description={years.length === 0 ? "Tambahkan periode akademik pertama." : "Sesuaikan filter atau kata kunci pencarian Anda"}
+                                                    color={years.length === 0 ? "primary" : "slate"}
+                                                    variant="plain"
+                                                />
+                                            </div>
+                                        ) : (
+                                            paged.map((year) => {
                                             const isSelected = selectedIds.includes(year.id);
                                             return (
                                                 <div
@@ -1778,7 +1751,7 @@ export default function PeriodsPage() {
                                                             className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-black shadow-sm relative transition-transform shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}
                                                         >
                                                             <span className="relative z-10">
-                                                                {year.academic_year?.slice(2, 4) || "??"}
+                                                                <Calendar className="w-4 h-4" />
                                                             </span>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -1787,7 +1760,7 @@ export default function PeriodsPage() {
                                                                     className="min-w-0 flex-1"
                                                                     onClick={() => handleOpenReadOnlyDetail(year)}
                                                                 >
-                                                                    <button className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
+                                                                     <button type="button" className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
                                                                         {year.academic_year}
                                                                     </button>
                                                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -1805,11 +1778,8 @@ export default function PeriodsPage() {
                                                                                 Daftar: {formatDate(year.registration_start)} — {formatDate(year.registration_end)}
                                                                             </span>
                                                                         )}
-                                                                    </div>
-                                                                    <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">
-                                                                        ID: {year.id}
-                                                                    </p>
-                                                                </div>
+                                                                                </div>
+                                                                             </div>
                                                                 <div className="flex items-center gap-1">
                                                                     {canEdit && !year.is_locked && (
                                                                         <button
@@ -1852,7 +1822,8 @@ export default function PeriodsPage() {
                                                     </div>
                                                 </div>
                                             );
-                                        })}
+                                        })
+                                        )}
                                     </div>
                                 </>
                             )}
@@ -1923,18 +1894,18 @@ export default function PeriodsPage() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div
-                                            className={`w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${readOnlyDetailItem.is_active ? "bg-[var(--color-primary)] text-white shadow-md" : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)]"}`}
-                                        >
-                                            {readOnlyDetailItem.academic_year?.slice(2, 4) || "??"}
-                                        </div>
+                                         <div
+                                             className={`w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${readOnlyDetailItem.is_active ? "bg-[var(--color-primary)] text-white shadow-md" : "bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)]"}`}
+                                         >
+                                             <Calendar className="w-5 h-5" />
+                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
                                                 Periode
                                             </p>
-                                            <div className="w-3 h-3 font-bold">
+                                            <div className="font-bold">
                                                 {formatDate(readOnlyDetailItem.start_date)} —{" "}
                                                 {formatDate(readOnlyDetailItem.end_date)}
                                             </div>
@@ -1943,7 +1914,7 @@ export default function PeriodsPage() {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
                                                 Durasi
                                             </p>
-                                            <div className="w-3 h-3 font-black">
+                                            <div className="font-black">
                                                 {getDuration(
                                                     readOnlyDetailItem.start_date,
                                                     readOnlyDetailItem.end_date,
@@ -1955,7 +1926,7 @@ export default function PeriodsPage() {
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
                                                     Pendaftaran
                                                 </p>
-                                                <div className="w-3 h-3 font-bold">
+                                                <div className="font-bold">
                                                     {formatDate(readOnlyDetailItem.registration_start)} —{" "}
                                                     {formatDate(readOnlyDetailItem.registration_end)}
                                                 </div>

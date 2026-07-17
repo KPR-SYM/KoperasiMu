@@ -241,7 +241,7 @@ export default function TopNav({ title, subtitle }) {
     const { notifications, loading, refreshing, dismiss, refresh } = useNotifications()
     const { t } = useLanguage()
 
-    // ── Funnel nav items by feature flags
+    // ── Filter nav items by feature flags
     const visibleReportsItems = REPORTS_ITEMS.filter(it => {
         if (it.to === '/attendance') return flags['nav.absensi'] !== false
         return true
@@ -250,7 +250,7 @@ export default function TopNav({ title, subtitle }) {
     const isStaff = role === 'staff'
     const filteredReportsItems = visibleReportsItems
 
-    // Funnel master items by nav flags
+    // Filter master items by nav flags
     const filteredMasterItems = MASTER_ITEMS.filter(it => {
         if (it.to === '/master/students') return flags['nav.students'] !== false
         if (it.to === '/master/teachers') return flags['nav.teachers'] !== false

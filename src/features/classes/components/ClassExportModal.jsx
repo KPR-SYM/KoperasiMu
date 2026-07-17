@@ -170,7 +170,7 @@ export default function ClassExportModal({
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">1 â€” Jangkauan Data</p>
                         <div className="grid grid-cols-3 gap-2.5">
                             {[
-                                { val: 'filtered', label: 'Funnel Aktif', desc: `${classes.length} kelas`, icon: SlidersHorizontal },
+                                { val: 'filtered', label: 'Filter Aktif', desc: `${classes.length} kelas`, icon: SlidersHorizontal },
                                 { val: 'selected', label: 'Dipilih', desc: `${selectedClassIds.length} kelas`, icon: CheckCircle, disabled: selectedClassIds.length === 0 },
                                 { val: 'all', label: 'Semua', desc: 'Tanpa filter', icon: Users },
                             ].map(({ val, label, desc, icon: Icon, disabled }) => (

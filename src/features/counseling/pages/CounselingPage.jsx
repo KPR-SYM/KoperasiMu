@@ -462,7 +462,7 @@ export default function CounselingPage() {
         }
     }
 
-    // --- Funnel & MagnifyingGlass Logic ---
+    // --- Filter & MagnifyingGlass Logic ---
     const filteredLogs = useMemo(() => {
         return logs.filter(log => {
             const matchesSearch =
@@ -888,7 +888,7 @@ export default function CounselingPage() {
                     />
                 </StatsCarousel>
 
-                {/* MagnifyingGlass & Funnel Toolbar */}
+                {/* MagnifyingGlass & Filter Toolbar */}
                 <div className="glass p-4 rounded-2xl border border-[var(--color-border)] flex flex-col md:flex-row gap-4 items-center justify-between">
 
                     {/* Left: MagnifyingGlass input */}

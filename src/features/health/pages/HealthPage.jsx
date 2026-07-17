@@ -248,7 +248,7 @@ export default function HealthPage() {
 
         const selectedStudent = studentsList.find(s => s.id === formLog.student_id)
 
-        // Funnel out non-selected medicines
+        // Filter out non-selected medicines
         const activeMedsList = selectedMeds.filter(m => m.medicine_id)
         const primaryMed = activeMedsList[0] || null
         const selectedMed = primaryMed ? medicines.find(m => m.id === primaryMed.medicine_id) : null
@@ -1214,7 +1214,7 @@ export default function HealthPage() {
                                             }}
                                             className="h-9 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition"
                                         >
-                                            Reset Funnel
+                                            Reset Filter
                                         </button>
                                     }
                                 />
@@ -1452,7 +1452,7 @@ export default function HealthPage() {
                                             onClick={() => setSearchQuery('')}
                                             className="h-9 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition"
                                         >
-                                            Reset Funnel
+                                            Reset Filter
                                         </button>
                                     }
                                 />

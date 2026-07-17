@@ -194,7 +194,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         setGroupsOpen(prev => ({ ...prev, [key]: !prev[key] }))
     }, [])
 
-    // Funnel groups based on role
+    // Filter groups based on role
     const visibleGroups = useMemo(() => {
         return NAV_GROUPS.filter(group => {
             if (group.requireRoles && !group.requireRoles.includes(role)) return false

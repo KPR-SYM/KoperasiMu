@@ -235,7 +235,7 @@ const RichSelect = memo(({
                 </div>
             )}
 
-            {/* Dynamic Grouping Funnel Pills */}
+            {/* Dynamic Grouping Filter Pills */}
             {uniqueGroups.length > 0 && (
                 <div className="flex items-center gap-1 px-2 py-1 border-b border-[var(--color-border)]/40 bg-[var(--color-surface-alt)]/20 overflow-x-auto shrink-0 select-none custom-scrollbar">
                     <button
