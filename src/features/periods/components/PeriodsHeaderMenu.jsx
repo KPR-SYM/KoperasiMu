@@ -5,7 +5,6 @@ import {
     ArrowClockwise,
     FileArrowDown,
     FileArrowUp,
-    SlidersHorizontal,
 } from "@phosphor-icons/react";
 
 function getPortalContainer(id) {

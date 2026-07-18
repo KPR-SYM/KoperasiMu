@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Tag, Trash, UploadSimple, Lightning, CheckSquare, Checks, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { Modal, RichSelect, EmptyState } from '@shared/components'

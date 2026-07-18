@@ -38,6 +38,7 @@ const PeriodsTable = memo(function PeriodsTable({
     handleOpenReadOnlyDetail,
     setItemToDelete,
     setIsDeleteModalOpen,
+    onQuickFilterYear,
 }) {
     return (
         <>
@@ -160,7 +161,10 @@ const PeriodsTable = memo(function PeriodsTable({
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-col min-w-0 flex-1">
-                                                        <span className="font-extrabold text-[var(--color-text)] leading-snug truncate">
+                                                        <span
+                                                            onClick={() => onQuickFilterYear?.(year.academic_year)}
+                                                            className="font-extrabold text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors"
+                                                        >
                                                             <PrivacyValue active={isPrivacyMode}>
                                                                 {year.academic_year}
                                                             </PrivacyValue>
@@ -353,7 +357,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                 className="min-w-0 flex-1"
                                                 onClick={() => handleOpenReadOnlyDetail(year)}
                                             >
-                                                <button type="button" className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
+                                                <button type="button" onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
                                                     {year.academic_year}
                                                 </button>
                                                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">

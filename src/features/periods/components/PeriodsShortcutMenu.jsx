@@ -1,6 +1,5 @@
 import { memo } from "react";
 import { createPortal } from "react-dom";
-import { Keyboard } from "@phosphor-icons/react";
 
 function getPortalContainer(id) {
     if (typeof document === "undefined") return null;

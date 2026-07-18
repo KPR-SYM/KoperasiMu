@@ -10,6 +10,7 @@ import {
     LockOpen,
     ArrowClockwise,
     Plus,
+    Pencil,
     SlidersHorizontal,
     Warning,
 } from "@phosphor-icons/react";
@@ -19,15 +20,15 @@ import DashboardLayout from "@core/layouts/DashboardLayout";
 import { useToast } from "@context/Toast";
 import { findOverlappingPeriods } from "@features/periods/utils/periodValidation";
 import {
+    Checkbox,
     PageHeader,
-    Modal,
     Pagination,
     BulkActionsBar,
     StatsInline,
     ConfirmDialog,
-    AuditTimeline,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
+import PeriodBulkEditModal from "@features/periods/components/PeriodBulkEditModal";
 import { ArchiveModal, LockModal, UnlockModal } from "@features/periods/components/PeriodConfirmModals";
 import PeriodArchiveModal from "@features/periods/components/PeriodArchiveModal";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
@@ -128,19 +129,27 @@ export default function PeriodsPage() {
         isArchivedOpen, setIsArchivedOpen, loadingArchived,
         isBulkDeleteOpen, setIsBulkDeleteOpen, isReadOnlyDetailOpen, setIsReadOnlyDetailOpen,
         isHistoryOpen, setIsHistoryOpen, isGenerateConfirmOpen, setIsGenerateConfirmOpen,
-        inlineEditCell, setInlineEditCell, saveStatus,
+        inlineEditCell, setInlineEditCell, saveStatus, lastChange,
         handleAdd, handleEdit, handleDuplicate, handleSubmit,
         handleSetActive, handleInlineSave, handleToggleLock,
-        handleDeleteConfirm, handleBulkDelete, handleBulkSetActive,
+        handleDeleteConfirm, handleBulkEdit, handleBulkDelete, handleBulkSetActive,
         handleBulkLock, handleBulkUnlock, handleGenerateNextYear,
         handleOpenReadOnlyDetail, handleOpenHistory,
         formatDate, getDuration, getTimeStatus, handleError,
+        columnOrder, moveColumnLeft, moveColumnRight,
     } = usePeriodsCore({ addToast, addUndoToast });
 
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+    const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+    const [batchCount, setBatchCount] = useState(1);
+
+    const handleQuickFilterYear = (year) => {
+        setSearchQuery(year);
+        setPage(1);
+    };
 
     // ── Import/Export Hook ──
     const {
@@ -253,6 +262,13 @@ export default function PeriodsPage() {
                                 onClick: () => setIsUnlockModalOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0 || allUnlocked,
                                 title: allUnlocked ? "Semua sudah terbuka" : undefined,
+                            },
+                            {
+                                label: "Edit Massal",
+                                icon: <Pencil className="w-3 h-3" />,
+                                variant: "default",
+                                onClick: () => setIsBulkEditOpen(true),
+                                disabled: !canEdit || isMutating || selectedIds.length === 0,
                             },
                         ]}
                     />
@@ -432,7 +448,7 @@ export default function PeriodsPage() {
                     </div>
                     {saveStatus !== "idle" && (
                         <div className={`absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-sm border transition-all animate-in fade-in ${saveStatus === "saving" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : saveStatus === "saved" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>
-                            {saveStatus === "saving" ? "Menyimpan..." : saveStatus === "saved" ? "Tersimpan" : "Gagal Simpan"}
+                            {saveStatus === "saving" ? "Menyimpan..." : saveStatus === "saved" ? (lastChange ? `${lastChange.field === "semester" ? "Semester" : lastChange.field === "start_date" ? "Tgl Mulai" : lastChange.field === "end_date" ? "Tgl Selesai" : lastChange.field} diubah` : "Tersimpan") : "Gagal Simpan"}
                         </div>
                     )}
                     {loading ? (
@@ -493,6 +509,7 @@ export default function PeriodsPage() {
                                 maskValue={maskValue}
                                 getTimeStatus={getTimeStatus}
                                 getDuration={getDuration}
+                                onQuickFilterYear={handleQuickFilterYear}
                             />
                         ) : (
                             <>
@@ -524,6 +541,7 @@ export default function PeriodsPage() {
                                     handleOpenReadOnlyDetail={handleOpenReadOnlyDetail}
                                     setItemToDelete={setItemToDelete}
                                     setIsDeleteModalOpen={setIsDeleteModalOpen}
+                                    onQuickFilterYear={handleQuickFilterYear}
                                 />
                                 <Pagination
                                     totalRows={totalRows}
@@ -544,7 +562,7 @@ export default function PeriodsPage() {
                         createPortal(
                             <div
                                 ref={colMenuPortalRef}
-                                className={`absolute z-[9999] w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? "slide-in-from-bottom-2" : "slide-in-from-top-2"}`}
+                                className={`absolute z-[9999] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? "slide-in-from-bottom-2" : "slide-in-from-top-2"}`}
                                 style={{
                                     top: colMenuPos.top,
                                     right: colMenuPos.right,
@@ -553,35 +571,46 @@ export default function PeriodsPage() {
                                 <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">
                                     Atur Kolom
                                 </p>
-                                {[
-                                    { key: "period", label: "Tahun Pelajaran" },
-                                    { key: "semester", label: "Semester" },
-                                    { key: "duration", label: "Pelaksanaan" },
-                                    { key: "registration", label: "Pendaftaran" },
-                                    { key: "status", label: "Status" },
-                                ].map(({ key, label }) => (
-                                    <button
-                                        key={key}
-                                        onClick={() =>
-                                            setVisibleCols((p) => ({
-                                                ...p,
-                                                [key]: !p[key],
-                                            }))
-                                        }
-                                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left"
-                                    >
-                                        <span className="text-[11px] font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">
-                                            {label}
-                                        </span>
-                                        <div
-                                            className={`w-8 h-4.5 rounded-full transition-all flex items-center px-0.5 ${visibleCols[key] ? "bg-[var(--color-primary)]" : "bg-[var(--color-border)]"}`}
-                                        >
-                                            <div
-                                                className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all ${visibleCols[key] ? "translate-x-[14px]" : "translate-x-0"}`}
-                                            />
+                                {(() => {
+                                    const colLabels = {
+                                        period: "Tahun Pelajaran",
+                                        semester: "Semester",
+                                        duration: "Pelaksanaan",
+                                        registration: "Pendaftaran",
+                                        status: "Status",
+                                    };
+                                    return columnOrder.filter(k => colLabels[k]).map((key, idx) => (
+                                        <div key={key} className="flex items-center gap-1 px-1 py-1 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group">
+                                            <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); moveColumnLeft(key); }}
+                                                    disabled={idx === 0}
+                                                    className="w-3.5 h-3 flex items-center justify-center text-[6px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:opacity-20 disabled:cursor-not-allowed"
+                                                >▲</button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); moveColumnRight(key); }}
+                                                    disabled={idx === columnOrder.filter(k => colLabels[k]).length - 1}
+                                                    className="w-3.5 h-3 flex items-center justify-center text-[6px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:opacity-20 disabled:cursor-not-allowed"
+                                                >▼</button>
+                                            </div>
+                                            <label className="flex-1 flex items-center justify-between cursor-pointer py-1.5">
+                                                <span className="text-[11px] font-bold text-[var(--color-text)] transition-colors">
+                                                    {colLabels[key]}
+                                                </span>
+                                                <Checkbox
+                                                    checked={visibleCols[key]}
+                                                    onChange={() =>
+                                                        setVisibleCols((p) => ({
+                                                            ...p,
+                                                            [key]: !p[key],
+                                                        }))
+                                                    }
+                                                    small
+                                                />
+                                            </label>
                                         </div>
-                                    </button>
-                                ))}
+                                    ));
+                                })()}
                             </div>,
                             document.body,
                         )
@@ -646,8 +675,26 @@ export default function PeriodsPage() {
                     confirmClassName="h-9 px-5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                     submitting={isDeleting}
                 >
-                    <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
-                        Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun pelajaran secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
+                    <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-2">
+                        <p>Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun pelajaran secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.</p>
+                        {selectedItemsData.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                {(() => {
+                                    const ganjilCount = selectedItemsData.filter(y => y.semester === "Ganjil").length;
+                                    const genapCount = selectedItemsData.filter(y => y.semester === "Genap").length;
+                                    const lockedCount = selectedItemsData.filter(y => y.is_locked).length;
+                                    const activeCount = selectedItemsData.filter(y => y.is_active).length;
+                                    return (
+                                        <>
+                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">Ganjil: {ganjilCount}</span>
+                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/10 text-purple-600 border border-purple-500/20">Genap: {genapCount}</span>
+                                            {lockedCount > 0 && <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20">Terkunci: {lockedCount}</span>}
+                                            {activeCount > 0 && <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Aktif: {activeCount}</span>}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        )}
                     </div>
                 </ConfirmDialog>
 
@@ -662,31 +709,66 @@ export default function PeriodsPage() {
                     addToast={addToast}
                 />
 
-                <LockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkLock} submitting={isDeleting} />
-                <UnlockModal isOpen={isUnlockModalOpen} onClose={() => setIsUnlockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkUnlock} submitting={isDeleting} />
+                <LockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkLock} submitting={isSaving} />
+                <UnlockModal isOpen={isUnlockModalOpen} onClose={() => setIsUnlockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkUnlock} submitting={isSaving} />
+                <PeriodBulkEditModal
+                    isOpen={isBulkEditOpen}
+                    onClose={() => setIsBulkEditOpen(false)}
+                    selectedCount={selectedIds.length}
+                    onConfirm={handleBulkEdit}
+                    submitting={isSaving}
+                />
 
                 <ConfirmDialog
                     isOpen={isGenerateConfirmOpen}
-                    onClose={() => setIsGenerateConfirmOpen(false)}
+                    onClose={() => {
+                        setIsGenerateConfirmOpen(false);
+                        setBatchCount(1);
+                    }}
                     onConfirm={() => {
                         setIsGenerateConfirmOpen(false);
-                        handleGenerateNextYear();
+                        handleGenerateNextYear(batchCount);
+                        setBatchCount(1);
                     }}
                     title="Generate Tahun Pelajaran Baru"
-                    description={`Buat Periode untuk tahun berikutnya secara otomatis.`}
+                    description={`Buat ${batchCount} tahun pelajaran ke depan secara otomatis.`}
                     icon={ArrowClockwise}
                     iconBg="bg-indigo-500/10"
                     iconColor="text-indigo-500"
-                    confirmText="Generate Sekarang"
+                    confirmText={`Generate ${batchCount > 1 ? `${batchCount} Tahun` : "Sekarang"}`}
                     confirmIcon={ArrowClockwise}
                     confirmClassName="h-9 px-5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                     submitting={isSaving}
                 >
-                    <p className="text-[11px] text-[var(--color-text-muted)] p-4 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)]">
-                        Sistem akan membuat{" "}
-                        <span className="font-black text-[var(--color-text)]">2 periode baru</span>{" "}
-                        (Ganjil + Genap) berdasarkan tahun pelajaran terakhir yang ada.
-                    </p>
+                    <div className="space-y-4">
+                        <p className="text-[11px] text-[var(--color-text-muted)] p-4 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)]">
+                            Sistem akan membuat{" "}
+                            <span className="font-black text-[var(--color-text)]">{batchCount * 2} periode baru</span>{" "}
+                            ({batchCount} × Ganjil + Genap) berdasarkan tahun pelajaran terakhir yang ada.
+                        </p>
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)]">Jumlah Tahun</span>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setBatchCount(Math.max(1, batchCount - 1))}
+                                    disabled={batchCount <= 1}
+                                    className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black text-sm flex items-center justify-center hover:bg-[var(--color-surface-alt)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    −
+                                </button>
+                                <span className="w-8 text-center text-sm font-black text-[var(--color-text)]">{batchCount}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setBatchCount(Math.min(5, batchCount + 1))}
+                                    disabled={batchCount >= 5}
+                                    className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black text-sm flex items-center justify-center hover:bg-[var(--color-surface-alt)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </ConfirmDialog>
 
                 <React.Suspense fallback={null}>
@@ -694,7 +776,10 @@ export default function PeriodsPage() {
                         <LazyPeriodExportModal
                             isOpen={isExportModalOpen}
                             onClose={() => {
-                                if (exporting) return;
+                                if (exporting) {
+                                    addToast("Export sedang berjalan...", "info", 2000);
+                                    return;
+                                }
                                 setIsExportModalOpen(false);
                             }}
                             years={filtered}
@@ -714,7 +799,10 @@ export default function PeriodsPage() {
                         <LazyPeriodImportModal
                             isOpen={isImportModalOpen}
                             onClose={() => {
-                                if (importing) return;
+                                if (importing) {
+                                    addToast("Import sedang berjalan...", "info", 2000);
+                                    return;
+                                }
                                 setIsImportModalOpen(false);
                                 setImportPreview([]);
                                 setImportIssues([]);

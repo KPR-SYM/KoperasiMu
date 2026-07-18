@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, CaretDown, Clock, FileXls, FileText, FileArrowUp, GraduationCap, TextH, List, Spinner, GearSix, SlidersHorizontal, Tag, Users } from '@phosphor-icons/react'
+import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock, FileXls, FileText, FileArrowUp, TextH, GearSix, SlidersHorizontal, Users } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
 
@@ -53,6 +53,7 @@ export default function PeriodExportModal({
     const [advancedOpen, setAdvancedOpen] = useState(false)
     const [pdfOrientation, setPdfOrientation] = useState('landscape')
     const [includeHeader, setIncludeHeader] = useState(true)
+    const [exportTemplate, setExportTemplate] = useState("ringkas")
     const containerRef = useRef(null)
 
     useEffect(() => {
@@ -132,7 +133,8 @@ export default function PeriodExportModal({
 
     const exportOptions = {
         includeHeader,
-        orientation: pdfOrientation
+        orientation: pdfOrientation,
+        template: exportTemplate,
     }
 
     return (
@@ -327,6 +329,28 @@ export default function PeriodExportModal({
                                 </div>
                             </div>
                         )}
+
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                <FileText />
+                                Template PDF
+                            </label>
+                            <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]">
+                                {[
+                                    { v: "ringkas", l: "Ringkas" },
+                                    { v: "lengkap", l: "Lengkap" },
+                                    { v: "kartu", l: "Kartu" },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.v}
+                                        onClick={() => setExportTemplate(opt.v)}
+                                        className={`flex-1 py-1 rounded-md text-[9px] font-black uppercase transition-all ${exportTemplate === opt.v ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                                    >
+                                        {opt.l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="space-y-3">

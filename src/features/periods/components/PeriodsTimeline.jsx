@@ -11,7 +11,6 @@ import {
     Trash,
 } from "@phosphor-icons/react";
 import { EmptyState } from "@shared/components";
-import InlineCell from "./InlineCell";
 
 function TimelineView({
     years,
@@ -26,6 +25,7 @@ function TimelineView({
     maskValue,
     getTimeStatus,
     getDuration,
+    onQuickFilterYear,
 }) {
     if (years.length === 0) {
         return (
@@ -122,7 +122,10 @@ function TimelineView({
                                         </div>
 
                                         {/* Year */}
-                                        <h4 className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors">
+                                        <h4
+                                            onClick={() => onQuickFilterYear?.(year.academic_year)}
+                                            className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors cursor-pointer hover:text-[var(--color-primary)]"
+                                        >
                                             {maskValue(year.academic_year, "year")}
                                         </h4>
 

@@ -450,10 +450,31 @@ export function usePeriodsImportExport({
 
             const scopeLabel = exportScope === "filtered" ? "Filter Aktif" : exportScope === "selected" ? "Dipilih" : "Semua";
             const tableHeaders = Object.keys(allRows[0]);
-            const tableRowsHTML = allRows.map((row, i) => {
-                const cells = tableHeaders.map((h, ci) => `<td${ci === 0 ? ' style="text-align:center;color:#aaa;font-size:10px"' : ''}>${row[h] ?? ''}</td>`).join('');
-                return `<tr>${cells}</tr>`;
-            }).join('');
+            const template = options.template || "ringkas";
+
+            let tableRowsHTML;
+            if (template === "kartu") {
+                tableRowsHTML = allRows.map((row) => {
+                    const cells = tableHeaders.map((h) => `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;font-size:11px"><strong>${h}</strong><span>${row[h] ?? ''}</span></div>`).join('');
+                    return `<div style="border:1px solid #d1d5db;border-radius:12px;padding:12px;margin-bottom:8px;page-break-inside:avoid">${cells}</div>`;
+                }).join('');
+                tableHeaders.length = 0;
+            } else if (template === "lengkap") {
+                const regCols = tableHeaders.filter(h => h.includes("Pendaftaran") || h.includes("Daftar"));
+                tableRowsHTML = allRows.map((row, i) => {
+                    const cells = tableHeaders.map((h, ci) => {
+                        const isReg = h.includes("Pendaftaran") || h.includes("Daftar");
+                        const style = ci === 0 ? 'text-align:center;color:#aaa;font-size:10px' : isReg ? 'font-size:10px;color:#6366f1' : '';
+                        return `<td style="${style}">${row[h] ?? ''}</td>`;
+                    }).join('');
+                    return `<tr>${cells}</tr>`;
+                }).join('');
+            } else {
+                tableRowsHTML = allRows.map((row, i) => {
+                    const cells = tableHeaders.map((h, ci) => `<td${ci === 0 ? ' style="text-align:center;color:#aaa;font-size:10px"' : ''}>${row[h] ?? ''}</td>`).join('');
+                    return `<tr>${cells}</tr>`;
+                }).join('');
+            }
 
             const activeCount = allRows.filter(r => r["Status Aktif"] === "Aktif").length;
             const lockedCount = allRows.filter(r => r["Status Kunci"] === "Terkunci").length;
@@ -461,7 +482,7 @@ export function usePeriodsImportExport({
             const html = buildPrintHTML({
                 docBadge: "LAPORAN",
                 title: "Data Tahun Pelajaran",
-                subtitle: `Dicetak pada ${new Date().toLocaleDateString("id-ID", { dateStyle: "long" })} — Scope: ${scopeLabel}`,
+                subtitle: `Dicetak pada ${new Date().toLocaleDateString("id-ID", { dateStyle: "long" })} — Scope: ${scopeLabel} — Template: ${template}`,
                 totalCount: allRows.length,
                 totalLabel: "Total Periode",
                 stats: [
@@ -473,6 +494,7 @@ export function usePeriodsImportExport({
                 infoStrip: [
                     { label: "Scope", value: scopeLabel },
                     { label: "Kolom", value: tableHeaders.join(", ") },
+                    { label: "Template", value: template },
                 ],
                 tableHeaders,
                 tableRowsHTML,
@@ -488,7 +510,7 @@ export function usePeriodsImportExport({
             try {
                 await logAudit({
                     action: "EXPORT", source: "MASTER", tableName: "periods",
-                    newData: { format: "pdf", scope: exportScope, columns: exportColumns, count: allRows.length },
+                    newData: { format: "pdf", scope: exportScope, columns: exportColumns, count: allRows.length, template },
                 });
             } catch (e) {
                 console.warn("[usePeriodsImportExport] logAudit skip:", e.message);

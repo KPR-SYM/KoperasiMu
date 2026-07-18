@@ -10,6 +10,7 @@ import { findOverlappingPeriod } from "@features/periods/utils/periodValidation"
 
 const LS_COLS = "periods_columns";
 const LS_PAGE_SIZE = "periods_page_size";
+const LS_COL_ORDER = "periods_column_order";
 
 function normalizeSemester(value) {
     const trimmed = String(value || "").trim();
@@ -86,6 +87,36 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             return defaultCols;
         }
     });
+    const defaultColOrder = ["period", "semester", "duration", "registration", "status"];
+    const [columnOrder, setColumnOrder] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem(LS_COL_ORDER)) || defaultColOrder;
+        } catch {
+            return defaultColOrder;
+        }
+    });
+    useEffect(() => { localStorage.setItem(LS_COL_ORDER, JSON.stringify(columnOrder)); }, [columnOrder]);
+
+    const moveColumnLeft = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key);
+            if (idx <= 0) return prev;
+            const next = [...prev];
+            [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+            return next;
+        });
+    }, []);
+
+    const moveColumnRight = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key);
+            if (idx === -1 || idx >= prev.length - 1) return prev;
+            const next = [...prev];
+            [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+            return next;
+        });
+    }, []);
+
     const [isColMenuOpen, setIsColMenuOpen] = useState(false);
     const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false });
     const colMenuRef = useRef(null);
@@ -130,6 +161,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
     const [saveStatus, setSaveStatus] = useState("idle");
+    const [lastChange, setLastChange] = useState(null);
 
     // ── URL SYNC ─────────────────────────────────────────────────────────────
     const syncUrl = useCallback(() => {
@@ -516,6 +548,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             addToast("Periode terkunci — tidak dapat mengedit langsung.", "warning");
             return;
         }
+        const oldValue = target?.[field];
         setSaveStatus("saving");
         setIsSaving(true);
         try {
@@ -527,6 +560,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setInlineEditCell(null);
             fetchData();
             setSaveStatus("saved");
+            setLastChange({ field, oldValue, newValue: value, timestamp: new Date().toISOString() });
             setTimeout(() => setSaveStatus("idle"), 2000);
         } catch (err) {
             setSaveStatus("error");
@@ -598,6 +632,34 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setIsDeleting(false);
         }
     }, [itemToDelete, canEdit, fetchData, addToast, addUndoToast, handleError]);
+
+    const handleBulkEdit = useCallback(async (fields) => {
+        if (!canEdit || isSaving || selectedIds.length === 0) return;
+        setIsSaving(true);
+        const ids = [...selectedIds];
+        const payload = {};
+        if (fields.semester !== undefined) payload.semester = fields.semester;
+        if (fields.start_date !== undefined) payload.start_date = fields.start_date;
+        if (fields.end_date !== undefined) payload.end_date = fields.end_date;
+        if (fields.registration_start !== undefined) payload.registration_start = fields.registration_start;
+        if (fields.registration_end !== undefined) payload.registration_end = fields.registration_end;
+        if (Object.keys(payload).length === 0) {
+            addToast("Tidak ada perubahan yang dipilih", "warning");
+            setIsSaving(false);
+            return;
+        }
+        try {
+            const { error } = await supabase.from("periods").update(payload).in("id", ids);
+            if (error) throw error;
+            addToast(`${ids.length} periode berhasil diperbarui`, "success");
+            setSelectedIds([]);
+            fetchData();
+        } catch (err) {
+            handleError(err, { context: "Gagal mengedit massal" });
+        } finally {
+            setIsSaving(false);
+        }
+    }, [canEdit, isSaving, selectedIds, fetchData, addToast, handleError]);
 
     const handleBulkDelete = useCallback(async () => {
         if (!canEdit) {
@@ -697,38 +759,63 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         }
     }, [canEdit, isSaving, selectedIds, setLockStatus, fetchData, addToast, addUndoToast, handleError]);
 
-    const handleGenerateNextYear = useCallback(async () => {
+    const handleGenerateNextYear = useCallback(async (count = 1) => {
         if (isSaving || years.length === 0) return;
         setIsSaving(true);
         try {
-            const latest = [...years].sort((a, b) => {
+            const allYears = [...years];
+            let latest = allYears.sort((a, b) => {
                 if (a.academic_year !== b.academic_year) return b.academic_year.localeCompare(a.academic_year);
                 return b.semester === "Genap" ? 1 : -1;
             })[0];
 
-            const nextYear = generateNextAcademicYears(latest.academic_year);
-            if (!nextYear) throw new Error("Format tahun pelajaran tidak valid");
+            let totalCreated = 0;
+            for (let c = 0; c < count; c++) {
+                const nextYear = generateNextAcademicYears(latest.academic_year);
+                if (!nextYear) throw new Error("Format tahun pelajaran tidak valid");
 
-            const existing = years.filter((y) => y.academic_year === nextYear.ganjil.academic_year);
-            if (existing.length > 0) {
-                addToast(`Tahun pelajaran ${nextYear.ganjil.academic_year} sudah ada`, "warning");
-                return;
+                const existing = years.filter((y) => y.academic_year === nextYear.ganjil.academic_year);
+                if (existing.length > 0) {
+                    if (count === 1) {
+                        addToast(`Tahun pelajaran ${nextYear.ganjil.academic_year} sudah ada`, "warning");
+                        setIsSaving(false);
+                        return;
+                    }
+                    latest = allYears.sort((a, b) => {
+                        if (a.academic_year !== b.academic_year) return b.academic_year.localeCompare(a.academic_year);
+                        return b.semester === "Genap" ? 1 : -1;
+                    })[0];
+                    continue;
+                }
+
+                const startYear = parseInt(nextYear.ganjil.academic_year.split("/")[0]);
+                const payload = [
+                    { ...nextYear.ganjil, start_date: `${startYear}-07-01`, end_date: `${startYear}-12-31`, is_active: false },
+                    { ...nextYear.genap, start_date: `${startYear + 1}-01-01`, end_date: `${startYear + 1}-06-30`, is_active: false },
+                ];
+
+                const { error } = await supabase.from("periods").insert(payload);
+                if (error) throw error;
+                totalCreated += 2;
+
+                const createdGanjil = { ...nextYear.ganjil, academic_year: nextYear.ganjil.academic_year, semester: "Ganjil" };
+                const createdGenap = { ...nextYear.genap, academic_year: nextYear.genap.academic_year, semester: "Genap" };
+                allYears.push(createdGanjil, createdGenap);
+                latest = createdGenap;
             }
 
-            const startYear = parseInt(nextYear.ganjil.academic_year.split("/")[0]);
-            const payload = [
-                { ...nextYear.ganjil, start_date: `${startYear}-07-01`, end_date: `${startYear}-12-31`, is_active: false },
-                { ...nextYear.genap, start_date: `${startYear + 1}-01-01`, end_date: `${startYear + 1}-06-30`, is_active: false },
-            ];
-
-            const { error } = await supabase.from("periods").insert(payload);
-            if (error) throw error;
-
-            addToast(`Berhasil buat Tahun Pelajaran ${nextYear.ganjil.academic_year} (Ganjil + Genap)`, "success");
+            if (count > 1) {
+                addToast(`Berhasil buat ${count} tahun pelajaran baru (${totalCreated} periode)`, "success");
+            } else {
+                const nextYear = generateNextAcademicYears(latest.academic_year);
+                if (nextYear) {
+                    addToast(`Berhasil buat Tahun Pelajaran ${nextYear.ganjil.academic_year} (Ganjil + Genap)`, "success");
+                }
+            }
             try {
                 await logAudit({
                     action: "INSERT", source: "MASTER", tableName: "periods",
-                    newData: { bulk_create: true, count: 2, data: payload },
+                    newData: { bulk_create: true, count, data: `created ${totalCreated} periods` },
                 });
             } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
             fetchData();
@@ -830,6 +917,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         // Columns
         visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen,
         colMenuPos, setColMenuPos, colMenuRef, colMenuPortalRef,
+        columnOrder, setColumnOrder, moveColumnLeft, moveColumnRight,
 
         // UI
         isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
@@ -849,12 +937,12 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         isHistoryOpen, setIsHistoryOpen, isGenerateConfirmOpen, setIsGenerateConfirmOpen,
 
         // Inline edit
-        inlineEditCell, setInlineEditCell, saveStatus,
+        inlineEditCell, setInlineEditCell, saveStatus, lastChange, setLastChange,
 
         // Functions
         handleAdd, handleEdit, handleDuplicate, handleSubmit,
         handleSetActive, handleInlineSave, handleToggleLock,
-        handleDeleteConfirm, handleBulkDelete, handleBulkSetActive,
+        handleDeleteConfirm, handleBulkEdit, handleBulkDelete, handleBulkSetActive,
         handleBulkLock, handleBulkUnlock, handleGenerateNextYear,
         handleOpenReadOnlyDetail, handleOpenHistory,
 
