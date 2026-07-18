@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo, createContext, useContext } from 'react'
-import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, SlidersHorizontal, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, SlidersHorizontal, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Package, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { Modal, Pagination, Skeleton, EmptyState, Checkbox } from '@shared/components'
@@ -1589,7 +1589,7 @@ export default function PlaygroundPage() {
     }), [])
 
     const iconGroups = useMemo(() => [
-        { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, Filter] },
+        { label: 'NavigationArrow', icons: [CaretRight, CaretDown, ArrowRight, MagnifyingGlass, SlidersHorizontal] },
         { label: 'Actions', icons: [Plus, Trash, Copy, DownloadSimple, GearSix] },
         { label: 'Status', icons: [Check, X, Warning, Info, Bell] },
         { label: 'Users', icons: [User, Users, ShieldCheck, Key, Lock] },
@@ -2412,7 +2412,7 @@ export default function PlaygroundPage() {
 
                             {/* 17 · Empty States */}
                             <LazySection><section className="space-y-10">
-                                <SectionHeader icon={PackageOpen} number="17" title="Empty States" />
+                                <SectionHeader icon={Package} number="17" title="Empty States" />
                                 <UIBlock
                                     fullWidth
                                     title="Empty State Patterns"

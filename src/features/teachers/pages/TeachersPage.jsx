@@ -1030,7 +1030,7 @@ export default function TeachersPage() {
     return (
         <DashboardLayout title="Data Guru">
             {/* TAMBAH INI: */}
-            <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
+            <div className="space-y-4 max-w-[1800px] mx-auto relative">
 
                 {/* Read-only Banner */}
                 {!canEdit && (

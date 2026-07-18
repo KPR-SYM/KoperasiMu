@@ -9,7 +9,7 @@ import {
     Pencil,
     Trash,
 } from "@phosphor-icons/react";
-import { EmptyState } from "@shared/components";
+import { Checkbox, EmptyState } from "@shared/components";
 import { PrivacyValue } from "@hooks/usePrivacyMode";
 import InlineCell from "./InlineCell";
 
@@ -46,14 +46,12 @@ const PeriodsTable = memo(function PeriodsTable({
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                             <th className="px-6 py-4 text-center w-12">
-                                <input
-                                    type="checkbox"
+                                <Checkbox
                                     checked={
                                         selectedIds.length === paged.length &&
                                         paged.length > 0
                                     }
                                     onChange={toggleSelectAll}
-                                    className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                                 />
                             </th>
                             {visibleCols.period && (
@@ -146,11 +144,9 @@ const PeriodsTable = memo(function PeriodsTable({
                                         className={`border-t border-[var(--color-border)] transition-colors group/row ${isSelected ? "bg-[var(--color-primary)]/5" : "hover:bg-[var(--color-surface-alt)]/40"}`}
                                     >
                                         <td className="px-6 py-4">
-                                            <input
-                                                type="checkbox"
+                                            <Checkbox
                                                 checked={selectedIds.includes(year.id)}
                                                 onChange={() => toggleSelect(year.id)}
-                                                className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                                             />
                                         </td>
                                         {visibleCols.period && (
@@ -338,11 +334,10 @@ const PeriodsTable = memo(function PeriodsTable({
                             >
                                 <div className="flex items-start gap-3">
                                     <div className="flex flex-col items-center gap-3 pt-1">
-                                        <input
-                                            type="checkbox"
+                                        <Checkbox
                                             checked={selectedIds.includes(year.id)}
                                             onChange={() => toggleSelect(year.id)}
-                                            className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer shrink-0 mt-1"
+                                            className="mt-1"
                                         />
                                     </div>
                                     <div

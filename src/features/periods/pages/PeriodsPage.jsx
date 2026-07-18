@@ -202,7 +202,7 @@ export default function PeriodsPage() {
     const overlaps = findOverlappingPeriods(years.filter((y) => y.is_active));
     return (
         <DashboardLayout title="Tahun Pelajaran">
-            <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
+            <div className="space-y-4 max-w-[1800px] mx-auto relative">
                 {selectedIds.length > 0 && (
                     <BulkActionsBar
                         selectedCount={selectedIds.length}

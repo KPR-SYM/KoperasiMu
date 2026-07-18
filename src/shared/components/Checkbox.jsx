@@ -47,10 +47,10 @@ const Checkbox = memo(({
                 `}
             />
             {checked && !indeterminate && (
-                <Check weight="bold" className={`relative z-10 ${iconSize} text-white pointer-events-none`} />
+                <Check weight="bold" className={`absolute inset-0 m-auto z-10 ${iconSize} text-white pointer-events-none`} />
             )}
             {indeterminate && !checked && (
-                <Minus weight="bold" className={`relative z-10 ${iconSize} text-white pointer-events-none`} />
+                <Minus weight="bold" className={`absolute inset-0 m-auto z-10 ${iconSize} text-white pointer-events-none`} />
             )}
         </label>
     )

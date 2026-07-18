@@ -831,7 +831,7 @@ export default function ClassesPage() {
     return (
         <DashboardLayout title="Data Kelas" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
             <style>{isAnyModalOpen ? ` .top-nav, .sidebar, .floating-dock { display: none !important; } main { padding-top: 0 !important; } ` : ''}</style>
-            <div className="space-y-4 max-w-[1800px] mx-auto min-h-screen relative">
+            <div className="space-y-4 max-w-[1800px] mx-auto relative">
 
                 {/* Read-only Banner */}
                 {!canEdit && (
