@@ -1,5 +1,5 @@
 ﻿import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
-import { Check, CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 
@@ -289,7 +289,6 @@ const RichSelect = memo(({
                             <div className={`w-1.5 h-1.5 rounded-full ${value === extraOption.id ? 'bg-[var(--color-primary)]' : 'bg-amber-600'}`} />
                             {extraOption.name}
                         </div>
-                        {value === extraOption.id && <Check className="w-3 h-3" />}
                     </button>
                 )}
 
@@ -303,7 +302,6 @@ const RichSelect = memo(({
                             <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
                             <span>Gunakan "{search}"</span>
                         </div>
-                        <Check className="w-3 h-3" />
                     </button>
                 )}
 
@@ -335,10 +333,9 @@ const RichSelect = memo(({
                                 >
                                     <div className="flex items-center gap-2">
                                         <div className={`w-1.5 h-1.5 rounded-full transition-all ${String(value) === String(opt.id) ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
-                                        {opt.render ? opt.render : opt.name}
-                                    </div>
-                                    {String(value) === String(opt.id) && <Check className="w-3 h-3 animate-in zoom-in-50 duration-300" />}
-                                </button>
+                                {opt.render ? opt.render : opt.name}
+                            </div>
+                        </button>
                             ))}
                         </div>
                     ))
@@ -355,7 +352,6 @@ const RichSelect = memo(({
                                 <div className={`w-1.5 h-1.5 rounded-full transition-all ${String(value) === String(opt.id) ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
                                 {opt.render ? opt.render : opt.name}
                             </div>
-                            {String(value) === String(opt.id) && <Check className="w-3 h-3 animate-in zoom-in-50 duration-300" />}
                         </button>
                     ))
                 )}
