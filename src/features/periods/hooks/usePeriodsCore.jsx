@@ -129,6 +129,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
+    const [saveStatus, setSaveStatus] = useState("idle");
 
     // ── URL SYNC ─────────────────────────────────────────────────────────────
     const syncUrl = useCallback(() => {
@@ -515,6 +516,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             addToast("Periode terkunci — tidak dapat mengedit langsung.", "warning");
             return;
         }
+        setSaveStatus("saving");
         setIsSaving(true);
         try {
             const { error } = await supabase
@@ -524,8 +526,11 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             if (error) throw error;
             setInlineEditCell(null);
             fetchData();
-            addToast("Perubahan tersimpan", "success");
+            setSaveStatus("saved");
+            setTimeout(() => setSaveStatus("idle"), 2000);
         } catch (err) {
+            setSaveStatus("error");
+            setTimeout(() => setSaveStatus("idle"), 2000);
             addToast(err?.message || "Gagal menyimpan perubahan", "error");
         } finally {
             setIsSaving(false);
@@ -636,41 +641,61 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         }
     }, [isSaving, selectedIds, years, fetchData, addToast, handleError]);
 
+    const setLockStatus = useCallback(async (ids, locked) => {
+        if (!supabase) return;
+        const updatePayload = locked
+            ? { is_locked: true, locked_at: new Date().toISOString(), locked_by: profile?.id ?? null }
+            : { is_locked: false, locked_at: null, locked_by: null };
+        await supabase.from("periods").update(updatePayload).in("id", ids);
+    }, [profile]);
+
     const handleBulkLock = useCallback(async () => {
         if (!canEdit || isSaving || selectedIds.length === 0) return;
+        const ids = [...selectedIds];
         setIsSaving(true);
         try {
-            const updatePayload = {
-                is_locked: true,
-                locked_at: new Date().toISOString(),
-                locked_by: profile?.id ?? null,
-            };
-            await supabase.from("periods").update(updatePayload).in("id", selectedIds);
-            addToast(`${selectedIds.length} periode dikunci`, "success");
+            await setLockStatus(ids, true);
+            addToast(`${ids.length} periode dikunci`, "success");
             setSelectedIds([]);
             fetchData();
+            addUndoToast(
+                `Dikunci (${ids.length} periode)`,
+                async () => {
+                    await setLockStatus(ids, false);
+                    fetchData();
+                },
+                6000,
+            );
         } catch (err) {
             handleError(err, { context: "Gagal mengunci massal" });
         } finally {
             setIsSaving(false);
         }
-    }, [canEdit, isSaving, selectedIds, profile, fetchData, addToast, handleError]);
+    }, [canEdit, isSaving, selectedIds, setLockStatus, fetchData, addToast, addUndoToast, handleError]);
 
     const handleBulkUnlock = useCallback(async () => {
         if (!canEdit || isSaving || selectedIds.length === 0) return;
+        const ids = [...selectedIds];
         setIsSaving(true);
         try {
-            const updatePayload = { is_locked: false, locked_at: null, locked_by: null };
-            await supabase.from("periods").update(updatePayload).in("id", selectedIds);
-            addToast(`${selectedIds.length} periode dibuka`, "success");
+            await setLockStatus(ids, false);
+            addToast(`${ids.length} periode dibuka`, "success");
             setSelectedIds([]);
             fetchData();
+            addUndoToast(
+                `Dibuka (${ids.length} periode)`,
+                async () => {
+                    await setLockStatus(ids, true);
+                    fetchData();
+                },
+                6000,
+            );
         } catch (err) {
             handleError(err, { context: "Gagal membuka massal" });
         } finally {
             setIsSaving(false);
         }
-    }, [canEdit, isSaving, selectedIds, fetchData, addToast, handleError]);
+    }, [canEdit, isSaving, selectedIds, setLockStatus, fetchData, addToast, addUndoToast, handleError]);
 
     const handleGenerateNextYear = useCallback(async () => {
         if (isSaving || years.length === 0) return;
@@ -824,7 +849,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         isHistoryOpen, setIsHistoryOpen, isGenerateConfirmOpen, setIsGenerateConfirmOpen,
 
         // Inline edit
-        inlineEditCell, setInlineEditCell,
+        inlineEditCell, setInlineEditCell, saveStatus,
 
         // Functions
         handleAdd, handleEdit, handleDuplicate, handleSubmit,

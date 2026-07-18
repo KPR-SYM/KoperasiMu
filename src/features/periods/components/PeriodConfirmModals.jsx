@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { WarningCircle, Warning, Archive } from '@phosphor-icons/react'
+import { WarningCircle, Warning, Archive, Lock, LockOpen } from '@phosphor-icons/react'
 
 import { ConfirmDialog } from '@shared/components'
 
@@ -60,6 +60,64 @@ export const DeactivateModal = memo(function DeactivateModal({
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
                 Nonaktifkan <span className="px-2 py-0.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black mx-1 whitespace-nowrap">{selectedItem.academic_year} {selectedItem.semester}</span>? Seluruh sistem tidak akan memiliki tahun aktif sampai Anda mengaktifkan periode lain.
+            </div>
+        </ConfirmDialog>
+    )
+})
+
+export const LockModal = memo(function LockModal({
+    isOpen,
+    onClose,
+    selectedCount,
+    onConfirm,
+    submitting
+}) {
+    return (
+        <ConfirmDialog
+            isOpen={isOpen}
+            onClose={onClose}
+            onConfirm={onConfirm}
+            title="Konfirmasi Kunci"
+            description="Periode yang terkunci tidak dapat diubah."
+            icon={Lock}
+            iconBg="bg-rose-500/10"
+            iconColor="text-rose-600"
+            confirmText="Kunci Sekarang"
+            confirmIcon={Lock}
+            confirmClassName="h-9 px-5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            submitting={submitting}
+        >
+            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+                Sebanyak <span className="font-black text-[var(--color-text)]">{selectedCount}</span> periode akan dikunci. Data tidak dapat diubah sampai dibuka kembali.
+            </div>
+        </ConfirmDialog>
+    )
+})
+
+export const UnlockModal = memo(function UnlockModal({
+    isOpen,
+    onClose,
+    selectedCount,
+    onConfirm,
+    submitting
+}) {
+    return (
+        <ConfirmDialog
+            isOpen={isOpen}
+            onClose={onClose}
+            onConfirm={onConfirm}
+            title="Konfirmasi Buka Kunci"
+            description="Periode akan kembali dapat diedit."
+            icon={LockOpen}
+            iconBg="bg-emerald-500/10"
+            iconColor="text-emerald-600"
+            confirmText="Buka Kunci"
+            confirmIcon={LockOpen}
+            confirmClassName="h-9 px-5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            submitting={submitting}
+        >
+            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+                Sebanyak <span className="font-black text-[var(--color-text)]">{selectedCount}</span> periode akan dibuka kembali.
             </div>
         </ConfirmDialog>
     )

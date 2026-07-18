@@ -74,7 +74,6 @@ export default function Pagination({
                             value={pageSize}
                             onChange={handlePageSizeChange}
                             options={PAGE_SIZE_OPTIONS_MOBILE}
-                            compact
                             small
                         />
                     </div>
@@ -138,13 +137,12 @@ export default function Pagination({
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">{s.rows}</span>
                         <div className="w-[60px]">
-                            <RichSelect
-                                value={pageSize}
-                                onChange={handlePageSizeChange}
-                                options={PAGE_SIZE_OPTIONS}
-                                compact
-                                small
-                            />
+                        <RichSelect
+                            value={pageSize}
+                            onChange={handlePageSizeChange}
+                            options={PAGE_SIZE_OPTIONS}
+                            small
+                        />
                         </div>
                     </div>
                 </div>

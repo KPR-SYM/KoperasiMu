@@ -152,7 +152,7 @@ export function ToastProvider({ children }) {
                                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/20 hover:bg-white/30 transition-colors text-[10px] font-black uppercase tracking-widest shrink-0"
                                 >
                                     <ArrowCounterClockwise className="w-3 h-3" />
-                                    {t('toastUndoMsg') || 'Batalkan'}
+                                    Urungkan
                                 </button>
                             )}
 
