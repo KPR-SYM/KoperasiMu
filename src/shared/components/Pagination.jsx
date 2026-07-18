@@ -52,6 +52,8 @@ export default function Pagination({
     const totalPages = Math.max(1, Math.ceil(totalRows / pageSize))
     const fromRow = totalRows === 0 ? 0 : (page - 1) * pageSize + 1
     const toRow = Math.min(page * pageSize, totalRows)
+    const maxDigits = String(totalPages).length
+    const [jumpError, setJumpError] = React.useState(false)
 
     if (totalRows === 0) return null
 
@@ -133,7 +135,7 @@ export default function Pagination({
                             {s.showing} <span className="text-[var(--color-primary)]">{fromRow}–{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
                         </p>
                     </div>
-                    <div className="h-8 w-px bg-[var(--color-border)] hidden sm:block mx-1 opacity-50" />
+                    <div className="h-8 w-px bg-[var(--color-border)] hidden sm:block mx-1 opacity-70" />
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">{s.rows}</span>
                         <div className="w-[60px]">
@@ -194,15 +196,24 @@ export default function Pagination({
                     <div className="md:ml-2 relative flex items-center group">
                         <input
                             value={jumpPage}
-                            onChange={e => setJumpPage(e.target.value.replace(/[^\d]/g, ''))}
+                            disabled={totalPages <= 1}
+                            onChange={e => setJumpPage(e.target.value.replace(/[^\d]/g, '').slice(0, maxDigits))}
                             onKeyDown={e => {
                                 if (e.key === 'Enter') {
                                     const n = Number(jumpPage);
-                                    if (n >= 1 && n <= totalPages) { setPage(n); setJumpPage('') }
+                                    if (n >= 1 && n <= totalPages) {
+                                        setPage(n);
+                                        setJumpPage('');
+                                        setJumpError(false);
+                                    } else {
+                                        setJumpError(true);
+                                        setTimeout(() => { setJumpError(false); setJumpPage(''); }, 600);
+                                    }
                                 }
                             }}
+                            onBlur={() => setJumpPage('')}
                             placeholder={s.jump}
-                            className="w-14 h-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-2 text-center text-[9px] font-black focus:border-[var(--color-primary)] transition-all outline-none"
+                            className={`w-14 h-8 rounded-lg border bg-[var(--color-surface)] px-2 text-center text-[9px] font-black transition-all outline-none ${jumpError ? 'border-red-500' : 'border-[var(--color-border)] focus:border-[var(--color-primary)]'} ${totalPages <= 1 ? 'opacity-40 cursor-not-allowed' : ''}`}
                         />
                         <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[8px] font-black py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                             {s.jumpTip}

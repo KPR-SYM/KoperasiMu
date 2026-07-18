@@ -2,7 +2,7 @@
     useState, useEffect, useCallback, useRef,
     useMemo, memo, useDeferredValue, useTransition,
 } from 'react'
-import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, Check, CheckCircle, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, Crosshair, DoorOpen, Eye, EyeSlash, FileText, FileArrowDown, FileArrowUp, Filter, GridNine, Heartbeat, ClockCounterClockwise, Keyboard, Lightbulb, Link, LinkBreak, List, ListChecks, Spinner, Cursor, PresentationChart, Printer, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, MagnifyingGlass, GearSix, Sparkle, Table, TrendDown, TrendUp, UploadSimple, User, UserCheck, Users, X, XCircle, Lightning , Note } from '@phosphor-icons/react'
+import { Warning, ArrowDown, ArrowRight, Money, ChartBar, Bell, CalendarBlank, Check, CheckCircle, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, Crosshair, DoorOpen, Eye, EyeSlash, FileText, FileArrowDown, FileArrowUp, SlidersHorizontal, GridNine, Heartbeat, ClockCounterClockwise, Keyboard, Lightbulb, Link, LinkBreak, List, ListChecks, Spinner, Cursor, PresentationChart, Printer, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, MagnifyingGlass, GearSix, Sparkle, Table, TrendDown, TrendUp, UploadSimple, User, UserCheck, Users, X, XCircle, Lightning , Note } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -1046,7 +1046,7 @@ function CommandPalette({ open, onClose, onAction, studentCount, bulan, tahun, c
             group: 'Tampilan',
             items: [
                 { id: 'hide-weekend', label: hideWeekend ? 'Tampilkan weekend' : 'Sembunyikan weekend', desc: 'Toggle kolom Sabtu & Minggu', icon: hideWeekend ? Eye : EyeSlash, color: '#6366f1', action: () => onAction('toggleWeekend') },
-                { id: 'filter-alpa', label: 'Filter: siswa alpa', desc: 'Tampilkan hanya yang sering alpa', icon: Filter, color: '#dc2626', action: () => onAction('filterAlpa') },
+                { id: 'filter-alpa', label: 'Filter: siswa alpa', desc: 'Tampilkan hanya yang sering alpa', icon: SlidersHorizontal, color: '#dc2626', action: () => onAction('filterAlpa') },
                 { id: 'filter-all', label: 'Reset filter', desc: 'Tampilkan semua siswa', icon: ArrowCounterClockwise, color: '#888', action: () => onAction('filterAll'), disabled: filterMode === 'all' },
                 { id: 'today', label: 'Scroll ke hari ini', desc: 'Auto-focus kolom aktif', icon: Crosshair, color: '#6366f1', action: () => onAction('scrollToToday') },
                 { id: 'view-card', label: 'View: Card', desc: 'Tampilan dot grid per siswa (mobile)', icon: GridNine, color: '#6366f1', action: () => onAction('setMobileView', 'card') },
@@ -4619,7 +4619,7 @@ export default function AttendancePage() {
                                     {/* Filter siswa */}
                                     <div className="px-4 py-3 rounded-xl border border-[var(--color-border)]">
                                         <p className="text-[11px] font-black text-[var(--color-text)] mb-2 flex items-center gap-2">
-                                            <Filter className="w-3 h-3" />
+                                            <SlidersHorizontal className="w-3 h-3" />
                                             Filter Siswa
                                         </p>
                                         <div className="flex flex-col gap-1.5">

@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, TextAlignLeft, ArrowRight, TextB, BookOpenText, Check, CheckCircle, CaretDown, CaretLeft, Clock, CloudRain, CloudArrowUp, Coffee, ArrowSquareOut, Eye, EyeSlash, FastForward, Filter, Globe, Hash, ImageSquare, Info, TextItalic, Keyboard, Leaf, Link, Spinner, ArrowsOutCardinal, Moon, MusicNote, NewspaperClipping, Pause, Pen, Play, Plus, Repeat, Rewind, FloppyDisk, ShareNetwork, Sparkle, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper, ClockCounterClockwise } from '@phosphor-icons/react'
+import { Warning, TextAlignLeft, ArrowRight, TextB, BookOpenText, Check, CheckCircle, CaretDown, CaretLeft, Clock, CloudRain, CloudArrowUp, Coffee, ArrowSquareOut, Eye, EyeSlash, FastForward, SlidersHorizontal, Globe, Hash, ImageSquare, Info, TextItalic, Keyboard, Leaf, Link, Spinner, ArrowsOutCardinal, Moon, MusicNote, NewspaperClipping, Pause, Pen, Play, Plus, Repeat, Rewind, FloppyDisk, ShareNetwork, Sparkle, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper, ClockCounterClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -1113,7 +1113,7 @@ export default function NewsEditorPage() {
                         <div className="flex items-center justify-between sm:justify-start gap-1 md:gap-2 p-1 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl w-full sm:w-fit shadow-sm overflow-hidden">
                             {[
                                 { id: 'content', label: 'Konten', icon: Pen },
-                                { id: 'settings', label: 'Pengaturan', icon: Filter },
+                                { id: 'settings', label: 'Pengaturan', icon: SlidersHorizontal },
                                 { id: 'seo', label: 'SEO', icon: Globe },
                                 ...(!isSidePreview ? [{ id: 'preview', label: 'Preview', icon: Eye }] : []),
                             ].map(t => (
@@ -2216,7 +2216,7 @@ function CommandPalette({ isOpen, onClose, actions }) {
         <div className="fixed inset-0 z-[11000] flex items-start justify-center pt-24 px-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
             <div className="w-full max-w-xl bg-[var(--color-surface)] rounded-3xl border border-[var(--color-border)] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
                 <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-3">
-                    <Filter className="text-[var(--color-text-muted)] opacity-30" />
+                    <SlidersHorizontal className="text-[var(--color-text-muted)] opacity-30" />
                     <input autoFocus placeholder="Ketik perintah atau navigasi..." className="flex-1 bg-transparent border-none outline-none w-4 h-4 font-bold text-[var(--color-text)]" value={search} onChange={e => setSearch(e.target.value)} />
                     <div className="px-2 py-1 rounded-md bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">ESC</div>
                 </div>

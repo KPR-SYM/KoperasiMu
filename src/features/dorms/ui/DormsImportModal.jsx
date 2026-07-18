@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useRef } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, Filter, House, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, User, GenderIntersex, Lightning } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, House, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, User, GenderIntersex, Lightning } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import Modal from '@shared/components/Modal'
@@ -494,7 +494,7 @@ export default function DormsImportModal(props) {
                                                 ? 'bg-red-500/10 border-red-500/30 text-red-600' 
                                                 : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/40'}`}
                                     >
-                                        <Filter className="w-2 h-2" />
+                                        <SlidersHorizontal className="w-2 h-2" />
                                         Hanya Tampilkan Error
                                     </button>
                                 </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { CalendarBlank, CheckCircle, CaretRight, FileXls, Filter, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
+import { CalendarBlank, CheckCircle, CaretRight, FileXls, SlidersHorizontal, GraduationCap, Tray, MapPin, Percent, ChartPie as PieChartIcon, Printer, Buildings, Users, GenderIntersex, Waves, Book, Calendar, ChartLineUp, ChartPie } from '@phosphor-icons/react'
 import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area
 } from 'recharts'
@@ -542,7 +542,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
                     <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Corong Seleksi (Filter Pendaftaran)</span>
-                            <Filter className="text-violet-500 w-3 h-3" />
+                            <SlidersHorizontal className="text-violet-500 w-3 h-3" />
                         </div>
 
                         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2">

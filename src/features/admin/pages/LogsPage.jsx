@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, Filter, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
+import { Warning, CheckCircle, CaretDown, CaretLeft, CaretRight, Circle, Clock, Cpu, Database, Eraser, FileArrowUp, SlidersHorizontal, Fingerprint, Globe, ClockCounterClockwise, Info, Key, ChartLine, Link, Spinner, Monitor, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Trash, Lightning, Shield, Timer, X } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -802,7 +802,7 @@ export default function LogsPage() {
                                 onClick={() => setShowFilters(!showFilters)}
                                 className={`h-10 px-4 rounded-xl border font-black text-[11px] flex items-center gap-2 transition-all ${showFilters ? 'bg-[var(--color-primary)] text-white border-transparent' : 'border-[var(--color-border)] bg-[var(--color-surface-alt)]'}`}
                             >
-                                <Filter /> Filter
+                                <SlidersHorizontal /> Filter
                             </button>
                             <div className="h-8 w-px bg-[var(--color-border)] mx-1" />
                             <div className="flex items-center gap-1.5">

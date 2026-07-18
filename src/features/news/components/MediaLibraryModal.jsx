@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, memo } from 'react'
-import { Check, CaretLeft, CaretRight, CloudArrowUp, Filter, ImageSquare, Spinner, MagnifyingGlass, Trash, X } from '@phosphor-icons/react'
+import { Check, CaretLeft, CaretRight, CloudArrowUp, SlidersHorizontal, ImageSquare, Spinner, MagnifyingGlass, Trash, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { EmptyState } from '@shared/components'

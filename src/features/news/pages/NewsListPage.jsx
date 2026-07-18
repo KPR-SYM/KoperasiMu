@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react'
-import { Warning, TextAlignLeft, Archive, BookOpenText, Calendar, Check, CheckSquare, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, ArrowSquareOut, Eye, EyeSlash, Filter, Globe, DotsSix, Hash, ImageSquare, List, Spinner, NewspaperClipping, Pen, Plus, Rocket, MagnifyingGlass, SlidersHorizontal, Sparkle, Square, Star, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
+import { Warning, TextAlignLeft, Archive, BookOpenText, Calendar, Check, CheckSquare, CaretDown, CaretLeft, CaretRight, Clock, CloudArrowUp, Copy, ArrowSquareOut, Eye, EyeSlash, Globe, DotsSix, Hash, ImageSquare, List, Spinner, NewspaperClipping, Pen, Plus, Rocket, MagnifyingGlass, SlidersHorizontal, Sparkle, Square, Star, Tag, Trash, User, X, ArrowCounterClockwise, Newspaper } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Filter, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
+import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight, Clock, Code, Copy, Database, Eye, EyeSlash, Info, Key, Link, LinkBreak, Spinner, Lock, Envelope, Pencil, PresentationChart, ArrowClockwise, MagnifyingGlass, Shield, SlidersHorizontal, Trash, UserCheck, UserGear, UserPlus, UserMinus, Users, WifiHigh, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 

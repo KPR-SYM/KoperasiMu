@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo, createContext, useContext } from 'react'
-import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, Filter, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowRight, Bell, Calendar, Camera, Check, Checks, CheckCircle, CaretDown, CaretRight, ClipboardText, Clock, Code, Copy, CreditCard, DownloadSimple, ArrowsOutSimple, ArrowSquareOut, Eye, FileText, SlidersHorizontal, Flag, SmileySad, Speedometer, Globe, DotsSix, Heart, Info, Key, StackSimple, Lightbulb, ChartLine, Link, Spinner, Lock, SignOut, Envelope, MapPin, SmileyBlank, Moon, DotsThreeVertical, Palette, Phone, Plus, MagnifyingGlass, GearSix, ShieldCheck, Smiley, Sun, Table, Trash, TextT, UploadSimple, User, Users, X, XCircle } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Modal, Pagination, Skeleton, EmptyState } from '@shared/components'
+import { Modal, Pagination, Skeleton, EmptyState, Checkbox } from '@shared/components'
+
 import { useToast } from '@context'
 
 // ─── VS Code Syntax Highlighter ────────────────────────────────────────────────
@@ -105,6 +106,35 @@ const ToggleVariantsPreview = memo(() => {
                     </button>
                 </div>
             ))}
+        </div>
+    )
+})
+
+const NewCheckboxTestPreview = memo(() => {
+    const [c1, setC1] = useState(false)
+    const [c2, setC2] = useState(true)
+    return (
+        <div className="space-y-4">
+            <label className="flex items-center gap-3 cursor-pointer">
+                <Checkbox checked={c1} onChange={() => setC1(v => !v)} />
+                <span className="text-[11px] font-medium text-[var(--color-text)]">Unchecked ↔ checked</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+                <Checkbox checked={c2} onChange={() => setC2(v => !v)} />
+                <span className="text-[11px] font-medium text-[var(--color-text)]">Default checked</span>
+            </label>
+            <label className="flex items-center gap-3">
+                <Checkbox checked={false} indeterminate onChange={() => {}} />
+                <span className="text-[11px] font-medium text-[var(--color-text)]">Indeterminate</span>
+            </label>
+            <label className="flex items-center gap-3">
+                <Checkbox checked disabled />
+                <span className="text-[11px] font-medium text-[var(--color-text-muted)] opacity-50">Disabled + checked</span>
+            </label>
+            <label className="flex items-center gap-3">
+                <Checkbox checked={c1} onChange={() => setC1(v => !v)} small />
+                <span className="text-[11px] font-medium text-[var(--color-text)]">Small variant</span>
+            </label>
         </div>
     )
 })
@@ -2195,6 +2225,23 @@ export default function PlaygroundPage() {
                             <LazySection><section className="space-y-10">
                                 <SectionHeader icon={Checks} number="12" title="Checkbox & Radio" />
                                 <div className="grid lg:grid-cols-2 gap-8">
+                                    <UIBlock
+                                        title="Checkbox Component (New)"
+                                        children={<NewCheckboxTestPreview />}
+                                        code={`import Checkbox from '@shared/components/Checkbox'
+
+                                    <Checkbox checked={checked} onChange={() => setChecked(v => !v)} />
+                                    <Checkbox checked={false} indeterminate onChange={handleChange} />
+                                    <Checkbox checked disabled />
+                                    <Checkbox checked={checked} onChange={toggle} small />`}
+                                        apiProps={[
+                                            { prop: 'checked', type: 'boolean', defaultVal: 'false', desc: 'Status tercentang' },
+                                            { prop: 'onChange', type: 'function', defaultVal: 'undefined', desc: 'Callback saat toggle' },
+                                            { prop: 'indeterminate', type: 'boolean', defaultVal: 'false', desc: 'Tampilkan ikon minus, untuk select-all sebagian' },
+                                            { prop: 'disabled', type: 'boolean', defaultVal: 'false', desc: 'Nonaktifkan interaksi' },
+                                            { prop: 'small', type: 'boolean', defaultVal: 'false', desc: 'Ukuran lebih kecil (14px vs 16px)' },
+                                        ]}
+                                    />
                                     <UIBlock
                                         title="Checkbox States"
                                         children={<CheckboxStatesPreview />}
