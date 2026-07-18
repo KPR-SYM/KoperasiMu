@@ -48,7 +48,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
     setPage,
 }) {
     return (
-        <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
+        <div>
             <div className="flex items-center gap-2 p-2.5 lg:p-3">
                 <div className="flex-1 min-w-[120px] transition-all duration-300">
                     <DebouncedSearchInput

@@ -402,36 +402,36 @@ export default function PeriodsPage() {
                     </div>
                 )}
 
-                {/* ── Toolbar (search + filters + view toggle) ── */}
-                <PeriodsToolbar
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    searchInputRef={searchInputRef}
-                    loading={loading}
-                    totalRows={totalRows}
-                    filterSemester={filterSemester}
-                    setFilterSemester={setFilterSemester}
-                    filterStatus={filterStatus}
-                    setFilterStatus={setFilterStatus}
-                    filterLock={filterLock}
-                    setFilterLock={setFilterLock}
-                    filterTimeStatus={filterTimeStatus}
-                    setFilterTimeStatus={setFilterTimeStatus}
-                    sortBy={sortBy}
-                    setSortBy={setSortBy}
-                    isFilterOpen={isFilterOpen}
-                    setIsFilterOpen={setIsFilterOpen}
-                    activeFilterCount={activeFilterCount}
-                    resetAllFilters={resetAllFilters}
-                    viewMode={viewMode}
-                    setViewMode={setViewMode}
-                    selectedIds={selectedIds}
-                    toggleSelectAll={toggleSelectAll}
-                    setPage={setPage}
-                />
-
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden relative">
+                    <div className="border-b border-[var(--color-border)]">
+                        <PeriodsToolbar
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            searchInputRef={searchInputRef}
+                            loading={loading}
+                            totalRows={totalRows}
+                            filterSemester={filterSemester}
+                            setFilterSemester={setFilterSemester}
+                            filterStatus={filterStatus}
+                            setFilterStatus={setFilterStatus}
+                            filterLock={filterLock}
+                            setFilterLock={setFilterLock}
+                            filterTimeStatus={filterTimeStatus}
+                            setFilterTimeStatus={setFilterTimeStatus}
+                            sortBy={sortBy}
+                            setSortBy={setSortBy}
+                            isFilterOpen={isFilterOpen}
+                            setIsFilterOpen={setIsFilterOpen}
+                            activeFilterCount={activeFilterCount}
+                            resetAllFilters={resetAllFilters}
+                            viewMode={viewMode}
+                            setViewMode={setViewMode}
+                            selectedIds={selectedIds}
+                            toggleSelectAll={toggleSelectAll}
+                            setPage={setPage}
+                        />
+                    </div>
                     {saveStatus !== "idle" && (
                         <div className={`absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-sm border transition-all animate-in fade-in ${saveStatus === "saving" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : saveStatus === "saved" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>
                             {saveStatus === "saving" ? "Menyimpan..." : saveStatus === "saved" ? "Tersimpan" : "Gagal Simpan"}

@@ -69,7 +69,7 @@ export default function Pagination({
                         <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60 mb-0.5">{s.totalData}</span>
                         <span className="text-[12px] font-extrabold text-[var(--color-text)] tracking-tight">{totalRows} <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider ml-0.5">{label}</span></span>
                     </div>
-                    <div className="w-20">
+                    <div className="w-24">
                         <RichSelect
                             value={pageSize}
                             onChange={handlePageSizeChange}
