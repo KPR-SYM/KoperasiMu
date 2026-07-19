@@ -20,7 +20,8 @@ import { useToast, useFlag, useLanguage } from '@context'
 import { supabase } from '@lib/supabase'
 
 import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate } from '@features/students/utils/studentsConstants'
-import { useStudentsImportExport } from '@features/students/hooks/useStudentsImportExport'
+import { useStudentsImportWizard } from '@features/students/hooks/useStudentsImportWizard'
+import { ImportWizardModal } from '@shared/components/ImportWizard'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useStudentsCore } from '@features/students/hooks/useStudentsCore'
 import StudentClassHistoryModal from '@features/students/components/StudentClassHistoryModal'
@@ -47,9 +48,8 @@ const LazyStudentProfileModal = React.lazy(() =>
 const LazyStudentExportModal = React.lazy(() =>
     import('@features/students/components/StudentExportModal')
 )
-const LazyStudentImportModal = React.lazy(() =>
-    import('@features/students/components/StudentImportModal')
-)
+import { studentsImportConfig } from '@features/students/config/importConfig'
+import { ImportWizardModal } from '@shared/components/ImportWizard'
 const LazyStudentTagModal = React.lazy(() =>
     import('@features/students/components/StudentTagModal')
 )
@@ -263,11 +263,8 @@ export default function StudentsPage() {
     }, [canPrivacyMode, core.isPrivacyMode, core.setIsPrivacyMode])
 
     // Import/Export Logic
-    const importExport = useStudentsImportExport({
+    const wizard = useStudentsImportWizard({
         students, classesList, fetchData, fetchStats, addToast, closeModal, importFileInputRef, generateCode,
-        filterClasses, filterClass, filterGender, filterStatus, filterTag, filterMissing, debouncedSearch,
-        sortBy, selectedStudentIds, selectedStudents, gSheetsUrl,
-        setFetchingGSheets, fetchingGSheets, profile: core.profile
     })
 
     const handleViewTags = useCallback((s) => {
@@ -278,22 +275,24 @@ export default function StudentsPage() {
     const {
         isImportModalOpen, setIsImportModalOpen, isExportModalOpen, setIsExportModalOpen,
         exportScope, setExportScope, exportColumns, setExportColumns,
-        importFileName, setImportFileName, importPreview, setImportPreview,
-        importIssues, setImportIssues, importing, setImporting,
-        importProgress, setImportProgress, importStep, setImportStep,
-        importRawData, setImportRawData, importFileHeaders, setImportFileHeaders,
-        importColumnMapping, setImportColumnMapping, importDuplicates, setImportDuplicates,
-        importSkipDupes, setImportSkipDupes, importDragOver, setImportDragOver,
-        importValidationOpen, setImportValidationOpen, importLoading, setImportLoading,
-        isRevalidating, setIsRevalidating, importEditCell, setImportEditCell,
-        importCachedDBStudents, setImportCachedDBStudents, exporting, setExporting,
-        importReadyRows, hasImportBlockingErrors, ALL_EXPORT_COLUMNS, SYSTEM_COLS,
+        importFileName, setImportFileName,
+        importing,
+        importProgress, importStep, setImportStep,
+        importRawData, importFileHeaders,
+        importColumnMapping, setImportColumnMapping,
+        importPreview, importIssues, importDuplicates,
+        importSkipDupes, setImportSkipDupes,
+        importDragOver, setImportDragOver,
+        importValidationOpen, setImportValidationOpen,
+        importLoading, setImportLoading,
+        importEditCell, setImportEditCell,
+        importReadyRows, hasImportBlockingErrors,
         processImportFile, handleImportClick, handleFileChange, handleCommitImport,
         handleBulkFix, validateImportPreview, handleDownloadTemplate,
         handleExportCSV, handleExportExcel, handleExportPDF, handleFetchGSheets,
         fetchFilteredForExport, getExportData, importTab, setImportTab,
-        downloadBlob, buildImportPreview, handleImportCellEdit, handleRemoveImportRow
-    } = importExport
+        downloadBlob, buildImportPreview, handleImportCellEdit, handleRemoveImportRow,
+    } = wizard
 
     // UI States for Column Visibility
     const [visibleColumns, setVisibleColumns] = useState(() => {

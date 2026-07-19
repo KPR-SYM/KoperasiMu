@@ -399,8 +399,8 @@ export const studentsImportConfig = {
 - [x] Create `ImportWizard/StepReview.jsx`
 - [x] Create `ImportWizard/EditableCell.jsx`
 - [x] Create `ImportWizard/index.js`
-- [ ] Create per-module config: students, teachers, classes, enrollment, periods, dorms
-- [ ] Migrate: Students → ImportWizard (test import flow)
+- [x] Create per-module config: students, teachers, classes, enrollment, periods, dorms
+- [ ] Migrate: Students → ImportWizard (test import flow) — *in progress*
 - [ ] Migrate: Teachers → ImportWizard (test import flow)
 - [ ] Migrate: Classes → ImportWizard (test import flow)
 - [ ] Migrate: Enrollment → ImportWizard (test import flow)

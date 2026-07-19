@@ -159,7 +159,8 @@ function StatItem({ number, label, index }) {
           ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
       style={{ transitionDelay: isVisible ? `${index * 100}ms` : '0ms' }}
     >
-      <div className="text-2xl font-black tracking-tight text-gray-900 dark:text-white mb-0.5">
+      <div className="text-2xl font-black tracking-tight text-gray-900 dark:text-white mb-0.5"
+        style={{ fontFamily: "'JetBrains Mono', monospace" }}>
         {number}
       </div>
       <div className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-white/30">
@@ -240,7 +241,8 @@ function StepItem({ step, index, isLast }) {
         <div className="w-12 h-12 rounded-full bg-white dark:bg-[#0a0e1a] border-2 border-blue-500 dark:border-blue-400 flex items-center justify-center mb-3 relative z-10 text-blue-600 dark:text-blue-400">
           {step.icon}
         </div>
-        <span className="text-[10px] font-bold text-blue-500 mb-1">
+        <span className="text-[10px] font-bold text-blue-500 mb-1"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           {String(index + 1).padStart(2, '0')}
         </span>
         <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1.5 max-w-[140px]">
