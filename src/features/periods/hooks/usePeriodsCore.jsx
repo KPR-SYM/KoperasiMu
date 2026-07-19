@@ -61,7 +61,13 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const [filterStatus, setFilterStatus] = useState(initFilterStatus);
     const [filterLock, setFilterLock] = useState(initFilterLock);
     const [filterTimeStatus, setFilterTimeStatus] = useState(initFilterTimeStatus);
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
     const [sortBy, setSortBy] = useState(initSortBy);
+    const [pinnedIds, setPinnedIds] = useState(() => {
+        try { return JSON.parse(localStorage.getItem("periods_pinned") || "[]"); }
+        catch { return []; }
+    });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     // ── PAGINATION ───────────────────────────────────────────────────────────
@@ -158,10 +164,20 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isGenerateConfirmOpen, setIsGenerateConfirmOpen] = useState(false);
 
+    // ── AUTO-TRANSITION ─────────────────────────────────────────────────────
+    const [expiredActive, setExpiredActive] = useState(null);
+    const [suggestedNext, setSuggestedNext] = useState(null);
+
+    // ── REMINDER (session-only, no duplicates) ──────────────────────────────
+    const remindedPeriods = useRef(new Set());
+
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
     const [saveStatus, setSaveStatus] = useState("idle");
     const [lastChange, setLastChange] = useState(null);
+    const [undoStack, setUndoStack] = useState([]);
+    const [redoStack, setRedoStack] = useState([]);
+    const MAX_UNDO = 20;
 
     // ── URL SYNC ─────────────────────────────────────────────────────────────
     const syncUrl = useCallback(() => {
@@ -229,6 +245,26 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         return `${diff} Bulan`;
     }, []);
 
+    const getPeriodStats = useCallback((start, end, regStart, regEnd) => {
+        if (!start || !end) return null;
+        const now = Date.now();
+        const s = new Date(start).getTime();
+        const e = new Date(end).getTime();
+        const totalDays = Math.ceil((e - s) / (1000 * 60 * 60 * 24));
+        const elapsed = Math.max(0, Math.min(totalDays, Math.floor((now - s) / (1000 * 60 * 60 * 24))));
+        const remaining = Math.max(0, totalDays - elapsed);
+        const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+        let regStatus = null;
+        if (regStart && regEnd) {
+            const rs = new Date(regStart).getTime();
+            const re = new Date(regEnd).getTime();
+            if (now < rs) regStatus = { label: "Pendaftaran: Akan datang", cls: "text-blue-500" };
+            else if (now > re) regStatus = { label: "Pendaftaran: Tutup", cls: "text-gray-500" };
+            else regStatus = { label: "Pendaftaran: Dibuka", cls: "text-emerald-500" };
+        }
+        return { totalDays, elapsed, remaining, pct, regStatus };
+    }, []);
+
     // ── FETCH DATA ───────────────────────────────────────────────────────────
     const fetchData = useCallback(async () => {
         if (!supabase) return;
@@ -248,6 +284,40 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 ganjil: rows.filter((y) => y.semester.toLowerCase() === "ganjil").length,
                 genap: rows.filter((y) => y.semester.toLowerCase() === "genap").length,
             });
+            // Auto-transition check
+            const now = new Date();
+            const activePeriod = rows.find((y) => y.is_active);
+            if (activePeriod && new Date(activePeriod.end_date) < now) {
+                setExpiredActive(activePeriod);
+                const sorted = [...rows].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+                const idx = sorted.findIndex((y) => y.id === activePeriod.id);
+                setSuggestedNext(idx >= 0 && idx < sorted.length - 1 ? sorted[idx + 1] : null);
+            } else {
+                setExpiredActive(null);
+                setSuggestedNext(null);
+            }
+            // Reminder: check periods starting/ending within 7 days
+            const nowTs = Date.now();
+            const week = 7 * 24 * 60 * 60 * 1000;
+            for (const row of rows) {
+                if (remindedPeriods.current.has(row.id)) continue;
+                if (row.start_date) {
+                    const s = new Date(row.start_date).getTime();
+                    const diff = s - nowTs;
+                    if (diff > 0 && diff <= week) {
+                        addToast(`${row.academic_year} ${row.semester} akan dimulai ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
+                        remindedPeriods.current.add(row.id);
+                    }
+                }
+                if (row.end_date) {
+                    const e = new Date(row.end_date).getTime();
+                    const diff = e - nowTs;
+                    if (diff > 0 && diff <= week) {
+                        addToast(`${row.academic_year} ${row.semester} akan berakhir ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
+                        remindedPeriods.current.add(row.id);
+                    }
+                }
+            }
         } catch (err) {
             console.error("[PeriodsCore] fetchData error:", err);
             addToast("Gagal memuat data tahun pelajaran", "error");
@@ -560,7 +630,10 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setInlineEditCell(null);
             fetchData();
             setSaveStatus("saved");
-            setLastChange({ field, oldValue, newValue: value, timestamp: new Date().toISOString() });
+            const change = { id, field, oldValue, newValue: value, timestamp: new Date().toISOString() };
+            setLastChange(change);
+            setUndoStack(prev => [change, ...prev].slice(0, MAX_UNDO));
+            setRedoStack([]);
             setTimeout(() => setSaveStatus("idle"), 2000);
         } catch (err) {
             setSaveStatus("error");
@@ -570,6 +643,36 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setIsSaving(false);
         }
     }, [years, fetchData, addToast]);
+
+    const handleUndo = useCallback(async () => {
+        if (undoStack.length === 0 || isSaving) return;
+        const change = undoStack[0];
+        setUndoStack(prev => prev.slice(1));
+        try {
+            const { error } = await supabase.from("periods").update({ [change.field]: change.oldValue }).eq("id", change.id);
+            if (error) throw error;
+            fetchData();
+            setRedoStack(prev => [change, ...prev].slice(0, MAX_UNDO));
+            addToast("Perubahan dikembalikan (undo)", "success");
+        } catch (err) {
+            handleError(err, { context: "Gagal undo" });
+        }
+    }, [undoStack, isSaving, fetchData, addToast, handleError]);
+
+    const handleRedo = useCallback(async () => {
+        if (redoStack.length === 0 || isSaving) return;
+        const change = redoStack[0];
+        setRedoStack(prev => prev.slice(1));
+        try {
+            const { error } = await supabase.from("periods").update({ [change.field]: change.newValue }).eq("id", change.id);
+            if (error) throw error;
+            fetchData();
+            setUndoStack(prev => [change, ...prev].slice(0, MAX_UNDO));
+            addToast("Perubahan diulang (redo)", "success");
+        } catch (err) {
+            handleError(err, { context: "Gagal redo" });
+        }
+    }, [redoStack, isSaving, fetchData, addToast, handleError]);
 
     const handleToggleLock = useCallback(async (item) => {
         if (isSaving) return;
@@ -598,6 +701,144 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setIsSaving(false);
         }
     }, [isSaving, profile, fetchData, addToast]);
+
+    const handleQuickToggleActive = useCallback(async (item) => {
+        if (isSaving || !canEdit || item?.is_locked) return;
+        setIsSaving(true);
+        try {
+            await supabase.from("periods").update({ is_active: false });
+            await supabase.from("periods").update({ is_active: true }).eq("id", item.id);
+            addToast(`Periode ${item.academic_year} ${item.semester} diaktifkan`, "success");
+            try {
+                await logAudit({
+                    action: "UPDATE", source: "MASTER", tableName: "periods",
+                    recordId: item.id, oldData: { is_active: false }, newData: { is_active: true },
+                });
+            } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            fetchData();
+        } catch (err) {
+            addToast(err?.message || "Gagal mengaktifkan periode", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [isSaving, canEdit, fetchData, addToast]);
+
+    const handleQuickDuplicate = useCallback(async (item) => {
+        if (isSaving || !canEdit) return;
+        setIsSaving(true);
+        try {
+            const match = item.academic_year.match(/(\d{4})\/(\d{4})/);
+            if (!match) throw new Error("Format tahun pelajaran tidak valid");
+            const nextStart = parseInt(match[1]) + 1;
+            const nextEnd = parseInt(match[2]) + 1;
+            const newYear = `${nextStart}/${nextEnd}`;
+
+            const shiftDate = (d) => {
+                if (!d) return null;
+                const date = new Date(d);
+                date.setFullYear(date.getFullYear() + 1);
+                return date.toISOString().split("T")[0];
+            };
+
+            const payload = {
+                academic_year: newYear,
+                semester: item.semester,
+                start_date: shiftDate(item.start_date),
+                end_date: shiftDate(item.end_date),
+                registration_start: shiftDate(item.registration_start),
+                registration_end: shiftDate(item.registration_end),
+                is_active: false,
+            };
+
+            const { data: created, error } = await supabase.from("periods").insert(payload).select("id");
+            if (error) throw error;
+
+            addUndoToast(
+                `Duplikasi ${item.academic_year} ${item.semester} → ${newYear} ${item.semester}`,
+                async () => {
+                    await supabase.from("periods").delete().eq("id", created[0].id);
+                    fetchData();
+                },
+                6000,
+            );
+            try {
+                await logAudit({
+                    action: "INSERT", source: "MASTER", tableName: "periods",
+                    recordId: created[0].id,
+                    newData: { duplicate_of: item.id, academic_year: newYear, semester: item.semester },
+                });
+            } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            fetchData();
+        } catch (err) {
+            addToast(err?.message || "Gagal menduplikasi periode", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [isSaving, canEdit, fetchData, addToast, addUndoToast]);
+
+    const handleBulkShiftDates = useCallback(async (days) => {
+        if (isSaving || !canEdit || selectedIds.length === 0) return;
+        setIsSaving(true);
+        const shifted = years.filter((y) => selectedIds.includes(y.id));
+        try {
+            const updates = shifted.map((y) => {
+                const shift = (d) => {
+                    if (!d) return null;
+                    const date = new Date(d);
+                    date.setDate(date.getDate() + days);
+                    return date.toISOString().split("T")[0];
+                };
+                return {
+                    id: y.id,
+                    start_date: shift(y.start_date),
+                    end_date: shift(y.end_date),
+                    registration_start: shift(y.registration_start),
+                    registration_end: shift(y.registration_end),
+                };
+            });
+            for (const u of updates) {
+                const { error } = await supabase.from("periods").update(u).eq("id", u.id);
+                if (error) throw error;
+            }
+            addUndoToast(
+                `Tanggal ${updates.length} periode digeser ${days > 0 ? "+" : ""}${days} hari`,
+                async () => {
+                    for (const u of updates) {
+                        const revert = {
+                            id: u.id,
+                            start_date: shifted.find((y) => y.id === u.id).start_date,
+                            end_date: shifted.find((y) => y.id === u.id).end_date,
+                            registration_start: shifted.find((y) => y.id === u.id).registration_start,
+                            registration_end: shifted.find((y) => y.id === u.id).registration_end,
+                        };
+                        await supabase.from("periods").update(revert).eq("id", u.id);
+                    }
+                    fetchData();
+                },
+                8000,
+            );
+            try {
+                await logAudit({
+                    action: "UPDATE", source: "MASTER", tableName: "periods",
+                    newData: { bulk_shift: true, days, count: updates.length },
+                });
+            } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            setSelectedIds([]);
+            fetchData();
+        } catch (err) {
+            addToast(err?.message || "Gagal menggeser tanggal", "error");
+        } finally {
+            setIsSaving(false);
+        }
+    }, [isSaving, canEdit, selectedIds, years, fetchData, addToast, addUndoToast]);
+
+    const togglePin = useCallback((id) => {
+        setPinnedIds((prev) => {
+            const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+            localStorage.setItem("periods_pinned", JSON.stringify(next));
+            return next;
+        });
+    }, []);
 
     const handleDeleteConfirm = useCallback(async () => {
         if (!itemToDelete) return;
@@ -843,9 +1084,19 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                     const ts = getTimeStatus(y.start_date, y.end_date);
                     if (ts?.label !== filterTimeStatus) return false;
                 }
+                if (dateFrom || dateTo) {
+                    const yStart = new Date(y.start_date);
+                    const yEnd = new Date(y.end_date);
+                    if (dateFrom && yEnd < new Date(dateFrom)) return false;
+                    if (dateTo && yStart > new Date(dateTo)) return false;
+                }
                 return matchesSearch && matchesSemester && matchesStatus && matchesLock;
             })
             .sort((a, b) => {
+                const aPinned = pinnedIds.includes(a.id);
+                const bPinned = pinnedIds.includes(b.id);
+                if (aPinned && !bPinned) return -1;
+                if (!aPinned && bPinned) return 1;
                 if (a.is_active && !b.is_active) return -1;
                 if (!a.is_active && b.is_active) return 1;
                 if (sortBy === "name_asc") return a.academic_year.localeCompare(b.academic_year);
@@ -853,7 +1104,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 if (sortBy === "start_asc") return new Date(a.start_date) - new Date(b.start_date);
                 return new Date(b.start_date) - new Date(a.start_date);
             });
-    }, [years, searchQuery, filterSemester, filterStatus, filterLock, filterTimeStatus, sortBy, getTimeStatus]);
+    }, [years, searchQuery, filterSemester, filterStatus, filterLock, filterTimeStatus, sortBy, getTimeStatus, pinnedIds]);
 
     const totalRows = filtered.length;
     const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -864,8 +1115,8 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     , [paged]);
 
     const activeFilterCount = useMemo(() =>
-        (filterSemester ? 1 : 0) + (filterStatus ? 1 : 0) + (filterLock ? 1 : 0) + (filterTimeStatus ? 1 : 0) + (searchQuery ? 1 : 0),
-        [filterSemester, filterStatus, filterLock, filterTimeStatus, searchQuery]
+        (filterSemester ? 1 : 0) + (filterStatus ? 1 : 0) + (filterLock ? 1 : 0) + (filterTimeStatus ? 1 : 0) + (searchQuery ? 1 : 0) + (dateFrom ? 1 : 0) + (dateTo ? 1 : 0),
+        [filterSemester, filterStatus, filterLock, filterTimeStatus, searchQuery, dateFrom, dateTo]
     );
 
     const resetAllFilters = useCallback(() => {
@@ -874,8 +1125,45 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         setFilterStatus("");
         setFilterLock("");
         setFilterTimeStatus("");
+        setDateFrom("");
+        setDateTo("");
         setPage(1);
         setSelectedIds([]);
+    }, []);
+
+    // ── FILTER PRESETS ─────────────────────────────────────────────────────────
+    const LS_PRESETS = "periods_filter_presets";
+    const [filterPresets, setFilterPresets] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_PRESETS)) || []; } catch { return []; }
+    });
+    useEffect(() => { localStorage.setItem(LS_PRESETS, JSON.stringify(filterPresets)); }, [filterPresets]);
+
+    const saveFilterPreset = useCallback((name) => {
+        const preset = { name, filterSemester, filterStatus, filterLock, filterTimeStatus, dateFrom, dateTo, sortBy };
+        setFilterPresets(prev => {
+            const idx = prev.findIndex(p => p.name === name);
+            if (idx >= 0) {
+                const next = [...prev];
+                next[idx] = preset;
+                return next;
+            }
+            return [...prev, preset];
+        });
+    }, [filterSemester, filterStatus, filterLock, filterTimeStatus, dateFrom, dateTo, sortBy]);
+
+    const loadFilterPreset = useCallback((preset) => {
+        setFilterSemester(preset.filterSemester || "");
+        setFilterStatus(preset.filterStatus || "");
+        setFilterLock(preset.filterLock || "");
+        setFilterTimeStatus(preset.filterTimeStatus || "");
+        setDateFrom(preset.dateFrom || "");
+        setDateTo(preset.dateTo || "");
+        setSortBy(preset.sortBy || "name_desc");
+        setPage(1);
+    }, []);
+
+    const deleteFilterPreset = useCallback((name) => {
+        setFilterPresets(prev => prev.filter(p => p.name !== name));
     }, []);
 
     // ── SELECTED ITEMS (for BulkActionsBar preview) ──────────────────────────
@@ -904,8 +1192,9 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         // Filtering
         searchQuery, setSearchQuery, filterSemester, setFilterSemester,
         filterStatus, setFilterStatus, filterLock, setFilterLock,
-        filterTimeStatus, setFilterTimeStatus, sortBy, setSortBy,
-        isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
+        filterTimeStatus, setFilterTimeStatus, dateFrom, setDateFrom, dateTo, setDateTo,
+        sortBy, setSortBy, isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
+        filterPresets, saveFilterPreset, loadFilterPreset, deleteFilterPreset,
 
         // Pagination
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
@@ -939,14 +1228,18 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         // Inline edit
         inlineEditCell, setInlineEditCell, saveStatus, lastChange, setLastChange,
 
+        // Auto-transition
+        expiredActive, suggestedNext,
+
         // Functions
         handleAdd, handleEdit, handleDuplicate, handleSubmit,
-        handleSetActive, handleInlineSave, handleToggleLock,
-        handleDeleteConfirm, handleBulkEdit, handleBulkDelete, handleBulkSetActive,
+        handleSetActive, handleInlineSave, handleToggleLock, handleQuickToggleActive,
+        handleQuickDuplicate, togglePin, pinnedIds, handleDeleteConfirm, handleBulkEdit, handleBulkDelete, handleBulkSetActive, handleBulkShiftDates,
+        handleUndo, handleRedo, undoStack, redoStack,
         handleBulkLock, handleBulkUnlock, handleGenerateNextYear,
         handleOpenReadOnlyDetail, handleOpenHistory,
 
         // Helpers
-        formatDate, getDuration, getTimeStatus, handleError,
+        formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
     };
 }

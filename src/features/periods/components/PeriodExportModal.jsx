@@ -47,6 +47,7 @@ export default function PeriodExportModal({
     handleExportCSV,
     handleExportExcel,
     handleExportPDF,
+    handleExportICS,
     addToast,
 }) {
     const [fileName, setFileName] = useState(`Data Tahun Pelajaran ${new Date().toISOString().slice(0, 10)}`)
@@ -129,6 +130,7 @@ export default function PeriodExportModal({
         { label: 'CSV', icon: FileXls, desc: 'Universal', onClick: () => handleExportCSV(fileName, exportOptions), color: 'hover:border-slate-400 hover:bg-slate-50', iconColor: 'text-slate-500' },
         { label: 'Excel', icon: FileXls, desc: '.xlsx', onClick: () => handleExportExcel(fileName), color: 'hover:border-emerald-400 hover:bg-emerald-50 text-emerald-700', iconColor: 'text-emerald-500' },
         { label: 'PDF', icon: FileText, desc: 'Cetak', onClick: () => handleExportPDF(fileName, exportOptions), color: 'hover:border-rose-400 hover:bg-rose-50 text-rose-700', iconColor: 'text-rose-500' },
+        { label: 'iCal', icon: Calendar, desc: '.ics', onClick: () => handleExportICS(fileName), color: 'hover:border-blue-400 hover:bg-blue-50 text-blue-700', iconColor: 'text-blue-500' },
     ]
 
     const exportOptions = {

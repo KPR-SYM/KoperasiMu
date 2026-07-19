@@ -7,10 +7,12 @@ import {
     Copy,
     MagnifyingGlass,
     Pencil,
+    PushPin,
     ArrowCounterClockwise,
     Trash,
 } from "@phosphor-icons/react";
 import { EmptyState } from "@shared/components";
+import PeriodContextTooltip from "./PeriodContextTooltip";
 
 function TimelineView({
     years,
@@ -20,11 +22,17 @@ function TimelineView({
     onDuplicate,
     onDelete,
     onToggleLock,
+    onQuickToggleActive,
+    onQuickDuplicate,
+    onTogglePin,
+    pinnedIds,
     canEdit,
     isPrivacyMode,
     maskValue,
+    formatDate,
     getTimeStatus,
     getDuration,
+    getPeriodStats,
     onQuickFilterYear,
 }) {
     if (years.length === 0) {
@@ -101,10 +109,14 @@ function TimelineView({
                                             >
                                                 {maskValue(year.semester, "semester")}
                                             </div>
-                                            {isActive && (
+                                            {isActive ? (
                                                 <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[7px] font-black">
                                                     <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
                                                     AKTIF
+                                                </div>
+                                            ) : (
+                                                <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">
+                                                    NONAKTIF
                                                 </div>
                                             )}
                                             {ts && (
@@ -114,20 +126,28 @@ function TimelineView({
                                                     {ts.label}
                                                 </div>
                                             )}
-                                            {year.is_locked && (
-                                                <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">
-                                                    TUTUP
-                                                </div>
-                                            )}
+                                            {year.is_locked ? (
+                                                canEdit ? (
+                                                    <button onClick={() => onToggleLock(year)} className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600 cursor-pointer hover:brightness-110 transition-all">
+                                                        TUTUP
+                                                    </button>
+                                                ) : (
+                                                    <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">
+                                                        TUTUP
+                                                    </div>
+                                                )
+                                            ) : null}
                                         </div>
 
                                         {/* Year */}
-                                        <h4
-                                            onClick={() => onQuickFilterYear?.(year.academic_year)}
-                                            className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors cursor-pointer hover:text-[var(--color-primary)]"
-                                        >
-                                            {maskValue(year.academic_year, "year")}
-                                        </h4>
+                                        <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
+                                            <h4
+                                                onClick={() => onQuickFilterYear?.(year.academic_year)}
+                                                className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors cursor-pointer hover:text-[var(--color-primary)]"
+                                            >
+                                                {maskValue(year.academic_year, "year")}
+                                            </h4>
+                                        </PeriodContextTooltip>
 
                                         {/* Dates */}
                                         <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
@@ -158,6 +178,28 @@ function TimelineView({
                                                 {dur}
                                             </div>
                                         )}
+                                        {year.start_date && year.end_date && !isPrivacyMode && (() => {
+                                            const now = Date.now();
+                                            const s = new Date(year.start_date).getTime();
+                                            const e = new Date(year.end_date).getTime();
+                                            const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+                                            const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
+                                            return (
+                                                <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-2 overflow-hidden">
+                                                    <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+                                                </div>
+                                            );
+                                        })()}
+                                        {!isPrivacyMode && (() => {
+                                            const st = getPeriodStats?.(year.start_date, year.end_date, year.registration_start, year.registration_end);
+                                            if (!st) return null;
+                                            return (
+                                                <div className="mt-1.5 flex items-center gap-2 text-[7px] text-[var(--color-text-muted)]">
+                                                    <span>{st.elapsed}/{st.totalDays} hari · {st.remaining} hr lagi</span>
+                                                    {st.regStatus && <span className={st.regStatus.cls}>{st.regStatus.label}</span>}
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Actions — always visible */}
                                         <div className="mt-3 pt-2.5 border-t border-[var(--color-border)]/50 flex items-center justify-between gap-1">
@@ -178,6 +220,13 @@ function TimelineView({
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-0.5 shrink-0">
+                                                <button
+                                                    onClick={() => onTogglePin?.(year.id)}
+                                                    title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"}
+                                                    className={`w-6 h-6 rounded-lg transition-all flex items-center justify-center ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-amber-500"}`}
+                                                >
+                                                    <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} className="w-2.5 h-2.5" />
+                                                </button>
                                                 {canEdit && !year.is_locked && (
                                                     <button
                                                         onClick={() => onEdit(year)}
@@ -194,9 +243,9 @@ function TimelineView({
                                                 </button>
                                                 {canEdit && (
                                                     <button
-                                                        onClick={() => onDuplicate(year)}
-                                                        title="Duplikat"
-                                                        className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-emerald-500 transition-all flex items-center justify-center"
+                                                        onClick={() => onQuickDuplicate?.(year)}
+                                                        title="Duplikasi ke tahun berikutnya"
+                                                        className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-amber-500 transition-all flex items-center justify-center"
                                                     >
                                                         <Copy className="w-2.5 h-2.5" />
                                                     </button>

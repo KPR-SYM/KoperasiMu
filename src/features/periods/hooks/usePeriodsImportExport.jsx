@@ -525,6 +525,59 @@ export function usePeriodsImportExport({
         }
     }, [getExportData, exportScope, exportColumns, addToast, handleError, setIsExportModalOpen]);
 
+    const handleExportICS = useCallback(async (filename) => {
+        setExporting(true);
+        try {
+            const rows = getExportData();
+            const icsLines = [
+                "BEGIN:VCALENDAR",
+                "VERSION:2.0",
+                "PRODID:-//KoperasiMu//Periods//EN",
+                "CALSCALE:GREGORIAN",
+                "METHOD:PUBLISH",
+            ];
+            for (const row of rows) {
+                const ds = row.start_date.replace(/-/g, "");
+                const de = row.end_date.replace(/-/g, "");
+                const uid = `period-${row.id || Math.random().toString(36).slice(2)}@koperasimu`;
+                icsLines.push("BEGIN:VEVENT");
+                icsLines.push(`DTSTART;VALUE=DATE:${ds}`);
+                icsLines.push(`DTEND;VALUE=DATE:${de}`);
+                icsLines.push(`UID:${uid}`);
+                icsLines.push(`SUMMARY:${row.academic_year} ${row.semester}`);
+                if (row.registration_start && row.registration_end) {
+                    const rds = row.registration_start.replace(/-/g, "");
+                    const rde = row.registration_end.replace(/-/g, "");
+                    icsLines.push(`X-REGISTRATION-START;VALUE=DATE:${rds}`);
+                    icsLines.push(`X-REGISTRATION-END;VALUE=DATE:${rde}`);
+                }
+                icsLines.push("END:VEVENT");
+            }
+            icsLines.push("END:VCALENDAR");
+            const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${filename || "periods"}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            try {
+                await logAudit({
+                    action: "EXPORT", source: "MASTER", tableName: "periods",
+                    newData: { format: "ics", count: rows.length, scope: exportScope },
+                });
+            } catch (e) { console.warn("[usePeriodsImportExport] logAudit skip:", e.message); }
+            addToast(`Export iCal berhasil (${rows.length} periode)`, "success");
+            setIsExportModalOpen(false);
+        } catch (err) {
+            handleError(err, { context: "Gagal export iCal" });
+        } finally {
+            setExporting(false);
+        }
+    }, [getExportData, exportScope, addToast, handleError, setIsExportModalOpen]);
+
     return {
         // Import state
         importStep, setImportStep,
@@ -569,5 +622,6 @@ export function usePeriodsImportExport({
         handleExportCSV,
         handleExportExcel,
         handleExportPDF,
+        handleExportICS,
     };
 }

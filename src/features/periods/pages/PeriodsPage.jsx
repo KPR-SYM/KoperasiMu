@@ -9,6 +9,7 @@ import {
     Lock,
     LockOpen,
     ArrowClockwise,
+    ArrowsLeftRight,
     Plus,
     Pencil,
     SlidersHorizontal,
@@ -18,7 +19,7 @@ import { createPortal } from "react-dom";
 
 import DashboardLayout from "@core/layouts/DashboardLayout";
 import { useToast } from "@context/Toast";
-import { findOverlappingPeriods } from "@features/periods/utils/periodValidation";
+import { findOverlappingPeriods, findPeriodGaps } from "@features/periods/utils/periodValidation";
 import {
     Checkbox,
     PageHeader,
@@ -29,13 +30,15 @@ import {
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
 import PeriodBulkEditModal from "@features/periods/components/PeriodBulkEditModal";
-import { ArchiveModal, LockModal, UnlockModal } from "@features/periods/components/PeriodConfirmModals";
+import PeriodComparisonModal from "@features/periods/components/PeriodComparisonModal";
+import { ArchiveModal, LockModal, UnlockModal, ShiftDatesModal } from "@features/periods/components/PeriodConfirmModals";
 import PeriodArchiveModal from "@features/periods/components/PeriodArchiveModal";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
 import { usePeriodsImportExport, SYSTEM_COLS } from "@features/periods/hooks/usePeriodsImportExport";
 
 import PeriodsToolbar from "@features/periods/components/PeriodsToolbar";
 import PeriodsTimeline from "@features/periods/components/PeriodsTimeline";
+import PeriodsCalendar from "@features/periods/components/PeriodsCalendar";
 import PeriodsTable from "@features/periods/components/PeriodsTable";
 import PeriodsHeaderMenu from "@features/periods/components/PeriodsHeaderMenu";
 import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMenu";
@@ -111,7 +114,10 @@ export default function PeriodsPage() {
         isSaving, isDeleting, isMutating, canEdit, moduleEnabled,
         searchQuery, setSearchQuery, filterSemester, setFilterSemester,
         filterStatus, setFilterStatus, filterLock, setFilterLock,
-        filterTimeStatus, setFilterTimeStatus, sortBy, setSortBy,
+        filterTimeStatus, setFilterTimeStatus,
+        dateFrom, setDateFrom, dateTo, setDateTo,
+        sortBy, setSortBy,
+        filterPresets, saveFilterPreset, loadFilterPreset, deleteFilterPreset,
         isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
         totalRows, paged, filtered,
@@ -130,12 +136,15 @@ export default function PeriodsPage() {
         isBulkDeleteOpen, setIsBulkDeleteOpen, isReadOnlyDetailOpen, setIsReadOnlyDetailOpen,
         isHistoryOpen, setIsHistoryOpen, isGenerateConfirmOpen, setIsGenerateConfirmOpen,
         inlineEditCell, setInlineEditCell, saveStatus, lastChange,
+        expiredActive, suggestedNext,
         handleAdd, handleEdit, handleDuplicate, handleSubmit,
-        handleSetActive, handleInlineSave, handleToggleLock,
+        handleSetActive, handleInlineSave, handleToggleLock, handleQuickToggleActive,
         handleDeleteConfirm, handleBulkEdit, handleBulkDelete, handleBulkSetActive,
-        handleBulkLock, handleBulkUnlock, handleGenerateNextYear,
+        handleBulkLock, handleBulkUnlock, handleBulkShiftDates, handleGenerateNextYear,
+        handleUndo, handleRedo, undoStack, redoStack,
         handleOpenReadOnlyDetail, handleOpenHistory,
-        formatDate, getDuration, getTimeStatus, handleError,
+        handleQuickDuplicate, togglePin, pinnedIds,
+        formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
         columnOrder, moveColumnLeft, moveColumnRight,
     } = usePeriodsCore({ addToast, addUndoToast });
 
@@ -143,6 +152,9 @@ export default function PeriodsPage() {
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isLockModalOpen, setIsLockModalOpen] = useState(false);
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+    const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
+    const [isCompareOpen, setIsCompareOpen] = useState(false);
+    const [compareItems, setCompareItems] = useState([]);
     const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
     const [batchCount, setBatchCount] = useState(1);
 
@@ -179,10 +191,18 @@ export default function PeriodsPage() {
                 e.preventDefault();
                 setIsPrivacyMode(prev => !prev);
             }
+            if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+                e.preventDefault();
+                if (undoStack.length > 0) handleUndo();
+            }
+            if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+                e.preventDefault();
+                if (redoStack.length > 0) handleRedo();
+            }
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    }, [setIsPrivacyMode]);
+    }, [setIsPrivacyMode, handleUndo, handleRedo, undoStack, redoStack]);
 
     if (!moduleEnabled) {
         return (
@@ -209,6 +229,7 @@ export default function PeriodsPage() {
     const singleItem = selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null;
 
     const overlaps = findOverlappingPeriods(years.filter((y) => y.is_active));
+    const gaps = findPeriodGaps(years);
     return (
         <DashboardLayout title="Tahun Pelajaran">
             <div className="space-y-4 max-w-[1800px] mx-auto relative">
@@ -269,6 +290,25 @@ export default function PeriodsPage() {
                                 variant: "default",
                                 onClick: () => setIsBulkEditOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0,
+                            },
+                            {
+                                label: "Shift Tanggal",
+                                icon: <Calendar className="w-3 h-3" />,
+                                variant: "default",
+                                onClick: () => setIsShiftModalOpen(true),
+                                disabled: !canEdit || isMutating || selectedIds.length === 0,
+                            },
+                            {
+                                label: "Bandingkan",
+                                icon: <ArrowsLeftRight className="w-3 h-3" />,
+                                variant: "default",
+                                onClick: () => {
+                                    const items = selectedIds.map((id) => years.find((y) => y.id === id)).filter(Boolean);
+                                    setCompareItems(items);
+                                    setIsCompareOpen(true);
+                                },
+                                disabled: isMutating || selectedIds.length !== 2,
+                                title: selectedIds.length !== 2 ? "Pilih 2 periode untuk dibandingkan" : undefined,
                             },
                         ]}
                     />
@@ -415,6 +455,36 @@ export default function PeriodsPage() {
                         </button>
                     </div>
                 )}
+                {gaps.length > 0 && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in fade-in slide-in-from-top-2">
+                        <Warning className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                        <span className="text-[11px] font-black text-amber-600">
+                            {gaps.length} celah periode terdeteksi (total {gaps.reduce((s, g) => s + g.gapDays, 0)} hari)
+                        </span>
+                    </div>
+                )}
+
+                {/* ── Auto-Transition Banner ── */}
+                {expiredActive && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex-1">
+                            <span className="text-[11px] font-black text-indigo-600">
+                                Periode <span className="underline">{expiredActive.academic_year} {expiredActive.semester}</span> sudah berakhir.
+                                {suggestedNext ? ` Aktifkan ${suggestedNext.academic_year} ${suggestedNext.semester} sebagai periode berikutnya?` : " Tidak ada periode berikutnya yang tersedia."}
+                            </span>
+                        </div>
+                        {suggestedNext && (
+                            <button
+                                onClick={() => {
+                                    handleQuickToggleActive(suggestedNext);
+                                }}
+                                className="h-8 px-4 rounded-lg bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-indigo-500/20 shrink-0"
+                            >
+                                Aktifkan Sekarang
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden relative">
@@ -433,12 +503,20 @@ export default function PeriodsPage() {
                             setFilterLock={setFilterLock}
                             filterTimeStatus={filterTimeStatus}
                             setFilterTimeStatus={setFilterTimeStatus}
+                            dateFrom={dateFrom}
+                            setDateFrom={setDateFrom}
+                            dateTo={dateTo}
+                            setDateTo={setDateTo}
                             sortBy={sortBy}
                             setSortBy={setSortBy}
                             isFilterOpen={isFilterOpen}
                             setIsFilterOpen={setIsFilterOpen}
                             activeFilterCount={activeFilterCount}
                             resetAllFilters={resetAllFilters}
+                            filterPresets={filterPresets}
+                            saveFilterPreset={saveFilterPreset}
+                            loadFilterPreset={loadFilterPreset}
+                            deleteFilterPreset={deleteFilterPreset}
                             viewMode={viewMode}
                             setViewMode={setViewMode}
                             selectedIds={selectedIds}
@@ -503,13 +581,27 @@ export default function PeriodsPage() {
                                     setIsDeleteModalOpen(true);
                                 }}
                                 onToggleLock={handleToggleLock}
+                                onQuickToggleActive={handleQuickToggleActive}
+                                onQuickDuplicate={handleQuickDuplicate}
+                                onTogglePin={togglePin}
+                                pinnedIds={pinnedIds}
                                 onHistory={handleOpenHistory}
                                 canEdit={canEdit}
                                 isPrivacyMode={isPrivacyMode}
                                 maskValue={maskValue}
+                                formatDate={formatDate}
                                 getTimeStatus={getTimeStatus}
                                 getDuration={getDuration}
+                                getPeriodStats={getPeriodStats}
                                 onQuickFilterYear={handleQuickFilterYear}
+                            />
+                        ) : viewMode === "calendar" ? (
+                            <PeriodsCalendar
+                                years={filtered}
+                                onEdit={handleEdit}
+                                canEdit={canEdit}
+                                formatDate={formatDate}
+                                getTimeStatus={getTimeStatus}
                             />
                         ) : (
                             <>
@@ -532,12 +624,17 @@ export default function PeriodsPage() {
                                     maskValue={maskValue}
                                     formatDate={formatDate}
                                     getDuration={getDuration}
+                                    getPeriodStats={getPeriodStats}
                                     handleInlineSave={handleInlineSave}
                                     inlineEditCell={inlineEditCell}
                                     setInlineEditCell={setInlineEditCell}
                                     handleEdit={handleEdit}
                                     handleOpenHistory={handleOpenHistory}
                                     handleToggleLock={handleToggleLock}
+                                    onQuickToggleActive={handleQuickToggleActive}
+                                    onQuickDuplicate={handleQuickDuplicate}
+                                    onTogglePin={togglePin}
+                                    pinnedIds={pinnedIds}
                                     handleOpenReadOnlyDetail={handleOpenReadOnlyDetail}
                                     setItemToDelete={setItemToDelete}
                                     setIsDeleteModalOpen={setIsDeleteModalOpen}
@@ -711,12 +808,23 @@ export default function PeriodsPage() {
 
                 <LockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkLock} submitting={isSaving} />
                 <UnlockModal isOpen={isUnlockModalOpen} onClose={() => setIsUnlockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkUnlock} submitting={isSaving} />
+                <ShiftDatesModal isOpen={isShiftModalOpen} onClose={() => setIsShiftModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkShiftDates} submitting={isSaving} />
                 <PeriodBulkEditModal
                     isOpen={isBulkEditOpen}
                     onClose={() => setIsBulkEditOpen(false)}
                     selectedCount={selectedIds.length}
                     onConfirm={handleBulkEdit}
                     submitting={isSaving}
+                />
+
+                <PeriodComparisonModal
+                    isOpen={isCompareOpen}
+                    onClose={() => setIsCompareOpen(false)}
+                    itemA={compareItems[0]}
+                    itemB={compareItems[1]}
+                    formatDate={formatDate}
+                    getDuration={getDuration}
+                    getPeriodStats={getPeriodStats}
                 />
 
                 <ConfirmDialog
@@ -792,6 +900,7 @@ export default function PeriodsPage() {
                             handleExportCSV={handleExportCSV}
                             handleExportExcel={handleExportExcel}
                             handleExportPDF={handleExportPDF}
+                            handleExportICS={handleExportICS}
                             addToast={addToast}
                         />
                     )}

@@ -52,6 +52,32 @@ export function findOverlappingPeriods(periods) {
     return overlaps;
 }
 
+export function findPeriodGaps(periods) {
+    if (!periods || periods.length < 2) return [];
+    const groups = {};
+    for (const p of periods) {
+        if (!p.semester) continue;
+        if (!groups[p.semester]) groups[p.semester] = [];
+        groups[p.semester].push(p);
+    }
+    const gaps = [];
+    for (const sem of Object.keys(groups)) {
+        const sorted = groups[sem].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+        for (let i = 0; i < sorted.length - 1; i++) {
+            const curr = sorted[i];
+            const next = sorted[i + 1];
+            if (!curr.end_date || !next.start_date) continue;
+            const currEnd = new Date(curr.end_date);
+            const nextStart = new Date(next.start_date);
+            const gapDays = Math.round((nextStart - currEnd) / (1000 * 60 * 60 * 24)) - 1;
+            if (gapDays > 1) {
+                gaps.push({ before: curr, after: next, gapDays });
+            }
+        }
+    }
+    return gaps;
+}
+
 export function assertEditable(period, canEdit) {
     if (!canEdit) return "Mode read-only — anda tidak memiliki izin untuk mengubah data.";
     if (period?.is_locked) return "Periode terkunci — tidak dapat diedit. Buka kunci terlebih dahulu.";

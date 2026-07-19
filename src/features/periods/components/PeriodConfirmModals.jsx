@@ -1,5 +1,5 @@
-import React, { memo } from 'react'
-import { WarningCircle, Warning, Archive, Lock, LockOpen } from '@phosphor-icons/react'
+import React, { memo, useState } from 'react'
+import { WarningCircle, Warning, Archive, Lock, LockOpen, Calendar } from '@phosphor-icons/react'
 
 import { ConfirmDialog } from '@shared/components'
 
@@ -118,6 +118,43 @@ export const UnlockModal = memo(function UnlockModal({
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
                 Sebanyak <span className="font-black text-[var(--color-text)]">{selectedCount}</span> periode akan dibuka kembali.
+            </div>
+        </ConfirmDialog>
+    )
+})
+
+export const ShiftDatesModal = memo(function ShiftDatesModal({
+    isOpen,
+    onClose,
+    selectedCount,
+    onConfirm,
+    submitting
+}) {
+    const [days, setDays] = useState(7);
+    if (!isOpen) return null;
+    return (
+        <ConfirmDialog
+            isOpen={isOpen}
+            onClose={onClose}
+            onConfirm={() => onConfirm(days)}
+            title="Shift Tanggal Massal"
+            description={`Geser tanggal ${selectedCount} periode sebanyak:`}
+            icon={Calendar}
+            iconBg="bg-blue-500/10"
+            iconColor="text-blue-600"
+            confirmText="Geser Sekarang"
+            confirmIcon={Calendar}
+            confirmClassName="h-9 px-5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            submitting={submitting}
+        >
+            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-3">
+                <p>Masukkan jumlah hari untuk menggeser semua tanggal (start, end, pendaftaran):</p>
+                <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => setDays((d) => d - 1)} className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-sm font-bold hover:bg-[var(--color-surface-alt)] disabled:opacity-30" disabled={days <= -365}>−</button>
+                    <input type="number" value={days} onChange={(e) => setDays(parseInt(e.target.value) || 0)} className="w-20 text-center h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-sm font-bold text-[var(--color-text)]" />
+                    <button type="button" onClick={() => setDays((d) => d + 1)} className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-sm font-bold hover:bg-[var(--color-surface-alt)] disabled:opacity-30" disabled={days >= 365}>+</button>
+                    <span className="text-[10px] text-[var(--color-text-muted)]">hari {days >= 0 ? "(maju)" : "(mundur)"}</span>
+                </div>
             </div>
         </ConfirmDialog>
     )
