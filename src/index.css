@@ -52,12 +52,18 @@
   /* Slate 800 */
 }
 
-html, body {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+html,
+body {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
-html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari, Opera */
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
 }
 
 body {
@@ -729,6 +735,7 @@ tr:last-child td {
     transition: transform var(--theme-transition) var(--transition-timing);
     will-change: transform;
   }
+
   .gpu-card::after {
     content: '';
     position: absolute;
@@ -739,12 +746,15 @@ tr:last-child td {
     transition: opacity var(--theme-transition) var(--transition-timing);
     z-index: -1;
   }
+
   .dark .gpu-card::after {
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35), 0 10px 10px -5px rgba(0, 0, 0, 0.35);
   }
+
   .gpu-card:hover {
     transform: translateY(-2px);
   }
+
   .gpu-card:hover::after {
     opacity: 1;
   }
@@ -844,6 +854,7 @@ input[type=number] {
 .scrollbar-none::-webkit-scrollbar {
   display: none !important;
 }
+
 .scrollbar-none {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;

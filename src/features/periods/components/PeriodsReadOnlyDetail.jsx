@@ -3,6 +3,8 @@ import {
     Calendar,
     ClockCounterClockwise,
     Fingerprint,
+    Users,
+    Buildings,
 } from "@phosphor-icons/react";
 import { Modal, AuditTimeline } from "@shared/components";
 
@@ -13,6 +15,7 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
     formatDate,
     getDuration,
     onOpenHistory,
+    usageStats,
 }) {
     return (
         <Modal
@@ -81,6 +84,28 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
                                     </div>
                                 )}
                             </div>
+                            {usageStats && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                            <Buildings className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Kelas</p>
+                                            <p className="text-sm font-black text-[var(--color-text)]">{usageStats.classCount}</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                            <Users className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Siswa</p>
+                                            <p className="text-sm font-black text-[var(--color-text)]">{usageStats.studentCount}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             <button
                                 onClick={() => {
                                     onClose();
@@ -116,16 +141,21 @@ const PeriodsHistoryModal = memo(function PeriodsHistoryModal({
             title={`Riwayat · ${item?.academic_year || ""}`}
             description="Audit log untuk rekaman ini."
             icon={Fingerprint}
-            iconBg="bg-orange-500/10"
-            iconColor="text-orange-500"
+            iconBg="bg-purple-500/10"
+            iconColor="text-purple-500"
             size="md"
+            mobileVariant="bottom-sheet"
         >
             {item && (
-                <div className="h-[40vh] min-h-[200px] overflow-auto">
+                <div className="h-[45vh] min-h-[240px] overflow-auto rounded-xl border border-[var(--color-border)] scrollbar-hide">
                     <AuditTimeline
                         tableName="periods"
                         recordId={item.id}
                         limit={30}
+                        theme="purple"
+                        containerClassName="p-3"
+                        showSearch
+                        stickyHeader
                     />
                 </div>
             )}

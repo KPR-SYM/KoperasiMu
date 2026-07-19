@@ -1,4 +1,5 @@
 export { default as BulkActionsBar } from './BulkActionsBar'
+export { default as Badge, RoleBadge, NotifBadge, COLOR_MAP } from './Badge'
 export { StatCard, DataTable, EmptyState, StatsInline } from './DataDisplay'
 export { default as ConfirmDialog } from './ConfirmDialog'
 export { default as Modal } from './Modal'
@@ -13,4 +14,11 @@ export { default as Skeleton, TableSkeleton, CardSkeleton, MobileListSkeleton, M
 export { default as StatsCarousel } from './StatsCarousel'
 export { default as GlobalErrorBoundary } from './GlobalErrorBoundary'
 export { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline } from './AuditTimeline'
+export { default as DebouncedSearchInput } from './DebouncedSearchInput'
+export { default as Alert } from './Alert'
+export { default as Tabs } from './Tabs'
+export { default as DropdownMenu } from './DropdownMenu'
+export { default as ViewSwitcher } from './ViewSwitcher'
+export { default as Dropzone } from './Dropzone'
+export * from './ImportWizard'
 

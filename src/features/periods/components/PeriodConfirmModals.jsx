@@ -20,11 +20,11 @@ export const ArchiveModal = memo(function ArchiveModal({
             title="Konfirmasi Arsip"
             description="Tahun akademik ini akan diarsipkan."
             icon={Archive}
-            iconBg="bg-amber-500/10"
-            iconColor="text-amber-600"
+            iconBg="bg-red-500/10"
+            iconColor="text-red-500"
             confirmText="Arsipkan Sekarang"
             confirmIcon={Archive}
-            confirmClassName="h-9 px-5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmClassName="h-9 px-5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">

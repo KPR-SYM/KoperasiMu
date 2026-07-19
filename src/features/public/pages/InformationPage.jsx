@@ -383,15 +383,17 @@ export default function InformationPage() {
                         {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
                     </div>
                 ) : news.length === 0 ? (
-                    <EmptyState icon={Newspaper} title="Tidak Ada Informasi" description={search ? `Tidak ada yang cocok dengan "${search}".` : "Belum ada informasi yang dipublikasikan saat ini."} variant="glass" color="slate" />
-                    {(search || activeCategory !== 'Semua') && (
-                        <div className="flex justify-center mt-6">
-                            <button onClick={() => { setInputVal(''); setSearch(''); setActiveCategory('Semua'); setPage(1) }}
-                                className="px-6 py-3 rounded-2xl bg-[var(--color-primary)] text-white text-sm font-bold hover:brightness-110 transition-all">
-                                Lihat semua
-                            </button>
-                        </div>
-                    )}
+                    <>
+                        <EmptyState icon={Newspaper} title="Tidak Ada Informasi" description={search ? `Tidak ada yang cocok dengan "${search}".` : "Belum ada informasi yang dipublikasikan saat ini."} variant="glass" color="slate" />
+                        {(search || activeCategory !== 'Semua') && (
+                            <div className="flex justify-center mt-6">
+                                <button onClick={() => { setInputVal(''); setSearch(''); setActiveCategory('Semua'); setPage(1) }}
+                                    className="px-6 py-3 rounded-2xl bg-[var(--color-primary)] text-white text-sm font-bold hover:brightness-110 transition-all">
+                                    Lihat semua
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

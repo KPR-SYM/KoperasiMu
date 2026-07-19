@@ -133,8 +133,8 @@ export function StatCard({
                             {trend && (
                                 <span className={`inline-flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-md leading-none mt-1.5
                                     ${trendUp === true ? 'bg-white/20 text-white' :
-                                    trendUp === false ? 'bg-black/20 text-white/80' :
-                                    'bg-white/10 text-white/60'}`}
+                                        trendUp === false ? 'bg-black/20 text-white/80' :
+                                            'bg-white/10 text-white/60'}`}
                                 >
                                     {TrendArrow && <span>{TrendArrow}</span>}
                                     {tNum(trend)}
@@ -194,8 +194,8 @@ export function StatCard({
 
                 {!loading && trend && (
                     <span className={`inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded-md leading-none ${trendUp === true ? 'text-emerald-500 bg-emerald-500/10' :
-                            trendUp === false ? 'text-rose-500 bg-rose-500/10' :
-                                'text-[var(--color-text-muted)] bg-[var(--color-surface-alt)]'
+                        trendUp === false ? 'text-rose-500 bg-rose-500/10' :
+                            'text-[var(--color-text-muted)] bg-[var(--color-surface-alt)]'
                         }`}>
                         {TrendArrow && <span>{TrendArrow}</span>}
                         {tNum(trend)}
@@ -217,7 +217,7 @@ export function StatCard({
 
 export function StatsInline({ items, label, separator = true, className = '' }) {
     return (
-        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[var(--color-surface-alt)]/40 border border-[var(--color-border)]/50 ${className}`}>
+        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.05] border border-[var(--color-border)] ${className}`}>
             {label && (
                 <>
                     <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>

@@ -1,373 +1,508 @@
-# Planning — Fitur Baru PeriodsPage (Tahun Pelajaran)
+# Shared Component Library — Refactoring Plan
 
-Dokumen ini merangkum rencana pengembangan fitur baru untuk modul **Periods / Tahun Pelajaran**
-(`src/features/periods/`). Setiap fitur dilengkapi tujuan, detail teknis, referensi ke kode
-yang sudah ada, estimasi effort, dan kriteria selesai (acceptance criteria).
+## Goals
 
----
+1. **Eliminate Duplikasi** — Extract 10+ pola UI yang di-copy-paste di 4-6 modul jadi shared components
+2. **Konsistensi** — Satu sumber kebenaran untuk styling, behavior, dan accessibility
+3. **Maintainability** — Bug fix dan improvement otomatis ke semua modul
+4. **Developer Experience** — Module developer tinggal config, tidak perlu rebuild UI dari scratch
 
-## Konteks Saat Ini
+## Architecture
 
-Modul Periods sudah memiliki fitur berikut (jangan diulang):
+```
+src/shared/components/
+├── Badge.jsx              ← NEW: StatusBadge, RoleBadge, NotifBadge
+├── Tabs.jsx               ← NEW: Pill, Underline, Segmented variants
+├── DropdownMenu.jsx       ← NEW: Portaled dropdown with backdrop
+├── DebouncedSearchInput.jsx ← NEW: Search + debounce + loading
+├── Alert.jsx              ← NEW: Warning, Info, Error banners
+├── ViewSwitcher.jsx       ← NEW: Table/Card/List toggle
+├── Dropzone.jsx           ← NEW: Drag-and-drop file upload
+├── ImportWizard/
+│   ├── index.js           ← Export
+│   ├── ImportWizardModal.jsx  ← Shell: 3-step wizard
+│   ├── StepIndicator.jsx      ← Stepper circles
+│   ├── StepUpload.jsx         ← Drag-drop + file info
+│   ├── StepMapping.jsx        ← Column mapping dropdowns
+│   ├── StepReview.jsx         ← Preview table + validation
+│   ├── EditableCell.jsx       ← Portal-based cell editor
+│   └── useImportWizard.js     ← Shared hook (state + logic)
+├── DataTable.jsx          ← ENHANCE: Sorting, selection, column visibility (merge with DataDisplay)
+├── Modal.jsx              ← EXISTING (no changes)
+├── ... (existing components)
+```
 
-- CRUD periode + inline edit (`PeriodsTable`, `InlineCell`, `handleInlineSave`)
-- Bulk actions: arsip, aktifkan, kunci/buka, edit massal (`BulkActionsBar`)
-- Import/Export CSV, Excel, PDF (`usePeriodsImportExport`, `PeriodImportModal`, `PeriodExportModal`)
-- Dua tampilan: **table** & **timeline** (`viewMode`, `PeriodsTable`, `PeriodsTimeline`)
-- Filter, sort, search, pagination (`PeriodsToolbar`, `Pagination`)
-- Kustomisasi & reorder kolom (`visibleCols`, `columnOrder`, `moveColumnLeft/Right`)
-- Privacy mode (`isPrivacyMode`, `maskValue`, shortcut Ctrl+P)
-- Keyboard shortcuts (`PeriodsShortcutMenu`)
-- Riwayat / history perubahan (`PeriodsHistoryModal`, `handleOpenHistory`)
-- Deteksi **overlap** periode (`findOverlappingPeriods` di `periodValidation.js`)
-- Generate tahun pelajaran otomatis (`handleGenerateNextYear`, batch 1–5)
-- Arsip + restore (`PeriodArchiveModal`)
-- Undo toast untuk perubahan (`addUndoToast`, `lastChange`)
+## ERD — Component Dependencies
 
-### File Kunci
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        APPLICATION LAYER                        │
+│                                                                 │
+│  StudentsPage  TeachersPage  ClassesPage  PeriodsPage  DormsPage│
+│       │              │            │            │           │     │
+│       ▼              ▼            ▼            ▼           ▼     │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │              MODULE-SPECIFIC CONFIG                     │    │
+│  │  { systemCols, parseRow, validateRow, commitRow, ... } │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                            │                                     │
+│                            ▼                                     │
+├─────────────────────────────────────────────────────────────────┤
+│                     SHARED COMPONENT LAYER                       │
+│                                                                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │
+│  │  Badge   │ │   Tabs   │ │Dropdown  │ │DebouncedSearch   │   │
+│  │          │ │          │ │Menu      │ │Input             │   │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘   │
+│                                                                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │
+│  │  Alert   │ │  View    │ │Dropzone  │ │ ImportWizard     │   │
+│  │          │ │ Switcher │ │          │ │ ┌──────────────┐ │   │
+│  └──────────┘ └──────────┘ └──────────┘ │ │Modal         │ │   │
+│                                          │ │StepIndicator │ │   │
+│  ┌──────────────────────────────────┐   │ │StepUpload    │ │   │
+│  │         DataTable (enhanced)     │   │ │StepMapping   │ │   │
+│  │  sort │ select │ col visibility │   │ │StepReview    │ │   │
+│  │  │ inline edit │ drag reorder   │   │ │EditableCell  │ │   │
+│  └──────────────────────────────────┘   │ │useImportWiz  │ │   │
+│                                          │ └──────────────┘ │   │
+│                                          └──────────────────┘   │
+├─────────────────────────────────────────────────────────────────┤
+│                       BASE UI LAYER                             │
+│  Modal  Pagination  Skeleton  Checkbox  RichSelect  PageHeader │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| File | Peran |
-|------|-------|
-| `src/features/periods/pages/PeriodsPage.jsx` | Orkestrasi halaman |
-| `src/features/periods/hooks/usePeriodsCore.jsx` | State & handler inti |
-| `src/features/periods/hooks/usePeriodsImportExport.jsx` | Logika import/export |
-| `src/features/periods/utils/periodValidation.js` | Validasi & deteksi overlap |
-| `src/features/periods/components/PeriodsTimeline.jsx` | View timeline |
-| `src/features/periods/components/PeriodsTable.jsx` | View tabel |
-| `src/features/periods/components/PeriodsToolbar.jsx` | Filter / view switch |
-
----
-
-## Ringkasan Prioritas
-
-| # | Fitur | Prioritas | Effort | Risiko |
-|---|-------|-----------|--------|--------|
-| 1 | Deteksi gap antar periode | Tinggi | S | Rendah |
-| 2 | Auto-transition status periode | Tinggi | M | Sedang |
-| 3 | Undo/redo penuh untuk inline edit | Tinggi | M | Sedang |
-| 4 | Salin jadwal dari periode lain | Tinggi | S | Rendah |
-| 5 | Kalender view (viewMode ketiga) | Menengah | L | Sedang |
-| 6 | Quick stats per periode | Menengah | M | Sedang |
-| 7 | Template periode | Menengah | M | Rendah |
-| 8 | Notifikasi / reminder jadwal | Menengah | M | Rendah |
-| 9 | Pin / favorite periode | Rendah | S | Rendah |
-| 10 | Export iCal (.ics) | Rendah | S | Rendah |
-| 11 | Saved filter presets | Rendah | S | Rendah |
-| 12 | Comparison view (bandingkan 2 periode) | Rendah | M | Rendah |
-| 13 | Filter rentang tanggal kustom | Menengah | S | Rendah |
-| 14 | Quick-action badges (toggle langsung) | Menengah | S | Rendah |
-| 15 | Indikator progress periode | Rendah | S | Rendah |
-| 16 | Duplikasi cepat (1 klik ke tahun berikutnya) | Rendah | S | Rendah |
-| 17 | Shift tanggal massal | Rendah | M | Sedang |
-| 18 | Preview periode berdekatan | Rendah | S | Rendah |
-
-Effort: **S** = < ½ hari, **M** = ½–1 hari, **L** = 1–2 hari.
-
----
-
-## Prioritas Tinggi
-
-### 1. Deteksi Gap Antar Periode
-
-**Tujuan.** Selain overlap (sudah ada), deteksi *celah/bolong* tanggal antar periode
-berurutan (mis. Genap 2024 berakhir 30 Jun, Ganjil 2025 baru mulai 1 Sep → gap 2 bulan).
-
-**Detail teknis.**
-- Tambah fungsi `findPeriodGaps(periods)` di `periodValidation.js`:
-  - Urutkan periode per `semester` berdasarkan `start_date`.
-  - Bandingkan `end_date` periode ke-i dengan `start_date` periode ke-(i+1).
-  - Kembalikan `[{ before, after, gapDays }]` bila jarak > 1 hari.
-- Di `PeriodsPage.jsx`, tampilkan badge kuning mirip badge overlap (baris ~403–417),
-  dengan tombol aksi filter / highlight.
-- Opsional: highlight gap secara visual pada `PeriodsTimeline`.
-
-**Acceptance criteria.**
-- [ ] `findPeriodGaps` punya unit test dasar (2–3 kasus).
-- [ ] Badge muncul hanya bila ada gap; hilang bila tidak ada.
-- [ ] Tidak memicu false positive untuk periode overlap.
+## Implementation Phases
 
 ---
 
-### 2. Auto-Transition Status Periode
+### Phase 1: Quick Wins (Estimated: 1-2 days)
+**Goal:** 3 components baru, immediate impact di 4-6 modul
 
-**Tujuan.** Saat periode aktif melewati `end_date`, sistem otomatis menandai "selesai"
-dan menyarankan aktivasi periode berikutnya (aktivasi tetap butuh konfirmasi user).
+#### 1.1 Badge / StatusBadge
+**Duplicated di:** Attendance (StatusBadge), Counseling (urgency/category), Admin (RoleBadge), SlimTopBar (NotifBadge)
 
-**Detail teknis.**
-- Manfaatkan `getTimeStatus` yang sudah ada untuk klasifikasi (belum mulai / berjalan / selesai).
-- Tambah efek di `usePeriodsCore`: saat load / interval ringan, cek periode aktif yang sudah lewat.
-- Tampilkan banner: "Periode X sudah berakhir. Aktifkan periode berikutnya?" + tombol.
-- Jangan auto-aktivasi diam-diam; selalu konfirmasi lewat `ConfirmDialog`.
+**Component API:**
+```jsx
+<Badge
+  color="emerald"          // emerald | rose | amber | indigo | purple | sky | slate
+  variant="soft"           // soft | solid | outline
+  dot                      // show dot indicator
+  icon={ClockIcon}         // optional leading icon
+  removable                // show X button
+  onRemove={() => {}}
+>
+  Aktif
+</Badge>
 
-**Acceptance criteria.**
-- [ ] Banner muncul saat periode aktif sudah lewat `end_date`.
-- [ ] Aksi aktivasi memakai alur `handleSetActive` yang sudah ada.
-- [ ] Tidak ada perubahan data tanpa konfirmasi user.
+// Preset wrappers:
+<StatusBadge status="active" />    // auto color from status
+<RoleBadge role="admin" />         // auto color from role
+```
 
----
+**Impact:** 4 files updated, ~200 lines of inline badge code eliminated
 
-### 3. Undo/Redo Penuh untuk Inline Edit
+#### 1.2 DebouncedSearchInput
+**Duplicated di:** Students, Teachers, Classes, Periods (DebouncedSearchInput.jsx)
 
-**Tujuan.** Perluas undo toast yang sudah ada menjadi stack undo/redo penuh
-dengan shortcut Ctrl+Z / Ctrl+Y.
+**Component API:**
+```jsx
+<DebouncedSearchInput
+  value={searchQuery}
+  onChange={setSearchQuery}
+  placeholder="Cari..."
+  loading={loading}
+  onFocus={() => searchInputRef.current?.focus()}
+  ref={searchInputRef}
+  shortcutKey="f"          // optional: Ctrl+K focus
+  debounceMs={350}
+/>
+```
 
-**Detail teknis.**
-- Tambah `undoStack` & `redoStack` di `usePeriodsCore` (menyimpan snapshot `{ id, field, prevValue, nextValue }`).
-- `handleInlineSave` push ke `undoStack` & kosongkan `redoStack`.
-- Handler keyboard global (pola sama seperti Ctrl+P di `PeriodsPage.jsx` baris ~176).
-- Batasi kedalaman stack (mis. 20) agar hemat memori.
-- Reuse `saveStatus` untuk feedback visual.
+**Impact:** 4 files updated, ~150 lines eliminated
 
-**Acceptance criteria.**
-- [ ] Ctrl+Z mengembalikan perubahan inline terakhir.
-- [ ] Ctrl+Y mengulangi perubahan yang di-undo.
-- [ ] Stack dibatasi & tidak bocor antar sesi filter.
+#### 1.3 Alert / Banner
+**Duplicated di:** SettingsPage (maintenance warning), PeriodsPage (overlap/gap banners), import modals
 
----
+**Component API:**
+```jsx
+<Alert
+  variant="warning"        // warning | error | info | success
+  icon={Warning}
+  title="12 periode tumpang tindih"
+  action={<button>Filter</button>}
+  onClose={() => {}}
+  dismissible
+/>
+```
 
-### 4. Salin Jadwal dari Periode Lain
+**Impact:** 6+ inline alerts standardized
 
-**Tujuan.** Saat menambah/edit periode, sediakan tombol "Salin dari…" untuk
-menyalin pola tanggal (pelaksanaan & pendaftaran) dari periode lain.
-
-**Detail teknis.**
-- Di `PeriodFormModal`, tambah dropdown sumber (daftar `years`).
-- Saat dipilih, isi field tanggal relatif (mis. geser +1 tahun) atau salin apa adanya.
-- Validasi via `isValidDateRange` & `findOverlappingPeriod` yang sudah ada.
-
-**Acceptance criteria.**
-- [ ] Field tanggal terisi otomatis dari periode sumber.
-- [ ] Validasi overlap tetap berjalan setelah salin.
-
----
-
-## Prioritas Menengah
-
-### 5. Kalender View (viewMode Ketiga)
-
-**Tujuan.** Tambah `viewMode: "calendar"` selain table & timeline — kalender visual
-menampilkan rentang periode & jendela pendaftaran berwarna.
-
-**Detail teknis.**
-- Komponen baru `PeriodsCalendar.jsx`.
-- Tambah opsi di `PeriodsToolbar` (switch view) & cabang render di `PeriodsPage.jsx` (~495).
-- Warna berbeda untuk pelaksanaan vs pendaftaran; klik hari → detail periode.
-- Reuse `getTimeStatus`, `formatDate`, `getDuration`.
-
-**Acceptance criteria.**
-- [ ] Switch view menampilkan kalender tanpa error.
-- [ ] Rentang periode & pendaftaran terlihat jelas & bisa diklik.
-
----
-
-### 6. Quick Stats per Periode
-
-**Tujuan.** Tampilkan ringkasan (jumlah siswa terdaftar, enrollment aktif) per periode
-saat hover/expand baris — integrasi dengan fitur `students` & `enrollment`.
-
-**Detail teknis.**
-- Query agregat per `period_id` (cek `src/features/enrollment`, `src/features/students`).
-- Tampilkan pada tooltip/expandable row di `PeriodsTable` & kartu `PeriodsTimeline`.
-- Cache ringan agar tidak query berulang.
-
-**Acceptance criteria.**
-- [ ] Angka statistik akurat per periode.
-- [ ] Tidak memperlambat load daftar utama (lazy/on-demand).
+**Phase 1 Deliverables:**
+- [ ] Create `Badge.jsx`
+- [ ] Create `DebouncedSearchInput.jsx`
+- [ ] Create `Alert.jsx`
+- [ ] Update `index.js` exports
+- [ ] Migrate: AttendancePage, CounselingPage, UserPage → Badge
+- [ ] Migrate: StudentsPage, TeachersPage, ClassesPage → DebouncedSearchInput
+- [ ] Migrate: PeriodsPage alerts, SettingsPage alert → Alert
+- [ ] Build verification
 
 ---
 
-### 7. Template Periode
+### Phase 2: Medium Components (Estimated: 2-3 days)
+**Goal:** 3 components baru, eliminate portaled dropdown + tab duplication
 
-**Tujuan.** Simpan pola konfigurasi (mis. "pendaftaran = 30 hari sebelum mulai")
-sebagai template yang dipakai saat tambah / generate.
+#### 2.1 Tabs
+**Duplicated di:** DormsPage (pill), SettingsPage (pill+icon), CounselingPage (view switcher), PlaygroundPage (pill+count), TeacherProfileModal (underline)
 
-**Detail teknis.**
-- Struktur template: `{ name, offsetPendaftaran, durasiPelaksanaan, semesterDefault }`.
-- Simpan di localStorage (atau tabel bila backend mendukung).
-- Integrasi ke `PeriodFormModal` & `handleGenerateNextYear`.
+**Component API:**
+```jsx
+<Tabs
+  value={activeTab}
+  onChange={setActiveTab}
+  variant="pill"           // pill | underline | segmented
+  size="sm"                // sm | md
+  fullWidth                // stretch to container width
+  items={[
+    { key: "list", label: "Tabel", icon: Table, count: 12 },
+    { key: "timeline", label: "Lini Masa", icon: Clock },
+    { key: "calendar", label: "Kalender", icon: Calendar },
+  ]}
+/>
+```
 
-**Acceptance criteria.**
-- [ ] Template bisa dibuat, dipilih, dan diterapkan.
-- [ ] Template persisten antar sesi.
+**Impact:** 5+ files updated, ~300 lines eliminated
 
----
+#### 2.2 DropdownMenu
+**Duplicated di:** TeachersPage, ClassesPage, EnrollmentPage, PeriodsHeaderMenu, PeriodsShortcutMenu (7 locations with identical portal + positioning logic)
 
-### 8. Notifikasi / Reminder Jadwal
+**Component API:**
+```jsx
+<DropdownMenu
+  trigger={
+    <button className="h-9 w-9 rounded-lg ...">
+      <SlidersHorizontal />
+    </button>
+  }
+  items={[
+    { key: "import", label: "Import", icon: FileArrowUp, onClick: handleImport },
+    { key: "export", label: "Export", icon: FileArrowDown, onClick: handleExport },
+    { type: "separator" },
+    { key: "archive", label: "Arsip", icon: Archive, onClick: handleArchive, disabled: !canEdit },
+  ]}
+  align="end"              // start | end
+  width="w-56"
+/>
+```
 
-**Tujuan.** Badge/indikator "pendaftaran dibuka dalam N hari" atau
-"periode aktif berakhir minggu ini".
+**Impact:** 5+ files updated, ~500 lines eliminated
 
-**Detail teknis.**
-- Hitung selisih hari dari `getTimeStatus` / tanggal periode.
-- Badge di `StatsInline` atau baris periode terkait.
-- Ambang waktu bisa dikonfigurasi (mis. 3 & 7 hari).
+#### 2.3 ViewSwitcher
+**Duplicated di:** CounselingPage, DormTabPlotting, PeriodsToolbar, NewsListPage
 
-**Acceptance criteria.**
-- [ ] Badge muncul sesuai ambang waktu.
-- [ ] Tidak spam saat banyak periode.
+**Component API:**
+```jsx
+<ViewSwitcher
+  value={viewMode}
+  onChange={setViewMode}
+  views={[
+    { key: "table", icon: Table },
+    { key: "card", icon: CardsThree },
+    { key: "list", icon: List },
+  ]}
+/>
+```
 
----
+**Impact:** 4 files updated, ~100 lines eliminated
 
----
-
-### 13. Filter Rentang Tanggal Kustom
-
-**Tujuan.** Tambah opsi filter by custom date range — tidak hanya `filterTimeStatus`
-(Sedang Berjalan / Belum Mulai / Selesai), user bisa pilih rentang `start_date`–`end_date` manual.
-
-**Detail teknis.**
-- Tambah dua input tanggal (`dateFrom`, `dateTo`) di `PeriodsToolbar`.
-- Parameter filter baru di `usePeriodsCore`: `dateFrom`, `dateTo`.
-- Filter di `filtered` / `paged` (cek fungsi compute di hook ~line 200–300).
-- Tampilkan sebagai `activeFilterCount` jika aktif.
-
-**Acceptance criteria.**
-- [ ] Input tanggal muncul dan bisa diisi.
-- [ ] Filter bekerja bersamaan dengan filter lain (semester, status, dll).
-- [ ] `activeFilterCount` bertambah saat date range aktif.
-
----
-
-### 14. Quick-Action Badges (Toggle Langsung)
-
-**Tujuan.** Klik badge "Aktif" / "Terkunci" pada baris tabel atau kartu timeline
-untuk toggle status tanpa buka modal konfirmasi (undo toast sebagai fallback).
-
-**Detail teknis.**
-- Di `PeriodsTable` & `PeriodsTimeline`, ubah badge status jadi `button`.
-- `onClick` → panggil handler dengan undo toast (`addUndoToast`).
-- Konfirmasi cepat lewat `ConfirmDialog` ringan (opsional untuk aksi sensitif).
-- Reuse `handleToggleLock` & `handleSetActive` yang sudah ada.
-
-**Acceptance criteria.**
-- [ ] Klik badge mengubah status tanpa buka modal penuh.
-- [ ] Undo toast muncul untuk membatalkan perubahan.
-- [ ] Badge tetap disabled saat `is_locked` atau `canEdit = false`.
-
----
-
-## Prioritas Rendah
-
-### 9. Pin / Favorite Periode
-- Tandai periode agar selalu tampil di atas daftar.
-- Simpan set `pinnedIds` di localStorage; sesuaikan `sortBy`.
-
-### 10. Export iCal (.ics)
-- Tambah opsi format di `PeriodExportModal` menghasilkan `.ics`
-  (VEVENT untuk pelaksanaan & pendaftaran) agar bisa di-subscribe di Google Calendar.
-
-### 11. Saved Filter Presets
-- Simpan kombinasi `filterSemester/status/lock/timeStatus/sortBy` sebagai preset bernama.
-- Dropdown di `PeriodsToolbar`; persist di localStorage.
-
-### 12. Comparison View
-- Pilih 2 periode → tampilkan berdampingan (tanggal, durasi, status, kunci).
-- Modal baru `PeriodCompareModal.jsx`; picu dari bulk bar saat tepat 2 item terpilih.
+**Phase 2 Deliverables:**
+- [ ] Create `Tabs.jsx`
+- [ ] Create `DropdownMenu.jsx`
+- [ ] Create `ViewSwitcher.jsx`
+- [ ] Update `index.js` exports
+- [ ] Migrate: DormsPage, SettingsPage, CounselingPage → Tabs
+- [ ] Migrate: TeachersPage, ClassesPage, PeriodsPage header menus → DropdownMenu
+- [ ] Migrate: PeriodsToolbar, CounselingPage → ViewSwitcher
+- [ ] Build verification
 
 ---
 
-### 13. Filter Rentang Tanggal Kustom
-— *lihat bagian Prioritas Menengah di atas.*
+### Phase 3: Dropzone + Alert Enhancement (Estimated: 1-2 days)
+**Goal:** Standardize file upload pattern across codebase
 
-### 14. Quick-Action Badges
-— *lihat bagian Prioritas Menengah di atas.*
+#### 3.1 Dropzone / FileUpload
+**Duplicated di:** StudentBulkPhotoModal, 6 import modals, SettingsPage (signature), EnrollmentPaymentModal
 
-### 15. Indikator Progress Periode
+**Component API:**
+```jsx
+<Dropzone
+  accept={[".csv", ".xlsx"]}
+  maxSize={10 * 1024 * 1024}   // 10MB
+  onFileSelect={handleFileSelect}
+  dragOver={dragOver}
+  onDragOver={setDragOver}
+  icon={UploadSimple}
+  title="Seret file ke sini"
+  subtitle="atau klik untuk memilih"
+  loading={processing}
+  error={error}
+/>
+```
 
-**Tujuan.** Tampilkan progress bar visual di setiap baris tabel/kartu timeline
-yang menunjukkan persentase hari sudah berjalan vs total durasi periode.
+**Impact:** 8+ inline dropzones standardized
 
-**Detail teknis.**
-- Hitung `progressPct = ((today - start_date) / (end_date - start_date)) * 100`, clamp 0–100.
-- Di `PeriodsTable`, kolom baru `duration` atau kolom progress terpisah (opsional).
-- Di `PeriodsTimeline`, progress bar di bawah nama periode.
-- Warna: hijau (< 80%), kuning (80–99%), merah (≥ 100% / overdue).
-- Sembunyikan di privacy mode.
+#### 3.2 Enhance Alert → Toast-ready
+**Add:** `useAlert` hook that can trigger alerts as toast or inline
 
-**Acceptance criteria.**
-- [ ] Progress bar muncul di setiap baris/kartu.
-- [ ] Persentase akurat dan update saat tanggal berubah.
-- [ ] Warna berubah sesuai ambang batas.
-
----
-
-### 16. Duplikasi Cepat (1 Klik ke Tahun Berikutnya)
-
-**Tujuan.** Tombol "Duplikasi" sekali klik langsung membuat salinan periode
-ke tahun ajaran berikutnya dengan semua atribut (semester, tanggal, dll).
-
-**Detail teknis.**
-- Tombol tambahan di action bar baris (`PeriodsTable` & `PeriodsTimeline`).
-- Handler `handleQuickDuplicate(id)`: ambil data periode asli, ubah `academic_year`
-  ke tahun berikutnya (via `generateNextAcademicYears`), insert ke DB.
-- Tampilkan toast sukses + undo.
-- Beda dengan `handleDuplicate` yang buka modal — ini langsung jadi.
-
-**Acceptance criteria.**
-- [ ] Satu klik langsung duplikasi + muncul toast.
-- [ ] Undo berhasil membatalkan duplikasi.
-- [ ] Gagal jika tahun berikutnya sudah ada.
+**Phase 3 Deliverables:**
+- [ ] Create `Dropzone.jsx`
+- [ ] Migrate: all import modals, StudentBulkPhotoModal, SettingsPage
+- [ ] Build verification
 
 ---
 
-### 17. Shift Tanggal Massal
+### Phase 4: Import Wizard (Estimated: 5-7 days) ← **Biggest ROI**
+**Goal:** Eliminate ~5000 lines of duplicated import logic across 6 modules
 
-**Tujuan.** Geser tanggal mulai/selesai/pendaftaran N hari ke depan/belakang
-untuk beberapa periode terpilih sekaligus (di dalam `PeriodBulkEditModal`).
+#### Current State (Per Module)
+```
+Students:  StudentImportModal.jsx (788 lines)  + useStudentsImportExport.jsx (884 lines)  = 1672 lines
+Teachers:  TeacherImportModal.jsx (~730 lines) + useTeachersImportExport.jsx (527 lines)  = 1257 lines
+Classes:   ClassImportModal.jsx  (406 lines)  + inline in ClassesPage.jsx (~150 lines)   =  556 lines
+Enrollment: EnrollmentImportModal.jsx (~740 lines) + useEnrollmentImportExport.jsx (734 lines) = 1474 lines
+Periods:   PeriodImportModal.jsx (~800 lines)  + usePeriodsImportExport.jsx (627 lines)  = 1427 lines
+Dorms:     DormsImportModal.jsx  (615 lines)  + inline in useDormsData.jsx (~285 lines)  =  900 lines
+─────────────────────────────────────────────────────────────────────────────────────────────
+TOTAL: ~7286 lines → Target: ~800 lines shared + 6 × ~100 lines config = ~1400 lines (80% reduction)
+```
 
-**Detail teknis.**
-- Tambah section "Shift Tanggal" di `PeriodBulkEditModal` dengan input jumlah hari
-  (positif = maju, negatif = mundur) dan checkbox field mana yang kena.
-- Handler `handleBulkShift(days, fields[])`: `UPDATE periods SET start_date = start_date + interval 'N days' ...`
-- Validasi bounding (jangan sampai shift ke luar rentang wajar, mis. > 365 hari).
+#### 4.1 Shared Hook: `useImportWizard(config)`
+```javascript
+// src/shared/components/ImportWizard/useImportWizard.js
 
-**Acceptance criteria.**
-- [ ] Shift bisa diterapkan ke 1+ field sekaligus.
-- [ ] Toast sukses + undo.
-- [ ] Tidak merusak data bila input tidak valid.
+export function useImportWizard(config) {
+  // ── All 20+ state variables (identical across modules) ──
+  const [importStep, setImportStep] = useState(1)
+  const [importFileName, setImportFileName] = useState("")
+  const [importPreview, setImportPreview] = useState([])
+  const [importColumnMapping, setImportColumnMapping] = useState({})
+  const [importIssues, setImportIssues] = useState([])
+  const [importEditCell, setImportEditCell] = useState(null)
+  const [importDragOver, setImportDragOver] = useState(false)
+  const [importLoading, setImportLoading] = useState(false)
+  const [importSkipDupes, setImportSkipDupes] = useState(true)
+  const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState({ done: 0, total: 0 })
+  const [importValidationOpen, setImportValidationOpen] = useState(false)
+  const [importRawData, setImportRawData] = useState([])
+  const [importFileHeaders, setImportFileHeaders] = useState([])
+  const importFileInputRef = useRef(null)
+
+  // ── Computed (identical) ──
+  const importReadyRows = useMemo(() =>
+    importPreview.filter(r => !r._hasError && !(importSkipDupes && r._isDupe)),
+    [importPreview, importSkipDupes]
+  )
+  const hasImportBlockingErrors = useMemo(() =>
+    importPreview.some(r => r._hasError),
+    [importPreview]
+  )
+
+  // ── Shared logic (config-driven) ──
+  // processImportFile: uses config.systemCols for auto-mapping
+  // handleImportCellEdit: generic row update + revalidate
+  // handleRemoveImportRow: filter + revalidate
+  // handleDownloadTemplate: uses config.templateColumns + templateSampleData
+
+  // ── Module-specific (from config) ──
+  // config.parseRow(raw) → normalized object
+  // config.validateRow(row, idx, ctx) → issues[]
+  // config.commitRow(row) → Promise<void>
+  // config.editableColumnTypes → { colKey: { type, options/list } }
+
+  return { /* all state + handlers */ }
+}
+```
+
+#### 4.2 Shared UI Components
+```
+ImportWizardModal.jsx    ← 3-step shell (Step 1/2/3)
+├── StepIndicator.jsx    ← Stepper circles (pure presentational)
+├── StepUpload.jsx       ← Dropzone + file status bar
+├── StepMapping.jsx      ← Column mapping dropdowns
+├── StepReview.jsx       ← Preview table + validation panel + stats bar
+└── EditableCell.jsx     ← Portal-based cell editor (config-driven)
+```
+
+#### 4.3 Per-Module Config (~50-100 lines each)
+```javascript
+// src/features/students/config/importConfig.js
+
+export const studentsImportConfig = {
+  moduleName: "students",
+  tableName: "students",
+
+  systemCols: [
+    { key: "name", label: "Nama Lengkap", synonyms: ["nama", "full_name"], required: true },
+    { key: "class_name", label: "Kelas", synonyms: ["class", "rombel"], required: true },
+    // ... 12 more columns
+  ],
+
+  parseRow: (raw) => ({
+    name: raw["Nama Lengkap"] || raw["nama"] || "",
+    class_name: raw["Kelas"] || raw["class"] || "",
+    // ... transform all fields
+  }),
+
+  validateRow: (row, idx, ctx) => {
+    const issues = []
+    if (!row.name) issues.push({ level: "error", message: "Nama wajib diisi" })
+    // ... validation rules
+    return issues
+  },
+
+  editableColumnTypes: {
+    class_id: { type: "fk", list: ctx.classesList, displayKey: "name", searchKeys: ["name"] },
+    gender: { type: "enum", options: [{ id: "L", name: "Laki-laki" }, { id: "P", name: "Perempuan" }] },
+  },
+
+  commitRow: async (row, ctx) => {
+    await ctx.supabase.from("students").insert({ ... })
+  },
+
+  templateColumns: [
+    { header: "Nama Lengkap", width: 30 },
+    { header: "Kelas", width: 15 },
+  ],
+  templateSampleData: [
+    { "Nama Lengkap": "Ahmad Rizki", "Kelas": "XII IPA 1" },
+  ],
+  templateFilename: "template_siswa.xlsx",
+}
+```
+
+#### 4.4 Migration Strategy (per module)
+1. Create config file (~50-100 lines)
+2. Replace import modal with `<ImportWizardModal config={config} state={wizardState} />`
+3. Replace hook with `useImportWizard(config)`
+4. Delete old modal + hook files
+5. Verify import flow works end-to-end
+
+**Phase 4 Deliverables:**
+- [x] Create `ImportWizard/useImportWizard.js`
+- [x] Create `ImportWizard/ImportWizardModal.jsx`
+- [x] Create `ImportWizard/StepIndicator.jsx`
+- [x] Create `ImportWizard/StepUpload.jsx`
+- [x] Create `ImportWizard/StepMapping.jsx`
+- [x] Create `ImportWizard/StepReview.jsx`
+- [x] Create `ImportWizard/EditableCell.jsx`
+- [x] Create `ImportWizard/index.js`
+- [ ] Create per-module config: students, teachers, classes, enrollment, periods, dorms
+- [ ] Migrate: Students → ImportWizard (test import flow)
+- [ ] Migrate: Teachers → ImportWizard (test import flow)
+- [ ] Migrate: Classes → ImportWizard (test import flow)
+- [ ] Migrate: Enrollment → ImportWizard (test import flow)
+- [ ] Migrate: Periods → ImportWizard (test import flow)
+- [ ] Migrate: Dorms → ImportWizard (test import flow)
+- [ ] Delete old modal + hook files
+- [ ] Build verification
+- [ ] Full regression test on all 6 import flows
 
 ---
 
-### 18. Preview Periode Berdekatan
+### Phase 5: DataTable Enhancement (Estimated: 3-4 days)
+**Goal:** Merge existing `DataTable` from DataDisplay.jsx with table patterns in PeriodsTable, StudentsTable, etc.
 
-**Tujuan.** Saat hover pada nama/tahun periode, tooltip menampilkan periode
-sebelumnya dan berikutnya sebagai konteks.
+#### Current State
+- `DataDisplay.jsx` has a basic `DataTable` (column defs, loading, empty, row click)
+- PeriodsTable, StudentsTable, etc. each build their own table with sorting, column visibility, selection, inline edit
 
-**Detail teknis.**
-- Komponen `PeriodContextTooltip` dengan `delay` 500ms.
-- Hitung adjacent periods dari data `years` yang sudah ada (urutkan by `start_date`).
-- Tampilkan: nama, tanggal, status, gap/overlap dengan periode yang di-hover.
-- Picu dari `onMouseEnter` pada judul periode di `PeriodsTable` & `PeriodsTimeline`.
+#### Enhanced DataTable API
+```jsx
+<DataTable
+  columns={columns}
+  data={paged}
+  loading={loading}
+  emptyState={<EmptyState ... />}
 
-**Acceptance criteria.**
-- [ ] Tooltip muncul 500ms setelah hover.
-- [ ] Menampilkan info yang benar dan relevan.
-- [ ] Tidak mengganggu scrolling/interaksi lain.
+  // Selection
+  selectedIds={selectedIds}
+  onSelect={toggleSelect}
+  onSelectAll={toggleSelectAll}
+  selectable
+
+  // Sorting
+  sortable
+  sortBy={sortBy}
+  onSort={setSortBy}
+
+  // Column visibility
+  visibleCols={visibleCols}
+  onToggleCol={setVisibleCols}
+  columnMenuRef={colMenuRef}
+
+  // Inline edit
+  inlineEditCell={inlineEditCell}
+  onInlineEdit={handleInlineSave}
+
+  // Row actions
+  onRowClick={handleOpenReadOnlyDetail}
+  rowActions={(row) => [
+    { icon: Pencil, label: "Edit", onClick: () => handleEdit(row) },
+    { icon: Clock, label: "Riwayat", onClick: () => handleOpenHistory(row) },
+  ]}
+
+  // Privacy
+  isPrivacyMode={isPrivacyMode}
+  maskValue={maskValue}
+
+  // Rendering
+  renderCell={(value, row, col) => /* custom render */}
+  renderMobileCard={(row) => /* mobile card view */}
+/>
+```
+
+**Phase 5 Deliverables:**
+- [ ] Enhance `DataDisplay.jsx` DataTable with sorting, selection, column menu
+- [ ] Create `DataTable` sub-components: `TableHeader`, `TableBody`, `TableRow`, `ColumnMenu`
+- [ ] Migrate: PeriodsTable → enhanced DataTable
+- [ ] Migrate: StudentsTable → enhanced DataTable
+- [ ] Verify mobile responsiveness
+- [ ] Build verification
 
 ---
 
-## Urutan Implementasi yang Disarankan
+## Summary — Line Count Impact
 
-1. **#1 Deteksi gap** — infrastruktur (`periodValidation.js` + pola badge) sudah ada, cepat & aman.
-2. **#4 Salin jadwal** — perubahan lokal di `PeriodFormModal`, low-risk.
-3. **#13 Filter rentang tanggal kustom** — kecil, murni UI + filter compute, < ½ hari.
-4. **#3 Undo/redo** — pola shortcut & state sudah ada, tinggal diperluas.
-5. **#11 Saved filter presets** — kecil, murni UI + localStorage.
-6. **#14 Quick-action badges** — sentuhan UX di komponen yang sudah ada.
-7. **#2 Auto-transition** — mulai sentuh alur status.
-8. **#5 Kalender view** — paling terlihat, effort terbesar.
-9. **#15 Indikator progress** — visual ringan, tidak menyentuh DB.
-10. **#16 Duplikasi cepat** — perlu handler baru tapi pola insert sudah ada.
-11. **#17 Shift tanggal massal** — perlu hati-hati dengan query update.
-12. **#18 Preview periode berdekatan** — tooltip murni frontend.
-13. Sisanya (#6, #7, #8, #9, #10, #12) sesuai kebutuhan.
+| Phase | Components | Before | After | Reduction |
+|-------|-----------|--------|-------|-----------|
+| 1 | Badge, SearchInput, Alert | ~350 lines | ~200 lines | 43% |
+| 2 | Tabs, Dropdown, ViewSwitcher | ~900 lines | ~400 lines | 56% |
+| 3 | Dropzone | ~300 lines | ~100 lines | 67% |
+| 4 | ImportWizard (6 modules) | ~7286 lines | ~1400 lines | 81% |
+| 5 | DataTable | ~2000 lines | ~800 lines | 60% |
+| **Total** | | **~10,836 lines** | **~2,900 lines** | **73%** |
 
----
+## Execution Order
 
-## Catatan Teknis Umum
+```
+Phase 1 (Quick Wins)          ← Start here, immediate value
+    ↓
+Phase 2 (Medium Components)   ← Build on Phase 1 patterns
+    ↓
+Phase 3 (Dropzone)            ← Prep for Phase 4
+    ↓
+Phase 4 (Import Wizard)       ← Biggest ROI, depends on Phase 1-3
+    ↓
+Phase 5 (DataTable)           ← Independent, can run in parallel
+```
 
-- Ikuti konvensi alias impor (`@features/*`, `@shared/*`, `@core/*`) sesuai `jsconfig.json`.
-- Reuse komponen shared: `ConfirmDialog`, `BulkActionsBar`, `StatsInline`, `Checkbox`, `Pagination`.
-- Pertahankan gaya styling token CSS (`var(--color-*)`) & kelas Tailwind yang sudah dipakai.
-- Hormati `canEdit`, `is_locked`, dan privacy mode di setiap fitur baru yang mengubah data.
-- Tambahkan unit test untuk logika murni (utils) sebisa mungkin.
+## Risk Mitigation
+
+1. **Build verification** — Run `npx vite build --logLevel silent` after each component
+2. **Incremental migration** — Migrate one module at a time, verify, then next
+3. **Feature parity** — Each migrated module must pass same manual test flow
+4. **Rollback plan** — Keep old files until new implementation verified
+5. **No breaking changes** — New components are additive; old code still works

@@ -19,6 +19,7 @@ import PeriodContextTooltip from "./PeriodContextTooltip";
 const PeriodsTable = memo(function PeriodsTable({
     paged,
     years,
+    emptyState,
     selectedIds,
     visibleCols,
     isPrivacyMode,
@@ -99,9 +100,9 @@ const PeriodsTable = memo(function PeriodsTable({
                                             setColMenuPos({
                                                 top: showUp
                                                     ? rect.top +
-                                                      window.scrollY -
-                                                      menuHeight -
-                                                      8
+                                                    window.scrollY -
+                                                    menuHeight -
+                                                    8
                                                     : rect.bottom + window.scrollY + 8,
                                                 right:
                                                     window.innerWidth -
@@ -133,14 +134,16 @@ const PeriodsTable = memo(function PeriodsTable({
                     <tbody>
                         {paged.length === 0 ? (
                             <tr>
-                                <td colSpan={2 + Object.values(visibleCols).filter(Boolean).length} className="py-24 text-center">
-                                    <EmptyState
-                                        icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
-                                        title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
-                                        description={years.length === 0 ? "Tambahkan periode akademik pertama untuk mulai menggunakan modul ini." : "Sesuaikan filter atau kata kunci pencarian Anda"}
-                                        color={years.length === 0 ? "primary" : "slate"}
-                                        variant="plain"
-                                    />
+                                <td colSpan={2 + Object.values(visibleCols).filter(Boolean).length} className="text-center">
+                                    {emptyState || (
+                                        <EmptyState
+                                            icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
+                                            title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
+                                            description={years.length === 0 ? "Tambahkan periode akademik pertama untuk mulai menggunakan modul ini." : "Sesuaikan filter atau kata kunci pencarian Anda"}
+                                            color={years.length === 0 ? "primary" : "slate"}
+                                            variant="plain"
+                                        />
+                                    )}
                                 </td>
                             </tr>
                         ) : (
@@ -289,14 +292,10 @@ const PeriodsTable = memo(function PeriodsTable({
                                                         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]">Tidak Aktif</span>
                                                     )}
                                                     {year.is_locked ? (
-                                                        canEdit ? (
-                                                            <button onClick={() => handleToggleLock(year)} className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 flex items-center gap-1 cursor-pointer hover:brightness-110 transition-all"><Lock className="w-2 h-2" /> Terkunci</button>
-                                                        ) : (
-                                                            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 flex items-center gap-1"><Lock className="w-2 h-2" /> Terkunci</span>
-                                                        )
-                                                    ) : canEdit ? (
-                                                        <button onClick={() => handleToggleLock(year)} className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] flex items-center gap-1 cursor-pointer hover:brightness-110 transition-all">Bisa Diedit</button>
-                                                    ) : null}
+                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-500 flex items-center gap-1"><Lock className="w-2 h-2" /> Terkunci</span>
+                                                    ) : (
+                                                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] flex items-center gap-1">Bisa Diedit</span>
+                                                    )}
                                                 </div>
                                             </td>
                                         )}
@@ -322,7 +321,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     <button
                                                         onClick={() => onQuickDuplicate?.(year)}
                                                         title="Duplikasi ke tahun berikutnya"
-                                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all text-sm"
+                                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm"
                                                     >
                                                         <Copy />
                                                     </button>
@@ -368,13 +367,15 @@ const PeriodsTable = memo(function PeriodsTable({
             <div className="md:hidden divide-y divide-[var(--color-border)]">
                 {paged.length === 0 ? (
                     <div className="p-8 text-center">
-                        <EmptyState
-                            icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
-                            title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
-                            description={years.length === 0 ? "Tambahkan periode akademik pertama." : "Sesuaikan filter atau kata kunci pencarian Anda"}
-                            color={years.length === 0 ? "primary" : "slate"}
-                            variant="plain"
-                        />
+                        {emptyState || (
+                            <EmptyState
+                                icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
+                                title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
+                                description={years.length === 0 ? "Tambahkan periode akademik pertama." : "Sesuaikan filter atau kata kunci pencarian Anda"}
+                                color={years.length === 0 ? "primary" : "slate"}
+                                variant="plain"
+                            />
+                        )}
                     </div>
                 ) : (
                     paged.map((year) => {

@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Book, Suitcase, Calendar, CalendarCheck, CheckCircle, Copy, Fingerprint, GraduationCap, ClockCounterClockwise, IdentificationCard, Info, Envelope, MapPin, GenderMale, ChatCircle, Pencil, Phone, PresentationChart, Lightning, Briefcase, Note } from '@phosphor-icons/react'
 
-import { Modal, AuditTimeline } from '@shared/components'
+import { Modal, AuditTimeline, Tabs } from '@shared/components'
 import { useErrorHandler } from '@hooks'
 
 
@@ -112,24 +112,15 @@ export default memo(function TeacherProfileModal({
                 </div>
 
                 {/* â”€â”€ Tabs â”€â”€ */}
-                <div className="flex bg-[var(--color-surface-alt)] p-1 rounded-xl border border-[var(--color-border)] overflow-x-auto no-scrollbar">
-                    {[
-                        { id: 'info', label: 'Info', icon: IdentificationCard },
-
-                        { id: 'audit', label: 'Audit', icon: ClockCounterClockwise }
-                    ].map(t => (
-                        <button
-                            key={t.id}
-                            onClick={() => setProfileTab(t.id)}
-                            className={`flex-1 min-w-[80px] h-12 flex flex-col items-center justify-center gap-1 transition-all relative
-                                ${profileTab === t.id ? 'text-indigo-500' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                        >
-                             <t.icon className="text-sm mb-1" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">{t.label}</span>
-                            {profileTab === t.id && <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-indigo-500 rounded-full" />}
-                        </button>
-                    ))}
-                </div>
+                <Tabs
+                    value={profileTab}
+                    onChange={setProfileTab}
+                    variant="underline"
+                    items={[
+                        { key: 'info', label: 'Info', icon: IdentificationCard },
+                        { key: 'audit', label: 'Audit', icon: ClockCounterClockwise },
+                    ]}
+                />
 
                 {/* â”€â”€ Content Sections â”€â”€ */}
                 {profileTab === 'info' && (

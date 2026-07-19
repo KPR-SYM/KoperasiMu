@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, CaretUp, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning, Waves } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, RichSelect, Dropzone } from '@shared/components'
 
 export default function EnrollmentImportModal(props) {
     const [showWavesDropdown, setShowWavesDropdown] = useState(false)
@@ -380,29 +380,11 @@ export default function EnrollmentImportModal(props) {
 
             {importStep === 1 && (
                 <div className="space-y-2.5">
-                    <div
-                        onDragOver={e => { e.preventDefault(); setImportDragOver(true) }}
-                        onDragLeave={() => setImportDragOver(false)}
-                        onDrop={async e => {
-                            e.preventDefault()
-                            setImportDragOver(false)
-                            const file = e.dataTransfer.files?.[0]
-                            if (file) await processImportFile(file)
-                        }}
-                        onClick={() => importFileInputRef.current?.click()}
-                        className={`w-full h-14 rounded-xl border-2 border-dashed cursor-pointer flex items-center justify-center gap-3 transition-all
-                        ${importDragOver
-                                ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10 scale-[1.01]'
-                                : 'border-[var(--color-primary)]/30 bg-[var(--color-primary)]/4 hover:border-[var(--color-primary)]/60 hover:bg-[var(--color-primary)]/8'}`}
-                    >
-                        <UploadSimple className={`w-4 h-4 transition-all ${importDragOver ? 'text-[var(--color-primary)] scale-110' : 'text-[var(--color-primary)]/60'}`} />
-                        <div className="text-left">
-                            <p className="text-[11px] font-black text-[var(--color-primary)] uppercase tracking-wider leading-none">
-                                {importDragOver ? 'Lepaskan file di sini' : 'Drag & Drop atau Klik untuk Pilih File'}
-                            </p>
-                            <p className="text-[10px] text-[var(--color-text-muted)] font-bold mt-1 opacity-60">Mendukung .csv dan .xlsx</p>
-                        </div>
-                    </div>
+                    <Dropzone
+                        onFileSelect={processImportFile}
+                        dragOver={importDragOver}
+                        setDragOver={setImportDragOver}
+                    />
 
                     <div className="space-y-4">
                         {/* Reference Rows */}

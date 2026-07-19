@@ -24,11 +24,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
     const [formErrors, setFormErrors] = useState({})
     const [isDuplicateName, setIsDuplicateName] = useState(false)
     const [isOverlapping, setIsOverlapping] = useState(null)
-    const [templates, setTemplates] = useState(() => {
-        try { return JSON.parse(localStorage.getItem("period_templates") || "[]"); }
-        catch { return []; }
-    })
-    const [templateName, setTemplateName] = useState("")
 
     useEffect(() => {
         if (isOpen) {
@@ -163,40 +158,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
         onClose()
     }
 
-    const handleSaveTemplate = () => {
-        if (!templateName.trim()) return;
-        const tmpl = {
-            name: templateName.trim(),
-            semester: formData.semester,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            registrationStart: formData.registrationStart,
-            registrationEnd: formData.registrationEnd,
-        };
-        const next = [...templates.filter((t) => t.name !== tmpl.name), tmpl];
-        setTemplates(next);
-        localStorage.setItem("period_templates", JSON.stringify(next));
-        setTemplateName("");
-    };
-
-    const handleLoadTemplate = (tmpl) => {
-        if (!tmpl) return;
-        setFormData((prev) => ({
-            ...prev,
-            semester: tmpl.semester || "Ganjil",
-            startDate: tmpl.startDate || "",
-            endDate: tmpl.endDate || "",
-            registrationStart: tmpl.registrationStart || "",
-            registrationEnd: tmpl.registrationEnd || "",
-        }));
-    };
-
-    const handleDeleteTemplate = (name) => {
-        const next = templates.filter((t) => t.name !== name);
-        setTemplates(next);
-        localStorage.setItem("period_templates", JSON.stringify(next));
-    };
-
     return (
         <Modal
             isOpen={isOpen}
@@ -294,77 +255,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
                             </div>
                         </div>
                     </div>
-
-                            {years.length > 0 && (
-                                <div className="flex items-center gap-2 mt-2">
-                                    <select
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (!val) return;
-                                            const source = years.find(y => y.id === val);
-                                            if (!source) return;
-                                            const handleCopyDate = (key, dateStr) => {
-                                                if (!dateStr) return '';
-                                                if (!formData.name) return dateStr;
-                                                const match = formData.name.match(/(\d{4})[/\-\s](\d{4})/);
-                                                const srcMatch = source.academic_year?.match(/(\d{4})[/\-\s](\d{4})/);
-                                                if (match && srcMatch) {
-                                                    const yearDiff = parseInt(match[1]) - parseInt(srcMatch[1]);
-                                                    const d = new Date(dateStr);
-                                                    d.setFullYear(d.getFullYear() + yearDiff);
-                                                    return d.toISOString().split('T')[0];
-                                                }
-                                                return dateStr;
-                                            };
-                                            handleChange('startDate', handleCopyDate('start_date', source.start_date));
-                                            handleChange('endDate', handleCopyDate('end_date', source.end_date));
-                                            handleChange('registrationStart', handleCopyDate('registration_start', source.registration_start));
-                                            handleChange('registrationEnd', handleCopyDate('registration_end', source.registration_end));
-                                        }}
-                                        defaultValue=""
-                                        className="text-[10px] px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text)] font-bold cursor-pointer outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] transition-all flex-1 max-w-[200px]"
-                                    >
-                                        <option value="">Salin jadwal dari...</option>
-                                        {years.filter(y => y.id !== selectedItem?.id).map(y => (
-                                            <option key={y.id} value={y.id}>{y.academic_year} {y.semester}</option>
-                                        ))}
-                                    </select>
-                                    <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">Salin tanggal</span>
-                                </div>
-                            )}
-
-                            {/* Template */}
-                            <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                <select
-                                    onChange={(e) => {
-                                        const t = templates.find((t) => t.name === e.target.value);
-                                        if (t) handleLoadTemplate(t);
-                                    }}
-                                    defaultValue=""
-                                    className="text-[10px] px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text)] font-bold cursor-pointer outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] transition-all flex-1 max-w-[180px]"
-                                >
-                                    <option value="">Muat template...</option>
-                                    {templates.map((t) => (
-                                        <option key={t.name} value={t.name}>{t.name}</option>
-                                    ))}
-                                </select>
-                                <input
-                                    type="text"
-                                    value={templateName}
-                                    onChange={(e) => setTemplateName(e.target.value)}
-                                    placeholder="Nama template..."
-                                    className="text-[10px] px-3 py-1.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text)] font-bold outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] transition-all w-[140px]"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleSaveTemplate}
-                                    disabled={!templateName.trim()}
-                                    className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                    Simpan
-                                </button>
-                                <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">Template</span>
-                            </div>
 
                             {isDuplicateName && !formErrors.name && (
                         <div className="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5 text-amber-700 flex gap-2.5 animate-in fade-in slide-in-from-top-1">

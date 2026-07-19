@@ -1,23 +1,53 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@hooks/students/*": ["src/features/students/hooks/*"],
-      "@hooks/enrollment/*": ["src/features/enrollment/hooks/*"],
-      "@hooks/dorms/*": ["src/features/dorms/hooks/*"],
-      "@hooks/*": ["src/shared/hooks/*"],
-      "@utils/dorms/*": ["src/features/dorms/utils/*"],
-      "@utils/enrollment/*": ["src/features/enrollment/utils/*"],
-      "@utils/students/*": ["src/features/students/utils/*"],
-      "@utils/*": ["src/shared/utils/*"],
-      "@context/*": ["src/core/context/*"],
-      "@lib/*": ["src/core/lib/*"],
-      "@assets/*": ["src/assets/*"],
-      "@features/*": ["src/features/*"],
-      "@core/*": ["src/core/*"],
-      "@shared/*": ["src/shared/*"]
+      "@/*": [
+        "src/*"
+      ],
+      "@hooks/students/*": [
+        "src/features/students/hooks/*"
+      ],
+      "@hooks/enrollment/*": [
+        "src/features/enrollment/hooks/*"
+      ],
+      "@hooks/dorms/*": [
+        "src/features/dorms/hooks/*"
+      ],
+      "@hooks/*": [
+        "src/shared/hooks/*"
+      ],
+      "@utils/dorms/*": [
+        "src/features/dorms/utils/*"
+      ],
+      "@utils/enrollment/*": [
+        "src/features/enrollment/utils/*"
+      ],
+      "@utils/students/*": [
+        "src/features/students/utils/*"
+      ],
+      "@utils/*": [
+        "src/shared/utils/*"
+      ],
+      "@context/*": [
+        "src/core/context/*"
+      ],
+      "@lib/*": [
+        "src/core/lib/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
+      ],
+      "@features/*": [
+        "src/features/*"
+      ],
+      "@core/*": [
+        "src/core/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ]
     },
     "jsx": "react-jsx",
     "module": "ESNext",
@@ -25,6 +55,11 @@
     "target": "ESNext",
     "allowImportingTsExtensions": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

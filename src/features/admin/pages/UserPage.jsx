@@ -4,7 +4,7 @@ import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, Caret
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
 import Modal from '@shared/components/Modal'
-import { EmptyState } from '@shared/components'
+import { EmptyState, RoleBadge } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -15,14 +15,14 @@ import { useErrorHandler } from '@hooks'
 // â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // â”€â”€â”€ Role Hierarchy: developer > admin > guru = satpam > viewer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const ROLE_META = {
-    developer: { label: 'Developer', color: 'text-rose-600', bg: 'bg-rose-500/10', border: 'border-rose-500/20', icon: Code },
-    admin: { label: 'Admin', color: 'text-purple-600', bg: 'bg-purple-500/10', border: 'border-purple-500/20', icon: Shield },
-    pimpinan: { label: 'Pimpinan', color: 'text-amber-600', bg: 'bg-amber-500/10', border: 'border-amber-500/20', icon: UserGear },
-    teacher: { label: 'Teacher', color: 'text-indigo-600', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', icon: PresentationChart },
-    staff: { label: 'Staff', color: 'text-emerald-600', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', icon: Suitcase },
+const ROLE_ICONS = {
+    developer: { label: 'Developer', icon: Code, bg: 'bg-rose-500/10', color: 'text-rose-600', border: 'border-rose-500/20' },
+    admin: { label: 'Admin', icon: Shield, bg: 'bg-purple-500/10', color: 'text-purple-600', border: 'border-purple-500/20' },
+    pimpinan: { label: 'Pimpinan', icon: UserGear, bg: 'bg-amber-500/10', color: 'text-amber-600', border: 'border-amber-500/20' },
+    teacher: { label: 'Teacher', icon: PresentationChart, bg: 'bg-indigo-500/10', color: 'text-indigo-600', border: 'border-indigo-500/20' },
+    staff: { label: 'Staff', icon: Suitcase, bg: 'bg-emerald-500/10', color: 'text-emerald-600', border: 'border-emerald-500/20' },
 }
-const ROLES = Object.entries(ROLE_META).map(([key, v]) => ({ key, ...v }))
+const ROLES = Object.entries(ROLE_ICONS).map(([key, v]) => ({ key, ...v }))
 
 // â”€â”€â”€ Permission Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const canManageUsers = (role) => ['developer', 'admin'].includes(role)
@@ -32,17 +32,7 @@ const canCreateUsers = (role) => ['developer', 'admin'].includes(role)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 
 
-// â”€â”€â”€ RoleBadge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-function RoleBadge({ role }) {
-    const meta = ROLE_META[role] || { label: role, color: 'text-gray-500', bg: 'bg-gray-500/10', border: 'border-gray-500/20', icon: UserGear }
-    return (
-        <span className={`inline-flex items-center gap-1.5 text-[10px] font-black px-2 py-0.5 rounded-lg border ${meta.bg} ${meta.color} ${meta.border}`}>
-            <meta.icon className="text-[8px]" />
-            {meta.label}
-        </span>
-    )
-}
+// ─── shared RoleBadge imported from @shared/components ────────
 
 // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 export default function UserManagementPage() {

@@ -7,7 +7,7 @@ import { useLanguage } from '@context'
 const PAGINATION_STRINGS = {
     id: { totalData: 'Total Data', showing: 'Menampilkan', of: 'dari', rows: 'Baris:', page: 'Halaman', jump: 'Tujuan', jumpTip: 'Jump ke hal...', statusPrefix: 'Informasi' },
     en: { totalData: 'Total Data', showing: 'Showing', of: 'of', rows: 'Rows:', page: 'Page', jump: 'Go to', jumpTip: 'Jump to page...', statusPrefix: 'Information' },
-    ar: { totalData: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª', showing: 'Ø¹Ø±Ø¶', of: 'Ù…Ù†', rows: 'ØµÙÙˆÙ:', page: 'ØµÙØ­Ø©', jump: 'Ø§Ø°Ù‡Ø¨', jumpTip: 'Ø§Ù†ØªÙ‚Ù„ Ø¥Ù„Ù‰ ØµÙØ­Ø©...', statusPrefix: 'Ù…Ø¹Ù„ÙˆÙ…Ø§Øª' },
+    ar: { totalData: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª', showing: 'Ø¹Ø±Ø¶', of: 'Ù…Ù†', rows: 'ØµÙ ÙˆÙ :', page: 'ØµÙ Ø­Ø©', jump: 'Ø§Ø°Ù‡Ø¨', jumpTip: 'Ø§Ù†ØªÙ‚Ù„ Ø¥Ù„Ù‰ ØµÙ Ø­Ø©...', statusPrefix: 'Ù…Ø¹Ù„ÙˆÙ…Ø§Øª' },
 }
 
 const PAGE_SIZE_OPTIONS = [
@@ -64,7 +64,7 @@ export default function Pagination({
 
     return (
         <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 rounded-b-xl">
-            {/* â”€â”€ MOBILE COMPACT PAGINATION (< md) â”€â”€ */}
+            {/* ── MOBILE COMPACT PAGINATION (< md) ── */}
             <div className="flex md:hidden flex-col gap-3.5">
                 <div className="flex items-center justify-between px-1">
                     <div className="flex flex-col">
@@ -126,7 +126,7 @@ export default function Pagination({
                 </div>
             </div>
 
-            {/* â”€â”€ DESKTOP FULL PAGINATION (md+) â”€â”€ */}
+            {/* ── DESKTOP FULL PAGINATION (md+) ── */}
             <div className="hidden md:flex md:flex-row items-center justify-between gap-4">
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <div className="flex flex-col items-center sm:items-start text-left">
@@ -135,21 +135,22 @@ export default function Pagination({
                             {s.showing} <span className="text-[var(--color-primary)]">{fromRow}–{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
                         </p>
                     </div>
-                    <div className="h-8 w-px bg-[var(--color-border)] hidden sm:block mx-1 opacity-70" />
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">{s.rows}</span>
-                        <div className="w-[60px]">
-                        <RichSelect
-                            value={pageSize}
-                            onChange={handlePageSizeChange}
-                            options={PAGE_SIZE_OPTIONS}
-                            small
-                        />
-                        </div>
-                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-2">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">{s.rows}</span>
+                        <div className="w-[60px]">
+                            <RichSelect
+                                value={pageSize}
+                                onChange={handlePageSizeChange}
+                                options={PAGE_SIZE_OPTIONS}
+                                small
+                            />
+                        </div>
+                    </div>
+                    <div className="h-8 w-px bg-[var(--color-border)] mx-1 opacity-70" />
+
                     <div className="flex items-center gap-1">
                         <button disabled={page <= 1} onClick={() => setPage(1)}
                             className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all disabled:opacity-20 active:scale-90"

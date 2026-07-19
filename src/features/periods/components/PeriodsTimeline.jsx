@@ -127,15 +127,9 @@ function TimelineView({
                                                 </div>
                                             )}
                                             {year.is_locked ? (
-                                                canEdit ? (
-                                                    <button onClick={() => onToggleLock(year)} className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600 cursor-pointer hover:brightness-110 transition-all">
-                                                        TUTUP
-                                                    </button>
-                                                ) : (
-                                                    <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">
-                                                        TUTUP
-                                                    </div>
-                                                )
+                                                <div className="px-1.5 py-0.5 rounded-full text-[7px] font-black bg-rose-500/10 text-rose-600">
+                                                    TUTUP
+                                                </div>
                                             ) : null}
                                         </div>
 
@@ -245,7 +239,7 @@ function TimelineView({
                                                     <button
                                                         onClick={() => onQuickDuplicate?.(year)}
                                                         title="Duplikasi ke tahun berikutnya"
-                                                        className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-amber-500 transition-all flex items-center justify-center"
+                                                        className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all flex items-center justify-center"
                                                     >
                                                         <Copy className="w-2.5 h-2.5" />
                                                     </button>

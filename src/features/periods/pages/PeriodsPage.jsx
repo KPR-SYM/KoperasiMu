@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
     Archive,
     Calendar,
@@ -14,6 +15,8 @@ import {
     Pencil,
     SlidersHorizontal,
     Warning,
+    MagnifyingGlass,
+    Clock,
 } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 
@@ -22,11 +25,13 @@ import { useToast } from "@context/Toast";
 import { findOverlappingPeriods, findPeriodGaps } from "@features/periods/utils/periodValidation";
 import {
     Checkbox,
+    EmptyState,
     PageHeader,
     Pagination,
     BulkActionsBar,
     StatsInline,
     ConfirmDialog,
+    Alert,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
 import PeriodBulkEditModal from "@features/periods/components/PeriodBulkEditModal";
@@ -130,7 +135,7 @@ export default function PeriodsPage() {
         shortcutRect, setShortcutRect,
         headerMenuMounted, searchInputRef, viewMode, setViewMode,
         selectedItem, setSelectedItem, itemToDelete, setItemToDelete,
-        readOnlyDetailItem, setReadOnlyDetailItem, historyItem, setHistoryItem,
+        readOnlyDetailItem, setReadOnlyDetailItem, historyItem, setHistoryItem, periodUsageStats,
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
         isArchivedOpen, setIsArchivedOpen, loadingArchived,
         isBulkDeleteOpen, setIsBulkDeleteOpen, isReadOnlyDetailOpen, setIsReadOnlyDetailOpen,
@@ -146,6 +151,7 @@ export default function PeriodsPage() {
         handleQuickDuplicate, togglePin, pinnedIds,
         formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
         columnOrder, moveColumnLeft, moveColumnRight,
+        reminderDays, setReminderDays,
     } = usePeriodsCore({ addToast, addUndoToast });
 
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
@@ -154,14 +160,48 @@ export default function PeriodsPage() {
     const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
     const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
     const [isCompareOpen, setIsCompareOpen] = useState(false);
+    const [itemToDuplicate, setItemToDuplicate] = useState(null);
     const [compareItems, setCompareItems] = useState([]);
     const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
     const [batchCount, setBatchCount] = useState(1);
+    const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
+    const [activateTarget, setActivateTarget] = useState(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const handleQuickFilterYear = (year) => {
         setSearchQuery(year);
         setPage(1);
     };
+
+    const handleDuplicateClick = (item) => {
+        setItemToDuplicate(item);
+    };
+
+    const handleDuplicateConfirm = () => {
+        if (itemToDuplicate) {
+            handleQuickDuplicate(itemToDuplicate);
+            setItemToDuplicate(null);
+        }
+    };
+
+    const duplicatePreview = useMemo(() => {
+        if (!itemToDuplicate) return null;
+        const match = itemToDuplicate.academic_year.match(/(\d{4})\/(\d{4})/);
+        if (!match) return null;
+        const nextStart = parseInt(match[1]) + 1;
+        const nextEnd = parseInt(match[2]) + 1;
+        const shiftDate = (d) => {
+            if (!d) return null;
+            const date = new Date(d);
+            date.setFullYear(date.getFullYear() + 1);
+            return date.toISOString().split("T")[0];
+        };
+        return {
+            academic_year: `${nextStart}/${nextEnd}`,
+            start_date: shiftDate(itemToDuplicate.start_date),
+            end_date: shiftDate(itemToDuplicate.end_date),
+        };
+    }, [itemToDuplicate]);
 
     // ── Import/Export Hook ──
     const {
@@ -176,7 +216,7 @@ export default function PeriodsPage() {
         importReadyRows, hasImportBlockingErrors, importFileInputRef,
         handleImportClick, handleFileChange, processImportFile, buildImportPreview,
         handleImportCellEdit, handleRemoveImportRow, handleDownloadTemplate, handleCommitImport,
-        handleExportCSV, handleExportExcel, handleExportPDF,
+        handleExportCSV, handleExportExcel, handleExportPDF, handleExportICS,
     } = usePeriodsImportExport({
         years, filtered, selectedIds, canEdit, fetchData, addToast,
         handleError,
@@ -184,25 +224,70 @@ export default function PeriodsPage() {
         isExportModalOpen, setIsExportModalOpen,
     });
 
-    // ── Shortcut: Ctrl+P / Cmd+P toggles privacy mode ───────────────────────
+    // ── Keyboard Shortcuts ─────────────────────────────────────────────
     useEffect(() => {
         const handler = (e) => {
+            const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable
             if ((e.ctrlKey || e.metaKey) && e.key === "p") {
                 e.preventDefault();
                 setIsPrivacyMode(prev => !prev);
+                return
             }
             if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
                 e.preventDefault();
                 if (undoStack.length > 0) handleUndo();
+                return
             }
             if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
                 e.preventDefault();
                 if (redoStack.length > 0) handleRedo();
+                return
+            }
+
+            // Shortcuts below skip if typing in input
+            if (isInput) return
+
+            if (e.key === "n" || e.key === "N") {
+                e.preventDefault()
+                if (canEdit) handleAdd()
+                return
+            }
+            if (e.key === "f" || e.key === "F") {
+                e.preventDefault()
+                searchInputRef.current?.focus()
+                return
+            }
+            if (e.key === "v" || e.key === "V") {
+                e.preventDefault()
+                setViewMode(prev => prev === "table" ? "timeline" : prev === "timeline" ? "calendar" : "table")
+                return
+            }
+            if (e.key === "Delete" || e.key === "Backspace") {
+                if (selectedIds.length > 0) {
+                    e.preventDefault()
+                    setIsBulkDeleteOpen(true)
+                }
+                return
             }
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    }, [setIsPrivacyMode, handleUndo, handleRedo, undoStack, redoStack]);
+    }, [setIsPrivacyMode, handleUndo, handleRedo, undoStack, redoStack, canEdit, handleAdd, searchInputRef, setViewMode, selectedIds]);
+
+    // ── Deep-linking: ?period=uuid ────────────────────────────────────
+    useEffect(() => {
+        const periodId = searchParams.get("period")
+        if (!periodId || !years.length || loading) return
+        const found = years.find(y => y.id === periodId)
+        if (found) {
+            setReadOnlyDetailItem(found)
+            setIsReadOnlyDetailOpen(true)
+            // Hapus param dari URL
+            const next = new URLSearchParams(searchParams)
+            next.delete("period")
+            setSearchParams(next, { replace: true })
+        }
+    }, [searchParams, years, loading, setSearchParams])
 
     if (!moduleEnabled) {
         return (
@@ -228,8 +313,9 @@ export default function PeriodsPage() {
     const allUnlocked = selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked);
     const singleItem = selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null;
 
-    const overlaps = findOverlappingPeriods(years.filter((y) => y.is_active));
-    const gaps = findPeriodGaps(years);
+    const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
+    const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
+    const gaps = useMemo(() => findPeriodGaps(years), [years]);
     return (
         <DashboardLayout title="Tahun Pelajaran">
             <div className="space-y-4 max-w-[1800px] mx-auto relative">
@@ -261,12 +347,10 @@ export default function PeriodsPage() {
                                     !canEdit
                                         ? "Mode read-only — aksi tidak diizinkan"
                                         : singleItem?.is_locked
-                                          ? "Periode terkunci — tidak dapat diaktifkan"
-                                          : selectedIds.length > 1
-                                            ? "Hanya satu periode yang boleh diaktifkan sekaligus"
-                                            : selectedIds.length === 0
-                                              ? "Pilih satu periode untuk diaktifkan"
-                                              : undefined,
+                                            ? "Periode terkunci — tidak dapat diaktifkan"
+                                                : selectedIds.length > 1
+                                                ? "Hanya satu periode yang boleh diaktifkan sekaligus"
+                                                : undefined,
                             },
                             {
                                 label: "Kunci",
@@ -315,13 +399,9 @@ export default function PeriodsPage() {
                 )}
 
                 {!canEdit && (
-                    <div className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
-                        <CheckCircle className="text-rose-500 shrink-0 w-3 h-3" />
-                        <p className="text-[11px] font-bold text-rose-600">
-                            Mode Read-only — Pen tahun pelajaran dinonaktifkan oleh
-                            administrator.
-                        </p>
-                    </div>
+                    <Alert variant="rose" size="md">
+                        Mode Read-only — Pen tahun pelajaran dinonaktifkan oleh administrator.
+                    </Alert>
                 )}
 
                 {/* ── Header Row ── */}
@@ -415,6 +495,20 @@ export default function PeriodsPage() {
                                 </span>
                             </button>
 
+                            {/* Reminder threshold */}
+                            <button
+                                onClick={() => {
+                                    const next = { 3: 7, 7: 14, 14: 3 }[reminderDays] || 7
+                                    setReminderDays(next)
+                                    addToast(`Notifikasi diubah: ${next} hari sebelum mulai/berakhir`, "info")
+                                }}
+                                className="h-9 px-2.5 rounded-lg border flex items-center gap-1.5 transition-all active:scale-95 bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                                title={`Notifikasi ${reminderDays} hari sebelum mulai/berakhir. Klik untuk ganti.`}
+                            >
+                                <Clock className="w-3 h-3" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">{reminderDays} hr</span>
+                            </button>
+
                             {/* Add button */}
                             {canEdit && (
                                 <button
@@ -441,53 +535,56 @@ export default function PeriodsPage() {
 
                 {/* ── Conflict Detection Badge ── */}
                 {overlaps.length > 0 && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 animate-in fade-in slide-in-from-top-2">
-                        <Warning className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-[11px] font-black text-red-600">
-                            ⚠ {overlaps.length} periode tumpang tindih (overlap) terdeteksi
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setFilterTimeStatus("Sedang Berjalan")}
-                            className="ml-auto px-2 py-1 text-[9px] font-black uppercase tracking-wider bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                        >
-                            Filter
-                        </button>
-                    </div>
+                    <Alert
+                        variant="error"
+                        size="md"
+                        animate
+                        action={
+                            <button
+                                type="button"
+                                onClick={() => setFilterTimeStatus("Sedang Berjalan")}
+                                className="px-2 py-1 text-[9px] font-black uppercase tracking-wider bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                                Filter
+                            </button>
+                        }
+                    >
+                        {overlaps.length} periode tumpang tindih (overlap) terdeteksi
+                    </Alert>
                 )}
                 {gaps.length > 0 && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in fade-in slide-in-from-top-2">
-                        <Warning className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                        <span className="text-[11px] font-black text-amber-600">
-                            {gaps.length} celah periode terdeteksi (total {gaps.reduce((s, g) => s + g.gapDays, 0)} hari)
-                        </span>
-                    </div>
+                    <Alert variant="warning" size="md" animate>
+                        {gaps.length} celah periode terdeteksi (total {gaps.reduce((s, g) => s + g.gapDays, 0)} hari)
+                    </Alert>
                 )}
 
                 {/* ── Auto-Transition Banner ── */}
                 {expiredActive && (
-                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 animate-in fade-in slide-in-from-top-2">
-                        <div className="flex-1">
-                            <span className="text-[11px] font-black text-indigo-600">
-                                Periode <span className="underline">{expiredActive.academic_year} {expiredActive.semester}</span> sudah berakhir.
-                                {suggestedNext ? ` Aktifkan ${suggestedNext.academic_year} ${suggestedNext.semester} sebagai periode berikutnya?` : " Tidak ada periode berikutnya yang tersedia."}
-                            </span>
-                        </div>
-                        {suggestedNext && (
-                            <button
-                                onClick={() => {
-                                    handleQuickToggleActive(suggestedNext);
-                                }}
-                                className="h-8 px-4 rounded-lg bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-indigo-500/20 shrink-0"
-                            >
-                                Aktifkan Sekarang
-                            </button>
-                        )}
-                    </div>
+                    <Alert
+                        variant="info"
+                        size="md"
+                        animate
+                        action={
+                            suggestedNext && (
+                                <button
+                                    onClick={() => {
+                                        setActivateTarget(suggestedNext);
+                                        setIsActivateConfirmOpen(true);
+                                    }}
+                                    className="h-8 px-4 rounded-lg bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-indigo-500/20 shrink-0"
+                                >
+                                    Aktifkan Sekarang
+                                </button>
+                            )
+                        }
+                    >
+                        Periode <span className="underline">{expiredActive.academic_year} {expiredActive.semester}</span> sudah berakhir.
+                        {suggestedNext ? ` Aktifkan ${suggestedNext.academic_year} ${suggestedNext.semester} sebagai periode berikutnya?` : " Tidak ada periode berikutnya yang tersedia."}
+                    </Alert>
                 )}
 
                 {/* ── Main Data View ── */}
-                <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden relative">
+                <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
                     <div className="border-b border-[var(--color-border)]">
                         <PeriodsToolbar
                             searchQuery={searchQuery}
@@ -582,7 +679,7 @@ export default function PeriodsPage() {
                                 }}
                                 onToggleLock={handleToggleLock}
                                 onQuickToggleActive={handleQuickToggleActive}
-                                onQuickDuplicate={handleQuickDuplicate}
+                                onQuickDuplicate={handleDuplicateClick}
                                 onTogglePin={togglePin}
                                 pinnedIds={pinnedIds}
                                 onHistory={handleOpenHistory}
@@ -608,6 +705,41 @@ export default function PeriodsPage() {
                                 <PeriodsTable
                                     paged={paged}
                                     years={years}
+                                    emptyState={
+                                        years.length === 0 ? (
+                                            <EmptyState
+                                                variant="plain"
+                                                icon={Calendar}
+                                                title="Belum Ada Tahun Pelajaran"
+                                                description="Mulai dengan menambah periode baru atau import data dari file CSV/Excel."
+                                                action={
+                                                    canEdit && (
+                                                        <button
+                                                            onClick={handleAdd}
+                                                            className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20"
+                                                        >
+                                                            <Plus className="w-3 h-3" /> Tambah Periode
+                                                        </button>
+                                                    )
+                                                }
+                                            />
+                                        ) : (
+                                            <EmptyState
+                                                variant="plain"
+                                                icon={MagnifyingGlass}
+                                                title="Tidak Ada Hasil"
+                                                description={`Tidak ditemukan data dengan filter "${searchQuery}". Coba ubah kata kunci atau filter lainnya.`}
+                                                action={
+                                                    <button
+                                                        onClick={resetAllFilters}
+                                                        className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition"
+                                                    >
+                                                        Reset Semua Filter
+                                                    </button>
+                                                }
+                                            />
+                                        )
+                                    }
                                     selectedIds={selectedIds}
                                     visibleCols={visibleCols}
                                     isPrivacyMode={isPrivacyMode}
@@ -632,7 +764,7 @@ export default function PeriodsPage() {
                                     handleOpenHistory={handleOpenHistory}
                                     handleToggleLock={handleToggleLock}
                                     onQuickToggleActive={handleQuickToggleActive}
-                                    onQuickDuplicate={handleQuickDuplicate}
+                                    onQuickDuplicate={handleDuplicateClick}
                                     onTogglePin={togglePin}
                                     pinnedIds={pinnedIds}
                                     handleOpenReadOnlyDetail={handleOpenReadOnlyDetail}
@@ -747,6 +879,7 @@ export default function PeriodsPage() {
                     formatDate={formatDate}
                     getDuration={getDuration}
                     onOpenHistory={handleOpenHistory}
+                    usageStats={periodUsageStats}
                 />
 
                 <PeriodsHistoryModal
@@ -817,6 +950,47 @@ export default function PeriodsPage() {
                     submitting={isSaving}
                 />
 
+                <ConfirmDialog
+                    isOpen={!!itemToDuplicate}
+                    onClose={() => setItemToDuplicate(null)}
+                    onConfirm={handleDuplicateConfirm}
+                    title="Duplikasi Periode"
+                    description={`Duplikasi ${itemToDuplicate?.academic_year} ${itemToDuplicate?.semester} ke tahun berikutnya?`}
+                    icon={Calendar}
+                    iconBg="bg-[var(--color-primary)]/10"
+                    iconColor="text-[var(--color-primary)]"
+                    confirmText="Duplikasi"
+                    confirmIcon={CheckCircle}
+                    confirmClassName="h-9 px-5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    submitting={isSaving}
+                >
+                    {itemToDuplicate && duplicatePreview && (
+                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-3.5 h-3.5 text-[var(--color-primary)] shrink-0" />
+                                <p className="text-[var(--color-text)]">Periode baru dibuat dengan tanggal sama, tahun bergeser +1.</p>
+                            </div>
+                            <div className="rounded-xl border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]">
+                                <div className="p-2.5 bg-[var(--color-surface)]">
+                                    <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-0.5">Sumber</p>
+                                    <p className="text-[var(--color-text)]">{itemToDuplicate.academic_year} {itemToDuplicate.semester}</p>
+                                    <p className="text-[10px] opacity-70">{formatDate(itemToDuplicate.start_date)} — {formatDate(itemToDuplicate.end_date)}</p>
+                                </div>
+                                <div className="p-2.5 bg-[var(--color-primary)]/5">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-primary)] opacity-70 mb-0.5">Akan Dibuat</p>
+                                    <p className="text-[var(--color-primary)] font-black">{duplicatePreview.academic_year} {itemToDuplicate.semester}</p>
+                                    <p className="text-[10px] text-[var(--color-primary)]">{formatDate(duplicatePreview.start_date)} — {formatDate(duplicatePreview.end_date)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {itemToDuplicate && !duplicatePreview && (
+                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+                            Format tahun tidak valid, tidak bisa menampilkan preview.
+                        </div>
+                    )}
+                </ConfirmDialog>
+
                 <PeriodComparisonModal
                     isOpen={isCompareOpen}
                     onClose={() => setIsCompareOpen(false)}
@@ -826,6 +1000,36 @@ export default function PeriodsPage() {
                     getDuration={getDuration}
                     getPeriodStats={getPeriodStats}
                 />
+
+                <ConfirmDialog
+                    isOpen={isActivateConfirmOpen}
+                    onClose={() => {
+                        setIsActivateConfirmOpen(false);
+                        setActivateTarget(null);
+                    }}
+                    onConfirm={() => {
+                        if (!activateTarget) return
+                        handleQuickToggleActive(activateTarget)
+                        setIsActivateConfirmOpen(false)
+                        setActivateTarget(null)
+                    }}
+                    title="Aktivasi Periode"
+                    description={`Aktifkan ${activateTarget?.academic_year} ${activateTarget?.semester} sebagai periode berjalan?`}
+                    icon={CheckCircle}
+                    iconBg="bg-indigo-500/10"
+                    iconColor="text-indigo-500"
+                    confirmText="Aktifkan Sekarang"
+                    confirmIcon={CheckCircle}
+                    confirmClassName="h-9 px-5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    submitting={isSaving}
+                >
+                    {activateTarget && (
+                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-2">
+                            <p>Periode <span className="font-black text-[var(--color-text)]">{activateTarget.academic_year} {activateTarget.semester}</span> akan menjadi periode aktif. Semua periode lain akan dinonaktifkan secara otomatis.</p>
+                            <p className="text-[10px] opacity-70">Aksi ini dapat dibatalkan lewat undo toast setelah konfirmasi.</p>
+                        </div>
+                    )}
+                </ConfirmDialog>
 
                 <ConfirmDialog
                     isOpen={isGenerateConfirmOpen}

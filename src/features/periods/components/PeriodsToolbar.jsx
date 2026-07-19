@@ -17,8 +17,8 @@ import {
     StackSimple,
     X,
 } from "@phosphor-icons/react";
-import { RichSelect } from "@shared/components";
-import DebouncedSearchInput from "./DebouncedSearchInput";
+import { RichSelect, ViewSwitcher } from "@shared/components";
+import DebouncedSearchInput from "@shared/components/DebouncedSearchInput";
 
 const PeriodsToolbar = memo(function PeriodsToolbar({
     searchQuery,
@@ -63,6 +63,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                         onSearch={setSearchQuery}
                         inputRef={searchInputRef}
                         isLoading={loading}
+                        placeholder="Cari nama tahun pelajaran (contoh: 2024/2025)... (Ctrl+K)"
                     />
                 </div>
 
@@ -123,28 +124,16 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                 <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
 
                 <div className="flex items-center justify-end gap-2 shrink-0 lg:ml-auto">
-                    <div className="hidden md:flex items-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 p-1 shadow-none">
-                        <button
-                            onClick={() => setViewMode("table")}
-                            className={`h-7 px-3 rounded-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-wider transition-all ${viewMode === "table" ? "bg-[var(--color-primary)] text-white shadow-md" : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"}`}
-                        >
-                            <List className="w-3 h-3" />
-                            <span>Tabel</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode("timeline")}
-                            className={`h-7 px-3 rounded-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-wider transition-all ${viewMode === "timeline" ? "bg-[var(--color-primary)] text-white shadow-md" : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"}`}
-                        >
-                            <ClockClockwise className="w-3 h-3" />
-                            <span>Linimasa</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode("calendar")}
-                            className={`h-7 px-3 rounded-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-wider transition-all ${viewMode === "calendar" ? "bg-[var(--color-primary)] text-white shadow-md" : "text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"}`}
-                        >
-                            <Calendar className="w-3 h-3" />
-                            <span>Kalender</span>
-                        </button>
+                    <div className="hidden md:block">
+                        <ViewSwitcher
+                            value={viewMode}
+                            onChange={setViewMode}
+                            views={[
+                                { key: "table", icon: List, label: "Tabel" },
+                                { key: "timeline", icon: ClockClockwise, label: "Linimasa" },
+                                { key: "calendar", icon: Calendar, label: "Kalender" },
+                            ]}
+                        />
                     </div>
 
                     <button

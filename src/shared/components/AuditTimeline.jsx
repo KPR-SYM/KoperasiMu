@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Warning, CaretDown, CaretRight, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench, X } from '@phosphor-icons/react'
+import { Warning, CaretDown, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench, X } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 
 import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
@@ -13,11 +13,21 @@ const SEVERITY_STYLES = {
 }
 
 /**
- * ActionBadge â€” Chip kecil penanda tipe aksi (INSERT, UPDATE, DELETE, dst)
- * @param {string} action â€” Tipe aksi dari kolom `action` di audit_logs
+ * ActionBadge — Chip kecil penanda tipe aksi (INSERT, UPDATE, DELETE, dst)
+ * @param {string} action — Tipe aksi dari kolom `action` di audit_logs
+ * @param {string} theme — Tema warna: 'default' | 'purple'
  */
-export const ActionBadge = ({ action }) => {
-    const config = {
+export const ActionBadge = ({ action, theme = 'default' }) => {
+    const purpleConfig = {
+        INSERT: { label: 'TAMBAH', color: 'bg-purple-500/10 text-purple-500', icon: Plus },
+        UPDATE: { label: 'UBAH', color: 'bg-purple-500/10 text-purple-500', icon: Pen },
+        DELETE: { label: 'HAPUS', color: 'bg-purple-500/10 text-purple-500', icon: Trash },
+        RESTORE: { label: 'PULIH', color: 'bg-purple-500/10 text-purple-500', icon: ClockCounterClockwise },
+        EXECUTE: { label: 'JALAN', color: 'bg-purple-500/10 text-purple-500', icon: ArrowClockwise },
+        LOGIN: { label: 'MASUK', color: 'bg-purple-500/10 text-purple-500', icon: ClockCounterClockwise },
+        REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
+    }
+    const defaultConfig = {
         INSERT: { label: 'TAMBAH', color: 'bg-emerald-500/10 text-emerald-500', icon: Plus },
         UPDATE: { label: 'UBAH', color: 'bg-amber-500/10 text-amber-500', icon: Pen },
         DELETE: { label: 'HAPUS', color: 'bg-rose-500/10 text-rose-500', icon: Trash },
@@ -26,6 +36,7 @@ export const ActionBadge = ({ action }) => {
         LOGIN: { label: 'MASUK', color: 'bg-emerald-500/10 text-emerald-500', icon: ClockCounterClockwise },
         REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
     }
+    const config = theme === 'purple' ? purpleConfig : defaultConfig
     const c = config[action] || { label: action, color: 'bg-gray-500/10 text-gray-500', icon: ClockCounterClockwise }
     const IconComp = c.icon
 
@@ -84,7 +95,7 @@ const _getDiff = (oldObj, newObj, changedFields = null) => {
 }
 
 /**
- * DiffViewer â€” Side-by-side diff antara old_data and new_data dari audit log
+ * DiffViewer — Side-by-side diff antara old_data and new_data dari audit log
  */
 export const DiffViewer = ({ oldData, newData, changedFields }) => {
     const diff = _getDiff(oldData, newData, changedFields || null)
@@ -94,8 +105,37 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
         <EmptyState icon={Info} title="Tidak Ada Perubahan Terbaca" description="Tidak ada field yang berubah pada record ini." variant="plain" color="slate" />
     )
 
+    // Helper format values
+    const formatValue = (val, isOld = false) => {
+        if (val === null || val === undefined) return <span className="italic opacity-40">null</span>
+        if (typeof val === 'boolean') return <span className={val ? 'text-emerald-600' : 'text-rose-600'}>{val ? 'Aktif' : 'Nonaktif'}</span>
+        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) return <span>{fmtDateTime(val)}</span>
+        if (typeof val === 'object') return <span>{JSON.stringify(val)}</span>
+        return <span>{String(val)}</span>
+    }
+
     return (
         <div className="space-y-3">
+            {/* Summary Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3 p-2.5 rounded-xl bg-purple-500/5 border border-purple-500/20">
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">
+                    {keys.length} field berubah
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                    {keys.slice(0, 6).map(key => (
+                        <span key={key} className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                            {key.replace(/_/g, ' ')}
+                        </span>
+                    ))}
+                    {keys.length > 6 && (
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                            +{keys.length - 6} lainnya
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Column Headers */}
             <div className="hidden lg:grid grid-cols-2 gap-4 mb-2">
                 <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 px-2">
                     Data Sebelumnya
@@ -105,6 +145,7 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
                 </p>
             </div>
 
+            {/* Diff Rows */}
             {keys.map(key => {
                 const isSensitive = ['password', 'secret', 'token'].includes(key.toLowerCase())
                 const valOld = diff[key].old
@@ -112,7 +153,7 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
 
                 return (
                     <div key={key} className="group">
-                        <div className="px-2 py-1.5 rounded-lg border border-[var(--color-border)]/20 bg-[var(--color-surface-alt)]/30 group-hover:border-[var(--color-primary)]/30 transition-all">
+                        <div className="px-2 py-1.5 rounded-lg border border-[var(--color-border)]/20 bg-[var(--color-surface-alt)]/30 group-hover:border-purple-500/30 group-hover:bg-purple-500/5 transition-all">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-tighter">
                                     {key.replace(/_/g, ' ')}
@@ -128,23 +169,19 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
                                 <div className="p-2 rounded-lg bg-rose-500/5 border border-rose-500/10 min-h-[32px] flex items-center">
                                     <code className="text-[10px] font-mono break-all text-rose-600/70 line-through">
                                         {isSensitive
-                                            ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'
-                                            : (typeof valOld === 'object'
-                                                ? JSON.stringify(valOld)
-                                                : String(valOld ?? 'null'))}
+                                            ? '••••••••'
+                                            : formatValue(valOld, true)}
                                     </code>
                                 </div>
                                 {/* New Value */}
                                 <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 min-h-[32px] flex items-center">
                                     <div className="absolute -left-2 top-1/2 -translate-y-1/2 hidden lg:flex w-4 h-4 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] items-center justify-center z-10">
-                                        <CaretRight className="w-2 h-2 text-[var(--color-text-muted)] opacity-30" />
+                                        <ArrowRight className="w-2 h-2 text-purple-500 opacity-50" />
                                     </div>
                                     <code className="text-[10px] font-mono font-black break-all text-emerald-600">
                                         {isSensitive
-                                            ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'
-                                            : (typeof valNew === 'object'
-                                                ? JSON.stringify(valNew)
-                                                : String(valNew ?? 'null'))}
+                                            ? '••••••••'
+                                            : formatValue(valNew, false)}
                                     </code>
                                 </div>
                             </div>
@@ -238,9 +275,10 @@ export const InsertViewer = ({ data }) => {
 }
 
 /**
- * AuditTimeline â€” ClockClockwise vertikal audit log untuk satu record spesifik.
+ * AuditTimeline — ClockClockwise vertikal audit log untuk satu record spesifik.
+ * @param {string} theme — Tema warna: 'default' | 'purple'
  */
-export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = false, stickyHeader = false, containerClassName = "" }) {
+export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = false, stickyHeader = false, containerClassName = "", theme = "default" }) {
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
     const [expandedId, setExpandedId] = useState(null)
@@ -343,17 +381,19 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     )
 
     return (
-        <div className={`space-y-1 ${containerClassName} ${stickyHeader ? 'pt-0' : ''}`}>
+        <div className={`space-y-1 ${containerClassName} ${stickyHeader ? 'pt-0' : ''}`} style={{ scrollbarWidth: 'thin' }}>
             {showSearch && (
-                <div className={`relative ${stickyHeader ? 'sticky top-0 z-[30] bg-[var(--color-surface)] py-1.5 px-3 -mx-0 border-b border-[var(--color-border)]/50 shadow-sm transition-shadow' : 'mb-4'}`}>
-                    <MagnifyingGlass className="absolute left-6 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] w-3 h-3" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Cari dalam riwayat..."
-                        className="w-full h-8 pl-9 pr-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/50 text-[10px] font-bold outline-none focus:border-[var(--color-primary)] transition-all"
-                    />
+                <div className={`relative ${stickyHeader ? 'sticky top-0 z-[30] bg-[var(--color-surface)] backdrop-blur-md py-3 px-3 transition-shadow' : 'mb-3'}`}>
+                    <div className="relative">
+                        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] w-4 h-4" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Cari dalam riwayat..."
+                            className="w-full h-10 pl-10 pr-4 rounded-xl bg-white dark:bg-white/[0.06] border border-[var(--color-border)] text-[11px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10 transition-all placeholder:text-[var(--color-text-muted)]/40"
+                        />
+                    </div>
                 </div>
             )}
 
@@ -365,12 +405,14 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                     return (
                         <div key={log.id} className="relative pl-8 pb-1 last:pb-0">
                             <div className={`absolute left-[14px] top-[1.1rem] w-2 h-2 rounded-full border transition-all z-10
-                                ${log.action === 'INSERT' ? 'bg-emerald-500/30 border-emerald-500/40' :
-                                  log.action === 'UPDATE' ? 'bg-orange-500/30 border-orange-500/40' :
-                                  log.action === 'DELETE' ? 'bg-rose-500/30 border-rose-500/40' :
-                                  'bg-indigo-500/30 border-indigo-500/40'}
-                                ${isExpanded ? 'ring-4 ring-current opacity-100 scale-125' : 'opacity-60'}`} 
-                                style={isExpanded ? { '--tw-ring-color': log.action === 'INSERT' ? 'rgba(16,185,129,0.1)' : log.action === 'UPDATE' ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)' } : {}}
+                                ${theme === 'purple'
+                                    ? 'bg-purple-500/30 border-purple-500/40'
+                                    : log.action === 'INSERT' ? 'bg-emerald-500/30 border-emerald-500/40' :
+                                        log.action === 'UPDATE' ? 'bg-orange-500/30 border-orange-500/40' :
+                                            log.action === 'DELETE' ? 'bg-rose-500/30 border-rose-500/40' :
+                                                'bg-indigo-500/30 border-indigo-500/40'}
+                                ${isExpanded ? 'ring-4 ring-current opacity-100 scale-125' : 'opacity-60'}`}
+                                style={isExpanded ? { '--tw-ring-color': theme === 'purple' ? 'rgba(168,85,247,0.1)' : log.action === 'INSERT' ? 'rgba(16,185,129,0.1)' : log.action === 'UPDATE' ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)' } : {}}
                             />
 
                             <button
@@ -382,7 +424,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                             >
                                 <div className="flex items-center justify-between mb-0.5">
                                     <div className="flex items-center gap-2">
-                                        <ActionBadge action={log.action} />
+                                        <ActionBadge action={log.action} theme={theme} />
                                         <span className="text-[11px] font-black text-[var(--color-text)] tracking-tight">
                                             {log.actor_name}
                                         </span>
@@ -504,9 +546,9 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                                 )}
 
                                 {!isExpanded && (
-                                    <div className="flex items-center justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-[8px] font-black uppercase text-[var(--color-primary)] flex items-center gap-1.5">
-                                            Detail Forensik <CaretRight className="w-2 h-2" />
+                                    <div className="flex items-center justify-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
+                                            <CaretDown className="w-3 h-3" />
                                         </span>
                                     </div>
                                 )}

@@ -9,7 +9,8 @@ import {
     Pagination,
     RichSelect,
     Modal,
-    EmptyState
+    EmptyState,
+    ViewSwitcher
 } from '@shared/components'
 import { askAi } from '@lib/ai'
 import { MagnifyingGlass, Plus, Trash, X, Pen, Calendar, User, Clock, WarningCircle, FileXls, DownloadSimple, Check, FileText, CheckCircle, Printer, Sparkle, Warning, Info, HandHeart } from '@phosphor-icons/react'
@@ -959,20 +960,16 @@ export default function CounselingPage() {
                         </div>
 
                         {/* View Switcher Tabs */}
-                        <div className="flex items-center rounded-xl bg-[var(--color-surface-alt)] p-0.5 border border-[var(--color-border)] ml-auto md:ml-0 shrink-0 select-none">
-                            <button
-                                onClick={() => setViewMode('list')}
-                                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'list' ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                            >
-                                Tabel
-                            </button>
-                            <button
-                                onClick={() => setViewMode('timeline')}
-                                className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${viewMode === 'timeline' ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                            >
-                                Lini Masa
-                            </button>
-                        </div>
+                        <ViewSwitcher
+                            value={viewMode}
+                            onChange={setViewMode}
+                            activeStyle="surface"
+                            views={[
+                                { key: 'list', label: 'Tabel' },
+                                { key: 'timeline', label: 'Lini Masa' },
+                            ]}
+                            className="ml-auto md:ml-0"
+                        />
                     </div>
                 </div>
 

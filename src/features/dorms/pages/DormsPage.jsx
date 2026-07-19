@@ -5,6 +5,7 @@ import DashboardLayout from '@core/layouts/DashboardLayout'
 import PageHeader from '@shared/components/PageHeader'
 import { StatCard } from '@shared/components/DataDisplay'
 import StatsCarousel from '@shared/components/StatsCarousel'
+import Tabs from '@shared/components/Tabs'
 import { Bed, Users, Star, ClipboardText, Sparkle, CheckSquare, ShieldWarning, Sliders, DownloadSimple, FileXls, Eye, EyeSlash, Plus } from '@phosphor-icons/react'
 
 // Custom Hook
@@ -215,22 +216,16 @@ export default function DormsPage() {
                 </StatsCarousel>
 
                 {/* --- NAVIGATION TABS --- */}
-                <div className="flex gap-1 sm:gap-1.5 p-1 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] w-full sm:w-fit overflow-x-auto scrollbar-hide shrink-0">
-                    <button
-                        onClick={() => setActiveTab('plotting')}
-                        className={`flex-1 sm:flex-none h-9 px-6 rounded-xl text-[11px] font-black flex items-center justify-center gap-2 transition-all whitespace-nowrap ${activeTab === 'plotting' ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                    >
-                        <Bed className="w-3.5 h-3.5 shrink-0" />
-                        <span>{t('dorms.tabPlotting')}</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('kelola_kamar')}
-                        className={`flex-1 sm:flex-none h-9 px-6 rounded-xl text-[11px] font-black flex items-center justify-center gap-2 transition-all whitespace-nowrap ${activeTab === 'kelola_kamar' ? 'bg-[var(--color-surface)] text-[var(--color-primary)] shadow-sm' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                    >
-                        <ShieldWarning className="w-3.5 h-3.5 shrink-0" />
-                        <span>{t('dorms.tabManage')}</span>
-                    </button>
-                </div>
+                <Tabs
+                    value={activeTab}
+                    onChange={setActiveTab}
+                    variant="pill"
+                    items={[
+                        { key: 'plotting', label: t('dorms.tabPlotting'), icon: Bed },
+                        { key: 'kelola_kamar', label: t('dorms.tabManage'), icon: ShieldWarning },
+                    ]}
+                    className="w-full sm:w-fit"
+                />
 
                 {/* --- ACTIVE TAB VIEWS --- */}
                 {activeTab === 'plotting' && (

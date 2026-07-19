@@ -152,6 +152,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const [selectedItem, setSelectedItem] = useState(null);
     const [itemToDelete, setItemToDelete] = useState(null);
     const [readOnlyDetailItem, setReadOnlyDetailItem] = useState(null);
+    const [periodUsageStats, setPeriodUsageStats] = useState(null);
     const [historyItem, setHistoryItem] = useState(null);
 
     // ── MODAL VISIBILITY ─────────────────────────────────────────────────────
@@ -170,6 +171,15 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
     // ── REMINDER (session-only, no duplicates) ──────────────────────────────
     const remindedPeriods = useRef(new Set());
+    const [reminderDays, _setReminderDays] = useState(() => {
+        const saved = localStorage.getItem("periods_reminder_days");
+        return saved ? parseInt(saved, 10) : 7;
+    });
+    const setReminderDays = (val) => {
+        _setReminderDays(val);
+        localStorage.setItem("periods_reminder_days", String(val));
+        remindedPeriods.current.clear(); // reset sentinel agar toasts bisa muncul lagi dengan threshold baru
+    };
 
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
@@ -296,15 +306,15 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 setExpiredActive(null);
                 setSuggestedNext(null);
             }
-            // Reminder: check periods starting/ending within 7 days
+            // Reminder: check periods starting/ending within N days
             const nowTs = Date.now();
-            const week = 7 * 24 * 60 * 60 * 1000;
+            const threshold = reminderDays * 24 * 60 * 60 * 1000;
             for (const row of rows) {
                 if (remindedPeriods.current.has(row.id)) continue;
                 if (row.start_date) {
                     const s = new Date(row.start_date).getTime();
                     const diff = s - nowTs;
-                    if (diff > 0 && diff <= week) {
+                        if (diff > 0 && diff <= threshold) {
                         addToast(`${row.academic_year} ${row.semester} akan dimulai ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
                         remindedPeriods.current.add(row.id);
                     }
@@ -312,7 +322,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 if (row.end_date) {
                     const e = new Date(row.end_date).getTime();
                     const diff = e - nowTs;
-                    if (diff > 0 && diff <= week) {
+                    if (diff > 0 && diff <= threshold) {
                         addToast(`${row.academic_year} ${row.semester} akan berakhir ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
                         remindedPeriods.current.add(row.id);
                     }
@@ -450,9 +460,19 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         setIsModalOpen(true);
     }, []);
 
-    const handleOpenReadOnlyDetail = useCallback((item) => {
+    const handleOpenReadOnlyDetail = useCallback(async (item) => {
         setReadOnlyDetailItem(item);
         setIsReadOnlyDetailOpen(true);
+        setPeriodUsageStats(null);
+        try {
+            const { data: cls } = await supabase
+                .from('classes')
+                .select('id, students(count)')
+                .eq('academic_year_id', item.id);
+            const classCount = cls?.length || 0;
+            const studentCount = cls?.reduce((sum, c) => sum + (c.students?.[0]?.count || 0), 0) || 0;
+            setPeriodUsageStats({ classCount, studentCount });
+        } catch { setPeriodUsageStats({ classCount: 0, studentCount: 0 }); }
     }, []);
 
     const handleOpenHistory = useCallback((item) => {
@@ -1217,7 +1237,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
         // Action context
         selectedItem, setSelectedItem, itemToDelete, setItemToDelete,
-        readOnlyDetailItem, setReadOnlyDetailItem, historyItem, setHistoryItem,
+        readOnlyDetailItem, setReadOnlyDetailItem, historyItem, setHistoryItem, periodUsageStats,
 
         // Modal visibility
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
@@ -1241,5 +1261,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
         // Helpers
         formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
+        reminderDays, setReminderDays,
     };
 }
