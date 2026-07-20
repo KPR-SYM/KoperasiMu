@@ -306,9 +306,42 @@ export function DataTable({ columns, data, onRowClick, loading, emptyMessage = '
     )
 }
 
-export function EmptyState({ icon, title, description, action, variant = 'glass', color = 'primary' }) {
-    const isPlain = variant === 'plain'
-    const isDashed = variant === 'dashed'
+const EMPTY_STATE_PRESETS = {
+    'no-data': {
+        title: 'Belum Ada Data',
+        description: 'Belum ada data yang tersedia saat ini.',
+        variant: 'plain',
+        color: 'slate',
+    },
+    'no-results': {
+        title: 'Tidak Ada Hasil',
+        description: 'Tidak ditemukan data dengan filter yang dipilih. Coba ubah kata kunci atau filter lainnya.',
+        variant: 'plain',
+        color: 'slate',
+    },
+    'no-access': {
+        title: 'Tidak Ada Akses',
+        description: 'Anda tidak memiliki akses ke data ini.',
+        variant: 'plain',
+        color: 'amber',
+    },
+    'empty-cart': {
+        title: 'Keranjang Kosong',
+        description: 'Belum ada item di keranjang.',
+        variant: 'dashed',
+        color: 'slate',
+    },
+}
+
+export function EmptyState({ icon, title, description, action, variant = 'glass', color = 'primary', preset }) {
+    const presetConfig = preset ? (EMPTY_STATE_PRESETS[preset] || {}) : {}
+    const finalTitle = title || presetConfig.title
+    const finalDescription = description || presetConfig.description
+    const finalVariant = presetConfig.variant || variant
+    const finalColor = presetConfig.color || color
+
+    const isPlain = finalVariant === 'plain'
+    const isDashed = finalVariant === 'dashed'
     const isMinimal = isPlain || isDashed
 
     // Exact colors matching Dashboard widgets
@@ -318,7 +351,7 @@ export function EmptyState({ icon, title, description, action, variant = 'glass'
         emerald: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20 shadow-emerald-500/10',
         amber: 'bg-amber-500/10 text-amber-500 border-amber-500/20 shadow-amber-500/10',
         slate: 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] shadow-black/5',
-    }[color] || 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] shadow-black/5'
+    }[finalColor] || 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] shadow-black/5'
     // Dynamic text colors for the glass variant
     const glassColor = {
         primary: 'text-[var(--color-primary)]',
@@ -326,7 +359,7 @@ export function EmptyState({ icon, title, description, action, variant = 'glass'
         emerald: 'text-emerald-500',
         amber: 'text-amber-500',
         slate: 'text-[var(--color-text-muted)]',
-    }[color] || 'text-[var(--color-primary)]'
+    }[finalColor] || 'text-[var(--color-primary)]'
 
     const containerClasses = isPlain
         ? 'flex-1 flex flex-col items-center justify-center py-12 text-center opacity-70 hover:opacity-100 transition-opacity'
@@ -337,7 +370,7 @@ export function EmptyState({ icon, title, description, action, variant = 'glass'
     return (
         <div className={containerClasses}>
             {/* Ambient Background Glow for Empty State */}
-            {variant === 'glass' && (
+            {finalVariant === 'glass' && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-[var(--color-primary)]/5 rounded-full blur-[80px] pointer-events-none" />
             )}
 
@@ -348,10 +381,10 @@ export function EmptyState({ icon, title, description, action, variant = 'glass'
                     </div>
                 )}
                 <h3 className={`${isMinimal ? 'text-[14px] font-black mb-1' : 'text-base font-black font-heading uppercase tracking-widest mb-1'} text-[var(--color-text)]`}>
-                    {title}
+                    {finalTitle}
                 </h3>
                 <p className={`${isMinimal ? 'text-[10px] max-w-xs px-4 opacity-60 font-medium' : 'text-[9px] max-w-[220px] mx-auto opacity-60 font-bold mb-6'} text-[var(--color-text-muted)] leading-relaxed`}>
-                    {description}
+                    {finalDescription}
                 </p>
                 {action && <div className={`${isMinimal ? 'mt-3' : 'mt-4'}`}>{action}</div>}
             </div>

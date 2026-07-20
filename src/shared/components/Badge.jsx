@@ -88,6 +88,17 @@ const SHAPE_MAP = {
     square: "rounded",
 };
 
+const PRESET_MAP = {
+    success: { color: "emerald", variant: "soft" },
+    error: { color: "red", variant: "soft" },
+    warning: { color: "amber", variant: "soft" },
+    info: { color: "sky", variant: "soft" },
+    active: { color: "emerald", variant: "soft", dot: true },
+    locked: { color: "rose", variant: "soft" },
+    inactive: { color: "slate", variant: "soft" },
+    primary: { color: "primary", variant: "soft" },
+}
+
 const Badge = memo(function Badge({
     children,
     color = "slate",
@@ -97,19 +108,25 @@ const Badge = memo(function Badge({
     dot = false,
     icon: Icon,
     pulse = false,
+    preset,
     className = "",
     ...props
 }) {
-    const colors = COLOR_MAP[color] || COLOR_MAP.slate;
+    const presetConfig = preset ? (PRESET_MAP[preset] || {}) : {}
+    const finalColor = presetConfig.color || color
+    const finalVariant = presetConfig.variant || variant
+    const finalDot = presetConfig.dot !== undefined ? presetConfig.dot : dot
+
+    const colors = COLOR_MAP[finalColor] || COLOR_MAP.slate;
     const sizeClass = SIZE_MAP[size] || SIZE_MAP.sm;
     const shapeClass = SHAPE_MAP[shape] || SHAPE_MAP.pill;
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 font-black border ${colors[variant]} ${sizeClass} ${shapeClass} ${pulse ? "animate-pulse" : ""} ${className}`}
+            className={`inline-flex items-center gap-1.5 font-black border ${colors[finalVariant]} ${sizeClass} ${shapeClass} ${pulse ? "animate-pulse" : ""} ${className}`}
             {...props}
         >
-            {dot && (
+            {finalDot && (
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${colors.dot}`} />
             )}
             {Icon && <Icon className="shrink-0" style={{ fontSize: "0.65em" }} />}

@@ -8,7 +8,7 @@ import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
-import { EmptyState } from '@shared/components'
+import { EmptyState, Badge } from '@shared/components'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -668,7 +668,7 @@ export default function NewsListPage() {
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-1 inline-block">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Manajemen Informasi</h1>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 uppercase tracking-widest">Portal Berita</span>
+                            <Badge color="blue" size="xs">Portal Berita</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] mt-1 font-medium opacity-70">
                             Kelola konten berita, pengumuman, dan artikel prestasi sekolah.

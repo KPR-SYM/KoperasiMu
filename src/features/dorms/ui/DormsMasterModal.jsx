@@ -1,6 +1,7 @@
 import React from 'react'
 import Modal from '@shared/components/Modal'
 import Select from '@shared/components/Select'
+import { Spinner } from '@shared/components'
 import { useLanguage } from '@context/Language'
 import { Bed, Check, GenderIntersex, Info, UserCircle } from '@phosphor-icons/react'
 
@@ -42,7 +43,7 @@ export default function DormsMasterModal({
                         className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition flex items-center justify-center gap-2"
                     >
                         {submitting ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner size="sm" />
                         ) : (
                             <Check className="w-3.5 h-3.5" />
                         )}

@@ -1,5 +1,6 @@
 import React, { memo, useState } from 'react'
 import { Archive, ClockCounterClockwise, IdentificationCard, GenderMale, ChatCircle, Pencil, ShieldCheck, Trash, UserCheck, GenderFemale, MapPin } from '@phosphor-icons/react'
+import { Badge } from '@shared/components'
 
 
 
@@ -185,10 +186,8 @@ const TeacherMobileCard = memo(({
                             <button onClick={() => openProfile(teacher)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">{teacher.name}</button>
                             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                 {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest">{teacher.subject}</span>}
-                                <span className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${STATUS_CONFIG[teacher.status]?.color}`}>{STATUS_CONFIG[teacher.status]?.label}</span>
-                                <span className={`px-2 py-0.5 rounded-md border text-[9px] font-black uppercase tracking-widest ${teacher.type === 'karyawan' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'}`}>
-                                    {teacher.type === 'karyawan' ? 'Karyawan' : 'Guru'}
-                                </span>
+                                <Badge color={teacher.status === 'active' ? 'emerald' : teacher.status === 'inactive' ? 'rose' : 'amber'}>{STATUS_CONFIG[teacher.status]?.label}</Badge>
+                                <Badge color={teacher.type === 'karyawan' ? 'blue' : 'indigo'}>{teacher.type === 'karyawan' ? 'Karyawan' : 'Guru'}</Badge>
                             </div>
                             <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">{teacher.nbm || 'NO NBM'}</p>
                         </div>

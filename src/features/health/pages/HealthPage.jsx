@@ -4,6 +4,7 @@ import { supabase } from '@lib/supabase'
 import { useToast, useLanguage } from '@context'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import {
+    Badge,
     PageHeader,
     EmptyState, StatCard,
     StatsCarousel,
@@ -1264,22 +1265,13 @@ export default function HealthPage() {
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     {log.status === 'UKS' && (
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20 text-[10px] font-black">
-                                                            <Bed className="w-3.5 h-3.5" />
-                                                            <span>UKS</span>
-                                                        </span>
+                                                        <Badge color="amber" icon={Bed}>UKS</Badge>
                                                     )}
                                                     {log.status === 'Asrama' && (
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 border border-indigo-500/20 text-[10px] font-black">
-                                                            <ArrowsHorizontal className="w-3.5 h-3.5" />
-                                                            <span>Kamar</span>
-                                                        </span>
+                                                        <Badge color="indigo" icon={ArrowsHorizontal}>Kamar</Badge>
                                                     )}
                                                     {log.status === 'Kembali' && (
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 text-[10px] font-black">
-                                                            <CheckCircle className="w-3.5 h-3.5" />
-                                                            <span>Kembali KBM</span>
-                                                        </span>
+                                                        <Badge color="emerald" icon={CheckCircle}>Kembali KBM</Badge>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
@@ -1348,15 +1340,9 @@ export default function HealthPage() {
                                         {/* Status Tag */}
                                         <div className="absolute top-4 right-4">
                                             {log.status === 'UKS' ? (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20 text-[10px] font-black">
-                                                    <Bed className="w-3.5 h-3.5" />
-                                                    <span>Observasi UKS</span>
-                                                </span>
+                                                <Badge color="amber" size="md" icon={Bed}>Observasi UKS</Badge>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-600 border border-indigo-500/20 text-[10px] font-black">
-                                                    <ArrowsHorizontal className="w-3.5 h-3.5" />
-                                                    <span>Istirahat Kamar</span>
-                                                </span>
+                                                <Badge color="indigo" size="md" icon={ArrowsHorizontal}>Istirahat Kamar</Badge>
                                             )}
                                         </div>
 

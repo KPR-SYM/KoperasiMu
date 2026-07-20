@@ -3,7 +3,7 @@ import { Warning, Archive, Eraser, CheckCircle, Database, FileText, Folder, Fold
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
-import { EmptyState } from '@shared/components'
+import { EmptyState, Badge } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -247,7 +247,7 @@ export default function StoragePage() {
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Storage Manager</h1>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 uppercase tracking-widest">Admin Only</span>
+                            <Badge color="amber" size="xs">Admin Only</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] font-medium opacity-70">
                             Kelola file unggahan, bucket storage, dan bersihkan file sampah.

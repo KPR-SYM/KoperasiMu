@@ -1,6 +1,16 @@
 import { Spinner } from '@phosphor-icons/react'
 import Modal from './Modal'
 
+const CONFIRM_COLOR_MAP = {
+    red: 'bg-red-500 hover:bg-red-600 shadow-red-500/20',
+    amber: 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/20',
+    orange: 'bg-orange-500 hover:bg-orange-600 shadow-orange-500/20',
+    emerald: 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20',
+    indigo: 'bg-indigo-500 hover:bg-indigo-600 shadow-indigo-500/20',
+    rose: 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20',
+    primary: 'bg-[var(--color-primary)] hover:opacity-90 shadow-[var(--color-primary)]/20',
+}
+
 /**
  * ConfirmDialog — wrapper Modal dengan footer aksi standar (cancel + confirm).
  *
@@ -11,7 +21,8 @@ import Modal from './Modal'
  *  - size, mobileVariant               : diteruskan ke Modal
  *  - confirmText                       : label tombol konfirmasi
  *  - confirmIcon                       : komponen icon Lucide untuk tombol konfirmasi
- *  - confirmClassName                  : override class tombol konfirmasi (opsional)
+ *  - confirmColor                      : warna tombol konfirmasi (red|amber|orange|emerald|indigo|rose|primary)
+ *  - confirmClassName                  : override class tombol konfirmasi (opsional, takes precedence)
  *  - cancelText                        : label tombol batal
  *  - submitting                        : tampilkan spinner & disable tombol
  *  - children                          : konten body modal
@@ -29,12 +40,15 @@ export default function ConfirmDialog({
     mobileVariant = 'bottom-sheet',
     confirmText = 'Konfirmasi',
     confirmIcon: ConfirmIcon,
+    confirmColor = 'red',
     confirmClassName,
     confirmDisabled = false,
     cancelText = 'Batal',
     submitting = false,
     children,
 }) {
+    const resolvedColor = CONFIRM_COLOR_MAP[confirmColor] || CONFIRM_COLOR_MAP.red
+
     return (
         <Modal
             isOpen={isOpen}
@@ -56,16 +70,16 @@ export default function ConfirmDialog({
                     >
                         {cancelText}
                     </button>
- 
+
                     <div className="flex-1" />
- 
+
                     <button
                         type="button"
                         onClick={onConfirm}
                         disabled={submitting || confirmDisabled}
                         className={
                             confirmClassName ||
-                            'h-9 px-5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed'
+                            `h-9 px-5 rounded-lg ${resolvedColor} text-white text-[10px] font-black uppercase tracking-widest shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed`
                         }
                     >
                         {submitting ? (

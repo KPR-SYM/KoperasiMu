@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CheckCircle, Circle, Warning, ArrowRight, ShoppingCart, Package, Sparkle, Wallet, ClipboardText, ArrowClockwise, MagnifyingGlass, Check } from '@phosphor-icons/react'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import PageHeader from '@shared/components/PageHeader'
-import { EmptyState } from '@shared/components'
+import { EmptyState, Badge } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useAuth } from '@context/Auth'
 import { useToast } from '@context/Toast'
@@ -489,10 +489,7 @@ export default function TaskCenterPage() {
 
                                 {/* Urgent SealCheck */}
                                 {!isDone && task.urgent && (
-                                  <span className="px-1.5 py-0.2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 animate-pulse">
-                                    <Warning className="w-2.5 h-2.5" />
-                                    {task.urgentMsg || 'Penting'}
-                                  </span>
+                                  <Badge color="amber" size="xs" icon={Warning} pulse>{task.urgentMsg || 'Penting'}</Badge>
                                 )}
                               </div>
 

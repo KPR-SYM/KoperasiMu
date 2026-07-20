@@ -44,10 +44,6 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
     setIsFilterOpen,
     activeFilterCount,
     resetAllFilters,
-    filterPresets,
-    saveFilterPreset,
-    loadFilterPreset,
-    deleteFilterPreset,
     viewMode,
     setViewMode,
     selectedIds,
@@ -402,57 +398,6 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                                 small
                             />
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-3 border-t border-[var(--color-border)]/30">
-                        <div className="flex items-center gap-2 flex-1">
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Preset:</span>
-                            <select
-                                value=""
-                                onChange={(e) => {
-                                    const name = e.target.value;
-                                    if (!name) return;
-                                    const preset = filterPresets.find(p => p.name === name);
-                                    if (preset) loadFilterPreset(preset);
-                                }}
-                                className="h-8 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold outline-none text-[var(--color-text)] flex-1 min-w-0"
-                            >
-                                <option value="">Muat preset...</option>
-                                {filterPresets.map(p => (
-                                    <option key={p.name} value={p.name}>{p.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="flex gap-1">
-                            <button
-                                onClick={() => {
-                                    const name = prompt("Nama preset:");
-                                    if (name?.trim()) saveFilterPreset(name.trim());
-                                }}
-                                className="h-8 px-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
-                                title="Simpan preset filter"
-                            >
-                                Simpan
-                            </button>
-                            {filterPresets.length > 0 && (
-                                <button
-                                    onClick={() => {
-                                        const name = prompt("Hapus preset (ketik nama):");
-                                        if (name?.trim()) deleteFilterPreset(name.trim());
-                                    }}
-                                    className="h-8 px-2.5 rounded-lg border border-red-200 bg-red-50 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-100 transition-all"
-                                    title="Hapus preset"
-                                >
-                                    Hapus
-                                </button>
-                            )}
-                        </div>
-                        <button
-                            onClick={() => setIsFilterOpen(false)}
-                            className="h-8 px-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-widest text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all"
-                        >
-                            Tutup
-                        </button>
                     </div>
                 </div>
             )}

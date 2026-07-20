@@ -156,4 +156,51 @@ export function MobileCardSkeleton({ count = 3 }) {
             ))}
         </div>
     )
+}
+
+/**
+ * Skeleton untuk table row dengan avatar + text + badge layout
+ *
+ * @param {number} rows - jumlah baris (default: 5)
+ * @param {boolean} hasAvatar - tampilkan avatar placeholder (default: true)
+ * @param {number} textCols - jumlah kolom teks (default: 2)
+ */
+export function TableRowSkeleton({ rows = 5, hasAvatar = true, textCols = 2 }) {
+    return (
+        <div className="divide-y divide-[var(--color-border)]/50">
+            {Array.from({ length: rows }).map((_, rowIdx) => (
+                <div key={rowIdx} className="flex items-center gap-4 px-5 py-4 animate-pulse">
+                    {hasAvatar && (
+                        <div className="w-9 h-9 rounded-xl bg-[var(--color-border)] shrink-0" />
+                    )}
+                    <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-[var(--color-border)] rounded animate-pulse" style={{ width: `${60 + (rowIdx * 7) % 30}%` }} />
+                        {textCols > 1 && (
+                            <div className="h-2.5 bg-[var(--color-border)]/60 rounded animate-pulse" style={{ width: `${35 + (rowIdx * 11) % 25}%` }} />
+                        )}
+                    </div>
+                    <div className="w-16 h-5 rounded-full bg-[var(--color-border)]/50 animate-pulse shrink-0" />
+                    <div className="flex gap-1.5">
+                        <div className="w-7 h-7 bg-[var(--color-border)] rounded-lg" />
+                        <div className="w-7 h-7 bg-[var(--color-border)] rounded-lg" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+/**
+ * Skeleton untuk stats grid (2-4 stat cards)
+ *
+ * @param {number} count - jumlah stat cards (default: 4)
+ */
+export function StatsGridSkeleton({ count = 4 }) {
+    return (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: count }).map((_, i) => (
+                <div key={i} className="h-24 rounded-2xl bg-[var(--color-surface-alt)] animate-pulse border border-[var(--color-border)]" />
+            ))}
+        </div>
+    )
 }

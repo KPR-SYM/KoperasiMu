@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { WarningCircle, Warning, ArrowLineRight, Calendar, CalendarBlank, Checks, CheckCircle, CaretDown, CaretUp, ClipboardText, Database, DownloadSimple, Info, LinkBreak, Spinner, PresentationChart, ArrowCounterClockwise, ArrowClockwise, FloppyDisk, Buildings, MagnifyingGlass, Shield, ShieldCheck, Trash, Users, X, Lightning } from '@phosphor-icons/react'
-import { StatsCarousel } from '@shared/components'
+import { StatsCarousel, Badge } from '@shared/components'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast, useAuth } from '@context'
@@ -692,19 +692,15 @@ export default function DatabasePage() {
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Database Health</h1>
                             {integrityScore && (
-                                <div
-                                    className={`px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 ${integrityScore.percentage >= 90 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600'
-                                        : integrityScore.percentage >= 70 ? 'bg-amber-500/10 border-amber-500/20 text-amber-600'
-                                            : 'bg-red-500/10 border-red-500/20 text-red-600'
-                                        }`}
+                                <Badge
+                                    color={integrityScore.percentage >= 90 ? 'emerald' : integrityScore.percentage >= 70 ? 'amber' : 'red'}
+                                    size="xs"
+                                    dot
                                 >
-                                    <div className={`w-1 h-1 rounded-full ${integrityScore.percentage >= 90 ? 'bg-emerald-500' : integrityScore.percentage >= 70 ? 'bg-amber-500' : 'bg-red-500'}`} />
-                                    <span>Score: {integrityScore.percentage}%</span>
-                                </div>
+                                    Score: {integrityScore.percentage}%
+                                </Badge>
                             )}
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 uppercase tracking-widest">
-                                Admin Only
-                            </span>
+                                <Badge color="sky" size="xs">Admin Only</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] font-medium opacity-70">
                             Monitoring jumlah data, integritas, dan kesehatan database.

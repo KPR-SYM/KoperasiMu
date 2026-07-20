@@ -1151,41 +1151,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         setSelectedIds([]);
     }, []);
 
-    // ── FILTER PRESETS ─────────────────────────────────────────────────────────
-    const LS_PRESETS = "periods_filter_presets";
-    const [filterPresets, setFilterPresets] = useState(() => {
-        try { return JSON.parse(localStorage.getItem(LS_PRESETS)) || []; } catch { return []; }
-    });
-    useEffect(() => { localStorage.setItem(LS_PRESETS, JSON.stringify(filterPresets)); }, [filterPresets]);
-
-    const saveFilterPreset = useCallback((name) => {
-        const preset = { name, filterSemester, filterStatus, filterLock, filterTimeStatus, dateFrom, dateTo, sortBy };
-        setFilterPresets(prev => {
-            const idx = prev.findIndex(p => p.name === name);
-            if (idx >= 0) {
-                const next = [...prev];
-                next[idx] = preset;
-                return next;
-            }
-            return [...prev, preset];
-        });
-    }, [filterSemester, filterStatus, filterLock, filterTimeStatus, dateFrom, dateTo, sortBy]);
-
-    const loadFilterPreset = useCallback((preset) => {
-        setFilterSemester(preset.filterSemester || "");
-        setFilterStatus(preset.filterStatus || "");
-        setFilterLock(preset.filterLock || "");
-        setFilterTimeStatus(preset.filterTimeStatus || "");
-        setDateFrom(preset.dateFrom || "");
-        setDateTo(preset.dateTo || "");
-        setSortBy(preset.sortBy || "name_desc");
-        setPage(1);
-    }, []);
-
-    const deleteFilterPreset = useCallback((name) => {
-        setFilterPresets(prev => prev.filter(p => p.name !== name));
-    }, []);
-
     // ── SELECTED ITEMS (for BulkActionsBar preview) ──────────────────────────
     const selectedItems = useMemo(() =>
         selectedIds
@@ -1214,7 +1179,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         filterStatus, setFilterStatus, filterLock, setFilterLock,
         filterTimeStatus, setFilterTimeStatus, dateFrom, setDateFrom, dateTo, setDateTo,
         sortBy, setSortBy, isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
-        filterPresets, saveFilterPreset, loadFilterPreset, deleteFilterPreset,
 
         // Pagination
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,

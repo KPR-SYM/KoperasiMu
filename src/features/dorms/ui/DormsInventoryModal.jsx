@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Modal from '@shared/components/Modal'
+import { Spinner } from '@shared/components'
 import { EmptyState } from '@shared/components/DataDisplay'
 import Select from '@shared/components/Select'
 import { useLanguage } from '@context/Language'
@@ -332,7 +333,7 @@ export function DormsInventoryFormModal({
                     </button>
                     <button type="submit" form="inventory-form" disabled={submittingInventory}
                         className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition flex items-center justify-center gap-2 ml-auto">
-                        {submittingInventory ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        {submittingInventory ? <Spinner size="sm" /> : <Check className="w-3.5 h-3.5" />}
                         {t('dorms.inventoryForm.save')}
                     </button>
                 </div>

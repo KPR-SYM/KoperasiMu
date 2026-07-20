@@ -1,5 +1,6 @@
 import React from 'react'
 import Modal from '@shared/components/Modal'
+import { Spinner } from '@shared/components'
 import { useLanguage } from '@context/Language'
 import { UserMinus, Trash } from '@phosphor-icons/react'
 
@@ -39,7 +40,7 @@ export function ConfirmEvictModal({
                         className="h-10 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
                     >
                         {submitting ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner size="sm" />
                         ) : (
                             <UserMinus className="w-3.5 h-3.5 opacity-70" />
                         )}
@@ -105,7 +106,7 @@ export function ConfirmDeleteDormModal({
                         className="h-10 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
                     >
                         {submitting ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner size="sm" />
                         ) : (
                             <Trash className="w-3.5 h-3.5 opacity-70" />
                         )}
@@ -189,7 +190,7 @@ export function ConfirmDeleteAuditModal({
                         className="h-10 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
                     >
                         {submitting ? (
-                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <Spinner size="sm" />
                         ) : (
                             <Trash className="w-3.5 h-3.5 opacity-70" />
                         )}

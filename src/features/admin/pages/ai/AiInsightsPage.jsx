@@ -8,6 +8,7 @@ import {
 } from 'recharts'
 import Papa from 'papaparse'
 import DashboardLayout from '@core/layouts/DashboardLayout'
+import { Badge } from '@shared/components'
 
 import { supabase } from '@lib/supabase'
 
@@ -240,7 +241,7 @@ export default function AiInsightsPage() {
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">AI Insights Center</h1>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 uppercase tracking-widest">Active Monitor</span>
+                            <Badge color="emerald" size="xs">Active Monitor</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] mt-1 font-medium opacity-70">
                             Audit aliran percakapan neural dan metrik performa mesin AI.

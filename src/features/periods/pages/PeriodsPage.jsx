@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
     Archive,
@@ -24,6 +24,7 @@ import DashboardLayout from "@core/layouts/DashboardLayout";
 import { useToast } from "@context/Toast";
 import { findOverlappingPeriods, findPeriodGaps } from "@features/periods/utils/periodValidation";
 import {
+    Badge,
     Checkbox,
     EmptyState,
     PageHeader,
@@ -34,11 +35,10 @@ import {
     Alert,
 } from "@shared/components";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
-import PeriodBulkEditModal from "@features/periods/components/PeriodBulkEditModal";
-import PeriodComparisonModal from "@features/periods/components/PeriodComparisonModal";
 import { ArchiveModal, LockModal, UnlockModal, ShiftDatesModal } from "@features/periods/components/PeriodConfirmModals";
-import PeriodArchiveModal from "@features/periods/components/PeriodArchiveModal";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
+import { usePeriodsKeyboard } from "@features/periods/hooks/usePeriodsKeyboard";
+import { usePeriodsModals } from "@features/periods/hooks/usePeriodsModals";
 import { usePeriodsImportExport, SYSTEM_COLS } from "@features/periods/hooks/usePeriodsImportExport";
 
 import PeriodsToolbar from "@features/periods/components/PeriodsToolbar";
@@ -49,6 +49,15 @@ import PeriodsHeaderMenu from "@features/periods/components/PeriodsHeaderMenu";
 import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMenu";
 import PeriodsReadOnlyDetail, { PeriodsHistoryModal } from "@features/periods/components/PeriodsReadOnlyDetail";
 
+const LazyPeriodComparisonModal = React.lazy(
+    () => import("@features/periods/components/PeriodComparisonModal"),
+);
+const LazyPeriodBulkEditModal = React.lazy(
+    () => import("@features/periods/components/PeriodBulkEditModal"),
+);
+const LazyPeriodArchiveModal = React.lazy(
+    () => import("@features/periods/components/PeriodArchiveModal"),
+);
 const LazyPeriodExportModal = React.lazy(
     () => import("@features/periods/components/PeriodExportModal"),
 );
@@ -122,7 +131,6 @@ export default function PeriodsPage() {
         filterTimeStatus, setFilterTimeStatus,
         dateFrom, setDateFrom, dateTo, setDateTo,
         sortBy, setSortBy,
-        filterPresets, saveFilterPreset, loadFilterPreset, deleteFilterPreset,
         isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
         totalRows, paged, filtered,
@@ -154,35 +162,43 @@ export default function PeriodsPage() {
         reminderDays, setReminderDays,
     } = usePeriodsCore({ addToast, addUndoToast });
 
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-    const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
-    const [isShiftModalOpen, setIsShiftModalOpen] = useState(false);
-    const [isCompareOpen, setIsCompareOpen] = useState(false);
-    const [itemToDuplicate, setItemToDuplicate] = useState(null);
-    const [compareItems, setCompareItems] = useState([]);
-    const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
-    const [batchCount, setBatchCount] = useState(1);
-    const [isActivateConfirmOpen, setIsActivateConfirmOpen] = useState(false);
-    const [activateTarget, setActivateTarget] = useState(null);
+    // ── Modal State ──
+    const {
+        isImportModalOpen, setIsImportModalOpen,
+        isExportModalOpen, setIsExportModalOpen,
+        isLockModalOpen, setIsLockModalOpen,
+        isUnlockModalOpen, setIsUnlockModalOpen,
+        isShiftModalOpen, setIsShiftModalOpen,
+        isCompareOpen, setIsCompareOpen,
+        itemToDuplicate, setItemToDuplicate,
+        compareItems, setCompareItems,
+        isBulkEditOpen, setIsBulkEditOpen,
+        batchCount, setBatchCount,
+        isActivateConfirmOpen, setIsActivateConfirmOpen,
+        activateTarget, setActivateTarget,
+        openCompare,
+        openActivateConfirm,
+        closeActivateConfirm,
+        resetBatchCount,
+    } = usePeriodsModals();
+
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const handleQuickFilterYear = (year) => {
+    const handleQuickFilterYear = useCallback((year) => {
         setSearchQuery(year);
         setPage(1);
-    };
+    }, [setSearchQuery, setPage]);
 
-    const handleDuplicateClick = (item) => {
+    const handleDuplicateClick = useCallback((item) => {
         setItemToDuplicate(item);
-    };
+    }, [setItemToDuplicate]);
 
-    const handleDuplicateConfirm = () => {
+    const handleDuplicateConfirm = useCallback(() => {
         if (itemToDuplicate) {
             handleQuickDuplicate(itemToDuplicate);
             setItemToDuplicate(null);
         }
-    };
+    }, [itemToDuplicate, handleQuickDuplicate, setItemToDuplicate]);
 
     const duplicatePreview = useMemo(() => {
         if (!itemToDuplicate) return null;
@@ -225,54 +241,19 @@ export default function PeriodsPage() {
     });
 
     // ── Keyboard Shortcuts ─────────────────────────────────────────────
-    useEffect(() => {
-        const handler = (e) => {
-            const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable
-            if ((e.ctrlKey || e.metaKey) && e.key === "p") {
-                e.preventDefault();
-                setIsPrivacyMode(prev => !prev);
-                return
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
-                e.preventDefault();
-                if (undoStack.length > 0) handleUndo();
-                return
-            }
-            if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
-                e.preventDefault();
-                if (redoStack.length > 0) handleRedo();
-                return
-            }
-
-            // Shortcuts below skip if typing in input
-            if (isInput) return
-
-            if (e.key === "n" || e.key === "N") {
-                e.preventDefault()
-                if (canEdit) handleAdd()
-                return
-            }
-            if (e.key === "f" || e.key === "F") {
-                e.preventDefault()
-                searchInputRef.current?.focus()
-                return
-            }
-            if (e.key === "v" || e.key === "V") {
-                e.preventDefault()
-                setViewMode(prev => prev === "table" ? "timeline" : prev === "timeline" ? "calendar" : "table")
-                return
-            }
-            if (e.key === "Delete" || e.key === "Backspace") {
-                if (selectedIds.length > 0) {
-                    e.preventDefault()
-                    setIsBulkDeleteOpen(true)
-                }
-                return
-            }
-        };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, [setIsPrivacyMode, handleUndo, handleRedo, undoStack, redoStack, canEdit, handleAdd, searchInputRef, setViewMode, selectedIds]);
+    usePeriodsKeyboard({
+        setIsPrivacyMode,
+        handleUndo,
+        handleRedo,
+        undoStack,
+        redoStack,
+        canEdit,
+        handleAdd,
+        searchInputRef,
+        setViewMode,
+        selectedIds,
+        setIsBulkDeleteOpen,
+    });
 
     // ── Deep-linking: ?period=uuid ────────────────────────────────────
     useEffect(() => {
@@ -308,10 +289,10 @@ export default function PeriodsPage() {
         );
     }
 
-    const selectedItemsData = selectedIds.map(id => years.find(y => y.id === id)).filter(Boolean);
-    const allLocked = selectedItemsData.length > 0 && selectedItemsData.every(y => y.is_locked);
-    const allUnlocked = selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked);
-    const singleItem = selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null;
+    const selectedItemsData = useMemo(() => selectedIds.map(id => years.find(y => y.id === id)).filter(Boolean), [selectedIds, years]);
+    const allLocked = useMemo(() => selectedItemsData.length > 0 && selectedItemsData.every(y => y.is_locked), [selectedItemsData]);
+    const allUnlocked = useMemo(() => selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked), [selectedItemsData]);
+    const singleItem = useMemo(() => selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null, [selectedIds, years]);
 
     const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
     const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
@@ -388,8 +369,7 @@ export default function PeriodsPage() {
                                 variant: "default",
                                 onClick: () => {
                                     const items = selectedIds.map((id) => years.find((y) => y.id === id)).filter(Boolean);
-                                    setCompareItems(items);
-                                    setIsCompareOpen(true);
+                                    openCompare(items);
                                 },
                                 disabled: isMutating || selectedIds.length !== 2,
                                 title: selectedIds.length !== 2 ? "Pilih 2 periode untuk dibandingkan" : undefined,
@@ -568,8 +548,7 @@ export default function PeriodsPage() {
                             suggestedNext && (
                                 <button
                                     onClick={() => {
-                                        setActivateTarget(suggestedNext);
-                                        setIsActivateConfirmOpen(true);
+                                        openActivateConfirm(suggestedNext);
                                     }}
                                     className="h-8 px-4 rounded-lg bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-md shadow-indigo-500/20 shrink-0"
                                 >
@@ -610,10 +589,6 @@ export default function PeriodsPage() {
                             setIsFilterOpen={setIsFilterOpen}
                             activeFilterCount={activeFilterCount}
                             resetAllFilters={resetAllFilters}
-                            filterPresets={filterPresets}
-                            saveFilterPreset={saveFilterPreset}
-                            loadFilterPreset={loadFilterPreset}
-                            deleteFilterPreset={deleteFilterPreset}
                             viewMode={viewMode}
                             setViewMode={setViewMode}
                             selectedIds={selectedIds}
@@ -902,7 +877,7 @@ export default function PeriodsPage() {
                     iconColor="text-amber-600"
                     confirmText="Arsipkan Sekarang"
                     confirmIcon={Archive}
-                    confirmClassName="h-9 px-5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    confirmColor="amber"
                     submitting={isDeleting}
                 >
                     <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-2">
@@ -916,10 +891,10 @@ export default function PeriodsPage() {
                                     const activeCount = selectedItemsData.filter(y => y.is_active).length;
                                     return (
                                         <>
-                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">Ganjil: {ganjilCount}</span>
-                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-purple-500/10 text-purple-600 border border-purple-500/20">Genap: {genapCount}</span>
-                                            {lockedCount > 0 && <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-500/10 text-rose-600 border border-rose-500/20">Terkunci: {lockedCount}</span>}
-                                            {activeCount > 0 && <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">Aktif: {activeCount}</span>}
+                                            <Badge color="indigo">Ganjil: {ganjilCount}</Badge>
+                                            <Badge color="purple">Genap: {genapCount}</Badge>
+                                            {lockedCount > 0 && <Badge color="rose">Terkunci: {lockedCount}</Badge>}
+                                            {activeCount > 0 && <Badge color="emerald">Aktif: {activeCount}</Badge>}
                                         </>
                                     );
                                 })()}
@@ -928,27 +903,31 @@ export default function PeriodsPage() {
                     </div>
                 </ConfirmDialog>
 
-                <PeriodArchiveModal
-                    isOpen={isArchivedOpen}
-                    onClose={() => setIsArchivedOpen(false)}
-                    archivedYears={archivedYears}
-                    loadingArchived={loadingArchived}
-                    setArchivedYears={setArchivedYears}
-                    fetchArchivedYears={fetchArchived}
-                    fetchData={fetchData}
-                    addToast={addToast}
-                />
+                <React.Suspense fallback={null}>
+                    <LazyPeriodArchiveModal
+                        isOpen={isArchivedOpen}
+                        onClose={() => setIsArchivedOpen(false)}
+                        archivedYears={archivedYears}
+                        loadingArchived={loadingArchived}
+                        setArchivedYears={setArchivedYears}
+                        fetchArchivedYears={fetchArchived}
+                        fetchData={fetchData}
+                        addToast={addToast}
+                    />
+                </React.Suspense>
 
                 <LockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkLock} submitting={isSaving} />
                 <UnlockModal isOpen={isUnlockModalOpen} onClose={() => setIsUnlockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkUnlock} submitting={isSaving} />
                 <ShiftDatesModal isOpen={isShiftModalOpen} onClose={() => setIsShiftModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkShiftDates} submitting={isSaving} />
-                <PeriodBulkEditModal
-                    isOpen={isBulkEditOpen}
-                    onClose={() => setIsBulkEditOpen(false)}
-                    selectedCount={selectedIds.length}
-                    onConfirm={handleBulkEdit}
-                    submitting={isSaving}
-                />
+                <React.Suspense fallback={null}>
+                    <LazyPeriodBulkEditModal
+                        isOpen={isBulkEditOpen}
+                        onClose={() => setIsBulkEditOpen(false)}
+                        selectedCount={selectedIds.length}
+                        onConfirm={handleBulkEdit}
+                        submitting={isSaving}
+                    />
+                </React.Suspense>
 
                 <ConfirmDialog
                     isOpen={!!itemToDuplicate}
@@ -961,7 +940,7 @@ export default function PeriodsPage() {
                     iconColor="text-[var(--color-primary)]"
                     confirmText="Duplikasi"
                     confirmIcon={CheckCircle}
-                    confirmClassName="h-9 px-5 rounded-lg bg-[var(--color-primary)] hover:opacity-90 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    confirmColor="primary"
                     submitting={isSaving}
                 >
                     {itemToDuplicate && duplicatePreview && (
@@ -991,27 +970,25 @@ export default function PeriodsPage() {
                     )}
                 </ConfirmDialog>
 
-                <PeriodComparisonModal
-                    isOpen={isCompareOpen}
-                    onClose={() => setIsCompareOpen(false)}
-                    itemA={compareItems[0]}
-                    itemB={compareItems[1]}
-                    formatDate={formatDate}
-                    getDuration={getDuration}
-                    getPeriodStats={getPeriodStats}
-                />
+                <React.Suspense fallback={null}>
+                    <LazyPeriodComparisonModal
+                        isOpen={isCompareOpen}
+                        onClose={() => setIsCompareOpen(false)}
+                        itemA={compareItems[0]}
+                        itemB={compareItems[1]}
+                        formatDate={formatDate}
+                        getDuration={getDuration}
+                        getPeriodStats={getPeriodStats}
+                    />
+                </React.Suspense>
 
                 <ConfirmDialog
                     isOpen={isActivateConfirmOpen}
-                    onClose={() => {
-                        setIsActivateConfirmOpen(false);
-                        setActivateTarget(null);
-                    }}
+                    onClose={closeActivateConfirm}
                     onConfirm={() => {
                         if (!activateTarget) return
                         handleQuickToggleActive(activateTarget)
-                        setIsActivateConfirmOpen(false)
-                        setActivateTarget(null)
+                        closeActivateConfirm()
                     }}
                     title="Aktivasi Periode"
                     description={`Aktifkan ${activateTarget?.academic_year} ${activateTarget?.semester} sebagai periode berjalan?`}
@@ -1020,7 +997,7 @@ export default function PeriodsPage() {
                     iconColor="text-indigo-500"
                     confirmText="Aktifkan Sekarang"
                     confirmIcon={CheckCircle}
-                    confirmClassName="h-9 px-5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    confirmColor="indigo"
                     submitting={isSaving}
                 >
                     {activateTarget && (
@@ -1035,12 +1012,12 @@ export default function PeriodsPage() {
                     isOpen={isGenerateConfirmOpen}
                     onClose={() => {
                         setIsGenerateConfirmOpen(false);
-                        setBatchCount(1);
+                        resetBatchCount();
                     }}
                     onConfirm={() => {
                         setIsGenerateConfirmOpen(false);
                         handleGenerateNextYear(batchCount);
-                        setBatchCount(1);
+                        resetBatchCount();
                     }}
                     title="Generate Tahun Pelajaran Baru"
                     description={`Buat ${batchCount} tahun pelajaran ke depan secara otomatis.`}
@@ -1049,7 +1026,7 @@ export default function PeriodsPage() {
                     iconColor="text-indigo-500"
                     confirmText={`Generate ${batchCount > 1 ? `${batchCount} Tahun` : "Sekarang"}`}
                     confirmIcon={ArrowClockwise}
-                    confirmClassName="h-9 px-5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    confirmColor="indigo"
                     submitting={isSaving}
                 >
                     <div className="space-y-4">

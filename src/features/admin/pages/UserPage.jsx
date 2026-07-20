@@ -4,7 +4,7 @@ import { Warning, SortDescending, Suitcase, Check, CheckCircle, CaretLeft, Caret
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
 import Modal from '@shared/components/Modal'
-import { EmptyState, RoleBadge } from '@shared/components'
+import { EmptyState, RoleBadge, Badge } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { supabase } from '@lib/supabase'
@@ -548,7 +548,7 @@ export default function UserManagementPage() {
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Manajemen User</h1>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 uppercase tracking-widest">Admin Only</span>
+                            <Badge color="red" size="xs">Admin Only</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] mt-1 font-medium opacity-70">
                             Kelola akun login guru, karyawan, dan staff sistem.
@@ -1088,10 +1088,7 @@ export default function UserManagementPage() {
                                 {sessions.length} session aktif
                             </p>
                             {onlineUserIds.size > 0 && (
-                                <span className="flex items-center gap-1 text-[9px] font-black text-emerald-600 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    {onlineUserIds.size} online
-                                </span>
+                                <Badge color="emerald" size="xs" dot>{onlineUserIds.size} online</Badge>
                             )}
                             <span className="text-[9px] text-[var(--color-text-muted)] opacity-50">Auto-refresh 30s</span>
                         </div>

@@ -3,6 +3,7 @@ import { Camera, Check, ArrowsInSimple, Spinner, Trash, User } from '@phosphor-i
 
 import Modal from '@shared/components/Modal'
 import Select from '@shared/components/Select'
+import { Badge } from '@shared/components'
 
 export default function StudentBulkPhotoModal({
     isOpen,
@@ -245,13 +246,9 @@ export default function StudentBulkPhotoModal({
                                                 </td>
                                                 <td className="p-3 text-center">
                                                     {item.status === 'matched' ? (
-                                                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-black uppercase tracking-wider text-[8px] inline-flex items-center gap-1 border border-emerald-500/20">
-                                                            Matched
-                                                        </span>
+                                                        <Badge color="emerald" size="xs">Matched</Badge>
                                                     ) : (
-                                                        <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-black uppercase tracking-wider text-[8px] inline-flex items-center gap-1 border border-amber-500/20">
-                                                            Unmatched
-                                                        </span>
+                                                        <Badge color="amber" size="xs">Unmatched</Badge>
                                                     )}
                                                 </td>
                                                 <td className="p-3 text-center">

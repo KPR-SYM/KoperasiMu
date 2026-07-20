@@ -4,7 +4,7 @@ import { WarningCircle, Warning, Check, CheckCircle, CaretRight, Code, Compass, 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
-import { EmptyState } from '@shared/components'
+import { EmptyState, Badge } from '@shared/components'
 import Pagination from '@shared/components/Pagination'
 import { useToast } from '@context/Toast'
 import { supabase } from '@lib/supabase'
@@ -1028,13 +1028,9 @@ export default function AdminSettingsPage() {
                                 Developer Trash
                             </h1>
                             {maintenanceOn && (
-                                <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-500 border border-rose-500/30 animate-pulse">
-                                    <Warning className="w-3 h-3" /> Maintenance
-                                </span>
+                                <Badge color="rose" size="sm" icon={Warning} pulse>Maintenance</Badge>
                             )}
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 uppercase tracking-widest">
-                                Admin Only
-                            </span>
+                            <Badge color="sky" size="xs">Admin Only</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] font-medium opacity-70">
                             Feature flags & konfigurasi sistem. Perubahan langsung berlaku real-time.
@@ -1224,9 +1220,9 @@ export default function AdminSettingsPage() {
                                                                     Demo Mode
                                                                 </span>
                                                                 {isDemoMode ? (
-                                                                    <span className="text-[9px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/20">demo</span>
+                                                                    <Badge color="amber" size="xs">demo</Badge>
                                                                 ) : (
-                                                                    <span className="text-[9px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-[var(--color-text-muted)]">db real</span>
+                                                                    <Badge color="slate" size="xs">db real</Badge>
                                                                 )}
                                                             </div>
                                                             <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5 leading-snug opacity-70 group-hover:opacity-100 transition-opacity line-clamp-1">
@@ -1372,9 +1368,7 @@ export default function AdminSettingsPage() {
                                         <p className="font-black text-[13px] text-[var(--color-text)]">Daftar Tanda Tangan Digital</p>
                                         <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">Tanda tangan yang aktif digunakan di sistem raport</p>
                                     </div>
-                                    <div className="px-2.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-black uppercase tracking-widest text-indigo-600">
-                                        {signaturesList.length} Total
-                                    </div>
+                                    <Badge color="indigo" size="xs">{signaturesList.length} Total</Badge>
                                 </div>
 
                                 {loadingSignatures && signaturesList.length === 0 ? (
@@ -1638,9 +1632,7 @@ export default function AdminSettingsPage() {
                                     return (
                                         <div className="flex items-center gap-3 shrink-0">
                                             {mFlag.enabled && (
-                                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-500 border border-rose-500/30 animate-pulse uppercase tracking-widest">
-                                                    AKTIF
-                                                </span>
+                                                <Badge color="rose" size="xs" pulse>AKTIF</Badge>
                                             )}
                                             <button
                                                 onClick={() => handleToggle(mFlag)}

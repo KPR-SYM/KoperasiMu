@@ -24,7 +24,7 @@ export const ArchiveModal = memo(function ArchiveModal({
             iconColor="text-red-500"
             confirmText="Arsipkan Sekarang"
             confirmIcon={Archive}
-            confirmClassName="h-9 px-5 rounded-lg bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmColor="red"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
@@ -55,7 +55,7 @@ export const DeactivateModal = memo(function DeactivateModal({
             iconColor="text-orange-600"
             confirmText="Nonaktifkan Sekarang"
             confirmIcon={WarningCircle}
-            confirmClassName="h-9 px-5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmColor="orange"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
@@ -84,7 +84,7 @@ export const LockModal = memo(function LockModal({
             iconColor="text-rose-600"
             confirmText="Kunci Sekarang"
             confirmIcon={Lock}
-            confirmClassName="h-9 px-5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmColor="rose"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
@@ -113,7 +113,7 @@ export const UnlockModal = memo(function UnlockModal({
             iconColor="text-emerald-600"
             confirmText="Buka Kunci"
             confirmIcon={LockOpen}
-            confirmClassName="h-9 px-5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmColor="emerald"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
@@ -144,7 +144,7 @@ export const ShiftDatesModal = memo(function ShiftDatesModal({
             iconColor="text-blue-600"
             confirmText="Geser Sekarang"
             confirmIcon={Calendar}
-            confirmClassName="h-9 px-5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            confirmColor="indigo"
             submitting={submitting}
         >
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-3">

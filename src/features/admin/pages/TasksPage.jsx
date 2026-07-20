@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Warning, Eraser, CheckCircle, Clock, DownloadSimple, SlidersHorizontal, ClockCounterClockwise, ChartLine, Spinner, Play, Trash, X, XCircle, Lightning } from '@phosphor-icons/react'
-import { EmptyState } from '@shared/components'
+import { EmptyState, Badge } from '@shared/components'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -282,7 +282,7 @@ export default function TasksPage() {
                         <span className="px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[9px] font-black uppercase tracking-[0.22em] text-[var(--color-text-muted)]">Admin</span>
                         <div className="flex items-center gap-2.5 mb-1 flex-wrap">
                             <h1 className="text-2xl font-black font-heading tracking-tight text-[var(--color-text)]">Background Tasks</h1>
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 uppercase tracking-widest">Direct Query</span>
+                            <Badge color="indigo" size="xs">Direct Query</Badge>
                         </div>
                         <p className="text-[var(--color-text-muted)] text-[11px] font-medium opacity-70">
                             Picu fungsi komputasi berat secara manual tanpa menunggu jadwal cron.
@@ -298,9 +298,7 @@ export default function TasksPage() {
                                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Tersedia untuk Trigger</span>
                                 <div className="h-px bg-[var(--color-border)] flex-1" />
                                 {isAnyRunning && (
-                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 uppercase tracking-widest animate-pulse">
-                                        Task sedang berjalan
-                                    </span>
+                                    <Badge color="amber" size="xs" pulse>Task sedang berjalan</Badge>
                                 )}
                             </div>
 
@@ -335,14 +333,10 @@ export default function TasksPage() {
                                                         <h2 className="text-[14px] sm:text-[15px] font-black text-[var(--color-text)] leading-tight">{task.name}</h2>
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             {isRunning && (
-                                                                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-black uppercase tracking-tighter animate-pulse w-fit">
-                                                                    <Spinner className="animate-spin" /> Sedang Diproses
-                                                                </span>
+                                                                <Badge color="primary" size="xs" icon={Spinner} pulse>Sedang Diproses</Badge>
                                                             )}
                                                             {task.destructive && !isRunning && (
-                                                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[8px] font-black uppercase tracking-tighter w-fit">
-                                                                    <Warning className="w-2 h-2" /> Destruktif
-                                                                </span>
+                                                                <Badge color="amber" size="xs" icon={Warning}>Destruktif</Badge>
                                                             )}
                                                         </div>
                                                     </div>

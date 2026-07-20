@@ -14,7 +14,7 @@ import {
 import Papa from 'papaparse'
 
 import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
-import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline, EmptyState, DatePicker } from '@shared/components'
+import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline, EmptyState, DatePicker, Badge } from '@shared/components'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION 1: CONSTANTS
@@ -745,10 +745,7 @@ export default function LogsPage() {
                                 </p>
                             </div>
                             {/* Always-on live indicator */}
-                            <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Live</span>
-                            </div>
+                            <Badge color="emerald" size="xs" dot pulse>Live</Badge>
                         </div>
                         <ActivityTrends data={logs} loading={loading} />
                     </div>
