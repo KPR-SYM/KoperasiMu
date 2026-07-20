@@ -3,7 +3,7 @@ import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, 
 import { createPortal } from 'react-dom'
 
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import { Dropzone } from '@shared/components'
 import { useLanguage } from '@context'
 
@@ -527,7 +527,7 @@ export default function StudentImportModal(props) {
                                         </div>
 
                                         <div className="flex-1 min-w-0 relative">
-                                            <RichSelect
+                                            <Select
                                                 small
                                                 value={mapped || ''}
                                                 onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}

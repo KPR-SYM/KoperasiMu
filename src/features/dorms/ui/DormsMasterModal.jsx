@@ -1,6 +1,6 @@
 import React from 'react'
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import { useLanguage } from '@context/Language'
 import { Bed, Check, GenderIntersex, Info, UserCircle } from '@phosphor-icons/react'
 
@@ -93,7 +93,7 @@ export default function DormsMasterModal({
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">{t('dorms.master.labelGender')}</label>
-                        <RichSelect
+                        <Select
                             usePortal={true}
                             value={newDorm.gender || ''}
                             onChange={(val) => setNewDorm(prev => ({ ...prev, gender: val }))}
@@ -108,7 +108,7 @@ export default function DormsMasterModal({
                     </div>
                     <div>
                         <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">{t('dorms.master.labelStatus')}</label>
-                        <RichSelect
+                        <Select
                             usePortal={true}
                             value={newDorm.status || 'active'}
                             onChange={(val) => setNewDorm(prev => ({ ...prev, status: val }))}
@@ -136,7 +136,7 @@ export default function DormsMasterModal({
 
                 <div>
                     <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">{t('dorms.master.labelMusyrif')}</label>
-                    <RichSelect
+                    <Select
                         usePortal={true}
                         value={newDorm.musyrif_id || ''}
                         onChange={(val) => setNewDorm(prev => ({ ...prev, musyrif_id: val }))}

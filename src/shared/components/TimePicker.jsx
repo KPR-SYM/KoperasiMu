@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { Check, CaretDown, CaretUp, Clock } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -18,20 +18,20 @@ const TIME_LOCALES = {
         pm: 'PM'
     },
     ar: {
-        clear: 'Ø­Ø°Ù',
-        done: 'ØªÙ…',
-        am: 'Øµ',
-        pm: 'Ù…'
+        clear: 'حذف',
+        done: 'تم',
+        am: 'ص',
+        pm: 'م'
     }
 }
 
 const normalizeArabicDigits = (str) => {
     if (!str) return ''
-    const arabicDigits = ['Ù ', 'Ù¡', 'Ù¢', 'Ù£', 'Ù¤', 'Ù¥', 'Ù¦', 'Ù§', 'Ù¨', 'Ù©']
+    const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
     
     // Normalize Eastern Arabic numerals and am/pm indicator translations
-    let clean = str.replace(/[Ù -Ù©]/g, d => String(arabicDigits.indexOf(d)))
-    clean = clean.replace(/Øµ/g, 'AM').replace(/Ù…/g, 'PM')
+    let clean = str.replace(/[٠-٩]/g, d => String(arabicDigits.indexOf(d)))
+    clean = clean.replace(/ص/g, 'AM').replace(/م/g, 'PM')
     return clean
 }
 
@@ -65,7 +65,7 @@ const parseTimeString = (str) => {
     return null
 }
 
-const RichTimePicker = memo(({
+const TimePicker = memo(({
     value, // Format: "HH:MM"
     onChange,
     disabled = false,
@@ -486,6 +486,6 @@ const RichTimePicker = memo(({
     )
 })
 
-RichTimePicker.displayName = 'RichTimePicker'
+TimePicker.displayName = 'TimePicker'
 
-export default RichTimePicker
+export default TimePicker

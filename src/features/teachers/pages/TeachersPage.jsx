@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import { Modal, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, RichSelect, EmptyState, DebouncedSearchInput } from '@shared/components'
+import { Modal, PageHeader, Pagination, StatsCarousel, StatCard, ActionBadge, DiffViewer, AuditTimeline, Select, EmptyState, DebouncedSearchInput } from '@shared/components'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
@@ -1449,7 +1449,7 @@ export default function TeachersPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Jenis</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterType}
                                             onChange={val => { setFilterType(val); setPage(1) }}
                                             options={[
@@ -1463,7 +1463,7 @@ export default function TeachersPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Mata Pelajaran</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterSubject}
                                             onChange={val => { setFilterSubject(val); setPage(1) }}
                                             options={[
@@ -1477,7 +1477,7 @@ export default function TeachersPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Gender</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterGender}
                                             onChange={val => { setFilterGender(val); setPage(1) }}
                                             options={[
@@ -1491,7 +1491,7 @@ export default function TeachersPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Status</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterStatus}
                                             onChange={val => { setFilterStatus(val); setPage(1) }}
                                             options={[
@@ -1506,7 +1506,7 @@ export default function TeachersPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Urutkan</label>
-                                        <RichSelect
+                                        <Select
                                             value={sortBy}
                                             onChange={val => { setSortBy(val); setPage(1) }}
                                             options={[

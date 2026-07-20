@@ -7,10 +7,11 @@ import {
     StatCard,
     StatsCarousel,
     Pagination,
-    RichSelect,
+    Select,
     Modal,
     EmptyState,
-    ViewSwitcher
+    ViewSwitcher,
+    DatePicker
 } from '@shared/components'
 import { askAi } from '@lib/ai'
 import { MagnifyingGlass, Plus, Trash, X, Pen, Calendar, User, Clock, WarningCircle, FileXls, DownloadSimple, Check, FileText, CheckCircle, Printer, Sparkle, Warning, Info, HandHeart } from '@phosphor-icons/react'
@@ -915,7 +916,7 @@ export default function CounselingPage() {
                     {/* Middle: Custom select filters */}
                     <div className="flex flex-wrap items-center gap-2.5 w-full justify-start md:justify-end">
                         <div className="w-[125px]">
-                            <RichSelect
+                            <Select
                                 value={selectedCategoryFilter}
                                 onChange={setSelectedCategoryFilter}
                                 placeholder="Kategori"
@@ -931,7 +932,7 @@ export default function CounselingPage() {
                         </div>
 
                         <div className="w-[120px]">
-                            <RichSelect
+                            <Select
                                 value={selectedUrgencyFilter}
                                 onChange={setSelectedUrgencyFilter}
                                 placeholder="Urgensi"
@@ -946,7 +947,7 @@ export default function CounselingPage() {
                         </div>
 
                         <div className="w-[125px]">
-                            <RichSelect
+                            <Select
                                 value={selectedStatusFilter}
                                 onChange={setSelectedStatusFilter}
                                 placeholder="Status"
@@ -1234,7 +1235,7 @@ export default function CounselingPage() {
                                 <label className="block text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
                                     Pilih Santri <span className="text-red-500">*</span>
                                 </label>
-                                <RichSelect
+                                <Select
                                     value={formLog.student_id}
                                     onChange={(id) => setFormLog(prev => ({ ...prev, student_id: id }))}
                                     options={studentOptions}
@@ -1263,15 +1264,11 @@ export default function CounselingPage() {
                                 <label className="block text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
                                     Tanggal Bimbingan
                                 </label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)] opacity-50" />
-                                    <input
-                                        type="date"
-                                        value={formLog.date}
-                                        onChange={(e) => setFormLog(prev => ({ ...prev, date: e.target.value }))}
-                                        className="w-full h-10 pl-10 pr-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[12px] font-bold outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
-                                    />
-                                </div>
+                                <DatePicker
+                                    value={formLog.date}
+                                    onChange={(val) => setFormLog(prev => ({ ...prev, date: val }))}
+                                    placeholder="Pilih tanggal"
+                                />
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
@@ -1291,7 +1288,7 @@ export default function CounselingPage() {
                                 <label className="block text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)] mb-1.5">
                                     Kategori Bimbingan
                                 </label>
-                                <RichSelect
+                                <Select
                                     value={formLog.category}
                                     onChange={(val) => setFormLog(prev => ({ ...prev, category: val }))}
                                     options={[

@@ -8,9 +8,9 @@ import {
     EmptyState, StatCard,
     StatsCarousel,
     Pagination,
-    RichDatePicker,
-    RichTimePicker,
-    RichSelect,
+    DatePicker,
+    TimePicker,
+    Select,
     Modal
 } from '@shared/components'
 import { askAi } from '@lib/ai'
@@ -812,7 +812,7 @@ export default function HealthPage() {
         return medicines.filter(m => m.stock <= m.min_stock)
     }, [medicines])
 
-    // Student options mapped for RichSelect component
+    // Student options mapped for Select component
     const studentOptions = useMemo(() => {
         return studentsList.map(s => ({
             id: s.id,
@@ -820,7 +820,7 @@ export default function HealthPage() {
         }))
     }, [studentsList])
 
-    // Medicine options mapped for RichSelect component
+    // Medicine options mapped for Select component
     const medicineOptions = useMemo(() => {
         return medicines.map(m => ({
             id: m.id,
@@ -1158,7 +1158,7 @@ export default function HealthPage() {
                             {/* Class & Status Filters */}
                             <div className="flex flex-wrap items-center gap-2">
                                 <div className="w-[170px]">
-                                    <RichSelect
+                                    <Select
                                         value={selectedStatusFilter}
                                         onChange={setSelectedStatusFilter}
                                         options={statusFilterOptions}
@@ -1170,7 +1170,7 @@ export default function HealthPage() {
                                 </div>
 
                                 <div className="w-[150px]">
-                                    <RichSelect
+                                    <Select
                                         value={selectedClassFilter}
                                         onChange={setSelectedClassFilter}
                                         options={classFilterOptions}
@@ -1576,7 +1576,7 @@ export default function HealthPage() {
                         {/* Pilih Santri */}
                         <div>
                             <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">Santri / Pasien</label>
-                            <RichSelect
+                            <Select
                                 value={formLog.student_id}
                                 onChange={val => setFormLog(prev => ({ ...prev, student_id: val }))}
                                 options={studentOptions}
@@ -1590,7 +1590,7 @@ export default function HealthPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">Tanggal Masuk</label>
-                                <RichDatePicker
+                                <DatePicker
                                     value={formLog.date}
                                     onChange={val => setFormLog(prev => ({ ...prev, date: val }))}
                                     placeholder="Pilih tanggal"
@@ -1598,7 +1598,7 @@ export default function HealthPage() {
                             </div>
                             <div>
                                 <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">Waktu / Jam</label>
-                                <RichTimePicker
+                                <TimePicker
                                     value={formLog.time}
                                     onChange={val => setFormLog(prev => ({ ...prev, time: val }))}
                                 />
@@ -1674,7 +1674,7 @@ export default function HealthPage() {
                             {selectedMeds.map((item, index) => (
                                 <div key={index} className="grid grid-cols-12 gap-2 items-end animate-in slide-in-from-left-2 duration-200">
                                     <div className="col-span-8 sm:col-span-9">
-                                        <RichSelect
+                                        <Select
                                             value={item.medicine_id || ''}
                                             onChange={val => {
                                                 const next = [...selectedMeds]

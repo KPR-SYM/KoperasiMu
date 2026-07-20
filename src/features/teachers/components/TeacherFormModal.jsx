@@ -1,7 +1,7 @@
-﻿import React, { useState, useEffect, useCallback, memo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, memo, useRef } from 'react'
 import { Warning, SealCheck, Book, Suitcase, Calendar, Camera, CheckCircle, Fingerprint, GraduationCap, IdentificationCard, Info, Spinner, Envelope, MapPin, Pencil, Phone, Plus, FloppyDisk, User, Briefcase } from '@phosphor-icons/react'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, Select, DatePicker } from '@shared/components'
 
 const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 
@@ -237,7 +237,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
             }
         >
             <form id="teacher-form-modal" onSubmit={handleSubmit} className="space-y-6">
-                {/* ── Rows: Identitas ── */}
+                {/* -- Rows: Identitas -- */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-indigo-500 rounded-full" />
@@ -304,35 +304,17 @@ const TeacherFormModal = memo(function TeacherFormModal({
                             </div>
                             <div className="sm:col-span-3 relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Lahir</label>
-                                <div className={`relative h-11 w-full rounded-xl border transition-all bg-[var(--color-surface)] focus-within:ring-1
-                                    ${getStatus('birth_date') === 'error' ? 'border-rose-500/50 focus-within:border-rose-500 focus-within:ring-rose-500 bg-rose-50/5' :
-                                    getStatus('birth_date') === 'warning' ? 'border-amber-500 bg-amber-50/10 focus-within:border-amber-500 focus-within:ring-amber-500' :
-                                    getStatus('birth_date') === 'success' ? 'border-emerald-500/30 bg-emerald-50/5 focus-within:border-emerald-500 focus-within:ring-emerald-500' :
-                                    'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-[var(--color-primary)]'
-                                    }`}>
-                                    <div className={`absolute inset-0 flex items-center px-4 pointer-events-none text-[13px] ${form.birth_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                        {form.birth_date ? (() => {
-                                            const parts = form.birth_date.split('-')
-                                            if (parts.length === 3) {
-                                                const [y, m, d] = parts
-                                                return `${d}/${m}/${y}`
-                                            }
-                                            return form.birth_date
-                                        })() : 'dd/mm/yyyy'}
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={form.birth_date}
-                                        onChange={e => setField('birth_date', e.target.value)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                    />
-                                </div>
+                                <DatePicker
+                                    value={form.birth_date}
+                                    onChange={val => setField('birth_date', val)}
+                                    placeholder="dd/mm/yyyy"
+                                />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Rows: Kepegawaian ── */}
+                {/* -- Rows: Kepegawaian -- */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-emerald-500 rounded-full" />
@@ -344,7 +326,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Status Kepegawaian</label>
-                            <RichSelect
+                            <Select
                                 value={form.employment_status}
                                 onChange={val => setField('employment_status', val)}
                                 options={[
@@ -360,7 +342,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                         </div>
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Mata Pelajaran Utama</label>
-                            <RichSelect
+                            <Select
                                 value={form.subject}
                                 onChange={val => setField('subject', val)}
                                 options={(subjectsList || []).map(s => ({ id: s, name: s }))}
@@ -373,29 +355,11 @@ const TeacherFormModal = memo(function TeacherFormModal({
                         <div className="grid grid-cols-2 gap-2">
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tgl Bergabung</label>
-                                <div className={`relative h-11 w-full rounded-xl border transition-all bg-[var(--color-surface)] focus-within:ring-1
-                                    ${getStatus('join_date') === 'error' ? 'border-rose-500/50 focus-within:border-rose-500 focus-within:ring-rose-500 bg-rose-50/5' :
-                                    getStatus('join_date') === 'warning' ? 'border-amber-500 bg-amber-50/10 focus-within:border-amber-500 focus-within:ring-amber-500' :
-                                    getStatus('join_date') === 'success' ? 'border-emerald-500/30 bg-emerald-50/5 focus-within:border-emerald-500 focus-within:ring-emerald-500' :
-                                    'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-[var(--color-primary)]'
-                                    }`}>
-                                    <div className={`absolute inset-0 flex items-center px-4 pointer-events-none text-[13px] ${form.join_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                        {form.join_date ? (() => {
-                                            const parts = form.join_date.split('-')
-                                            if (parts.length === 3) {
-                                                const [y, m, d] = parts
-                                                return `${d}/${m}/${y}`
-                                            }
-                                            return form.join_date
-                                        })() : 'dd/mm/yyyy'}
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={form.join_date}
-                                        onChange={e => setField('join_date', e.target.value)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                    />
-                                </div>
+                                <DatePicker
+                                    value={form.join_date}
+                                    onChange={val => setField('join_date', val)}
+                                    placeholder="dd/mm/yyyy"
+                                />
                             </div>
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Jam Mengajar</label>
@@ -416,7 +380,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     </div>
                 </div>
 
-                {/* ── Rows: Pendidikan Terakhir ── */}
+                {/* -- Rows: Pendidikan Terakhir -- */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-blue-500 rounded-full" />
@@ -428,7 +392,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tingkat Pendidikan</label>
-                            <RichSelect
+                            <Select
                                 value={form.last_education}
                                 onChange={val => setField('last_education', val)}
                                 options={[
@@ -466,7 +430,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     </div>
                 </div>
 
-                {/* ── Rows: Kontak & Lokasi ── */}
+                {/* -- Rows: Kontak & Lokasi -- */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-amber-500 rounded-full" />
@@ -495,7 +459,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     </div>
                 </div>
 
-                {/* ── Rows: Presensi & Lainnya ── */}
+                {/* -- Rows: Presensi & Lainnya -- */}
                 <div className="space-y-4 pb-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-slate-500 rounded-full" />

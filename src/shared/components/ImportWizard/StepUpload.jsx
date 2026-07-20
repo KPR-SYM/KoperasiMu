@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect, useRef } from 'react'
 import { Download, FileText, ChevronDown, Loader2 } from 'lucide-react'
 import { Dropzone } from '@shared/components'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 
 const StepUpload = memo(function StepUpload({
     file,

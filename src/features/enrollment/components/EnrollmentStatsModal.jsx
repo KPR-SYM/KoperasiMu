@@ -4,12 +4,12 @@ import {
     PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area
 } from 'recharts'
 
-import { Modal, RichSelect, EmptyState } from '@shared/components'
+import { Modal, Select, EmptyState } from '@shared/components'
 
 export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, waves }) {
     const [selectedWave, setSelectedWave] = useState('all')
 
-    // MapTrifold waves options array for RichSelect
+    // MapTrifold waves options array for Select
     const waveOptions = useMemo(() => {
         const opts = [{ id: 'all', name: 'Semua Gelombang' }]
             ; (waves || []).forEach(w => {
@@ -504,7 +504,7 @@ export default function EnrollmentStatsModal({ isOpen, onClose, enrollments, wav
             <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center pb-4 mb-4 border-b border-[var(--color-border)]/50 print:hidden">
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Saring Gelombang:</span>
-                    <RichSelect
+                    <Select
                         value={selectedWave}
                         onChange={setSelectedWave}
                         options={waveOptions}

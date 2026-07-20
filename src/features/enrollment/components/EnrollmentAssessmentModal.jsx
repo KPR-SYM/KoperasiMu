@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Book, ClipboardText, FloppyDisk, Star, User , ChatCircle } from '@phosphor-icons/react'
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, Select } from '@shared/components'
 
 import { QURAN_LEVELS, TEST_SCORES } from '@features/enrollment/utils/enrollmentConstants'
 
@@ -23,7 +23,7 @@ function ScoreSlider({ label, value, onChange }) {
             <div className="flex justify-between items-center text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-60">
                 <span>{label}</span>
                 <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${getColor(value)}`}>
-                    {value} Â· {getLabel(value)}
+                    {value} · {getLabel(value)}
                 </span>
             </div>
             <div className="flex items-center gap-3 h-10 px-3 border border-[var(--color-border)] rounded-xl bg-[var(--color-surface-alt)]/20 overflow-hidden focus-within:border-[var(--color-primary)] transition-all">
@@ -104,7 +104,7 @@ export default function EnrollmentAssessmentModal({ isOpen, onClose, onSubmit, e
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Tingkat Bacaan Quran</label>
-                        <RichSelect
+                        <Select
                             value={form.quran_level}
                             onChange={v => setForm(prev => ({ ...prev, quran_level: v }))}
                             options={QURAN_LEVELS}
@@ -130,7 +130,7 @@ export default function EnrollmentAssessmentModal({ isOpen, onClose, onSubmit, e
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Nilai Akhir Kelulusan</label>
-                        <RichSelect
+                        <Select
                             value={form.test_score}
                             onChange={v => setForm(prev => ({ ...prev, test_score: v }))}
                             options={TEST_SCORES}

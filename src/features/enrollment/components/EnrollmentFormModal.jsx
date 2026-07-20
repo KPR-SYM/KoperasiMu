@@ -1,7 +1,7 @@
-﻿import React, { useState, useCallback, memo, useEffect, useRef } from 'react'
+import React, { useState, useCallback, memo, useEffect, useRef } from 'react'
 import { ArrowLeft, ArrowRight, Book, Calendar, Camera, Check, CheckCircle, ClipboardText, FileText, GraduationCap, Heart, IdentificationCard, Spinner, MapPin, GenderMale, Phone, FloppyDisk, Buildings, Suitcase, User, Users, GenderFemale } from '@phosphor-icons/react'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, Select, DatePicker } from '@shared/components'
 import {
     PROGRAM_OPTIONS, QURAN_LEVELS, UNIFORM_SIZES, TEST_SCORES, REQUIRED_DOCUMENTS
 } from '@features/enrollment/utils/enrollmentConstants'
@@ -362,7 +362,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                                         <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">
                                             Program <span className="text-rose-500">*</span>
                                         </label>
-                                        <RichSelect
+                                        <Select
                                             value={form.program}
                                             onChange={val => setField('program', val)}
                                             options={PROGRAM_OPTIONS}
@@ -398,25 +398,11 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                             </div>
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Lahir</label>
-                                <div className="relative h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)] focus-within:ring-1 focus-within:ring-[var(--color-primary)] transition-all">
-                                    <div className={`absolute inset-0 flex items-center pl-9 pr-3 pointer-events-none text-[13px] ${form.birth_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                        {form.birth_date ? (() => {
-                                            const parts = form.birth_date.split('-')
-                                            if (parts.length === 3) {
-                                                const [y, m, d] = parts
-                                                return `${d}/${m}/${y}`
-                                            }
-                                            return form.birth_date
-                                        })() : 'dd/mm/yyyy'}
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={form.birth_date}
-                                        onChange={e => setField('birth_date', e.target.value)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                    />
-                                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] opacity-50 w-3 h-3 transition-colors group-focus-within:text-[var(--color-primary)] pointer-events-none" />
-                                </div>
+                                <DatePicker
+                                    value={form.birth_date}
+                                    onChange={val => setField('birth_date', val)}
+                                    placeholder="dd/mm/yyyy"
+                                />
                             </div>
                         </div>
 
@@ -472,7 +458,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Tingkat Bacaan</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.quran_level}
                                         onChange={v => setField('quran_level', v)}
                                         options={QURAN_LEVELS}
@@ -497,7 +483,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Nilai Tes / Seleksi</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.test_score}
                                         onChange={v => setField('test_score', v)}
                                         options={TEST_SCORES}
@@ -563,7 +549,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Pekerjaan Ayah</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.father_occupation}
                                         onChange={val => setField('father_occupation', val)}
                                         options={OCCUPATION_LIST.map(o => ({ id: o, name: o }))}
@@ -574,7 +560,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Pendidikan Ayah</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.father_education}
                                         onChange={val => setField('father_education', val)}
                                         options={EDUCATION_LEVELS.map(el => ({ id: el, name: el }))}
@@ -635,7 +621,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Pekerjaan Ibu</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.mother_occupation}
                                         onChange={val => setField('mother_occupation', val)}
                                         options={OCCUPATION_LIST.map(o => ({ id: o, name: o }))}
@@ -646,7 +632,7 @@ function EnrollmentFormModal({ isOpen, onClose, onSubmit, enrollment, submitting
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 opacity-50">Pendidikan Ibu</label>
-                                    <RichSelect
+                                    <Select
                                         value={form.mother_education}
                                         onChange={val => setField('mother_education', val)}
                                         options={EDUCATION_LEVELS.map(el => ({ id: el, name: el }))}

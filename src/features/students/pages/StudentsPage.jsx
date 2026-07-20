@@ -9,7 +9,7 @@ import DashboardLayout from '@core/layouts/DashboardLayout'
 import {
     PageHeader,
     Modal,
-    RichSelect,
+    Select,
     StatsCarousel,
     StatCard,
     EmptyState,
@@ -21,7 +21,6 @@ import { supabase } from '@lib/supabase'
 
 import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate } from '@features/students/utils/studentsConstants'
 import { useStudentsImportWizard } from '@features/students/hooks/useStudentsImportWizard'
-import { ImportWizardModal } from '@shared/components/ImportWizard'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useStudentsCore } from '@features/students/hooks/useStudentsCore'
 import StudentClassHistoryModal from '@features/students/components/StudentClassHistoryModal'
@@ -49,7 +48,6 @@ const LazyStudentExportModal = React.lazy(() =>
     import('@features/students/components/StudentExportModal')
 )
 import { studentsImportConfig } from '@features/students/config/importConfig'
-import { ImportWizardModal } from '@shared/components/ImportWizard'
 const LazyStudentTagModal = React.lazy(() =>
     import('@features/students/components/StudentTagModal')
 )
@@ -939,7 +937,7 @@ export default function StudentsPage() {
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-3 mb-3">
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Kelas</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterClass}
                                         onChange={(val) => { setFilterClass(val); setFilterClasses([]); setPage(1) }}
                                         options={classesList.map(c => ({ id: c.id, name: c.name }))}
@@ -950,7 +948,7 @@ export default function StudentsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Gender</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterGender}
                                         onChange={(val) => { setFilterGender(val); setPage(1) }}
                                         options={[
@@ -964,7 +962,7 @@ export default function StudentsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Status</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterStatus}
                                         onChange={(val) => { setFilterStatus(val); setPage(1) }}
                                         options={[
@@ -980,7 +978,7 @@ export default function StudentsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Label</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterTag}
                                         onChange={(val) => { setFilterTag(val); setPage(1) }}
                                         options={Array.from(new Set([...AvailableTags, ...allUsedTags])).sort().map(t => ({ id: t, name: t }))}
@@ -991,7 +989,7 @@ export default function StudentsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Urutkan</label>
-                                    <RichSelect
+                                    <Select
                                         value={sortBy}
                                         onChange={(val) => setSortBy(val)}
                                         options={SortOptions.map(opt => ({ id: opt.value, name: opt.label }))}
@@ -1546,7 +1544,7 @@ export default function StudentsPage() {
                                                             />
 
                                                             <div className="grid grid-cols-[1fr_112px] gap-2">
-                                                                <RichSelect
+                                                                <Select
                                                                     value={inlineForm.class_id}
                                                                     onChange={val => setInlineForm(p => ({ ...p, class_id: val }))}
                                                                     options={classesList.map(c => ({ id: c.id, name: c.name }))}
@@ -1611,60 +1609,24 @@ export default function StudentsPage() {
                     </div>
                 )}
 
-                {/* IMPORT MODAL (lazy chunk) */}
-                {/* ===================== */}
-                <React.Suspense fallback={null}>
-                    {isImportModalOpen && (
-                        <LazyStudentImportModal
-                            isOpen={isImportModalOpen}
-                            onClose={() => {
-                                if (importing) return
-                                setIsImportModalOpen(false)
-                                setImportPreview([])
-                                setImportIssues([])
-                                setImportDuplicates([])
-                                setImportFileName('')
-                                setImportDragOver(false)
-                                setImportStep(1)
-                            }}
-                            importing={importing}
-                            importStep={importStep}
-                            setImportStep={setImportStep}
-                            importPreview={importPreview}
-                            importDuplicates={importDuplicates}
-                            importFileName={importFileName}
-                            importFileInputRef={importFileInputRef}
-                            importDragOver={importDragOver}
-                            setImportDragOver={setImportDragOver}
-                            processImportFile={processImportFile}
-                            classesList={classesList}
-                            handleDownloadTemplate={handleDownloadTemplate}
-                            importFileHeaders={importFileHeaders}
-                            SYSTEM_COLS={SYSTEM_COLS}
-                            importColumnMapping={importColumnMapping}
-                            setImportColumnMapping={setImportColumnMapping}
-                            importRawData={importRawData}
-                            importLoading={importLoading}
-                            setImportLoading={setImportLoading}
-                            buildImportPreview={buildImportPreview}
-                            importIssues={importIssues}
-                            importValidationOpen={importValidationOpen}
-                            setImportValidationOpen={setImportValidationOpen}
-                            importProgress={importProgress}
-                            handleCommitImport={handleCommitImport}
-                            handleImportClick={handleImportClick}
-                            hasImportBlockingErrors={hasImportBlockingErrors}
-                            importReadyRows={importReadyRows}
-                            handleImportCellEdit={handleImportCellEdit}
-                            importEditCell={importEditCell}
-                            setImportEditCell={setImportEditCell}
-                            handleRemoveImportRow={handleRemoveImportRow}
-                            importSkipDupes={importSkipDupes}
-                            setImportSkipDupes={setImportSkipDupes}
-                            handleBulkFix={handleBulkFix}
-                        />
-                    )}
-                </React.Suspense>
+                {/* IMPORT MODAL */}
+                {isImportModalOpen && (
+                    <ImportWizardModal
+                        isOpen={isImportModalOpen}
+                        onClose={() => {
+                            if (importing) return
+                            setIsImportModalOpen(false)
+                            setImportPreview([])
+                            setImportIssues([])
+                            setImportDuplicates([])
+                            setImportFileName('')
+                            setImportDragOver(false)
+                            setImportStep(1)
+                        }}
+                        config={studentsImportConfig}
+                        wizard={wizard}
+                    />
+                )}
 
                 {/* ===================== */}
                 {/* BULK PHOTO MATCHER MODAL */}

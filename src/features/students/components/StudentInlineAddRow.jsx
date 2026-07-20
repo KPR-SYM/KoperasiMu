@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Check, Spinner, X } from '@phosphor-icons/react'
 
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 
 export default function StudentInlineAddRow({
     classesList,
@@ -84,7 +84,7 @@ export default function StudentInlineAddRow({
 
             {vc.kelas && (
                 <td className="px-4 py-3 text-center w-44">
-                    <RichSelect
+                    <Select
                         small
                         value={localForm.class_id}
                         onChange={val => setLocalForm(p => ({ ...p, class_id: val }))}

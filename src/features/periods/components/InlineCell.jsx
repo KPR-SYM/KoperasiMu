@@ -1,4 +1,5 @@
 import { memo } from "react";
+import DatePicker from "@shared/components/DatePicker";
 
 const InlineCell = memo(function InlineCell({
     id,
@@ -55,28 +56,16 @@ const InlineCell = memo(function InlineCell({
         }
         if (type === "date") {
             return (
-                <input
-                    autoFocus
-                    type="date"
-                    defaultValue={value || ""}
-                    className="bg-[var(--color-surface)] border-2 border-[var(--color-primary)] rounded-lg px-2 py-1 text-[11px] font-bold outline-none min-w-[130px]"
-                    onBlur={(e) => {
-                        if (e.target.value && e.target.value !== value) {
-                            handleInlineSave(id, field, e.target.value);
+                <DatePicker
+                    value={value || ""}
+                    onChange={(val) => {
+                        if (val && val !== value) {
+                            handleInlineSave(id, field, val);
                         } else {
                             setInlineEditCell(null);
                         }
                     }}
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                            if (e.target.value && e.target.value !== value) {
-                                handleInlineSave(id, field, e.target.value);
-                            } else {
-                                setInlineEditCell(null);
-                            }
-                        }
-                        if (e.key === "Escape") setInlineEditCell(null);
-                    }}
+                    compact
                 />
             );
         }

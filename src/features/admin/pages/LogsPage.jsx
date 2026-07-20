@@ -14,7 +14,7 @@ import {
 import Papa from 'papaparse'
 
 import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
-import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline, EmptyState } from '@shared/components'
+import { ActionBadge, JsonVisualizer, DiffViewer, DeleteTombstone, InsertViewer, AuditTimeline, EmptyState, DatePicker } from '@shared/components'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION 1: CONSTANTS
@@ -902,9 +902,9 @@ export default function LogsPage() {
                             <div className="space-y-1.5 shrink-0">
                                 <label className="text-[9px] font-black uppercase text-[var(--color-text-muted)] px-1">Rentang Tanggal</label>
                                 <div className="flex items-center gap-2">
-                                    <input type="date" value={filterRange.from} onChange={e => setFilterRange({ ...filterRange, from: e.target.value })} className="h-9 px-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[10px] font-bold" />
+                                    <DatePicker value={filterRange.from} onChange={val => setFilterRange({ ...filterRange, from: val })} placeholder="Dari" small />
                                     <span className="text-[10px] font-bold opacity-30">—</span>
-                                    <input type="date" value={filterRange.to} onChange={e => setFilterRange({ ...filterRange, to: e.target.value })} className="h-9 px-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[10px] font-bold" />
+                                    <DatePicker value={filterRange.to} onChange={val => setFilterRange({ ...filterRange, to: val })} placeholder="Sampai" small />
                                 </div>
                             </div>
                             <button

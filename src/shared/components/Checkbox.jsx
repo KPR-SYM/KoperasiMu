@@ -4,7 +4,7 @@ import { Check, Minus } from '@phosphor-icons/react'
 /**
  * Checkbox - A premium, reusable checkbox component with custom appearance,
  * indeterminate state support, and consistent theming via CSS variables.
- * Mirrors the design language of RichSelect.
+ * Mirrors the design language of Select.
  */
 const Checkbox = memo(({
     checked = false,

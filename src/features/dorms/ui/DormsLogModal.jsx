@@ -1,6 +1,6 @@
 import React from 'react'
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import { useLanguage } from '@context/Language'
 import { ClipboardText, Check, Clock } from '@phosphor-icons/react'
 
@@ -57,7 +57,7 @@ export default function DormsLogModal({
                     <div>
                         <label className="text-[9.5px] font-black uppercase tracking-widest text-[var(--color-text-muted)] block mb-1.5">{t('dorms.log.labelShift')}</label>
                         <div className="w-full">
-                            <RichSelect
+                            <Select
                                 value={newLog.shift}
                                 onChange={(val) => setNewLog(prev => ({ ...prev, shift: val }))}
                                 options={[

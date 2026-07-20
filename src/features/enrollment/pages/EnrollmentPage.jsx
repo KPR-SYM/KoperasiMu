@@ -9,8 +9,8 @@ import {
     EmptyState,
     StatsCarousel,
     Pagination,
-    RichSelect,
-    RichDatePicker
+    Select,
+    DatePicker
 } from '@shared/components'
 import { useToast, useLanguage } from '@context'
 import { useEnrollmentCore } from '@features/enrollment/hooks/useEnrollmentCore'
@@ -404,7 +404,7 @@ export default function EnrollmentPage() {
                                 {/* Status */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Status</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterStatus}
                                         onChange={(val) => { setFilterStatus(val); setPage(1); }}
                                         options={[
@@ -423,7 +423,7 @@ export default function EnrollmentPage() {
                                 {/* Gelombang */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Gelombang</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterWave}
                                         onChange={(val) => { setFilterWave(val); setPage(1); }}
                                         options={[
@@ -438,7 +438,7 @@ export default function EnrollmentPage() {
                                 {/* Program */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Program</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterProgram}
                                         onChange={(val) => { setFilterProgram(val); setPage(1); }}
                                         options={[
@@ -453,7 +453,7 @@ export default function EnrollmentPage() {
                                 {/* Jenis Kelamin */}
                                 <div>
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Jenis Kelamin</label>
-                                    <RichSelect
+                                    <Select
                                         value={filterGender}
                                         onChange={(val) => { setFilterGender(val); setPage(1); }}
                                         options={[
@@ -470,7 +470,7 @@ export default function EnrollmentPage() {
                                 <div className="sm:col-span-2 md:col-span-2 lg:col-span-2">
                                     <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">Rentang Tanggal</label>
                                     <div className="flex items-center gap-1.5 w-full">
-                                        <RichDatePicker
+                                        <DatePicker
                                             value={filterDateFrom}
                                             onChange={(val) => { setFilterDateFrom(val); setPage(1); }}
                                             placeholder="Dari"
@@ -478,7 +478,7 @@ export default function EnrollmentPage() {
                                             className="w-full"
                                         />
                                         <span className="text-[10px] text-[var(--color-text-muted)] opacity-60 shrink-0">s/d</span>
-                                        <RichDatePicker
+                                        <DatePicker
                                             value={filterDateTo}
                                             onChange={(val) => { setFilterDateTo(val); setPage(1); }}
                                             placeholder="Sampai"

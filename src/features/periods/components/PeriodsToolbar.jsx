@@ -17,7 +17,7 @@ import {
     StackSimple,
     X,
 } from "@phosphor-icons/react";
-import { RichSelect, ViewSwitcher } from "@shared/components";
+import { Select, DatePicker, ViewSwitcher } from "@shared/components";
 import DebouncedSearchInput from "@shared/components/DebouncedSearchInput";
 
 const PeriodsToolbar = memo(function PeriodsToolbar({
@@ -311,7 +311,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Semester
                             </label>
-                            <RichSelect
+                            <Select
                                 value={filterSemester}
                                 onChange={(val) => {
                                     setFilterSemester(val);
@@ -330,7 +330,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Status Aktif
                             </label>
-                            <RichSelect
+                            <Select
                                 value={filterStatus}
                                 onChange={(val) => {
                                     setFilterStatus(val);
@@ -349,7 +349,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Kunci Data
                             </label>
-                            <RichSelect
+                            <Select
                                 value={filterLock}
                                 onChange={(val) => {
                                     setFilterLock(val);
@@ -368,7 +368,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Urutkan
                             </label>
-                            <RichSelect
+                            <Select
                                 value={sortBy}
                                 onChange={(val) => setSortBy(val)}
                                 options={[
@@ -384,22 +384,22 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Tanggal Mulai
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={dateFrom}
-                                onChange={(e) => setDateFrom(e.target.value)}
-                                className="w-full px-2.5 h-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] transition-all"
+                                onChange={(val) => setDateFrom(val)}
+                                placeholder="Tanggal Mulai"
+                                small
                             />
                         </div>
                         <div>
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Tanggal Selesai
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={dateTo}
-                                onChange={(e) => setDateTo(e.target.value)}
-                                className="w-full px-2.5 h-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-bold outline-none focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] transition-all"
+                                onChange={(val) => setDateTo(val)}
+                                placeholder="Tanggal Selesai"
+                                small
                             />
                         </div>
                     </div>

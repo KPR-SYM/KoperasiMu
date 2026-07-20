@@ -1,7 +1,7 @@
 import React, { memo, useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Upload, FileText, Search, X } from 'lucide-react'
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import { Dropzone } from '@shared/components'
 import StepIndicator from './StepIndicator'
 import StepUpload from './StepUpload'

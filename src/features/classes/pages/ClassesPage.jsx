@@ -14,7 +14,7 @@ import { logAudit } from '@utils/auditLogger'
 import { useDebounce } from '@hooks/useDebounce'
 import { useErrorHandler } from '@hooks'
 import { TableSkeleton, CardSkeleton } from '@shared/components/Skeleton'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import StatsCarousel from '@shared/components/StatsCarousel'
 import { StatCard } from '@shared/components/DataDisplay'
 import DebouncedSearchInput from '@shared/components/DebouncedSearchInput'
@@ -1228,7 +1228,7 @@ export default function ClassesPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Tingkat / Grade</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterLevel}
                                             onChange={val => { setFilterLevel(val); setPage(1) }}
                                             options={[
@@ -1241,7 +1241,7 @@ export default function ClassesPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Program</label>
-                                        <RichSelect
+                                        <Select
                                             value={filterProgram}
                                             onChange={val => { setFilterProgram(val); setPage(1) }}
                                             options={[
@@ -1254,7 +1254,7 @@ export default function ClassesPage() {
                                     </div>
                                     <div>
                                         <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Urutkan</label>
-                                        <RichSelect
+                                        <Select
                                             value={sortBy}
                                             onChange={val => { setSortBy(val); setPage(1) }}
                                             options={[

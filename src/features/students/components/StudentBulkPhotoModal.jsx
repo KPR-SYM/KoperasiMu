@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { Camera, Check, ArrowsInSimple, Spinner, Trash, User } from '@phosphor-icons/react'
 
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 
 export default function StudentBulkPhotoModal({
     isOpen,
@@ -34,7 +34,7 @@ export default function StudentBulkPhotoModal({
         ))
     }
 
-    // Build RichSelect options with recommendation sorting per-item
+    // Build Select options with recommendation sorting per-item
     const buildStudentOptions = (fileName) => {
         const normalize = (str) => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
         const fileBase = normalize(fileName.replace(/\.[^.]+$/, ''))
@@ -232,7 +232,7 @@ export default function StudentBulkPhotoModal({
                                                             {item.studentName}
                                                         </span>
                                                     ) : (
-                                                        <RichSelect
+                                                        <Select
                                                             compact
                                                             searchable
                                                             placeholder="Pilih siswa..."

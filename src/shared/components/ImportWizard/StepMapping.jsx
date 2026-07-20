@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { ArrowLeft, ArrowRight, Warning } from '@phosphor-icons/react'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 
 function StepMapping({
     systemCols,
@@ -58,7 +58,7 @@ function StepMapping({
                                 {col.label}
                                 {isRequired && <span className="text-red-500 ml-0.5">*</span>}
                             </label>
-                            <RichSelect
+                            <Select
                                 value={importColumnMapping[col.key] || ''}
                                 onChange={(val) => handleMappingChange(col.key, val)}
                                 options={headerOptions}

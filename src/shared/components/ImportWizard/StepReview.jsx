@@ -2,7 +2,7 @@ import React, { memo, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, AlertTriangle, Trash2, Loader2, SlidersHorizontal, ChevronDown, ChevronUp, Minus, Maximize2, Search, X } from 'lucide-react'
 import { Badge } from '@shared/components'
-import { RichSelect } from '@shared/components'
+import { Select } from '@shared/components'
 import EditableCell from './EditableCell'
 
 const StepReview = memo(function StepReview({
@@ -99,7 +99,7 @@ const StepReview = memo(function StepReview({
                 <div className="flex items-center gap-3 px-4 py-2 bg-violet-50 border-b border-violet-100">
                     <AlertCircle className="w-4 h-4 text-violet-600 flex-shrink-0" />
                     <span className="text-sm text-violet-700 flex-1">{config.bulkFixConfig.message || `${dupeRows} baris dengan kolom tidak valid`}</span>
-                    <RichSelect
+                    <Select
                         value={''}
                         onChange={(v) => handleBulkFix?.(config.bulkFixConfig.field, v)}
                         options={config.bulkFixConfig.options || []}

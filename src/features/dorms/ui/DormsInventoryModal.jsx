@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import Modal from '@shared/components/Modal'
 import { EmptyState } from '@shared/components/DataDisplay'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import { useLanguage } from '@context/Language'
 import { MagnifyingGlass, ClipboardText, Pen, Trash, Plus, Check, X, DotsThree } from '@phosphor-icons/react'
 
@@ -63,7 +63,7 @@ function InventoryModalContent({
 
                     {/* Sort */}
                     <div className="shrink-0 w-[120px]">
-                        <RichSelect
+                        <Select
                             compact
                             value={invSort}
                             onChange={setInvSort}

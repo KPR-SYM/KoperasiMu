@@ -1,7 +1,7 @@
 import React, { memo, useState, useEffect } from 'react'
 import { Archive, ArrowLeft, ArrowRight, Money, Bell, Book, Calendar, CheckCircle, ClipboardText, Clock, GraduationCap, Heart, ClockCounterClockwise, Spinner, MapPin, GenderMale, Pen, Phone, Buildings, TShirt, Star, Trash, User, Users, GenderFemale, X, XCircle, NotePencil } from '@phosphor-icons/react'
 
-import { Modal, EmptyState } from '@shared/components'
+import { Modal, EmptyState, DatePicker } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import {
     getStatusConfig, getQuranLevelConfig, getProgramLabel,
@@ -493,11 +493,10 @@ function EnrollmentProfileModal({ isOpen, onClose, enrollment, onEdit, onDelete,
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
                                             <label className="text-[9px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">Tanggal Orientasi</label>
-                                            <input
-                                                type="date"
+                                            <DatePicker
                                                 value={orientationForm.date}
-                                                onChange={(e) => setOrientationForm(prev => ({ ...prev, date: e.target.value }))}
-                                                className="w-full mt-1 px-3 py-2 text-xs font-semibold text-[var(--color-text)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl focus:border-indigo-500 outline-none"
+                                                onChange={(val) => setOrientationForm(prev => ({ ...prev, date: val }))}
+                                                placeholder="Pilih tanggal"
                                             />
                                         </div>
                                         <div>

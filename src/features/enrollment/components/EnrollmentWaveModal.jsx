@@ -1,7 +1,7 @@
 ﻿import React, { useState, memo, useCallback } from 'react'
 import { Money, Calendar, CheckCircle, CaretRight, Spinner, Pen, Plus, FloppyDisk, ToggleLeft, ToggleRight, Trash, Users, X, Waves } from '@phosphor-icons/react'
 
-import { Modal } from '@shared/components'
+import { Modal, DatePicker } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 
@@ -251,45 +251,19 @@ function EnrollmentWaveModal({ isOpen, onClose, waves = [], addToast, onRefresh 
                                         </div>
                                         <div className="relative group">
                                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Buka</label>
-                                            <div className="relative h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)] transition-all">
-                                                <div className={`absolute inset-0 flex items-center pl-3.5 pointer-events-none text-[13px] ${form.start_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                                    {form.start_date ? (() => {
-                                                        const parts = form.start_date.split('-')
-                                                        if (parts.length === 3) {
-                                                            const [y, m, d] = parts
-                                                            return `${d}/${m}/${y}`
-                                                        }
-                                                        return form.start_date
-                                                    })() : 'dd/mm/yyyy'}
-                                                </div>
-                                                <input
-                                                    type="date"
-                                                    value={form.start_date}
-                                                    onChange={e => setField('start_date', e.target.value)}
-                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                                />
-                                            </div>
+                                            <DatePicker
+                                                value={form.start_date}
+                                                onChange={val => setField('start_date', val)}
+                                                placeholder="dd/mm/yyyy"
+                                            />
                                         </div>
                                         <div className="relative group">
                                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Tutup</label>
-                                            <div className="relative h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)] transition-all">
-                                                <div className={`absolute inset-0 flex items-center pl-3.5 pointer-events-none text-[13px] ${form.end_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                                    {form.end_date ? (() => {
-                                                        const parts = form.end_date.split('-')
-                                                        if (parts.length === 3) {
-                                                            const [y, m, d] = parts
-                                                            return `${d}/${m}/${y}`
-                                                        }
-                                                        return form.end_date
-                                                    })() : 'dd/mm/yyyy'}
-                                                </div>
-                                                <input
-                                                    type="date"
-                                                    value={form.end_date}
-                                                    onChange={e => setField('end_date', e.target.value)}
-                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                                />
-                                            </div>
+                                            <DatePicker
+                                                value={form.end_date}
+                                                onChange={val => setField('end_date', val)}
+                                                placeholder="dd/mm/yyyy"
+                                            />
                                         </div>
                                         <div className="relative group">
                                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Kuota Penerimaan</label>
@@ -526,45 +500,19 @@ function EnrollmentWaveModal({ isOpen, onClose, waves = [], addToast, onRefresh 
                             </div>
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Buka</label>
-                                <div className="relative h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)] transition-all">
-                                    <div className={`absolute inset-0 flex items-center pl-3.5 pointer-events-none text-[13px] ${form.start_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                        {form.start_date ? (() => {
-                                            const parts = form.start_date.split('-')
-                                            if (parts.length === 3) {
-                                                const [y, m, d] = parts
-                                                return `${d}/${m}/${y}`
-                                            }
-                                            return form.start_date
-                                        })() : 'dd/mm/yyyy'}
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={form.start_date}
-                                        onChange={e => setField('start_date', e.target.value)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                    />
-                                </div>
+                                <DatePicker
+                                    value={form.start_date}
+                                    onChange={val => setField('start_date', val)}
+                                    placeholder="dd/mm/yyyy"
+                                />
                             </div>
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tanggal Tutup</label>
-                                <div className="relative h-11 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] focus-within:border-[var(--color-primary)] transition-all">
-                                    <div className={`absolute inset-0 flex items-center pl-3.5 pointer-events-none text-[13px] ${form.end_date ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-40'}`}>
-                                        {form.end_date ? (() => {
-                                            const parts = form.end_date.split('-')
-                                            if (parts.length === 3) {
-                                                const [y, m, d] = parts
-                                                return `${d}/${m}/${y}`
-                                            }
-                                            return form.end_date
-                                        })() : 'dd/mm/yyyy'}
-                                    </div>
-                                    <input
-                                        type="date"
-                                        value={form.end_date}
-                                        onChange={e => setField('end_date', e.target.value)}
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                    />
-                                </div>
+                                <DatePicker
+                                    value={form.end_date}
+                                    onChange={val => setField('end_date', val)}
+                                    placeholder="dd/mm/yyyy"
+                                />
                             </div>
                             <div className="relative group">
                                 <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Kuota Penerimaan</label>

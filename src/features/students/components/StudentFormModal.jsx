@@ -6,7 +6,7 @@ import {
 } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import Modal from '@shared/components/Modal'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 
 /* ─── constants ─────────────────────────────────────────────── */
 const GENDER_OPTIONS = [
@@ -435,7 +435,7 @@ const StudentFormModal = memo(function StudentFormModal({
                     {/* Kelas Akademik */}
                     <div>
                         <FieldLabel required>Kelas Akademik</FieldLabel>
-                        <RichSelect
+                        <Select
                             value={form.class_id}
                             onChange={(val) => {
                                 setField('class_id', val)

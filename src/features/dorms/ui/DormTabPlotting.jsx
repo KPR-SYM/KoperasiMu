@@ -1,6 +1,6 @@
 import React from 'react'
 import { EmptyState } from '@shared/components/DataDisplay'
-import RichSelect from '@shared/components/RichSelect'
+import Select from '@shared/components/Select'
 import Pagination from '@shared/components/Pagination'
 import BulkActionsBar from '@shared/components/BulkActionsBar'
 import { useLanguage } from '@context/Language'
@@ -232,7 +232,7 @@ export default function DormTabPlotting({
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div>
                                 <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">{t('dorms.plotting.class')}</label>
-                                <RichSelect
+                                <Select
                                     value={selectedClassFilter}
                                     onChange={(val) => { setSelectedClassFilter(val); setPage(1); }}
                                     options={[
@@ -245,7 +245,7 @@ export default function DormTabPlotting({
                             </div>
                             <div>
                                 <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">{t('dorms.plotting.dorm')}</label>
-                                <RichSelect
+                                <Select
                                     value={selectedRoomTab}
                                     onChange={(val) => { setSelectedRoomTab(val); setPage(1); }}
                                     options={[
@@ -260,7 +260,7 @@ export default function DormTabPlotting({
                             </div>
                             <div>
                                 <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">{t('dorms.plotting.gender')}</label>
-                                <RichSelect
+                                <Select
                                     value={selectedGenderFilter}
                                     onChange={(val) => { setSelectedGenderFilter(val); setPage(1); }}
                                     options={[
@@ -274,7 +274,7 @@ export default function DormTabPlotting({
                             </div>
                             <div>
                                 <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">{t('dorms.plotting.building')}</label>
-                                <RichSelect
+                                <Select
                                     value={selectedBuildingFilter}
                                     onChange={(val) => { setSelectedBuildingFilter(val); setPage(1); }}
                                     options={[

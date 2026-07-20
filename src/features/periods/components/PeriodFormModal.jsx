@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo } from 'react'
 import { Warning, Calendar, CheckCircle, Spinner, Pencil, PlusCircle } from '@phosphor-icons/react'
 
-import { Modal } from '@shared/components'
+import { Modal, DatePicker } from '@shared/components'
 import { findOverlappingPeriod } from '@features/periods/utils/periodValidation'
 
 const PeriodFormModal = memo(function PeriodFormModal({
@@ -266,44 +266,20 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Mulai <span className="text-red-500">*</span></label>
-                            <div className={`relative rounded-xl border transition-all ${formErrors.startDate ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.startDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
-                                    {formData.startDate ? (() => {
-                                        const [y, m, d] = formData.startDate.split('-')
-                                        return `${d}/${m}/${y}`
-                                    })() : 'dd/mm/yyyy'}
-                                </div>
-                                <input
-                                    type="date"
-                                    value={formData.startDate}
-                                    onChange={e => handleChange('startDate', e.target.value)}
-                                    className="w-full px-3.5 h-9 opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                    <Calendar className="w-3 h-3" />
-                                </div>
-                            </div>
+                            <DatePicker
+                                value={formData.startDate}
+                                onChange={val => handleChange('startDate', val)}
+                                placeholder="dd/mm/yyyy"
+                            />
                             {formErrors.startDate && <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.startDate}</p>}
                         </div>
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Selesai <span className="text-red-500">*</span></label>
-                            <div className={`relative rounded-xl border transition-all ${formErrors.endDate ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.endDate ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
-                                    {formData.endDate ? (() => {
-                                        const [y, m, d] = formData.endDate.split('-')
-                                        return `${d}/${m}/${y}`
-                                    })() : 'dd/mm/yyyy'}
-                                </div>
-                                <input
-                                    type="date"
-                                    value={formData.endDate}
-                                    onChange={e => handleChange('endDate', e.target.value)}
-                                    className="w-full px-3.5 h-9 opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                    <Calendar className="w-3 h-3" />
-                                </div>
-                            </div>
+                            <DatePicker
+                                value={formData.endDate}
+                                onChange={val => handleChange('endDate', val)}
+                                placeholder="dd/mm/yyyy"
+                            />
                             {formErrors.endDate && !formErrors.endDate.includes('tumpang tindih') && (
                                 <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.endDate}</p>
                             )}
@@ -353,44 +329,20 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Mulai</label>
-                            <div className={`relative rounded-xl border transition-all ${formErrors.registrationStart ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.registrationStart ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
-                                    {formData.registrationStart ? (() => {
-                                        const [y, m, d] = formData.registrationStart.split('-')
-                                        return `${d}/${m}/${y}`
-                                    })() : 'dd/mm/yyyy'}
-                                </div>
-                                <input
-                                    type="date"
-                                    value={formData.registrationStart}
-                                    onChange={e => handleChange('registrationStart', e.target.value)}
-                                    className="w-full px-3.5 h-9 opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                    <Calendar className="w-3 h-3" />
-                                </div>
-                            </div>
+                            <DatePicker
+                                value={formData.registrationStart}
+                                onChange={val => handleChange('registrationStart', val)}
+                                placeholder="dd/mm/yyyy"
+                            />
                             {formErrors.registrationStart && <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.registrationStart}</p>}
                         </div>
                         <div>
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Selesai</label>
-                            <div className={`relative rounded-xl border transition-all ${formErrors.registrationEnd ? 'border-red-500 ring-2 ring-red-500/10' : 'border-[var(--color-border)] focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 bg-[var(--color-surface-alt)]/20'}`}>
-                                <div className={`absolute inset-0 flex items-center px-3.5 pointer-events-none text-sm ${formData.registrationEnd ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-30'}`}>
-                                    {formData.registrationEnd ? (() => {
-                                        const [y, m, d] = formData.registrationEnd.split('-')
-                                        return `${d}/${m}/${y}`
-                                    })() : 'dd/mm/yyyy'}
-                                </div>
-                                <input
-                                    type="date"
-                                    value={formData.registrationEnd}
-                                    onChange={e => handleChange('registrationEnd', e.target.value)}
-                                    className="w-full px-3.5 h-9 opacity-0 cursor-pointer outline-none bg-transparent date-input-hidden z-10"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                                    <Calendar className="w-3 h-3" />
-                                </div>
-                            </div>
+                            <DatePicker
+                                value={formData.registrationEnd}
+                                onChange={val => handleChange('registrationEnd', val)}
+                                placeholder="dd/mm/yyyy"
+                            />
                             {formErrors.registrationEnd && <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.registrationEnd}</p>}
                         </div>
                     </div>

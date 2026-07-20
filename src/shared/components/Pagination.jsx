@@ -1,13 +1,13 @@
-﻿import React from 'react'
+import React from 'react'
 import { CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight } from '@phosphor-icons/react'
 
-import RichSelect from './RichSelect'
+import Select from './Select'
 import { useLanguage } from '@context'
 
 const PAGINATION_STRINGS = {
     id: { totalData: 'Total Data', showing: 'Menampilkan', of: 'dari', rows: 'Baris:', page: 'Halaman', jump: 'Tujuan', jumpTip: 'Jump ke hal...', statusPrefix: 'Informasi' },
     en: { totalData: 'Total Data', showing: 'Showing', of: 'of', rows: 'Rows:', page: 'Page', jump: 'Go to', jumpTip: 'Jump to page...', statusPrefix: 'Information' },
-    ar: { totalData: 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª', showing: 'Ø¹Ø±Ø¶', of: 'Ù…Ù†', rows: 'ØµÙ ÙˆÙ :', page: 'ØµÙ Ø­Ø©', jump: 'Ø§Ø°Ù‡Ø¨', jumpTip: 'Ø§Ù†ØªÙ‚Ù„ Ø¥Ù„Ù‰ ØµÙ Ø­Ø©...', statusPrefix: 'Ù…Ø¹Ù„ÙˆÙ…Ø§Øª' },
+    ar: { totalData: 'إجمالي البيانات', showing: 'عرض', of: 'من', rows: 'ص� و� :', page: 'ص� حة', jump: 'اذهب', jumpTip: 'انتقل إلى ص� حة...', statusPrefix: 'معلومات' },
 }
 
 const PAGE_SIZE_OPTIONS = [
@@ -64,7 +64,7 @@ export default function Pagination({
 
     return (
         <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 rounded-b-xl">
-            {/* ── MOBILE COMPACT PAGINATION (< md) ── */}
+            {/* -- MOBILE COMPACT PAGINATION (< md) -- */}
             <div className="flex md:hidden flex-col gap-3.5">
                 <div className="flex items-center justify-between px-1">
                     <div className="flex flex-col">
@@ -72,7 +72,7 @@ export default function Pagination({
                         <span className="text-[12px] font-extrabold text-[var(--color-text)] tracking-tight">{totalRows} <span className="text-[10px] font-bold opacity-60 uppercase tracking-wider ml-0.5">{label}</span></span>
                     </div>
                     <div className="w-24">
-                        <RichSelect
+                        <Select
                             value={pageSize}
                             onChange={handlePageSizeChange}
                             options={PAGE_SIZE_OPTIONS_MOBILE}
@@ -126,13 +126,13 @@ export default function Pagination({
                 </div>
             </div>
 
-            {/* ── DESKTOP FULL PAGINATION (md+) ── */}
+            {/* -- DESKTOP FULL PAGINATION (md+) -- */}
             <div className="hidden md:flex md:flex-row items-center justify-between gap-4">
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                     <div className="flex flex-col items-center sm:items-start text-left">
                         <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 leading-none mb-1">{s.statusPrefix} {label}</p>
                         <p className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
-                            {s.showing} <span className="text-[var(--color-primary)]">{fromRow}–{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
+                            {s.showing} <span className="text-[var(--color-primary)]">{fromRow}�{toRow}</span> {s.of} <span className="text-[var(--color-primary)]">{totalRows}</span> {label}
                         </p>
                     </div>
                 </div>
@@ -141,7 +141,7 @@ export default function Pagination({
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">{s.rows}</span>
                         <div className="w-[60px]">
-                            <RichSelect
+                            <Select
                                 value={pageSize}
                                 onChange={handlePageSizeChange}
                                 options={PAGE_SIZE_OPTIONS}

@@ -1,7 +1,7 @@
 import React from 'react'
 import { EmptyState } from '@shared/components/DataDisplay'
-import RichSelect from '@shared/components/RichSelect'
-import RichDatePicker from '@shared/components/RichDatePicker'
+import Select from '@shared/components/Select'
+import DatePicker from '@shared/components/DatePicker'
 import { useLanguage } from '@context/Language'
 import { Bed, Plus, X, ClipboardText, Trash, Trophy, ShieldWarning } from '@phosphor-icons/react'
 
@@ -41,9 +41,9 @@ export default function DormTabCleanliness({
                     {/* Filter Bar */}
                     <div className="flex flex-wrap items-center gap-2 mb-4 p-3 rounded-xl bg-[var(--color-surface-alt)]/40 border border-[var(--color-border)]">
 
-                        {/* Room Filter — RichSelect compact */}
+                        {/* Room Filter — Select compact */}
                         <div className="flex-1 min-w-[110px]">
-                            <RichSelect
+                            <Select
                                 icon={Bed}
                                 value={auditRoomFilter}
                                 onChange={setAuditRoomFilter}
@@ -53,9 +53,9 @@ export default function DormTabCleanliness({
                             />
                         </div>
 
-                        {/* Date Range — RichDatePicker */}
+                        {/* Date Range — DatePicker */}
                         <div className="flex items-center gap-1.5">
-                            <RichDatePicker
+                            <DatePicker
                                 compact
                                 value={auditDateFrom}
                                 onChange={setAuditDateFrom}
@@ -63,7 +63,7 @@ export default function DormTabCleanliness({
                                 className="w-[190px]"
                             />
                             <span className="text-[10px] text-[var(--color-text-muted)] font-black">{t('dorms.cleanliness.upToDate')}</span>
-                            <RichDatePicker
+                            <DatePicker
                                 compact
                                 value={auditDateTo}
                                 onChange={setAuditDateTo}

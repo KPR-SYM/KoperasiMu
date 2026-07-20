@@ -1,10 +1,10 @@
-﻿import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
+import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 
 /**
- * RichSelect - A premium, reusable dropdown component with auto-flip, portal, search, and dynamic grouping/tab filtering.
+ * Select - A premium, reusable dropdown component with auto-flip, portal, search, and dynamic grouping/tab filtering.
  * 
  * @param {boolean} compact - Lightweight mode: no portal, smaller padding, inline absolute dropdown.
  *                             Ideal for pagination or toolbar selects with few options.
@@ -15,7 +15,7 @@ const renderIcon = (icon, className = '') => {
     return <IconComp className={className} />
 }
 
-const RichSelect = memo(({
+const Select = memo(({
     value,
     onChange,
     options = [],
@@ -207,7 +207,7 @@ const RichSelect = memo(({
         return options.find(o => String(o.id) === String(value)) || (extraOption?.id === value ? extraOption : (allowCustom && value ? { id: value, name: value } : null))
     }, [options, value, extraOption, allowCustom])
 
-    // ─── Dropdown content (shared between compact & portal modes) ───
+    // --- Dropdown content (shared between compact & portal modes) ---
     const renderDropdown = () => (
         <div className="flex flex-col min-h-0 h-full">
             {/* MagnifyingGlass Bar */}
@@ -310,7 +310,7 @@ const RichSelect = memo(({
                         <p className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-40">{allowCustom ? 'Ketik untuk menambahkan' : 'Tidak ditemukan'}</p>
                     </div>
                 ) : groupedOptions ? (
-                    /* ─── Grouped Rendering ─── */
+                    /* --- Grouped Rendering --- */
                     Object.keys(groupedOptions).map(groupName => (
                         <div key={groupName} className="flex flex-col">
                             {/* Sticky Color-coded UsersThree Header */}
@@ -340,7 +340,7 @@ const RichSelect = memo(({
                         </div>
                     ))
                 ) : (
-                    /* ─── Flat Rendering ─── */
+                    /* --- Flat Rendering --- */
                     filteredOptions.map((opt) => (
                         <button
                             key={opt.id}
@@ -392,7 +392,7 @@ const RichSelect = memo(({
             </button>
 
             {isOpen && (!usePortal || compact ? (
-                /* ─── Compact/Inline: absolute dropdown ─── */
+                /* --- Compact/Inline: absolute dropdown --- */
                 <div
                     className={`absolute z-50 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-2xl overflow-hidden animate-in fade-in ${compactPlacement === 'top' ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'} duration-150`}
                     onMouseDown={(e) => e.stopPropagation()}
@@ -408,7 +408,7 @@ const RichSelect = memo(({
                     {renderDropdown()}
                 </div>
             ) : (
-                /* ─── Full: portal dropdown ─── */
+                /* --- Full: portal dropdown --- */
                 createPortal(
                     isMobile ? (
                         <>
@@ -456,6 +456,6 @@ const RichSelect = memo(({
     )
 })
 
-RichSelect.displayName = 'RichSelect'
+Select.displayName = 'Select'
 
-export default RichSelect
+export default Select

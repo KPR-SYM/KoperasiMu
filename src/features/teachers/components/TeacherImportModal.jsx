@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Book, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Buildings, Tag, Trash, UploadSimple, Lightning } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
-import { Modal, RichSelect, Dropzone } from '@shared/components'
+import { Modal, Select, Dropzone } from '@shared/components'
 
 export default function TeacherImportModal(props) {
     const {
@@ -550,7 +550,7 @@ export default function TeacherImportModal(props) {
                                         </div>
 
                                         <div className="flex-1 min-w-0 relative">
-                                            <RichSelect
+                                            <Select
                                                 small
                                                 value={mapped || ''}
                                                 onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}

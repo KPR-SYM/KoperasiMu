@@ -1,7 +1,7 @@
-﻿import React, { useState, useEffect, useCallback, memo } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import { Warning, SealCheck, Bed, Buildings, Calendar, CheckCircle, CaretDown, Spinner, GenderMale, Pencil, Plus, UserCheck, GenderFemale, Building } from '@phosphor-icons/react'
 
-import { Modal, RichSelect } from '@shared/components'
+import { Modal, Select } from '@shared/components'
 
 const ClassFormModal = memo(function ClassFormModal({
     isOpen,
@@ -163,7 +163,7 @@ const ClassFormModal = memo(function ClassFormModal({
             }
         >
             <form id="class-form-modal" onSubmit={handleSubmit} className="space-y-6">
-                {/* ── Rows: Identitas Kelas ── */}
+                {/* -- Rows: Identitas Kelas -- */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-[var(--color-primary)] rounded-full" />
@@ -214,7 +214,7 @@ const ClassFormModal = memo(function ClassFormModal({
                         {/* Tingkat & Program */}
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tingkat / Grade</label>
-                            <RichSelect
+                            <Select
                                 value={form.level}
                                 onChange={val => setField('level', val)}
                                 options={LEVELS.map(l => ({ id: l, name: `Kelas ${l}` }))}
@@ -245,7 +245,7 @@ const ClassFormModal = memo(function ClassFormModal({
                     </div>
                 </div>
 
-                {/* ── Rows: Penanggung Jawab & Periode ── */}
+                {/* -- Rows: Penanggung Jawab & Periode -- */}
                 <div className="space-y-4 pb-4">
                     <div className="flex items-center gap-2.5 pt-2">
                         <div className="w-1 h-4 bg-[var(--color-primary)] rounded-full" />
@@ -258,11 +258,11 @@ const ClassFormModal = memo(function ClassFormModal({
                         {/* Wali Kelas */}
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Wali Kelas (Homeroom Teacher)</label>
-                            <RichSelect
+                            <Select
                                 value={form.homeroom_teacher_id || ''}
                                 onChange={val => setField('homeroom_teacher_id', val)}
                                 options={teachersList.map(t => ({ id: t.id, name: t.name }))}
-                                extraOption={{ id: '', name: '— Tanpa Wali Kelas —' }}
+                                extraOption={{ id: '', name: '� Tanpa Wali Kelas �' }}
                                 placeholder={hasTeachers ? 'Pilih Wali Kelas' : 'Tidak ada data guru'}
                                 icon={UserCheck}
                                 searchable
@@ -272,7 +272,7 @@ const ClassFormModal = memo(function ClassFormModal({
                             {!hasTeachers && (
                                 <p className="mt-1.5 ml-1 text-[10px] font-bold text-amber-600 dark:text-amber-500 flex items-center gap-2">
                                     <span className="inline-flex items-center justify-center w-5 h-5 rounded-lg bg-amber-500/10 border border-amber-500/20">!</span>
-                                    Tidak ada data guru. Tambahkan guru dulu di menu Master → Guru.
+                                    Tidak ada data guru. Tambahkan guru dulu di menu Master ? Guru.
                                 </p>
                             )}
                         </div>
@@ -280,7 +280,7 @@ const ClassFormModal = memo(function ClassFormModal({
                         {/* Tahun Akademik */}
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tahun Akademik <span className="text-rose-500">*</span></label>
-                            <RichSelect
+                            <Select
                                 value={form.academic_year_id}
                                 onChange={val => setField('academic_year_id', val)}
                                 options={periodsList.map(y => ({ id: y.id, name: y.label }))}

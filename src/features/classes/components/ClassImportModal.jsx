@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Buildings, Trash, UploadSimple } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
-import { Modal, RichSelect, Dropzone } from '@shared/components'
+import { Modal, Select, Dropzone } from '@shared/components'
 
 const PROGRAMS = ['Boarding', 'Reguler']
 const LEVELS = ['7', '8', '9', '10', '11', '12']
@@ -294,7 +294,7 @@ export default function ClassImportModal(props) {
                                         </div>
                                         <div className="flex items-center gap-1.5 opacity-30"><ArrowRight className={`w-2 h-2 ${mapped ? 'text-[var(--color-primary)] opacity-100' : ''}`} /></div>
                                         <div className="flex-1 min-w-0 relative">
-                                            <RichSelect small value={mapped || ''} onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))} options={importFileHeaders.map(h => ({ id: h, name: h }))} placeholder="-- Lewati --" extraOption={{ id: '', name: '-- Lewati --' }} status={mapped ? 'success' : 'normal'} searchable={importFileHeaders.length > 5} />
+                                            <Select small value={mapped || ''} onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))} options={importFileHeaders.map(h => ({ id: h, name: h }))} placeholder="-- Lewati --" extraOption={{ id: '', name: '-- Lewati --' }} status={mapped ? 'success' : 'normal'} searchable={importFileHeaders.length > 5} />
                                         </div>
                                     </div>
                                 </div>

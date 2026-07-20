@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Pencil, Warning } from "@phosphor-icons/react";
-import { Modal } from "@shared/components";
+import { Modal, DatePicker } from "@shared/components";
 
 export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, onConfirm, submitting }) {
     const [semester, setSemester] = useState("");
@@ -84,20 +84,18 @@ export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, on
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Tanggal Mulai</label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="w-full px-3.5 h-9 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] outline-none transition-all text-sm font-bold"
+                            onChange={(val) => setStartDate(val)}
+                            placeholder="Pilih tanggal"
                         />
                     </div>
                     <div>
                         <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Tanggal Selesai</label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="w-full px-3.5 h-9 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] outline-none transition-all text-sm font-bold"
+                            onChange={(val) => setEndDate(val)}
+                            placeholder="Pilih tanggal"
                         />
                     </div>
                 </div>
@@ -105,20 +103,18 @@ export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, on
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Mulai</label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={registrationStart}
-                            onChange={(e) => setRegistrationStart(e.target.value)}
-                            className="w-full px-3.5 h-9 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] outline-none transition-all text-sm font-bold"
+                            onChange={(val) => setRegistrationStart(val)}
+                            placeholder="Pilih tanggal"
                         />
                     </div>
                     <div>
                         <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Selesai</label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={registrationEnd}
-                            onChange={(e) => setRegistrationEnd(e.target.value)}
-                            className="w-full px-3.5 h-9 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/20 focus:ring-4 focus:ring-[var(--color-primary)]/10 focus:border-[var(--color-primary)] outline-none transition-all text-sm font-bold"
+                            onChange={(val) => setRegistrationEnd(val)}
+                            placeholder="Pilih tanggal"
                         />
                     </div>
                 </div>
