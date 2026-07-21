@@ -84,6 +84,17 @@ td.cell-empty{color:#bbb;font-style:italic}
 .tag-status.warning{background:#fef9c3;color:#713f12;border:0.5px solid #fde047}
 .tag-status.success{background:#dcfce7;color:#14532d;border:0.5px solid #86efac}
 
+/* ── Card template (Kartu) ── */
+.kartu-wrap{margin-bottom:10px;page-break-inside:avoid}
+.kartu{border:0.5px solid #d4d4d4;border-radius:4px;overflow:hidden}
+.kartu-head{background:var(--print-primary);color:#fff;padding:5px 10px;font-size:9px;font-weight:700;display:flex;align-items:center;gap:6px}
+.kartu-num{width:17px;height:17px;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);border-radius:50%;font-size:7px;font-weight:700}
+.kartu-body{padding:6px 10px}
+.kartu-row{display:flex;padding:3px 0;border-bottom:0.5px solid #f1f3f5;font-size:10px}
+.kartu-row:last-child{border-bottom:none}
+.kartu-lbl{width:35%;color:#64748b;font-weight:600;flex-shrink:0}
+.kartu-val{width:65%;color:#1a1a1a}
+
 /* ── Signature ── */
 .signature-section{display:flex;justify-content:space-between;align-items:flex-end;margin-top:24px;margin-bottom:24px;page-break-inside:avoid}
 .signature-place{font-size:9.5px;color:#94a3b8}
@@ -174,6 +185,7 @@ export function buildPrintHTML({
   signatureName = '',
   secondarySignatureTitle = '', // e.g. 'Tim Sarpras' — if set, shows a second signature box (left side)
   secondarySignatureName = '',
+  showLetterhead = true,
   paperSize = 'A4 landscape',
   // Phase 1: Color theming — default tema Koperasi SenyumMu (biru & kuning)
   colorPrimary = '#1e5fbf',
@@ -304,7 +316,7 @@ export function buildPrintHTML({
   ${watermarkHtml}
   <div class="content-wrap">
 
-    <!-- Letterhead header: single compact row, no stacked decorative rules -->
+    ${showLetterhead ? `
     <div class="header">
       <div class="header-row">
         <div class="header-brand">
@@ -328,7 +340,7 @@ export function buildPrintHTML({
           </div>
         </div>
       </div>
-    </div>
+    </div>` : ''}
 
     <!-- Title -->
     <div class="title-row">

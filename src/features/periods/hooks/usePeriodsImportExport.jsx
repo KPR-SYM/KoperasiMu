@@ -403,22 +403,22 @@ export function usePeriodsImportExport({
             }
 
             addToast(`Export CSV berhasil (${rows.length} periode)`, "success");
-            setIsExportModalOpen(false);
         } catch (err) {
             handleError(err, { context: "Gagal export CSV" });
         } finally {
             setExporting(false);
         }
-    }, [getExportData, exportScope, exportColumns, addToast, handleError, setIsExportModalOpen]);
+    }, [getExportData, exportScope, exportColumns, addToast, handleError]);
 
-    const handleExportExcel = useCallback(async (filename) => {
+    const handleExportExcel = useCallback(async (filename, options = {}) => {
         setExporting(true);
         try {
             const rows = getExportData();
             if (!rows.length) return addToast("Tidak ada data untuk diekspor", "warning");
             const XLSX = await import("xlsx");
-            const ws = XLSX.utils.json_to_sheet(rows);
+            const ws = XLSX.utils.json_to_sheet(rows, { skipHeader: options.includeHeader === false });
             ws["!cols"] = Object.keys(rows[0]).map((k) => ({ wch: Math.max(k.length, 18) }));
+            ws["!pageSetup"] = { orientation: options.orientation || "landscape" };
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Data Periode");
             XLSX.writeFile(wb, `${filename || "export_tahun_pelajaran"}.xlsx`);
@@ -433,13 +433,12 @@ export function usePeriodsImportExport({
             }
 
             addToast(`Export Excel berhasil (${rows.length} periode)`, "success");
-            setIsExportModalOpen(false);
         } catch (err) {
             handleError(err, { context: "Gagal export Excel" });
         } finally {
             setExporting(false);
         }
-    }, [getExportData, exportScope, exportColumns, addToast, handleError, setIsExportModalOpen]);
+    }, [getExportData, exportScope, exportColumns, addToast, handleError]);
 
     const handleExportPDF = useCallback(async (filename, options = {}) => {
         setExporting(true);
@@ -454,9 +453,9 @@ export function usePeriodsImportExport({
 
             let tableRowsHTML;
             if (template === "kartu") {
-                tableRowsHTML = allRows.map((row) => {
-                    const cells = tableHeaders.map((h) => `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;font-size:11px"><strong>${h}</strong><span>${row[h] ?? ''}</span></div>`).join('');
-                    return `<div style="border:1px solid #d1d5db;border-radius:12px;padding:12px;margin-bottom:8px;page-break-inside:avoid">${cells}</div>`;
+                tableRowsHTML = allRows.map((row, i) => {
+                    const fields = tableHeaders.map((h) => `<div class="kartu-row"><span class="kartu-lbl">${h}</span><span class="kartu-val">${row[h] ?? ''}</span></div>`).join('');
+                    return `<div class="kartu-wrap"><div class="kartu"><div class="kartu-head"><span class="kartu-num">${i + 1}</span> ${row[tableHeaders[0]] || `Record ${i + 1}`}</div><div class="kartu-body">${fields}</div></div></div>`;
                 }).join('');
                 tableHeaders.length = 0;
             } else if (template === "lengkap") {
@@ -496,6 +495,7 @@ export function usePeriodsImportExport({
                     { label: "Kolom", value: tableHeaders.join(", ") },
                     { label: "Template", value: template },
                 ],
+                showLetterhead: options.includeHeader !== false,
                 tableHeaders,
                 tableRowsHTML,
                 showSignature: false,
@@ -517,15 +517,14 @@ export function usePeriodsImportExport({
             }
 
             addToast(`Export PDF berhasil (${allRows.length} periode) — gunakan "Save as PDF" di dialog cetak`, "success");
-            setIsExportModalOpen(false);
         } catch (err) {
             handleError(err, { context: "Gagal export PDF" });
         } finally {
             setExporting(false);
         }
-    }, [getExportData, exportScope, exportColumns, addToast, handleError, setIsExportModalOpen]);
+    }, [getExportData, exportScope, exportColumns, addToast, handleError]);
 
-    const handleExportICS = useCallback(async (filename) => {
+    const handleExportICS = useCallback(async (filename, options = {}) => {
         setExporting(true);
         try {
             const rows = getExportData();
@@ -570,13 +569,12 @@ export function usePeriodsImportExport({
                 });
             } catch (e) { console.warn("[usePeriodsImportExport] logAudit skip:", e.message); }
             addToast(`Export iCal berhasil (${rows.length} periode)`, "success");
-            setIsExportModalOpen(false);
         } catch (err) {
             handleError(err, { context: "Gagal export iCal" });
         } finally {
             setExporting(false);
         }
-    }, [getExportData, exportScope, addToast, handleError, setIsExportModalOpen]);
+    }, [getExportData, exportScope, addToast, handleError]);
 
     return {
         // Import state

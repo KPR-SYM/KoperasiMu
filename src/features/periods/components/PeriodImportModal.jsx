@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass, SquaresFour } from '@phosphor-icons/react'
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass, SquaresFour, ArrowClockwise } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { Modal, Select, EmptyState, Dropzone } from '@shared/components'
@@ -28,8 +28,9 @@ const ACCEPTED_EXTENSIONS = ['.xlsx', '.csv']
 
 const REQUIRED_COL_KEYS = ['academic_year', 'semester', 'start_date', 'end_date']
 
-const MAX_VISIBLE_ROWS = 300
+const PAGE_SIZE = 100
 const SEARCHABLE_THRESHOLD = 5
+const MAX_FILE_SIZE_MB = 5
 
 const STAT_DEFS = [
     { key: 'total', label: 'Total Baris', color: 'text-[var(--color-text-muted)]', bg: 'bg-[var(--color-border)]/20', icon: FileText },
@@ -103,6 +104,13 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
 
     const handleCellClick = useCallback(() => setImportEditCell({ row: rowIdx, col: colKey }), [rowIdx, colKey, setImportEditCell])
 
+    const handleCellKeyDown = useCallback((e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setImportEditCell({ row: rowIdx, col: colKey })
+        }
+    }, [rowIdx, colKey, setImportEditCell])
+
     const renderDropdown = useCallback((content) => {
         if (!coords) return null
 
@@ -118,7 +126,7 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
                 <div className="flex flex-col bg-[var(--color-surface)] border border-[var(--color-primary)] rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border-t-[var(--color-primary)]">
                     {content}
                 </div>
-                <div className="fixed inset-0 -z-10 bg-black/0" onClick={() => setImportEditCell(null)} />
+                <div className="fixed inset-0 -z-10 bg-black/0" onMouseDown={() => setImportEditCell(null)} />
             </div>,
             document.body
         )
@@ -167,8 +175,12 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
 
     return (
         <div
-            className={`group cursor-pointer hover:bg-[var(--color-primary)]/5 px-1.5 py-0.5 -mx-1.5 rounded-md transition-all flex items-center ${isCentered ? 'justify-center' : 'justify-between'} gap-2 min-h-[20px] ${isEmpty ? 'text-red-500/40 italic font-normal' : ''}`}
+            tabIndex={0}
+            role="button"
+            className={`group cursor-pointer hover:bg-[var(--color-primary)]/5 px-1.5 py-0.5 -mx-1.5 rounded-md transition-all flex items-center ${isCentered ? 'justify-center' : 'justify-between'} gap-2 min-h-[20px] ${isEmpty ? 'text-red-500/40 italic font-normal' : ''} outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1`}
             onClick={handleCellClick}
+            onKeyDown={handleCellKeyDown}
+            title={displayValue}
         >
             <span className={isCentered ? '' : 'truncate'}>{displayValue}</span>
             {!isCentered && <Pen className="w-2 h-2 opacity-0 group-hover:opacity-30 transition-opacity" />}
@@ -220,12 +232,14 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                         <th className="px-4 py-3 text-center w-12">
                             <input
                                 type="checkbox"
+                                aria-label={allSelected ? 'Batalkan pilihan semua baris' : 'Pilih semua baris'}
                                 className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                                 checked={allSelected}
                                 ref={el => { if (el) el.indeterminate = someSelected }}
                                 onChange={handleSelectAll}
                             />
                         </th>
+                        <th className="px-2 py-3 text-center w-10 text-[9px]">#</th>
                         {visibleCols.period && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
                         {visibleCols.semester && <th className="px-4 py-3 text-center w-24">Semester</th>}
                         {visibleCols.start_date && <th className="px-4 py-3 text-left w-32">Tanggal Mulai</th>}
@@ -236,12 +250,13 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                 <tbody className="divide-y divide-[var(--color-border)]/50">
                     {visibleRows.length === 0 ? (
                         <tr>
-                            <td colSpan="6" className="py-16 text-center">
+                            <td colSpan="7" className="py-16 text-center">
                                 <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" />
                             </td>
                         </tr>
                     ) : visibleRows.map((r) => {
                         const i = r.originalIdx
+                        const rowNum = i + 1
                         const status = getRowStatus(r)
                         const rowBg = status === 'error' ? 'bg-red-500/3 border-l-2 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-2 border-l-violet-500' : ''
                         const statusIcon = getStatusIcon(status)
@@ -250,11 +265,13 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                                 <td className="px-4 py-3">
                                     <input
                                         type="checkbox"
+                                        aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
                                         className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                                         checked={selectedRows.has(i)}
                                         onChange={() => onToggleRow(i)}
                                     />
                                 </td>
+                                <td className="px-2 py-3 text-center text-[9px] font-bold text-[var(--color-text-muted)] opacity-50">{rowNum}</td>
                                 {visibleCols.period && (
                                     <td className="px-4 py-3">
                                         <EditableCell
@@ -320,25 +337,28 @@ const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCo
         <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3">
             {visibleRows.length === 0 ? (
                 <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
-            ) : visibleRows.map((r) => {
-                const i = r.originalIdx
-                const status = getRowStatus(r)
-                const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
-                const statusIcon = getStatusIcon(status)
-                return (
-                    <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
-                                    checked={selectedRows.has(i)}
-                                    onChange={() => onToggleRow(i)}
-                                />
-                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
-                                    <statusIcon.Icon className="w-3 h-3" />
-                                </span>
-                            </div>
+                    ) : visibleRows.map((r) => {
+                        const i = r.originalIdx
+                        const rowNum = i + 1
+                        const status = getRowStatus(r)
+                        const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
+                        const statusIcon = getStatusIcon(status)
+                        return (
+                            <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
+                                <div className="flex items-start justify-between gap-2 mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
+                                            className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                            checked={selectedRows.has(i)}
+                                            onChange={() => onToggleRow(i)}
+                                        />
+                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 min-w-[16px]">{rowNum}</span>
+                                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
+                                            <statusIcon.Icon className="w-3 h-3" />
+                                        </span>
+                                    </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-1">
                                     <span className="font-bold text-[var(--color-text)] text-sm truncate">{r.academic_year || '-'}</span>
@@ -431,23 +451,83 @@ export default function PeriodImportModal(props) {
         end_date: true,
     })
     const [selectedRows, setSelectedRows] = useState(new Set())
+    const [searchQuery, setSearchQuery] = useState('')
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+    const [fileSizeError, setFileSizeError] = useState('')
+    const [pendingDeletions, setPendingDeletions] = useState(new Set())
+    const pendingDeletionsRef = useRef(pendingDeletions)
+    const deletionTimerRef = useRef(null)
+    const stepKeyRef = useRef(0)
 
-    const visiblePreview = useMemo(() =>
-        importPreview
-            .map((r, originalIdx) => ({ ...r, originalIdx }))
-            .filter(r => !filterIssuesOnly || hasRowIssue(r))
-    , [importPreview, filterIssuesOnly])
+    useEffect(() => {
+        pendingDeletionsRef.current = pendingDeletions
+    }, [pendingDeletions])
 
-    const visibleRows = useMemo(() => visiblePreview.slice(0, MAX_VISIBLE_ROWS), [visiblePreview])
+    const prevOpenRef = useRef(isOpen)
+    useEffect(() => {
+        if (isOpen && !prevOpenRef.current) {
+            setSearchQuery('')
+            setFilterIssuesOnly(false)
+            setSelectedRows(new Set())
+            setPendingDeletions(new Set())
+            setVisibleCount(PAGE_SIZE)
+            setImportStep(1)
+            if (deletionTimerRef.current) {
+                clearTimeout(deletionTimerRef.current)
+                deletionTimerRef.current = null
+            }
+        }
+        prevOpenRef.current = isOpen
+    }, [isOpen, setImportStep])
+
+    const previewWithIdx = useMemo(() =>
+        importPreview.map((r, i) => ({ ...r, originalIdx: i }))
+    , [importPreview])
+
+    const filteredPreview = useMemo(() => {
+        let result = previewWithIdx
+        if (filterIssuesOnly) result = result.filter(r => hasRowIssue(r))
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase()
+            result = result.filter(r =>
+                (r.academic_year && r.academic_year.toLowerCase().includes(q)) ||
+                (r.semester && r.semester.toLowerCase().includes(q))
+            )
+        }
+        return result
+    }, [previewWithIdx, filterIssuesOnly, searchQuery])
+
+    const displayPreview = useMemo(() =>
+        filteredPreview.filter(r => !pendingDeletions.has(r.originalIdx))
+    , [filteredPreview, pendingDeletions])
+
+    const visibleRows = useMemo(() => displayPreview.slice(0, visibleCount), [displayPreview, visibleCount])
 
     const statValues = useMemo(() => ({
-        total: importPreview.length,
+        total: importPreview.length - pendingDeletions.size,
         ready: importReadyRows.length,
-        dupe: importPreview.filter(r => r._isDupe).length,
-        error: importPreview.filter(r => r._hasError).length,
-    }), [importPreview, importReadyRows])
+        dupe: importPreview.filter((r, idx) => r._isDupe && !pendingDeletions.has(idx)).length,
+        error: importPreview.filter((r, idx) => r._hasError && !pendingDeletions.has(idx)).length,
+    }), [importPreview, importReadyRows, pendingDeletions])
+
+    const fileHeaderOptions = useMemo(() =>
+        importFileHeaders.map(h => ({ id: h, name: h }))
+    , [importFileHeaders])
+
+    const handleProcessFile = useCallback((file) => {
+        setFileSizeError('')
+        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+            setFileSizeError(`Ukuran file melebihi ${MAX_FILE_SIZE_MB}MB (${(file.size / 1024 / 1024).toFixed(1)}MB)`)
+            return
+        }
+        processImportFile(file)
+    }, [processImportFile])
 
     const toggleRowSelection = useCallback((idx) => {
+        if (idx === 'clear') {
+            setSelectedRows(new Set())
+            return
+        }
         setSelectedRows(prev => {
             const next = new Set(prev)
             if (next.has(idx)) {
@@ -459,11 +539,43 @@ export default function PeriodImportModal(props) {
         })
     }, [])
 
+    const flushPendingDeletions = useCallback(() => {
+        const current = pendingDeletionsRef.current
+        if (current.size === 0) return
+        const sorted = [...current].sort((a, b) => b - a)
+        sorted.forEach(i => handleRemoveImportRow(i))
+        setPendingDeletions(new Set())
+        deletionTimerRef.current = null
+    }, [handleRemoveImportRow])
+
+    const addPendingDeletion = useCallback((idx) => {
+        setPendingDeletions(prev => {
+            const next = new Set(prev)
+            next.add(idx)
+            return next
+        })
+        if (deletionTimerRef.current) clearTimeout(deletionTimerRef.current)
+        deletionTimerRef.current = setTimeout(flushPendingDeletions, 5000)
+    }, [flushPendingDeletions])
+
+    const undoDeletions = useCallback(() => {
+        if (deletionTimerRef.current) clearTimeout(deletionTimerRef.current)
+        deletionTimerRef.current = null
+        setPendingDeletions(new Set())
+    }, [])
+
+    const handleDeleteRow = useCallback((i) => addPendingDeletion(i), [addPendingDeletion])
+
     const handleBulkDelete = useCallback(() => {
         if (selectedRows.size === 0) return
-        selectedRows.forEach(i => handleRemoveImportRow(i))
+        const current = pendingDeletionsRef.current
+        const next = new Set(current)
+        selectedRows.forEach(i => next.add(i))
+        setPendingDeletions(next)
+        if (deletionTimerRef.current) clearTimeout(deletionTimerRef.current)
+        deletionTimerRef.current = setTimeout(flushPendingDeletions, 5000)
         setSelectedRows(new Set())
-    }, [selectedRows, handleRemoveImportRow])
+    }, [selectedRows, flushPendingDeletions])
 
     const handleToggleSkipDupes = useCallback(() => setImportSkipDupes(v => !v), [setImportSkipDupes])
 
@@ -479,14 +591,38 @@ export default function PeriodImportModal(props) {
         setVisibleCols(p => ({ ...p, [key]: !p[key] }))
     }, [])
 
-    const handleGoToStep = useCallback((step) => setImportStep(step), [setImportStep])
+    const handleGoToStep = useCallback((stepOrFn) => {
+        if (typeof stepOrFn === 'function') {
+            stepKeyRef.current -= 1
+            setImportStep(stepOrFn)
+        } else {
+            stepKeyRef.current += 1
+            setImportStep(stepOrFn)
+        }
+    }, [setImportStep])
 
     const handleReviewPreview = useCallback(async () => {
+        setPendingDeletions(new Set())
+        if (deletionTimerRef.current) clearTimeout(deletionTimerRef.current)
+        deletionTimerRef.current = null
         handleGoToStep(3)
         setImportLoading(true)
         await buildImportPreview(importRawData, importColumnMapping)
         setImportLoading(false)
     }, [handleGoToStep, setImportLoading, buildImportPreview, importRawData, importColumnMapping])
+
+    useEffect(() => {
+        return () => {
+            if (deletionTimerRef.current) {
+                clearTimeout(deletionTimerRef.current)
+                const current = pendingDeletionsRef.current
+                if (current.size > 0) {
+                    const sorted = [...current].sort((a, b) => b - a)
+                    sorted.forEach(i => handleRemoveImportRow(i))
+                }
+            }
+        }
+    }, [handleRemoveImportRow])
 
     if (!isOpen) return null
 
@@ -528,6 +664,7 @@ export default function PeriodImportModal(props) {
                             <span className="text-[10px] font-bold text-[var(--color-text-muted)] flex items-center gap-2">
                                 <Spinner className="animate-spin text-[var(--color-primary)]" />
                                 {importProgress.done}/{importProgress.total}
+                                <span className="text-[var(--color-primary)]">({Math.round((importProgress.done / Math.max(importProgress.total, 1)) * 100)}%)</span>
                             </span>
                         )}
 
@@ -610,12 +747,18 @@ export default function PeriodImportModal(props) {
             )}
 
             {importStep === 1 && (
-                <div className="space-y-2.5">
+                <div key={importStep} className="space-y-2.5 animate-in fade-in slide-in-from-right-4 duration-300">
                     <Dropzone
-                        onFileSelect={processImportFile}
+                        onFileSelect={handleProcessFile}
                         dragOver={importDragOver}
                         setDragOver={setImportDragOver}
                     />
+                    {fileSizeError && (
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 text-red-600 text-[10px] font-bold animate-in fade-in slide-in-from-top-2 duration-300">
+                            <WarningCircle className="w-3 h-3 shrink-0" />
+                            {fileSizeError}
+                        </div>
+                    )}
 
                     {/* --- Reference & Guidance Rows --- */}
                     <div className="space-y-4">
@@ -703,7 +846,7 @@ export default function PeriodImportModal(props) {
             )}
 
             {importStep === 2 && (
-                <div className="space-y-4">
+                <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Cocokkan Kolom File</span>
                         <span className="text-[9px] font-bold py-1 px-2 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
@@ -711,6 +854,11 @@ export default function PeriodImportModal(props) {
                         </span>
                     </div>
 
+                    {importFileHeaders.length === 0 ? (
+                        <div className="py-8">
+                            <EmptyState icon={FileText} title="Belum ada data kolom" description="Upload file Excel/CSV terlebih dahulu untuk melihat mapping kolom" color="slate" variant="plain" />
+                        </div>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
                         {SYSTEM_COLS.map(sys => {
                             const mapped = importColumnMapping[sys.key]
@@ -734,7 +882,7 @@ export default function PeriodImportModal(props) {
                                                 small
                                                 value={mapped || ''}
                                                 onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}
-                                                options={importFileHeaders.map(h => ({ id: h, name: h }))}
+                                                options={fileHeaderOptions}
                                                 placeholder="-- Lewati Kolom --"
                                                 extraOption={{ id: '', name: '-- Lewati Kolom --' }}
                                                 status={mapped ? 'success' : 'normal'}
@@ -746,11 +894,12 @@ export default function PeriodImportModal(props) {
                             )
                         })}
                     </div>
+                    )}
                 </div>
             )}
 
             {importStep === 3 && (
-                <div className="space-y-4">
+                <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                     {importLoading ? (
                         <ReviewTableSkeleton />
                     ) : (
@@ -821,6 +970,26 @@ export default function PeriodImportModal(props) {
                                 </div>
                             </div>
 
+                            {/* Search filter */}
+                            <div className="relative">
+                                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] opacity-40" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
+                                    placeholder="Cari tahun pelajaran atau semester..."
+                                    className="w-full h-9 pl-8 pr-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => { setSearchQuery(''); setVisibleCount(PAGE_SIZE) }}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[var(--color-surface-alt)] flex items-center justify-center text-[8px] font-black text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all"
+                                    >
+                                        X
+                                    </button>
+                                )}
+                            </div>
+
                             {/* Bulk action bar when rows selected */}
                             {selectedRows.size > 0 && (
                                 <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 animate-in slide-in-from-top-2 fade-in">
@@ -842,6 +1011,21 @@ export default function PeriodImportModal(props) {
                                 </div>
                             )}
 
+                            {/* Undo bar when rows pending deletion */}
+                            {pendingDeletions.size > 0 && (
+                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in slide-in-from-top-2 fade-in">
+                                    <span className="text-[10px] font-black text-amber-600">{pendingDeletions.size} baris akan dihapus otomatis</span>
+                                    <div className="flex-1" />
+                                    <button
+                                        onClick={undoDeletions}
+                                        className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
+                                    >
+                                        <ArrowClockwise className="w-3 h-3" />
+                                        Undo
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
                                 <div className="max-h-[40vh] overflow-auto scrollbar-none">
                                     <ReviewDesktopTable
@@ -853,7 +1037,7 @@ export default function PeriodImportModal(props) {
                                         importEditCell={importEditCell}
                                         setImportEditCell={setImportEditCell}
                                         handleImportCellEdit={handleImportCellEdit}
-                                        handleRemoveImportRow={handleRemoveImportRow}
+                                        handleRemoveImportRow={handleDeleteRow}
                                     />
 
                                     <ReviewMobileCards
@@ -865,12 +1049,22 @@ export default function PeriodImportModal(props) {
                                         importEditCell={importEditCell}
                                         setImportEditCell={setImportEditCell}
                                         handleImportCellEdit={handleImportCellEdit}
-                                        handleRemoveImportRow={handleRemoveImportRow}
+                                        handleRemoveImportRow={handleDeleteRow}
                                     />
                                 </div>
+                                {displayPreview.length > visibleCount && (
+                                    <div className="px-4 py-2 border-t border-[var(--color-border)]">
+                                        <button
+                                            onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                                            className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all active:scale-[0.99]"
+                                        >
+                                            Muat {Math.min(PAGE_SIZE, displayPreview.length - visibleCount)} baris lagi ({displayPreview.length - visibleCount} tersisa) <CaretDown className="w-2 h-2 inline-block ml-1" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
                                     <div className="flex items-center gap-4">
-                                        <span>Menampilkan {Math.min(visibleRows.length, MAX_VISIBLE_ROWS)} dari {importPreview.length} total baris</span>
+                                        <span>Menampilkan {visibleRows.length} dari {displayPreview.length} baris (difilter)</span>
                                         <div className="w-px h-4 bg-[var(--color-border)]" />
                                         <span className="text-emerald-600 flex items-center gap-1.5">
                                             <CheckCircle className="w-2 h-2" />
