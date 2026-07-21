@@ -90,8 +90,6 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
         }
     }, [isEditing])
 
-    const closeDropdown = useCallback(() => setImportEditCell(null), [setImportEditCell])
-
     const handleSemesterSelect = useCallback((optId) => {
         handleImportCellEdit(rowIdx, colKey, optId)
         setImportEditCell(null)
