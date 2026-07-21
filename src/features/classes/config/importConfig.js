@@ -1,4 +1,4 @@
-import { Users, Building2, User, Calendar, Award, Tag } from 'lucide-react'
+import { Users, Buildings, User, Calendar, SealCheck, Tag } from '@phosphor-icons/react'
 
 export const classesImportConfig = {
     moduleName: 'classes',
@@ -52,7 +52,7 @@ export const classesImportConfig = {
 
     referenceData: null,
     referenceLabel: 'Data Referensi',
-    referenceIcon: Building2,
+    referenceIcon: Buildings,
 
     columns: [
         { key: 'name', label: 'Nama Kelas' },

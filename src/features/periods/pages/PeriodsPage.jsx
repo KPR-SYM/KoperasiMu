@@ -48,6 +48,9 @@ import PeriodsTable from "@features/periods/components/PeriodsTable";
 import PeriodsHeaderMenu from "@features/periods/components/PeriodsHeaderMenu";
 import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMenu";
 import PeriodsReadOnlyDetail, { PeriodsHistoryModal } from "@features/periods/components/PeriodsReadOnlyDetail";
+import PeriodTemplateModal from "@features/periods/components/PeriodTemplateModal";
+import { usePeriodsNotifications } from "@features/periods/hooks/usePeriodsNotifications";
+import { usePeriodTemplates } from "@features/periods/hooks/usePeriodTemplates";
 
 const LazyPeriodComparisonModal = React.lazy(
     () => import("@features/periods/components/PeriodComparisonModal"),
@@ -240,6 +243,19 @@ export default function PeriodsPage() {
         isExportModalOpen, setIsExportModalOpen,
     });
 
+    // ── Notifikasi Terjadwal ───────────────────────────────────────────
+    usePeriodsNotifications({ years, reminderDays, addToast });
+
+    // ── Template Periode ────────────────────────────────────────────────
+    const {
+        templates,
+        isModalOpen: isTemplateModalOpen,
+        setIsModalOpen: setIsTemplateModalOpen,
+        saveTemplate,
+        deleteTemplate,
+        applyTemplate,
+    } = usePeriodTemplates({ addToast });
+
     // ── Keyboard Shortcuts ─────────────────────────────────────────────
     usePeriodsKeyboard({
         setIsPrivacyMode,
@@ -312,7 +328,7 @@ export default function PeriodsPage() {
                         }
                         primaryAction={{
                             label: "Arsipkan",
-                            icon: <Archive className="w-3 h-3" />,
+                            icon: <Archive className="w-3.5 h-3.5" />,
                             variant: "destructive",
                             onClick: () => setIsBulkDeleteOpen(true),
                             disabled: !canEdit || isMutating,
@@ -320,7 +336,7 @@ export default function PeriodsPage() {
                         secondaryActions={[
                             {
                                 label: "Aktifkan",
-                                icon: <CheckCircle className="w-3 h-3" />,
+                                icon: <CheckCircle className="w-3.5 h-3.5" />,
                                 variant: "primary",
                                 onClick: handleBulkSetActive,
                                 disabled: !canEdit || isMutating || selectedIds.length !== 1 || (singleItem?.is_locked),
@@ -335,7 +351,7 @@ export default function PeriodsPage() {
                             },
                             {
                                 label: "Kunci",
-                                icon: <Lock className="w-3 h-3" />,
+                                icon: <Lock className="w-3.5 h-3.5" />,
                                 variant: "default",
                                 onClick: () => setIsLockModalOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0 || allLocked,
@@ -343,7 +359,7 @@ export default function PeriodsPage() {
                             },
                             {
                                 label: "Buka",
-                                icon: <LockOpen className="w-3 h-3" />,
+                                icon: <LockOpen className="w-3.5 h-3.5" />,
                                 variant: "default",
                                 onClick: () => setIsUnlockModalOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0 || allUnlocked,
@@ -351,21 +367,21 @@ export default function PeriodsPage() {
                             },
                             {
                                 label: "Edit Massal",
-                                icon: <Pencil className="w-3 h-3" />,
+                                icon: <Pencil className="w-3.5 h-3.5" />,
                                 variant: "default",
                                 onClick: () => setIsBulkEditOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0,
                             },
                             {
                                 label: "Shift Tanggal",
-                                icon: <Calendar className="w-3 h-3" />,
+                                icon: <Calendar className="w-3.5 h-3.5" />,
                                 variant: "default",
                                 onClick: () => setIsShiftModalOpen(true),
                                 disabled: !canEdit || isMutating || selectedIds.length === 0,
                             },
                             {
                                 label: "Bandingkan",
-                                icon: <ArrowsLeftRight className="w-3 h-3" />,
+                                icon: <ArrowsLeftRight className="w-3.5 h-3.5" />,
                                 variant: "default",
                                 onClick: () => {
                                     const items = selectedIds.map((id) => years.find((y) => y.id === id)).filter(Boolean);
@@ -419,6 +435,7 @@ export default function PeriodsPage() {
                                 onGenerate={() => setIsGenerateConfirmOpen(true)}
                                 onOpenArchived={() => setIsArchivedOpen(true)}
                                 fetchArchived={fetchArchived}
+                                onOpenTemplates={() => setIsTemplateModalOpen(true)}
                             />
 
                             <input
@@ -485,7 +502,7 @@ export default function PeriodsPage() {
                                 className="h-9 px-2.5 rounded-lg border flex items-center gap-1.5 transition-all active:scale-95 bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
                                 title={`Notifikasi ${reminderDays} hari sebelum mulai/berakhir. Klik untuk ganti.`}
                             >
-                                <Clock className="w-3 h-3" />
+                                <Clock className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase tracking-widest">{reminderDays} hr</span>
                             </button>
 
@@ -495,7 +512,7 @@ export default function PeriodsPage() {
                                     onClick={handleAdd}
                                     className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
                                 >
-                                    <Plus className="w-3 h-3" />
+                                    <Plus className="w-3.5 h-3.5" />
                                     <span>Tambah Periode</span>
                                 </button>
                             )}
@@ -693,7 +710,7 @@ export default function PeriodsPage() {
                                                             onClick={handleAdd}
                                                             className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20"
                                                         >
-                                                            <Plus className="w-3 h-3" /> Tambah Periode
+                                                            <Plus className="w-3.5 h-3.5" /> Tambah Periode
                                                         </button>
                                                     )
                                                 }
@@ -1135,6 +1152,20 @@ export default function PeriodsPage() {
                         />
                     )}
                 </React.Suspense>
+
+                <PeriodTemplateModal
+                    isOpen={isTemplateModalOpen}
+                    onClose={() => setIsTemplateModalOpen(false)}
+                    templates={templates}
+                    onSave={saveTemplate}
+                    onDelete={deleteTemplate}
+                    onApply={(tpl) => {
+                        const preview = applyTemplate(tpl, years);
+                        if (preview) {
+                            addToast(`Template "${tpl.name}" siap: ${preview.academic_year} ${preview.semester}`, "success");
+                        }
+                    }}
+                />
             </div>
         </DashboardLayout>
     );

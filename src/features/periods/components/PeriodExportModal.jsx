@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
-import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock, FileXls, FileText, FileArrowUp, TextH, GearSix, SlidersHorizontal, Users } from '@phosphor-icons/react'
+import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock, FileXls, FileText, FileArrowUp, Tag, TextH, GearSix, SlidersHorizontal, Users } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
 

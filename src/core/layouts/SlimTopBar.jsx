@@ -26,8 +26,8 @@ function getPortalContainer(id) {
 // ─── NavIcon Helper (Pure outline, lightweight and crisp) ───────────────────
 function NavIcon({ icon, className = "" }) {
     if (!icon) return null
-    const isLucide = typeof icon === 'function' || (typeof icon === 'object' && icon.render)
-    if (isLucide) {
+    const isIcon = typeof icon === 'function' || (typeof icon === 'object' && icon.render)
+    if (isIcon) {
         const IconComponent = icon
         return <IconComponent className={className || "w-4 h-4"} strokeWidth={2} />
     }

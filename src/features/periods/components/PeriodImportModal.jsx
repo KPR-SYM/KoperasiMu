@@ -1,10 +1,8 @@
-import React, { useState, useRef, useMemo } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass } from '@phosphor-icons/react'
+import React, { useState, useRef, useMemo, useCallback } from 'react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass, SquaresFour } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { Modal, Select, EmptyState, Dropzone } from '@shared/components'
-
-// --- Static config (module scope) ---
 
 const STEPS = [
     { step: 1, label: 'Upload', desc: 'Pilih File' },
@@ -19,6 +17,8 @@ const TEMPLATE_COLS = [
     { l: 'D', k: 'end_date', n: 'Tanggal Selesai', w: 'w-[25%]' },
 ]
 
+const COL_VISIBLE_DEFS = TEMPLATE_COLS.map(c => ({ key: c.k, label: c.n }))
+
 const SAMPLE_ROWS = [
     ['2024/2025', 'Ganjil', '2024-07-01', '2024-12-31'],
     ['2024/2025', 'Genap', '2025-01-01', '2025-06-30'],
@@ -28,7 +28,9 @@ const ACCEPTED_EXTENSIONS = ['.xlsx', '.csv']
 
 const REQUIRED_COL_KEYS = ['academic_year', 'semester', 'start_date', 'end_date']
 
-// stat config — `value` is filled in-render
+const MAX_VISIBLE_ROWS = 300
+const SEARCHABLE_THRESHOLD = 5
+
 const STAT_DEFS = [
     { key: 'total', label: 'Total Baris', color: 'text-[var(--color-text-muted)]', bg: 'bg-[var(--color-border)]/20', icon: FileText },
     { key: 'ready', label: 'Siap Import', color: 'text-emerald-600', bg: 'bg-emerald-500/10', icon: CheckCircle },
@@ -36,7 +38,6 @@ const STAT_DEFS = [
     { key: 'error', label: 'Ada Isu/Error', color: 'text-red-600', bg: 'bg-red-500/10', icon: WarningCircle },
 ]
 
-// issue level -> style mapping
 const ISSUE_LEVEL_STYLES = {
     error: { pill: 'bg-red-500/15 text-red-600', row: 'border-l-2 border-l-red-500 bg-red-500/3' },
     dupe: { pill: 'bg-violet-500/15 text-violet-600', row: 'border-l-2 border-l-violet-500 bg-violet-500/3' },
@@ -50,7 +51,6 @@ const SEMESTER_OPTIONS = [
     { id: 'Genap', name: 'Genap' },
 ]
 
-// row status classification helper
 const getRowStatus = (row) => {
     if (row._hasError) return 'error'
     if (row._isDupe) return 'dupe'
@@ -58,7 +58,6 @@ const getRowStatus = (row) => {
     return 'ok'
 }
 
-// status icon for a row's rightmost cell
 const STATUS_ICON = {
     error: { cls: 'bg-red-500/15 text-red-600', extra: 'animate-pulse', Icon: WarningCircle },
     dupe: { cls: 'bg-violet-500/15 text-violet-600', extra: '', Icon: Copy },
@@ -73,7 +72,6 @@ const hasRowIssue = (r) => r._hasError || r._isDupe || r._hasWarn
 const isMappingComplete = (mapping) =>
     mapping.academic_year && mapping.semester && mapping.start_date && mapping.end_date
 
-// --- EditableCell Component ---
 const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImportEditCell, handleImportCellEdit }) => {
     const isEditing = importEditCell?.row === rowIdx && importEditCell?.col === colKey
     const cellRef = useRef(null)
@@ -92,7 +90,22 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
         }
     }, [isEditing])
 
-    const renderDropdown = (content) => {
+    const closeDropdown = useCallback(() => setImportEditCell(null), [setImportEditCell])
+
+    const handleSemesterSelect = useCallback((optId) => {
+        handleImportCellEdit(rowIdx, colKey, optId)
+        setImportEditCell(null)
+    }, [rowIdx, colKey, handleImportCellEdit, setImportEditCell])
+
+    const handleInputChange = useCallback((e) => handleImportCellEdit(rowIdx, colKey, e.target.value), [rowIdx, colKey, handleImportCellEdit])
+
+    const handleInputBlur = useCallback(() => setImportEditCell(null), [setImportEditCell])
+
+    const handleInputKeyDown = useCallback((e) => e.key === 'Enter' && setImportEditCell(null), [setImportEditCell])
+
+    const handleCellClick = useCallback(() => setImportEditCell({ row: rowIdx, col: colKey }), [rowIdx, colKey, setImportEditCell])
+
+    const renderDropdown = useCallback((content) => {
         if (!coords) return null
 
         return createPortal(
@@ -111,7 +124,7 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
             </div>,
             document.body
         )
-    }
+    }, [coords, setImportEditCell])
 
     if (isEditing) {
         if (colKey === 'semester') {
@@ -126,10 +139,7 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
                                 <button
                                     key={opt.id}
                                     className="w-full px-4 py-2.5 text-left text-[10px] font-bold hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] transition-colors flex items-center justify-between"
-                                    onClick={() => {
-                                        handleImportCellEdit(rowIdx, colKey, opt.id)
-                                        setImportEditCell(null)
-                                    }}
+                                    onClick={() => handleSemesterSelect(opt.id)}
                                 >
                                     <span>{opt.name}</span>
                                     {value === opt.id && <Check className="w-2 h-2" />}
@@ -146,9 +156,9 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
                 autoFocus
                 className="w-full bg-[var(--color-surface)] border-2 border-[var(--color-primary)] rounded-lg px-2 py-1 text-[10px] font-black outline-none shadow-lg transition-all"
                 value={value || ''}
-                onChange={(e) => handleImportCellEdit(rowIdx, colKey, e.target.value)}
-                onBlur={() => setImportEditCell(null)}
-                onKeyDown={(e) => e.key === 'Enter' && setImportEditCell(null)}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleInputKeyDown}
             />
         )
     }
@@ -160,10 +170,216 @@ const EditableCell = React.memo(({ rowIdx, colKey, value, importEditCell, setImp
     return (
         <div
             className={`group cursor-pointer hover:bg-[var(--color-primary)]/5 px-1.5 py-0.5 -mx-1.5 rounded-md transition-all flex items-center ${isCentered ? 'justify-center' : 'justify-between'} gap-2 min-h-[20px] ${isEmpty ? 'text-red-500/40 italic font-normal' : ''}`}
-            onClick={() => setImportEditCell({ row: rowIdx, col: colKey })}
+            onClick={handleCellClick}
         >
             <span className={isCentered ? '' : 'truncate'}>{displayValue}</span>
             {!isCentered && <Pen className="w-2 h-2 opacity-0 group-hover:opacity-30 transition-opacity" />}
+        </div>
+    )
+})
+
+function computeDropdownPosition(e) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    const menuHeight = 220
+    const spaceBelow = window.innerHeight - rect.bottom
+    const showUp = spaceBelow < menuHeight && rect.top > menuHeight
+    return {
+        top: showUp ? (rect.top + window.scrollY - menuHeight - 8) : (rect.bottom + window.scrollY + 8),
+        right: window.innerWidth - rect.right,
+        showUp
+    }
+}
+
+function ReviewTableSkeleton() {
+    return (
+        <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm animate-pulse">
+            <div className="p-4 space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                    <div key={i} className="h-9 bg-[var(--color-surface-alt)] rounded-xl" />
+                ))}
+            </div>
+        </div>
+    )
+}
+
+const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleCols, selectedRows, onToggleRow, importEditCell, setImportEditCell, handleImportCellEdit, handleRemoveImportRow }) => {
+    const allSelected = visibleRows.length > 0 && selectedRows.size === visibleRows.length
+    const someSelected = selectedRows.size > 0 && !allSelected
+
+    const handleSelectAll = useCallback(() => {
+        if (allSelected) {
+            onToggleRow('clear')
+        } else {
+            visibleRows.forEach(r => onToggleRow(r.originalIdx))
+        }
+    }, [allSelected, visibleRows, onToggleRow])
+
+    return (
+        <div className="hidden md:block overflow-x-auto">
+            <table className="w-full border-collapse table-fixed">
+                <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
+                    <tr className="border-b border-[var(--color-border)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                        <th className="px-4 py-3 text-center w-12">
+                            <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                checked={allSelected}
+                                ref={el => { if (el) el.indeterminate = someSelected }}
+                                onChange={handleSelectAll}
+                            />
+                        </th>
+                        {visibleCols.period && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
+                        {visibleCols.semester && <th className="px-4 py-3 text-center w-24">Semester</th>}
+                        {visibleCols.start_date && <th className="px-4 py-3 text-left w-32">Tanggal Mulai</th>}
+                        {visibleCols.end_date && <th className="px-4 py-3 text-left w-32">Tanggal Selesai</th>}
+                        <th className="px-4 py-3 text-center w-20">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)]/50">
+                    {visibleRows.length === 0 ? (
+                        <tr>
+                            <td colSpan="6" className="py-16 text-center">
+                                <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" />
+                            </td>
+                        </tr>
+                    ) : visibleRows.map((r) => {
+                        const i = r.originalIdx
+                        const status = getRowStatus(r)
+                        const rowBg = status === 'error' ? 'bg-red-500/3 border-l-2 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-2 border-l-violet-500' : ''
+                        const statusIcon = getStatusIcon(status)
+                        return (
+                            <tr key={i} className={`hover:bg-[var(--color-surface-alt)]/40 transition-colors ${rowBg}`}>
+                                <td className="px-4 py-3">
+                                    <input
+                                        type="checkbox"
+                                        className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                        checked={selectedRows.has(i)}
+                                        onChange={() => onToggleRow(i)}
+                                    />
+                                </td>
+                                {visibleCols.period && (
+                                    <td className="px-4 py-3">
+                                        <EditableCell
+                                            rowIdx={i} colKey="academic_year" value={r.academic_year}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    </td>
+                                )}
+                                {visibleCols.semester && (
+                                    <td className="px-4 py-3 text-center">
+                                        <EditableCell
+                                            rowIdx={i} colKey="semester" value={r.semester}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    </td>
+                                )}
+                                {visibleCols.start_date && (
+                                    <td className="px-4 py-3">
+                                        <EditableCell
+                                            rowIdx={i} colKey="start_date" value={r.start_date}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    </td>
+                                )}
+                                {visibleCols.end_date && (
+                                    <td className="px-4 py-3">
+                                        <EditableCell
+                                            rowIdx={i} colKey="end_date" value={r.end_date}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    </td>
+                                )}
+                                <td className="px-4 py-3 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
+                                            <statusIcon.Icon className="w-3.5 h-3.5" />
+                                        </span>
+
+                                        <button
+                                            onClick={() => handleRemoveImportRow(i)}
+                                            className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center group/del"
+                                            title="Hapus Baris"
+                                        >
+                                            <Trash className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+        </div>
+    )
+})
+
+const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCols, selectedRows, onToggleRow, importEditCell, setImportEditCell, handleImportCellEdit, handleRemoveImportRow }) => {
+    return (
+        <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3">
+            {visibleRows.length === 0 ? (
+                <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
+            ) : visibleRows.map((r) => {
+                const i = r.originalIdx
+                const status = getRowStatus(r)
+                const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
+                const statusIcon = getStatusIcon(status)
+                return (
+                    <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                    checked={selectedRows.has(i)}
+                                    onChange={() => onToggleRow(i)}
+                                />
+                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
+                                    <statusIcon.Icon className="w-3 h-3" />
+                                </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1 mb-1">
+                                    <span className="font-bold text-[var(--color-text)] text-sm truncate">{r.academic_year || '-'}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2 text-[11px] text-[var(--color-text-muted)] items-center">
+                                    {visibleCols.semester && (
+                                        <EditableCell
+                                            rowIdx={i} colKey="semester" value={r.semester}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    )}
+                                    {visibleCols.start_date && (
+                                        <EditableCell
+                                            rowIdx={i} colKey="start_date" value={r.start_date}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    )}
+                                    {visibleCols.end_date && (
+                                        <EditableCell
+                                            rowIdx={i} colKey="end_date" value={r.end_date}
+                                            importEditCell={importEditCell} setImportEditCell={setImportEditCell}
+                                            handleImportCellEdit={handleImportCellEdit}
+                                        />
+                                    )}
+                                    <button
+                                        onClick={() => handleRemoveImportRow(i)}
+                                        className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                        title="Hapus Baris"
+                                    >
+                                        <Trash className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            })}
         </div>
     )
 })
@@ -216,15 +432,15 @@ export default function PeriodImportModal(props) {
         start_date: true,
         end_date: true,
     })
+    const [selectedRows, setSelectedRows] = useState(new Set())
 
-    // derived view data for review table
     const visiblePreview = useMemo(() =>
         importPreview
             .map((r, originalIdx) => ({ ...r, originalIdx }))
             .filter(r => !filterIssuesOnly || hasRowIssue(r))
     , [importPreview, filterIssuesOnly])
 
-    const visibleRows = useMemo(() => visiblePreview.slice(0, 300), [visiblePreview])
+    const visibleRows = useMemo(() => visiblePreview.slice(0, MAX_VISIBLE_ROWS), [visiblePreview])
 
     const statValues = useMemo(() => ({
         total: importPreview.length,
@@ -232,6 +448,47 @@ export default function PeriodImportModal(props) {
         dupe: importPreview.filter(r => r._isDupe).length,
         error: importPreview.filter(r => r._hasError).length,
     }), [importPreview, importReadyRows])
+
+    const toggleRowSelection = useCallback((idx) => {
+        setSelectedRows(prev => {
+            const next = new Set(prev)
+            if (next.has(idx)) {
+                next.delete(idx)
+            } else {
+                next.add(idx)
+            }
+            return next
+        })
+    }, [])
+
+    const handleBulkDelete = useCallback(() => {
+        if (selectedRows.size === 0) return
+        selectedRows.forEach(i => handleRemoveImportRow(i))
+        setSelectedRows(new Set())
+    }, [selectedRows, handleRemoveImportRow])
+
+    const handleToggleSkipDupes = useCallback(() => setImportSkipDupes(v => !v), [setImportSkipDupes])
+
+    const handleToggleFilterIssues = useCallback(() => setFilterIssuesOnly(v => !v), [])
+
+    const handleToggleColMenu = useCallback((e) => {
+        const pos = computeDropdownPosition(e)
+        setColMenuPos(pos)
+        setColMenuOpen(v => !v)
+    }, [])
+
+    const handleToggleColVisibility = useCallback((key) => {
+        setVisibleCols(p => ({ ...p, [key]: !p[key] }))
+    }, [])
+
+    const handleGoToStep = useCallback((step) => setImportStep(step), [setImportStep])
+
+    const handleReviewPreview = useCallback(async () => {
+        handleGoToStep(3)
+        setImportLoading(true)
+        await buildImportPreview(importRawData, importColumnMapping)
+        setImportLoading(false)
+    }, [handleGoToStep, setImportLoading, buildImportPreview, importRawData, importColumnMapping])
 
     if (!isOpen) return null
 
@@ -257,7 +514,7 @@ export default function PeriodImportModal(props) {
                         </button>
                     ) : (
                         <button
-                            onClick={() => setImportStep(v => v - 1)}
+                            onClick={() => handleGoToStep(v => v - 1)}
                             disabled={importing}
                             className="h-10 px-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px] font-black uppercase tracking-widest disabled:opacity-50 hover:bg-[var(--color-border)] transition-all flex items-center gap-2"
                         >
@@ -278,7 +535,7 @@ export default function PeriodImportModal(props) {
 
                         {importStep === 1 ? (
                             <button
-                                onClick={() => (importRawData.length > 0 && importFileName) ? setImportStep(2) : importFileInputRef.current?.click()}
+                                onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
                                 className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
                             >
                                 {(importRawData.length > 0 && importFileName) ? (
@@ -289,12 +546,7 @@ export default function PeriodImportModal(props) {
                             </button>
                         ) : importStep === 2 ? (
                             <button
-                                onClick={async () => {
-                                    setImportStep(3)
-                                    setImportLoading(true)
-                                    await buildImportPreview(importRawData, importColumnMapping)
-                                    setImportLoading(false)
-                                }}
+                                onClick={handleReviewPreview}
                                 disabled={!isMappingComplete(importColumnMapping)}
                                 className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
                             >
@@ -488,7 +740,7 @@ export default function PeriodImportModal(props) {
                                                 placeholder="-- Lewati Kolom --"
                                                 extraOption={{ id: '', name: '-- Lewati Kolom --' }}
                                                 status={mapped ? 'success' : 'normal'}
-                                                searchable={importFileHeaders.length > 5}
+                                                searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
                                             />
                                         </div>
                                     </div>
@@ -502,10 +754,7 @@ export default function PeriodImportModal(props) {
             {importStep === 3 && (
                 <div className="space-y-4">
                     {importLoading ? (
-                        <div className="flex items-center justify-center py-14 text-[var(--color-text-muted)] gap-2">
-                            <Spinner className="animate-spin" />
-                            <span className="w-3 h-3 font-bold">Memproses preview...</span>
-                        </div>
+                        <ReviewTableSkeleton />
                     ) : (
                         <div className="space-y-4">
                             {/* Minimal Status & Action Bar */}
@@ -523,7 +772,7 @@ export default function PeriodImportModal(props) {
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => setImportSkipDupes(!importSkipDupes)}
+                                        onClick={handleToggleSkipDupes}
                                         className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
                                             ${importSkipDupes
                                                 ? 'bg-violet-500 text-white border-violet-500 shadow-md shadow-violet-500/20'
@@ -535,7 +784,7 @@ export default function PeriodImportModal(props) {
                                     </button>
 
                                     <button
-                                        onClick={() => setFilterIssuesOnly(!filterIssuesOnly)}
+                                        onClick={handleToggleFilterIssues}
                                         className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
                                             ${filterIssuesOnly
                                                 ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20'
@@ -549,34 +798,18 @@ export default function PeriodImportModal(props) {
                                     <div className="relative">
                                         <button
                                             ref={colMenuBtnRef}
-                                            onClick={(e) => {
-                                                const rect = e.currentTarget.getBoundingClientRect()
-                                                const menuHeight = 220
-                                                const spaceBelow = window.innerHeight - rect.bottom
-                                                const showUp = spaceBelow < menuHeight && rect.top > menuHeight
-                                                setColMenuPos({
-                                                    top: showUp ? (rect.top + window.scrollY - menuHeight - 8) : (rect.bottom + window.scrollY + 8),
-                                                    right: window.innerWidth - rect.right,
-                                                    showUp
-                                                })
-                                                setColMenuOpen(v => !v)
-                                            }}
+                                            onClick={handleToggleColMenu}
                                             title="Atur tampilan kolom"
                                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${colMenuOpen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
                                         >
-                                            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><rect x="0" y="0" width="5" height="5" rx="1" /><rect x="7" y="0" width="5" height="5" rx="1" /><rect x="0" y="7" width="5" height="5" rx="1" /><rect x="7" y="7" width="5" height="5" rx="1" /></svg>
+                                            <SquaresFour />
                                         </button>
                                         {colMenuOpen && createPortal(
                                             <div className={`fixed z-[9999] w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'}`}
                                                 style={{ top: colMenuPos.top, right: colMenuPos.right }}>
                                                 <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Atur Kolom</p>
-                                                {[
-                                                    { key: 'period', label: 'Tahun Pelajaran' },
-                                                    { key: 'semester', label: 'Semester' },
-                                                    { key: 'start_date', label: 'Tanggal Mulai' },
-                                                    { key: 'end_date', label: 'Tanggal Selesai' },
-                                                ].map(({ key, label }) => (
-                                                    <button key={key} onClick={() => setVisibleCols(p => ({ ...p, [key]: !p[key] }))} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left">
+                                                {COL_VISIBLE_DEFS.map(({ key, label }) => (
+                                                    <button key={key} onClick={() => handleToggleColVisibility(key)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left">
                                                         <span className="text-[11px] font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">{label}</span>
                                                         <div className={`w-8 h-4.5 rounded-full transition-all flex items-center px-0.5 ${visibleCols[key] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`}>
                                                             <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all ${visibleCols[key] ? 'translate-x-[14px]' : 'translate-x-0'}`} />
@@ -590,141 +823,56 @@ export default function PeriodImportModal(props) {
                                 </div>
                             </div>
 
+                            {/* Bulk action bar when rows selected */}
+                            {selectedRows.size > 0 && (
+                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 animate-in slide-in-from-top-2 fade-in">
+                                    <span className="text-[10px] font-black text-red-600">{selectedRows.size} baris terpilih</span>
+                                    <div className="flex-1" />
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
+                                    >
+                                        <Trash className="w-3 h-3" />
+                                        Hapus
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedRows(new Set())}
+                                        className="text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-widest hover:text-[var(--color-text)] transition-colors"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
                                 <div className="max-h-[40vh] overflow-auto scrollbar-none">
-                                    {/* Desktop Table */}
-                                    <div className="hidden md:block overflow-x-auto">
-                                        <table className="w-full border-collapse table-fixed">
-                                            <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
-                                                <tr className="border-b border-[var(--color-border)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                                                    <th className="px-4 py-3 text-center w-12">
-                                                        <input type="checkbox" className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" disabled />
-                                                    </th>
-                                                    {visibleCols.period && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
-                                                    {visibleCols.semester && <th className="px-4 py-3 text-center w-24">Semester</th>}
-                                                    {visibleCols.start_date && <th className="px-4 py-3 text-left w-32">Tanggal Mulai</th>}
-                                                    {visibleCols.end_date && <th className="px-4 py-3 text-left w-32">Tanggal Selesai</th>}
-                                                    <th className="px-4 py-3 text-center w-20">Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-[var(--color-border)]/50">
-                                                {visibleRows.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan="6" className="py-16 text-center">
-                                                            <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" />
-                                                        </td>
-                                                    </tr>
-                                                ) : visibleRows.map((r) => {
-                                                    const i = r.originalIdx
-                                                    const status = getRowStatus(r)
-                                                    const rowBg = status === 'error' ? 'bg-red-500/3 border-l-2 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-2 border-l-violet-500' : ''
-                                                    const statusIcon = getStatusIcon(status)
-                                                    return (
-                                                        <tr key={i} className={`hover:bg-[var(--color-surface-alt)]/40 transition-colors ${rowBg}`}>
-                                                            <td className="px-4 py-3">
-                                                                <input type="checkbox" disabled className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
-                                                            </td>
-                                                            {visibleCols.period && (
-                                                                <td className="px-4 py-3">
-                                                                    <EditableCell
-                                                                        rowIdx={i} colKey="academic_year" value={r.academic_year}
-                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                        handleImportCellEdit={handleImportCellEdit}
-                                                                    />
-                                                                </td>
-                                                            )}
-                                                            {visibleCols.semester && (
-                                                                <td className="px-4 py-3 text-center">
-                                                                    <EditableCell
-                                                                        rowIdx={i} colKey="semester" value={r.semester}
-                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                        handleImportCellEdit={handleImportCellEdit}
-                                                                    />
-                                                                </td>
-                                                            )}
-                                                            {visibleCols.start_date && (
-                                                                <td className="px-4 py-3">
-                                                                    <EditableCell
-                                                                        rowIdx={i} colKey="start_date" value={r.start_date}
-                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                        handleImportCellEdit={handleImportCellEdit}
-                                                                    />
-                                                                </td>
-                                                            )}
-                                                            {visibleCols.end_date && (
-                                                                <td className="px-4 py-3">
-                                                                    <EditableCell
-                                                                        rowIdx={i} colKey="end_date" value={r.end_date}
-                                                                        importEditCell={importEditCell} setImportEditCell={setImportEditCell}
-                                                                        handleImportCellEdit={handleImportCellEdit}
-                                                                    />
-                                                                </td>
-                                                            )}
-                                                            <td className="px-4 py-3 text-center">
-                                                                <div className="flex items-center justify-center gap-2">
-                                                                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
-                                                                        <statusIcon.Icon className="w-3.5 h-3.5" />
-                                                                    </span>
+                                    <ReviewDesktopTable
+                                        visibleRows={visibleRows}
+                                        filterIssuesOnly={filterIssuesOnly}
+                                        visibleCols={visibleCols}
+                                        selectedRows={selectedRows}
+                                        onToggleRow={toggleRowSelection}
+                                        importEditCell={importEditCell}
+                                        setImportEditCell={setImportEditCell}
+                                        handleImportCellEdit={handleImportCellEdit}
+                                        handleRemoveImportRow={handleRemoveImportRow}
+                                    />
 
-                                                                    <button
-                                                                        onClick={() => handleRemoveImportRow(i)}
-                                                                        className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center group/del"
-                                                                        title="Hapus Baris"
-                                                                    >
-                                                                        <Trash className="w-3.5 h-3.5 group-hover/del:scale-110 transition-transform" />
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {/* Mobile Card View */}
-                                    <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3">
-                                        {visibleRows.length === 0 ? (
-                                            <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
-                                        ) : visibleRows.map((r) => {
-                                            const i = r.originalIdx
-                                            const status = getRowStatus(r)
-                                            const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
-                                            const statusIcon = getStatusIcon(status)
-                                            return (
-                                                <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
-                                                    <div className="flex items-start justify-between gap-2 mb-2">
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
-                                                                    <statusIcon.Icon className="w-3 h-3" />
-                                                                </span>
-                                                                <span className="font-bold text-[var(--color-text)] text-sm truncate">{r.academic_year || '-'}</span>
-                                                            </div>
-                                                            <div className="flex flex-wrap gap-2 text-[11px] text-[var(--color-text-muted)]">
-                                                                {visibleCols.semester && <span className={`px-2 py-0.5 rounded-lg font-black uppercase tracking-wider ${r.semester === 'Ganjil' ? 'bg-indigo-500/10 text-indigo-600' : 'bg-purple-500/10 text-purple-600'}`}>{r.semester}</span>}
-                                                                {visibleCols.start_date && <span className="font-mono">{r.start_date || '-'}</span>}
-                                                                {visibleCols.end_date && <span className="font-mono">{r.end_date || '-'}</span>}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center justify-end">
-                                                        <button
-                                                            onClick={() => handleRemoveImportRow(i)}
-                                                            className="w-7 h-7 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
-                                                            title="Hapus Baris"
-                                                        >
-                                                            <Trash className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
+                                    <ReviewMobileCards
+                                        visibleRows={visibleRows}
+                                        filterIssuesOnly={filterIssuesOnly}
+                                        visibleCols={visibleCols}
+                                        selectedRows={selectedRows}
+                                        onToggleRow={toggleRowSelection}
+                                        importEditCell={importEditCell}
+                                        setImportEditCell={setImportEditCell}
+                                        handleImportCellEdit={handleImportCellEdit}
+                                        handleRemoveImportRow={handleRemoveImportRow}
+                                    />
                                 </div>
                                 <div className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
                                     <div className="flex items-center gap-4">
-                                        <span>Menampilkan {Math.min(visibleRows.length, 300)} dari {importPreview.length} total baris</span>
+                                        <span>Menampilkan {Math.min(visibleRows.length, MAX_VISIBLE_ROWS)} dari {importPreview.length} total baris</span>
                                         <div className="w-px h-4 bg-[var(--color-border)]" />
                                         <span className="text-emerald-600 flex items-center gap-1.5">
                                             <CheckCircle className="w-2 h-2" />

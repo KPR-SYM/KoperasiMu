@@ -1,11 +1,11 @@
-import { Home, Users, Building2, Bed, DoorOpen, Key } from 'lucide-react'
+import { House, Users, Buildings, Bed, DoorOpen, Key } from '@phosphor-icons/react'
 
 export const dormsImportConfig = {
     moduleName: 'dorms',
     tableName: 'students',
     modalTitle: 'Import Plotting Kamar',
     modalDescription: 'Unggah file Excel/CSV untuk plotting kamar santri secara massal',
-    icon: Home,
+    icon: House,
     iconBg: 'bg-orange-500/10',
     iconColor: 'text-orange-600',
 
@@ -50,7 +50,7 @@ export const dormsImportConfig = {
 
     referenceData: null,
     referenceLabel: 'Data Referensi',
-    referenceIcon: Building2,
+    referenceIcon: Buildings,
 
     columns: [
         { key: 'student_name', label: 'Nama Santri' },

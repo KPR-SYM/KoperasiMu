@@ -1,6 +1,6 @@
 import React, { memo, useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, AlertTriangle, Trash2, Loader2, SlidersHorizontal, ChevronDown, ChevronUp, Minus, Maximize2, Search, X } from 'lucide-react'
+import { CaretLeft, CaretRight, CheckCircle, WarningCircle, Warning, Trash, Spinner, SlidersHorizontal, CaretDown, CaretUp, Minus, ArrowsOutSimple, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { Badge } from '@shared/components'
 import { Select } from '@shared/components'
 import EditableCell from './EditableCell'
@@ -75,7 +75,7 @@ const StepReview = memo(function StepReview({
                         onClick={() => setFilterIssuesOnly(!filterIssuesOnly)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${filterIssuesOnly ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                     >
-                        <AlertTriangle className="w-3.5 h-3.5" /> Filter Error
+                        <Warning className="w-3.5 h-3.5" /> Filter Error
                     </button>
                     <div className="relative" ref={colMenuRef}>
                         <button onClick={() => setShowColMenu(!showColMenu)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
@@ -97,7 +97,7 @@ const StepReview = memo(function StepReview({
 
             {config?.bulkFixConfig && dupeRows > 0 && (
                 <div className="flex items-center gap-3 px-4 py-2 bg-violet-50 border-b border-violet-100">
-                    <AlertCircle className="w-4 h-4 text-violet-600 flex-shrink-0" />
+                    <WarningCircle className="w-4 h-4 text-violet-600 flex-shrink-0" />
                     <span className="text-sm text-violet-700 flex-1">{config.bulkFixConfig.message || `${dupeRows} baris dengan kolom tidak valid`}</span>
                     <Select
                         value={''}
@@ -155,15 +155,15 @@ const StepReview = memo(function StepReview({
                                             ))}
                                             <td className="px-2 py-1 text-center">
                                                 <div className="flex items-center justify-center gap-1">
-                                                    {hasError && <AlertCircle className="w-4 h-4 text-red-500" title={issues.find(i => i.level === 'error')?.messages?.join(', ')} />}
-                                                    {hasWarn && !hasError && <AlertTriangle className="w-4 h-4 text-amber-500" title={issues.find(i => i.level === 'warn')?.messages?.join(', ')} />}
-                                                    {isDupe && !hasError && <AlertCircle className="w-4 h-4 text-violet-500" title="Duplikat" />}
+                                                    {hasError && <WarningCircle className="w-4 h-4 text-red-500" title={issues.find(i => i.level === 'error')?.messages?.join(', ')} />}
+                                                    {hasWarn && !hasError && <Warning className="w-4 h-4 text-amber-500" title={issues.find(i => i.level === 'warn')?.messages?.join(', ')} />}
+                                                    {isDupe && !hasError && <WarningCircle className="w-4 h-4 text-violet-500" title="Duplikat" />}
                                                     <button
                                                         onClick={() => handleRemoveImportRow(originalIdx)}
                                                         className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
                                                         title="Hapus"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Trash className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -180,15 +180,15 @@ const StepReview = memo(function StepReview({
                 <div className="border-t border-gray-100 p-4 bg-gray-50 dark:bg-gray-800/50 max-h-64 overflow-auto">
                     <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-gray-700 dark:text-gray-300">Isu Validasi</span>
-                        <button onClick={() => setImportValidationOpen(false)} className="text-gray-400 hover:text-gray-600"><ChevronUp className="w-4 h-4" /></button>
+                        <button onClick={() => setImportValidationOpen(false)} className="text-gray-400 hover:text-gray-600"><CaretUp className="w-4 h-4" /></button>
                     </div>
                     <ul className="space-y-1 text-sm">
                         {importIssues.slice(0, 50).map((issue, idx) => (
                             <li key={idx} className="flex items-start gap-2 p-2 bg-white dark:bg-gray-800 rounded border">
                                 <span className={`flex-shrink-0 w-4 h-4 mt-0.5 ${issue.level === 'error' ? 'text-red-500' : issue.level === 'dupe' ? 'text-violet-500' : 'text-amber-500'}`}>
-                                    {issue.level === 'error' && <AlertCircle className="w-4 h-4" />}
-                                    {issue.level === 'dupe' && <AlertTriangle className="w-4 h-4" />}
-                                    {issue.level === 'warn' && <AlertTriangle className="w-4 h-4" />}
+                                    {issue.level === 'error' && <WarningCircle className="w-4 h-4" />}
+                                    {issue.level === 'dupe' && <Warning className="w-4 h-4" />}
+                                    {issue.level === 'warn' && <Warning className="w-4 h-4" />}
                                 </span>
                                 <span className="text-gray-600 dark:text-gray-400">Baris {issue.row}: {issue.messages?.join('; ')}</span>
                             </li>
@@ -202,14 +202,14 @@ const StepReview = memo(function StepReview({
                 <div className="flex items-center gap-3">
                     {importing && (
                         <div className="flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                            <Spinner className="w-4 h-4 text-blue-600 animate-spin" />
                             <span className="text-sm text-gray-600">Mengimport {importProgress.done} / {importProgress.total}</span>
                         </div>
                     )}
                 </div>
                 <div className="flex items-center gap-2">
                     <button onClick={onBack} disabled={importing} className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors flex items-center gap-1.5">
-                        <ChevronLeft className="w-4 h-4" /> Kembali
+                        <CaretLeft className="w-4 h-4" /> Kembali
                     </button>
                     <button
                         onClick={handleCommitImport}
@@ -218,13 +218,13 @@ const StepReview = memo(function StepReview({
                     >
                         {importing ? (
                             <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <Spinner className="w-4 h-4 animate-spin" />
                                 Mengimport...
                             </>
                         ) : (
                             <>
                                 Import
-                                <ChevronRight className="w-4 h-4" />
+                                <CaretRight className="w-4 h-4" />
                             </>
                         )}
                     </button>

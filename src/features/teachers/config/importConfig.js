@@ -1,4 +1,4 @@
-import { UserCheck, Building2, Mail, Phone, Calendar, MapPin, IdCard, Briefcase, BookOpen, GraduationCap, Clock, User, Shield } from 'lucide-react'
+import { UserCheck, Buildings, Envelope, Phone, Calendar, MapPin, IdentificationCard, Briefcase, BookOpenText, GraduationCap, Clock, User, Shield } from '@phosphor-icons/react'
 
 export const teachersImportConfig = {
     moduleName: 'teachers',

@@ -1,4 +1,4 @@
-import { UserPlus, Calendar, Phone, Building2, MapPin, User, Tag, School } from 'lucide-react'
+import { UserPlus, Calendar, Phone, Buildings, MapPin, User, Tag, GraduationCap } from '@phosphor-icons/react'
 
 export const enrollmentImportConfig = {
     moduleName: 'enrollment',

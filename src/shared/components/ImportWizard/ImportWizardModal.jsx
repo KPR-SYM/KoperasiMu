@@ -1,5 +1,5 @@
 import React, { memo, useState, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Upload, FileText, Search, X } from 'lucide-react'
+import { CaretLeft, CaretRight, CheckCircle, WarningCircle, Spinner, UploadSimple, FileText, MagnifyingGlass, X } from '@phosphor-icons/react'
 import Modal from '@shared/components/Modal'
 import Select from '@shared/components/Select'
 import { Dropzone } from '@shared/components'

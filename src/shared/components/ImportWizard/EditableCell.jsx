@@ -1,6 +1,6 @@
 import React, { memo, useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Search, X, ChevronDown } from 'lucide-react'
+import { MagnifyingGlass, X, CaretDown } from '@phosphor-icons/react'
 import { Badge } from '@shared/components'
 
 const EditableCell = memo(function EditableCell({

@@ -1,4 +1,4 @@
-import { Calendar, CalendarDays, CalendarRange } from 'lucide-react'
+import { Calendar, CalendarCheck, CalendarBlank } from '@phosphor-icons/react'
 
 export const periodsImportConfig = {
     moduleName: 'periods',
@@ -44,7 +44,7 @@ export const periodsImportConfig = {
 
     referenceData: null,
     referenceLabel: 'Data Referensi',
-    referenceIcon: CalendarDays,
+    referenceIcon: CalendarCheck,
 
     columns: [
         { key: 'academic_year', label: 'Tahun Pelajaran' },

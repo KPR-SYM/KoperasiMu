@@ -1,5 +1,5 @@
 import React, { memo, useState, useEffect, useRef } from 'react'
-import { Download, FileText, ChevronDown, Loader2 } from 'lucide-react'
+import { DownloadSimple, FileText, CaretDown, Spinner } from '@phosphor-icons/react'
 import { Dropzone } from '@shared/components'
 import Select from '@shared/components/Select'
 
@@ -45,7 +45,7 @@ const StepUpload = memo(function StepUpload({
                     onClick={onDownloadTemplate}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 transition-colors"
                 >
-                    <Download className="w-3.5 h-3.5" />
+                    <DownloadSimple className="w-3.5 h-3.5" />
                     Download Template
                 </button>
                 {referenceData?.length > 0 && (
@@ -59,7 +59,7 @@ const StepUpload = memo(function StepUpload({
                             <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-200 dark:bg-gray-600 rounded-full">
                                 {referenceData.length}
                             </span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showRefDropdown ? 'rotate-180' : ''}`} />
+                            <CaretDown className={`w-3.5 h-3.5 transition-transform ${showRefDropdown ? 'rotate-180' : ''}`} />
                         </button>
                         {showRefDropdown && (
                             <div className="absolute top-full left-0 mt-1 w-64 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 p-2">

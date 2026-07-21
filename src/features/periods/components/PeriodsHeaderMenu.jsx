@@ -5,6 +5,7 @@ import {
     ArrowClockwise,
     FileArrowDown,
     FileArrowUp,
+    Star,
 } from "@phosphor-icons/react";
 
 function getPortalContainer(id) {
@@ -31,6 +32,7 @@ const PeriodsHeaderMenu = memo(function PeriodsHeaderMenu({
     onGenerate,
     onOpenArchived,
     fetchArchived,
+    onOpenTemplates,
 }) {
     if (!mounted || !rect) return null;
 
@@ -131,6 +133,29 @@ const PeriodsHeaderMenu = memo(function PeriodsHeaderMenu({
                         </p>
                         <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">
                             Lihat & pulihkan data periode tidak aktif
+                        </p>
+                    </div>
+                </button>
+                <div className="h-px bg-[var(--color-border)] my-1 mx-2" />
+                <p className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                    Template
+                </p>
+                <button
+                    onClick={() => {
+                        onClose();
+                        onOpenTemplates();
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group"
+                >
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Star className="w-3 h-3" />
+                    </div>
+                    <div className="text-left">
+                        <p className="text-[11px] font-black leading-tight">
+                            Template Periode
+                        </p>
+                        <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">
+                            Simpan & terapkan template durasi periode
                         </p>
                     </div>
                 </button>

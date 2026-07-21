@@ -148,12 +148,24 @@ export default function BulkActionsBar({
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 1024 : false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [removingItemId, setRemovingItemId] = useState(null)
+  const [compact, setCompact] = useState(false)
+  const actionsRef = useRef(null)
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024)
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  useEffect(() => {
+    const el = actionsRef.current
+    if (!el) return
+    const check = () => setCompact(el.scrollWidth > el.clientWidth)
+    check()
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [secondaryActions, primaryAction])
 
   if (selectedCount <= 0) return null
 
@@ -204,14 +216,14 @@ export default function BulkActionsBar({
             <div className="w-px h-7 bg-white/10 mx-1 hidden sm:block shrink-0" />
 
             {/* Actions Area */}
-            <div className="flex items-center gap-1.5 flex-1 justify-center">
+            <div ref={actionsRef} className="flex items-center gap-1.5 flex-1 justify-center overflow-hidden">
               {secondaryActions.map((action, idx) => (
                 <button
                   key={idx}
                   onClick={action.onClick}
                   disabled={action.disabled}
-                  title={action.title}
-                  className={`h-8 px-3 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1 whitespace-nowrap ${action.variant === 'destructive'
+                  title={compact ? action.title || action.label : action.title}
+                  className={`h-8 ${compact ? 'w-8 px-0 justify-center' : 'px-3'} rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1 whitespace-nowrap ${action.variant === 'destructive'
                     ? 'bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30'
                     : action.variant === 'primary'
                       ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30'
@@ -219,14 +231,15 @@ export default function BulkActionsBar({
                     } ${action.disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
                 >
                   {action.icon && <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{action.icon}</span>}
-                  <span>{action.label}</span>
+                  <span className={compact ? 'hidden' : ''}>{action.label}</span>
                 </button>
               ))}
               {hasPrimary && (
                 <button
                   onClick={primaryAction.onClick}
                   disabled={primaryAction.disabled || primaryAction.loading}
-                  className={`h-8 px-4 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap shadow-lg ${primaryAction.variant === 'destructive'
+                  title={compact ? primaryAction.title || primaryAction.label : primaryAction.title}
+                  className={`h-8 ${compact ? 'w-8 px-0 justify-center' : 'px-4'} rounded-lg text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap shadow-lg ${primaryAction.variant === 'destructive'
                     ? 'bg-red-500 text-white hover:bg-red-600 shadow-red-500/40'
                     : 'bg-[var(--color-primary)] text-white hover:brightness-110 shadow-[var(--color-primary)]/40'
                     } ${primaryAction.disabled || primaryAction.loading ? 'opacity-50 cursor-wait' : ''}`}
@@ -236,7 +249,7 @@ export default function BulkActionsBar({
                   ) : (
                     <>
                       {primaryAction.icon && <span className="w-3.5 h-3.5 flex items-center justify-center flex-shrink-0">{primaryAction.icon}</span>}
-                      <span>{primaryAction.label}</span>
+                      <span className={compact ? 'hidden' : ''}>{primaryAction.label}</span>
                     </>
                   )}
                 </button>

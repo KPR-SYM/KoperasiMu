@@ -1,4 +1,4 @@
-import { Students, Users, Building2, Phone, Calendar, MapPin, User, FileText, IDCard, Mail, Tag, Hash, Shield } from 'lucide-react'
+import { GraduationCap, Users, Buildings, Phone, Calendar, MapPin, User, FileText, IdentificationCard, Envelope, Tag, Hash, Shield } from '@phosphor-icons/react'
 
 export const studentsImportConfig = {
     moduleName: 'students',
@@ -77,7 +77,7 @@ export const studentsImportConfig = {
 
     referenceData: null,
     referenceLabel: 'Daftar Kelas Valid',
-    referenceIcon: Building2,
+    referenceIcon: Buildings,
 
     columns: [
         { key: 'full_name', label: 'Nama Lengkap' },

@@ -20,7 +20,7 @@ const CONFIRM_COLOR_MAP = {
  *  - icon, iconBg, iconColor           : ikon header
  *  - size, mobileVariant               : diteruskan ke Modal
  *  - confirmText                       : label tombol konfirmasi
- *  - confirmIcon                       : komponen icon Lucide untuk tombol konfirmasi
+ *  - confirmIcon                       : komponen icon untuk tombol konfirmasi
  *  - confirmColor                      : warna tombol konfirmasi (red|amber|orange|emerald|indigo|rose|primary)
  *  - confirmClassName                  : override class tombol konfirmasi (opsional, takes precedence)
  *  - cancelText                        : label tombol batal
