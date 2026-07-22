@@ -185,7 +185,8 @@ export function usePeriodsImportExport({
         } finally {
             setImportLoading(false);
         }
-    }, [addToast, handleError]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [addToast, detectDateFormat, handleError]);
 
     const buildImportPreview = useCallback(async (rawRows, mapping) => {
         // Save mapping template
@@ -244,9 +245,9 @@ export function usePeriodsImportExport({
             setImportDiffPreview(diffMap);
             setImportAliasEditorOpen(false);
 
-            // Validation
+            // Validation — gunakan spread agar tidak mutasi objek langsung
             const issues = [];
-            preview.forEach((row, i) => {
+            const finalPreview = preview.map((row, i) => {
                 const rowIssues = [];
                 if (!row.academic_year) rowIssues.push("Tahun Pelajaran tidak boleh kosong");
                 if (!row.semester) rowIssues.push("Semester tidak boleh kosong");
@@ -257,29 +258,27 @@ export function usePeriodsImportExport({
                     rowIssues.push("Semester harus Ganjil atau Genap");
                 }
 
-                if (
-                    row.academic_year &&
-                    row.semester &&
-                    years.some(
-                        (y) => y.academic_year === row.academic_year && y.semester === row.semester,
-                    )
-                ) {
-                    if (importConflictStrategy === "skip") {
-                        rowIssues.push(`Periode "${row.academic_year} (${row.semester})" sudah ada di database`);
-                        row._isDupe = true;
-                    }
-                }
-                if (importConflictStrategy === "replace") {
-                    delete row._isDupe;
+                const isDupeInDb = row.academic_year && row.semester &&
+                    years.some((y) => y.academic_year === row.academic_year && y.semester === row.semester);
+
+                const isDupe = isDupeInDb && importConflictStrategy === "skip";
+                if (isDupe) {
+                    rowIssues.push(`Periode "${row.academic_year} (${row.semester})" sudah ada di database`);
                 }
 
-                if (rowIssues.length) {
+                const hasError = rowIssues.length > 0;
+                if (hasError) {
                     issues.push({ row: i + 2, level: "error", messages: rowIssues });
-                    row._hasError = true;
                 }
+
+                return {
+                    ...row,
+                    _isDupe: isDupe,
+                    _hasError: hasError,
+                };
             });
 
-            setImportPreview(preview);
+            setImportPreview(finalPreview);
             setImportIssues(issues);
         } finally {
             setImportLoading(false);

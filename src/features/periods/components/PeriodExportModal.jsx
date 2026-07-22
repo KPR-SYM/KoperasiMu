@@ -183,6 +183,7 @@ export default function PeriodExportModal(props) {
         handleExportICS,
         exportError,
         addToast,
+        getExportData,
     } = props
 
     const [fileName, setFileName] = useState(`Data Tahun Pelajaran ${new Date().toISOString().slice(0, 10)}`)
@@ -253,7 +254,7 @@ export default function PeriodExportModal(props) {
     }, [])
 
     const handleDragStart = useCallback((idx) => { setDragIdx(idx) }, [])
-    const handleDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }, [])
+    const handleDragOver = useCallback((_idx) => { /* drag-over tracking: child already calls e.preventDefault() */ }, [])
     const handleDrop = useCallback((idx) => {
         if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
         setDragIdx(null)
@@ -488,9 +489,9 @@ export default function PeriodExportModal(props) {
                                 aria-label="Nama file export"
                                 className="w-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-xs font-bold focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all placeholder:opacity-50 pr-20"
                             />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)]">
-                                    Multi Format
-                                </div>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)]">
+                                Multi Format
+                            </div>
                         </div>
 
                         <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)]/60 border border-[var(--color-border)] space-y-4">
@@ -518,50 +519,50 @@ export default function PeriodExportModal(props) {
                             <hr className="border-t border-dashed border-[var(--color-border)]/50" />
 
                             {exportFormat === 'pdf' && (
-                            <>
-                            <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--color-text-muted)] opacity-50">Opsi PDF</p>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                                        <ArrowsLeftRight />
-                                        Orientasi
-                                    </label>
-                                    <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]" role="radiogroup" aria-label="Orientasi PDF">
-                                        {ORIENTATION_OPTIONS.map(opt => (
-                                            <button
-                                                key={opt.v}
-                                                onClick={() => setPdfOrientation(opt.v)}
-                                                role="radio"
-                                                aria-checked={pdfOrientation === opt.v}
-                                                className={`flex-1 py-1 rounded-md text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${pdfOrientation === opt.v ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
-                                            >
-                                                <opt.icon className="text-[8px]" />
-                                                {opt.l}
-                                            </button>
-                                        ))}
+                                <>
+                                    <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--color-text-muted)] opacity-50">Opsi PDF</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                                <ArrowsLeftRight />
+                                                Orientasi
+                                            </label>
+                                            <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]" role="radiogroup" aria-label="Orientasi PDF">
+                                                {ORIENTATION_OPTIONS.map(opt => (
+                                                    <button
+                                                        key={opt.v}
+                                                        onClick={() => setPdfOrientation(opt.v)}
+                                                        role="radio"
+                                                        aria-checked={pdfOrientation === opt.v}
+                                                        className={`flex-1 py-1 rounded-md text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1.5 ${pdfOrientation === opt.v ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                                                    >
+                                                        <opt.icon className="text-[8px]" />
+                                                        {opt.l}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                                <FileText />
+                                                Template
+                                            </label>
+                                            <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]" role="radiogroup" aria-label="Template PDF">
+                                                {PDF_TEMPLATE_OPTIONS.map(opt => (
+                                                    <button
+                                                        key={opt.v}
+                                                        onClick={() => setExportTemplate(opt.v)}
+                                                        role="radio"
+                                                        aria-checked={exportTemplate === opt.v}
+                                                        className={`flex-1 py-1 rounded-md text-[9px] font-black uppercase transition-all ${exportTemplate === opt.v ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                                                    >
+                                                        {opt.l}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                                        <FileText />
-                                        Template
-                                    </label>
-                                    <div className="flex gap-1 bg-[var(--color-surface)] p-1 rounded-lg border border-[var(--color-border)]" role="radiogroup" aria-label="Template PDF">
-                                        {PDF_TEMPLATE_OPTIONS.map(opt => (
-                                            <button
-                                                key={opt.v}
-                                                onClick={() => setExportTemplate(opt.v)}
-                                                role="radio"
-                                                aria-checked={exportTemplate === opt.v}
-                                                className={`flex-1 py-1 rounded-md text-[9px] font-black uppercase transition-all ${exportTemplate === opt.v ? 'bg-[var(--color-primary)] text-white shadow-sm' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
-                                            >
-                                                {opt.l}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                            </>
+                                </>
                             )}
                         </div>
                     </div>

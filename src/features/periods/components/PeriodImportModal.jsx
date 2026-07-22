@@ -11,7 +11,7 @@ const STEPS = [
 ]
 
 const TEMPLATE_COLS = [
-    { l: 'A', k: 'period', n: 'Tahun Pelajaran', w: 'w-[25%]' },
+    { l: 'A', k: 'academic_year', n: 'Tahun Pelajaran', w: 'w-[25%]' },
     { l: 'B', k: 'semester', n: 'Semester', w: 'w-[25%]' },
     { l: 'C', k: 'start_date', n: 'Tanggal Mulai', w: 'w-[25%]' },
     { l: 'D', k: 'end_date', n: 'Tanggal Selesai', w: 'w-[25%]' },
@@ -240,7 +240,7 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                             />
                         </th>
                         <th className="px-2 py-3 text-center w-10 text-[9px]">#</th>
-                        {visibleCols.period && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
+                        {visibleCols.academic_year && <th className="px-4 py-3 text-left">Tahun Pelajaran</th>}
                         {visibleCols.semester && <th className="px-4 py-3 text-center w-24">Semester</th>}
                         {visibleCols.start_date && <th className="px-4 py-3 text-left w-32">Tanggal Mulai</th>}
                         {visibleCols.end_date && <th className="px-4 py-3 text-left w-32">Tanggal Selesai</th>}
@@ -272,7 +272,7 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                                     />
                                 </td>
                                 <td className="px-2 py-3 text-center text-[9px] font-bold text-[var(--color-text-muted)] opacity-50">{rowNum}</td>
-                                {visibleCols.period && (
+                                {visibleCols.academic_year && (
                                     <td className="px-4 py-3">
                                         <EditableCell
                                             rowIdx={i} colKey="academic_year" value={r.academic_year}
@@ -337,28 +337,28 @@ const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCo
         <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3">
             {visibleRows.length === 0 ? (
                 <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
-                    ) : visibleRows.map((r) => {
-                        const i = r.originalIdx
-                        const rowNum = i + 1
-                        const status = getRowStatus(r)
-                        const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
-                        const statusIcon = getStatusIcon(status)
-                        return (
-                            <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
-                                <div className="flex items-start justify-between gap-2 mb-2">
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
-                                            className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
-                                            checked={selectedRows.has(i)}
-                                            onChange={() => onToggleRow(i)}
-                                        />
-                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 min-w-[16px]">{rowNum}</span>
-                                        <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
-                                            <statusIcon.Icon className="w-3 h-3" />
-                                        </span>
-                                    </div>
+            ) : visibleRows.map((r) => {
+                const i = r.originalIdx
+                const rowNum = i + 1
+                const status = getRowStatus(r)
+                const rowBg = status === 'error' ? 'bg-red-500/3 border-l-4 border-l-red-500' : status === 'dupe' ? 'bg-violet-500/3 border-l-4 border-l-violet-500' : ''
+                const statusIcon = getStatusIcon(status)
+                return (
+                    <div key={i} className={`rounded-xl p-3 transition-colors ${rowBg}`}>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
+                                    className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                    checked={selectedRows.has(i)}
+                                    onChange={() => onToggleRow(i)}
+                                />
+                                <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 min-w-[16px]">{rowNum}</span>
+                                <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full ${statusIcon.cls} ${statusIcon.extra}`}>
+                                    <statusIcon.Icon className="w-3 h-3" />
+                                </span>
+                            </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1 mb-1">
                                     <span className="font-bold text-[var(--color-text)] text-sm truncate">{r.academic_year || '-'}</span>
@@ -444,7 +444,7 @@ export default function PeriodImportModal(props) {
         importAliasEditorOpen,
         setImportAliasEditorOpen,
         importDiffPreview = [],
-        lastImportedIds,
+        lastImportedIds = [],
         setLastImportedIds,
         handleUndoImport
     } = props
@@ -455,7 +455,7 @@ export default function PeriodImportModal(props) {
     const colMenuBtnRef = useRef(null)
     const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
     const [visibleCols, setVisibleCols] = useState({
-        period: true,
+        academic_year: true,
         semester: true,
         start_date: true,
         end_date: true,
@@ -509,7 +509,7 @@ export default function PeriodImportModal(props) {
 
     const previewWithIdx = useMemo(() =>
         importPreview.map((r, i) => ({ ...r, originalIdx: i }))
-    , [importPreview])
+        , [importPreview])
 
     const filteredPreview = useMemo(() => {
         let result = previewWithIdx
@@ -526,7 +526,7 @@ export default function PeriodImportModal(props) {
 
     const displayPreview = useMemo(() =>
         filteredPreview.filter(r => !pendingDeletions.has(r.originalIdx))
-    , [filteredPreview, pendingDeletions])
+        , [filteredPreview, pendingDeletions])
 
     const visibleRows = useMemo(() => displayPreview.slice(0, visibleCount), [displayPreview, visibleCount])
 
@@ -544,7 +544,7 @@ export default function PeriodImportModal(props) {
 
     const fileHeaderOptions = useMemo(() =>
         (importFileHeaders || []).map(h => ({ id: h, name: h }))
-    , [importFileHeaders])
+        , [importFileHeaders])
 
     const handleProcessFile = useCallback((file) => {
         setFileSizeError('')
@@ -666,69 +666,69 @@ export default function PeriodImportModal(props) {
     if (!isOpen) return null
 
     const importMappingContent = (<div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
-                        {SYSTEM_COLS.map(sys => {
-                            const mapped = importColumnMapping[sys.key]
-                            return (
-                                <div key={sys.key} className={`p-2.5 rounded-xl border transition-all ${mapped ? 'bg-emerald-500/4 border-emerald-500/20' : 'bg-[var(--color-surface-alt)]/50 border-[var(--color-border)]'}`}>
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex flex-col w-[130px] shrink-0">
-                                            <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
-                                                {sys.label}
-                                                {REQUIRED_COL_KEYS.includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
-                                            </span>
-                                            <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
-                                        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
+            {SYSTEM_COLS.map(sys => {
+                const mapped = importColumnMapping[sys.key]
+                return (
+                    <div key={sys.key} className={`p-2.5 rounded-xl border transition-all ${mapped ? 'bg-emerald-500/4 border-emerald-500/20' : 'bg-[var(--color-surface-alt)]/50 border-[var(--color-border)]'}`}>
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex flex-col w-[130px] shrink-0">
+                                <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
+                                    {sys.label}
+                                    {REQUIRED_COL_KEYS.includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
+                                </span>
+                                <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
+                            </div>
 
-                                        <div className="flex items-center gap-1.5 opacity-30">
-                                            <ArrowRight className={`w-2 h-2 ${mapped ? 'text-emerald-500 opacity-100' : ''}`} />
-                                        </div>
+                            <div className="flex items-center gap-1.5 opacity-30">
+                                <ArrowRight className={`w-2 h-2 ${mapped ? 'text-emerald-500 opacity-100' : ''}`} />
+                            </div>
 
-                                        <div className="flex-1 min-w-0 relative">
-                                            <Select
-                                                small
-                                                value={mapped || ''}
-                                                onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}
-                                                options={fileHeaderOptions}
-                                                placeholder="-- Lewati Kolom --"
-                                                extraOption={{ id: '', name: '-- Lewati Kolom --' }}
-                                                status={mapped ? 'success' : 'normal'}
-                                                searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-1">
-                        <button
-                            onClick={() => setImportAliasEditorOpen(v => !v)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${importAliasEditorOpen ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
-                        >
-                            <PencilSimple className="w-3 h-3" />
-                            Alias Kolom
-                        </button>
-                    </div>
-                    {importAliasEditorOpen && (
-                        <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Sesuaikan Nama Kolom Kustom</p>
-                            {SYSTEM_COLS.map(sys => (
-                                <div key={sys.key} className="flex items-center gap-2">
-                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] w-28 shrink-0 truncate" title={sys.label}>{sys.label}</span>
-                                    <input
-                                        type="text"
-                                        value={importColumnAliases[sys.key] || ''}
-                                        onChange={e => setImportColumnAliases(prev => ({ ...prev, [sys.key]: e.target.value }))}
-                                        placeholder="Nama kolom di file (kosongkan untuk auto-match)"
-                                        className="flex-1 h-7 px-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold outline-none focus:border-[var(--color-primary)] transition-all placeholder:text-[var(--color-text-muted)] placeholder:opacity-30"
-                                    />
-                                </div>
-                            ))}
+                            <div className="flex-1 min-w-0 relative">
+                                <Select
+                                    small
+                                    value={mapped || ''}
+                                    onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}
+                                    options={fileHeaderOptions}
+                                    placeholder="-- Lewati Kolom --"
+                                    extraOption={{ id: '', name: '-- Lewati Kolom --' }}
+                                    status={mapped ? 'success' : 'normal'}
+                                    searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
+                                />
+                            </div>
                         </div>
-                    )}
-                    </div>)
+                    </div>
+                )
+            })}
+        </div>
+
+        <div className="flex items-center gap-2 pt-1">
+            <button
+                onClick={() => setImportAliasEditorOpen(v => !v)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${importAliasEditorOpen ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+            >
+                <PencilSimple className="w-3 h-3" />
+                Alias Kolom
+            </button>
+        </div>
+        {importAliasEditorOpen && (
+            <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Sesuaikan Nama Kolom Kustom</p>
+                {SYSTEM_COLS.map(sys => (
+                    <div key={sys.key} className="flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-[var(--color-text-muted)] w-28 shrink-0 truncate" title={sys.label}>{sys.label}</span>
+                        <input
+                            type="text"
+                            value={importColumnAliases[sys.key] || ''}
+                            onChange={e => setImportColumnAliases(prev => ({ ...prev, [sys.key]: e.target.value }))}
+                            placeholder="Nama kolom di file (kosongkan untuk auto-match)"
+                            className="flex-1 h-7 px-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold outline-none focus:border-[var(--color-primary)] transition-all placeholder:text-[var(--color-text-muted)] placeholder:opacity-30"
+                        />
+                    </div>
+                ))}
+            </div>
+        )}
+    </div>)
 
     const successScreen = (
         <div className="flex flex-col items-center justify-center py-10 gap-5 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -748,450 +748,450 @@ export default function PeriodImportModal(props) {
     )
 
     const importSteps = (<>
-            {/* Header Progress Steppers */}
-            <div className="flex items-center justify-center gap-3 mb-6">
-                {STEPS.map((s) => (
-                    <React.Fragment key={s.step}>
-                        <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all shadow-sm
+        {/* Header Progress Steppers */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+            {STEPS.map((s) => (
+                <React.Fragment key={s.step}>
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black transition-all shadow-sm
                                 ${importStep >= s.step ? 'bg-[var(--color-primary)] text-white scale-110' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border border-[var(--color-border)] opacity-40'}`}>
-                                {importStep > s.step ? <Check className="w-3 h-3" /> : s.step}
+                            {importStep > s.step ? <Check className="w-3 h-3" /> : s.step}
+                        </div>
+                        <div className="flex flex-col">
+                            <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-wider leading-none ${importStep >= s.step ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-50'}`}>{s.label}</span>
+                            <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 uppercase tracking-tight mt-1">{s.desc}</span>
+                        </div>
+                    </div>
+                    {s.step < 3 && <div className={`w-6 h-0.5 rounded-full transition-all ${importStep > s.step ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)] opacity-30'}`} />}
+                </React.Fragment>
+            ))}
+        </div>
+
+        {/* Consolidated File Status Bar (SaaS Style) */}
+        {importFileName && (
+            <div className="flex items-center justify-between gap-4 mb-6 px-1 animate-in fade-in slide-in-from-top-4 duration-700">
+                <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 shrink-0 shadow-sm">
+                        <FileText className="w-3 h-3" />
+                        <span className="text-[10.5px] font-black truncate max-w-[240px]">{importFileName}</span>
+                    </div>
+                    {importPreview.length > 0 && (
+                        <div className="px-3.5 py-1.5 rounded-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] font-black shadow-sm shrink-0">
+                            {importPreview.length} baris
+                        </div>
+                    )}
+                </div>
+
+                <button
+                    onClick={handleImportClick}
+                    className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-red-500 hover:border-red-500/30 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm group"
+                >
+                    <ArrowsLeftRight className="w-3 h-3 group-hover:rotate-180 transition-transform duration-500" />
+                    Ganti File
+                </button>
+            </div>
+        )}
+
+        {importStep === 1 && (
+            <div key={importStep} className="space-y-2.5 animate-in fade-in slide-in-from-right-4 duration-300">
+                <Dropzone
+                    onFileSelect={handleProcessFile}
+                    dragOver={importDragOver}
+                    setDragOver={setImportDragOver}
+                />
+                {fileSizeError && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 text-red-600 text-[10px] font-bold animate-in fade-in slide-in-from-top-2 duration-300">
+                        <WarningCircle className="w-3 h-3 shrink-0" />
+                        {fileSizeError}
+                    </div>
+                )}
+
+                {/* --- Reference & Guidance Rows --- */}
+                <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-[var(--color-surface-alt)]/50 rounded-2xl border border-[var(--color-border)] shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                                <Calendar className="w-3 h-3" />
                             </div>
                             <div className="flex flex-col">
-                                <span className={`text-[10px] md:text-[11px] font-black uppercase tracking-wider leading-none ${importStep >= s.step ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-50'}`}>{s.label}</span>
-                                <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 uppercase tracking-tight mt-1">{s.desc}</span>
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text)]">Format Data Valid</span>
+                                <span className="text-[8px] font-bold text-emerald-600">Pastikan format tanggal YYYY-MM-DD</span>
                             </div>
                         </div>
-                        {s.step < 3 && <div className={`w-6 h-0.5 rounded-full transition-all ${importStep > s.step ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)] opacity-30'}`} />}
-                    </React.Fragment>
-                ))}
-            </div>
 
-            {/* Consolidated File Status Bar (SaaS Style) */}
-            {importFileName && (
-                <div className="flex items-center justify-between gap-4 mb-6 px-1 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 shrink-0 shadow-sm">
-                            <FileText className="w-3 h-3" />
-                            <span className="text-[10.5px] font-black truncate max-w-[240px]">{importFileName}</span>
-                        </div>
-                        {importPreview.length > 0 && (
-                            <div className="px-3.5 py-1.5 rounded-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[10px] font-black shadow-sm shrink-0">
-                                {importPreview.length} baris
-                            </div>
-                        )}
+                        <button
+                            onClick={handleDownloadTemplate}
+                            className="shrink-0 h-9 px-4 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-600 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-emerald-500/20"
+                        >
+                            <DownloadSimple /> Download Template
+                        </button>
                     </div>
 
-                    <button
-                        onClick={handleImportClick}
-                        className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-red-500 hover:border-red-500/30 text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm group"
-                    >
-                        <ArrowsLeftRight className="w-3 h-3 group-hover:rotate-180 transition-transform duration-500" />
-                        Ganti File
-                    </button>
-                </div>
-            )}
-
-            {importStep === 1 && (
-                <div key={importStep} className="space-y-2.5 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <Dropzone
-                        onFileSelect={handleProcessFile}
-                        dragOver={importDragOver}
-                        setDragOver={setImportDragOver}
-                    />
-                    {fileSizeError && (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 text-red-600 text-[10px] font-bold animate-in fade-in slide-in-from-top-2 duration-300">
-                            <WarningCircle className="w-3 h-3 shrink-0" />
-                            {fileSizeError}
-                        </div>
-                    )}
-
-                    {/* --- Reference & Guidance Rows --- */}
-                    <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-[var(--color-surface-alt)]/50 rounded-2xl border border-[var(--color-border)] shadow-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600">
-                                    <Calendar className="w-3 h-3" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text)]">Format Data Valid</span>
-                                    <span className="text-[8px] font-bold text-emerald-600">Pastikan format tanggal YYYY-MM-DD</span>
-                                </div>
+                    <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm flex flex-col">
+                        <div className="px-4 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <List className="text-[var(--color-primary)] w-3 h-3" />
+                                <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)]">Visualisasi Struktur Kolom Excel</span>
                             </div>
-
-                            <button
-                                onClick={handleDownloadTemplate}
-                                className="shrink-0 h-9 px-4 rounded-xl bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-600 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-emerald-500/20"
-                            >
-                                <DownloadSimple /> Download Template
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                <span className="relative flex h-1.5 w-1.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-50"></span>
+                                </span>
+                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Auto-Match Active</span>
+                            </div>
                         </div>
 
-                        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm flex flex-col">
-                            <div className="px-4 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <List className="text-[var(--color-primary)] w-3 h-3" />
-                                    <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)]">Visualisasi Struktur Kolom Excel</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span className="relative flex h-1.5 w-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-50"></span>
-                                    </span>
-                                    <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">Auto-Match Active</span>
-                                </div>
-                            </div>
-
-                            <div className="overflow-hidden bg-[var(--color-surface-alt)]/10">
-                                <table className="w-full border-collapse table-fixed">
-                                    <thead>
-                                        <tr className="bg-[var(--color-surface)]">
-                                            <th className="w-8 border-r border-b border-[var(--color-border)]"></th>
-                                            {TEMPLATE_COLS.map((col, i) => (
-                                                <th key={i} className={`px-2 py-1.5 border-r border-b border-[var(--color-border)] text-left ${col.w} min-w-0 overflow-hidden`}>
-                                                    <div className="flex flex-col min-w-0">
-                                                        <div className="flex items-center justify-between gap-1 min-w-0">
-                                                            <span className="text-[9px] font-black text-[var(--color-text)] shrink-0">{col.l}</span>
-                                                            <span className="text-[7.5px] font-bold text-emerald-600 opacity-80 truncate" title={col.k}>({col.k})</span>
-                                                        </div>
-                                                        <div className="h-0.5 w-full bg-emerald-500/20 rounded-full mt-1"></div>
+                        <div className="overflow-hidden bg-[var(--color-surface-alt)]/10">
+                            <table className="w-full border-collapse table-fixed">
+                                <thead>
+                                    <tr className="bg-[var(--color-surface)]">
+                                        <th className="w-8 border-r border-b border-[var(--color-border)]"></th>
+                                        {TEMPLATE_COLS.map((col, i) => (
+                                            <th key={i} className={`px-2 py-1.5 border-r border-b border-[var(--color-border)] text-left ${col.w} min-w-0 overflow-hidden`}>
+                                                <div className="flex flex-col min-w-0">
+                                                    <div className="flex items-center justify-between gap-1 min-w-0">
+                                                        <span className="text-[9px] font-black text-[var(--color-text)] shrink-0">{col.l}</span>
+                                                        <span className="text-[7.5px] font-bold text-emerald-600 opacity-80 truncate" title={col.k}>({col.k})</span>
                                                     </div>
-                                                </th>
+                                                    <div className="h-0.5 w-full bg-emerald-500/20 rounded-full mt-1"></div>
+                                                </div>
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {SAMPLE_ROWS.map((row, rIdx) => (
+                                        <tr key={rIdx}>
+                                            <td className="bg-[var(--color-surface-alt)] border-r border-b border-[var(--color-border)] text-[8px] font-bold text-[var(--color-text-muted)] text-center py-1">
+                                                {rIdx + 1}
+                                            </td>
+                                            {row.map((cell, cIdx) => (
+                                                <td key={cIdx} className="px-2 py-1 border-r border-b border-[var(--color-border)] bg-[var(--color-surface)]/40 overflow-hidden">
+                                                    <span className="text-[9px] font-medium text-[var(--color-text)] opacity-70 truncate block" title={cell}>{cell}</span>
+                                                </td>
                                             ))}
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {SAMPLE_ROWS.map((row, rIdx) => (
-                                            <tr key={rIdx}>
-                                                <td className="bg-[var(--color-surface-alt)] border-r border-b border-[var(--color-border)] text-[8px] font-bold text-[var(--color-text-muted)] text-center py-1">
-                                                    {rIdx + 1}
-                                                </td>
-                                                {row.map((cell, cIdx) => (
-                                                    <td key={cIdx} className="px-2 py-1 border-r border-b border-[var(--color-border)] bg-[var(--color-surface)]/40 overflow-hidden">
-                                                        <span className="text-[9px] font-medium text-[var(--color-text)] opacity-70 truncate block" title={cell}>{cell}</span>
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div className="px-4 py-1.5 bg-[var(--color-surface)] border-t border-[var(--color-border)] flex items-center justify-between">
-                                <p className="text-[8px] text-[var(--color-text-muted)] font-medium italic opacity-60">
-                                    * Gunakan judul kolom yang mendekati nama di atas untuk pencocokan otomatis.
-                                </p>
-                                <div className="flex gap-1.5">
-                                    {ACCEPTED_EXTENSIONS.map(ext => (
-                                        <span key={ext} className="text-[7.5px] font-black text-[var(--color-primary)] px-1 py-0.5 bg-[var(--color-primary)]/5 rounded border border-[var(--color-primary)]/10">{ext}</span>
                                     ))}
-                                </div>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="px-4 py-1.5 bg-[var(--color-surface)] border-t border-[var(--color-border)] flex items-center justify-between">
+                            <p className="text-[8px] text-[var(--color-text-muted)] font-medium italic opacity-60">
+                                * Gunakan judul kolom yang mendekati nama di atas untuk pencocokan otomatis.
+                            </p>
+                            <div className="flex gap-1.5">
+                                {ACCEPTED_EXTENSIONS.map(ext => (
+                                    <span key={ext} className="text-[7.5px] font-black text-[var(--color-primary)] px-1 py-0.5 bg-[var(--color-primary)]/5 rounded border border-[var(--color-primary)]/10">{ext}</span>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </div>
-            )}
+            </div>
+        )}
 
-            {importStep === 2 && (
-                <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Cocokkan Kolom File</span>
-                        <span className="text-[9px] font-bold py-1 px-2 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
-                            {importFileHeaders.length} kolom ditemukan
+        {importStep === 2 && (
+            <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Cocokkan Kolom File</span>
+                    <span className="text-[9px] font-bold py-1 px-2 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
+                        {importFileHeaders.length} kolom ditemukan
+                    </span>
+                    {importDetectedDateFormat && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[8px] font-black uppercase tracking-wider ml-2">
+                            <Calendar className="w-2.5 h-2.5" />
+                            Format: {importDetectedDateFormat}
                         </span>
-                        {importDetectedDateFormat && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[8px] font-black uppercase tracking-wider ml-2">
-                                <Calendar className="w-2.5 h-2.5" />
-                                Format: {importDetectedDateFormat}
-                            </span>
-                        )}
-                    </div>
-
-                    {importFileHeaders.length === 0 ? (
-                        <div className="py-8">
-                            <EmptyState icon={FileText} title="Belum ada data kolom" description="Upload file Excel/CSV terlebih dahulu untuk melihat mapping kolom" color="slate" variant="plain" />
-                        </div>
-                    ) : importMappingContent
-                    }
-                </div>
-            )}
-
-            {importStep === 3 && (
-                <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                    {importLoading ? (
-                        <ReviewTableSkeleton />
-                    ) : (
-                        <div className="space-y-4">
-                            {/* Minimal Status & Action Bar */}
-                            <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] shadow-sm">
-                                {/* Stats */}
-                                <div className="flex items-center gap-2 p-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]/50">
-                                    {STAT_DEFS.map((stat) => (
-                                        <div key={stat.key} className={`flex items-center gap-2 px-2 py-1 rounded-lg ${stat.bg} ${stat.color} transition-all`} title={stat.label}>
-                                            <stat.icon className="text-[10px] opacity-70" />
-                                            <span className="text-[11px] font-black">{statValues[stat.key]}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-0.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-0.5">
-                                        {[
-                                            { id: 'skip', label: 'Lewati', short: 'Lwt', icon: Copy },
-                                            { id: 'replace', label: 'Timpa', short: 'Tmp', icon: ArrowClockwise },
-                                            { id: 'keep', label: 'Biarkan', short: 'Brk', icon: Check },
-                                        ].map(strat => (
-                                            <button
-                                                key={strat.id}
-                                                onClick={() => setImportConflictStrategy(strat.id)}
-                                                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all
-                                                    ${importConflictStrategy === strat.id
-                                                        ? 'bg-violet-500 text-white shadow-sm'
-                                                        : 'text-[var(--color-text-muted)] hover:text-violet-600 hover:bg-violet-500/5'}`}
-                                                title={strat.label}
-                                            >
-                                                <strat.icon className="w-3 h-3" />
-                                                <span className="hidden sm:inline">{strat.label}</span>
-                                                <span className="sm:hidden">{strat.short}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        onClick={handleToggleFilterIssues}
-                                        className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
-                                            ${filterIssuesOnly
-                                                ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20'
-                                                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}
-                                    >
-                                        {filterIssuesOnly ? <Check className="w-3 h-3" /> : <SlidersHorizontal className="w-3 h-3" />}
-                                        <span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span>
-                                    </button>
-
-                                    {/* Column Visibility Toggle */}
-                                    <div className="relative">
-                                        <button
-                                            ref={colMenuBtnRef}
-                                            onClick={handleToggleColMenu}
-                                            title="Atur tampilan kolom"
-                                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${colMenuOpen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
-                                        >
-                                            <SquaresFour />
-                                        </button>
-                                        {colMenuOpen && createPortal(
-                                            <div className={`fixed z-[9999] w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'}`}
-                                                style={{ top: colMenuPos.top, right: colMenuPos.right }}>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Atur Kolom</p>
-                                                {COL_VISIBLE_DEFS.map(({ key, label }) => (
-                                                    <button key={key} onClick={() => handleToggleColVisibility(key)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left">
-                                                        <span className="text-[11px] font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">{label}</span>
-                                                        <div className={`w-8 h-4.5 rounded-full transition-all flex items-center px-0.5 ${visibleCols[key] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`}>
-                                                            <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all ${visibleCols[key] ? 'translate-x-[14px]' : 'translate-x-0'}`} />
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>,
-                                            document.body
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Diff Preview Section */}
-                            {diffUpdates.length > 0 && (
-                                <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
-                                    <button
-                                        type="button"
-                                        onClick={() => setImportDiffOpen(v => !v)}
-                                        className="w-full px-3 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-border)]/30 transition-colors cursor-pointer"
-                                    >
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
-                                            <CaretDown className={`w-2 h-2 transition-transform ${importDiffOpen ? '' : '-rotate-90'}`} />
-                                            <GitDiff className="w-3 h-3 text-amber-500" />
-                                            Perubahan Data ({diffUpdates.length} baris akan ditimpa)
-                                        </span>
-                                        <span className="text-[8px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full">update</span>
-                                    </button>
-                                    {importDiffOpen && (
-                                        <div className="max-h-[180px] overflow-auto divide-y divide-[var(--color-border)]/50">
-                                            {diffUpdates.map((diff, idx) => (
-                                                <div key={idx} className="px-3 py-2.5 space-y-1.5 hover:bg-[var(--color-surface-alt)]/30 transition-colors">
-                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--color-text)]">
-                                                        <span>{diff.academic_year}</span>
-                                                        <span className="px-1.5 py-0.5 rounded bg-[var(--color-surface-alt)] text-[8px] font-black text-[var(--color-text-muted)]">{diff.semester}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-[9px] font-bold pl-2">
-                                                        <div className="flex-1 space-y-0.5">
-                                                            <span className="text-[8px] font-black uppercase tracking-wider text-red-500/60">Existing</span>
-                                                            {diff.existing ? (
-                                                                <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
-                                                                    <span>{diff.existing.start_date}</span>
-                                                                    <ArrowFatRight className="w-2 h-2 opacity-40" />
-                                                                    <span>{diff.existing.end_date}</span>
-                                                                    {diff.existing.is_active && <span className="px-1 py-0.5 rounded bg-green-500/10 text-green-600 text-[7px] font-black">Aktif</span>}
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-red-500/40 italic">-- tidak ada --</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="flex-1 space-y-0.5">
-                                                            <span className="text-[8px] font-black uppercase tracking-wider text-emerald-500/60">Incoming</span>
-                                                            <div className="flex items-center gap-2 text-[var(--color-text)]">
-                                                                <span>{diff.incoming.start_date}</span>
-                                                                <ArrowFatRight className="w-2 h-2 opacity-40" />
-                                                                <span>{diff.incoming.end_date}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Search filter */}
-                            <div className="relative">
-                                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] opacity-40" />
-                                <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
-                                    placeholder="Cari tahun pelajaran atau semester..."
-                                    className="w-full h-9 pl-8 pr-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => { setSearchQuery(''); setVisibleCount(PAGE_SIZE) }}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[var(--color-surface-alt)] flex items-center justify-center text-[8px] font-black text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all"
-                                    >
-                                        X
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Bulk action bar when rows selected */}
-                            {selectedRows.size > 0 && (
-                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 animate-in slide-in-from-top-2 fade-in">
-                                    <span className="text-[10px] font-black text-red-600">{selectedRows.size} baris terpilih</span>
-                                    <div className="flex-1" />
-                                    <button
-                                        onClick={handleBulkDelete}
-                                        className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
-                                    >
-                                        <Trash className="w-3 h-3" />
-                                        Hapus
-                                    </button>
-                                    <button
-                                        onClick={() => setSelectedRows(new Set())}
-                                        className="text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-widest hover:text-[var(--color-text)] transition-colors"
-                                    >
-                                        Batal
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Undo bar when rows pending deletion */}
-                            {pendingDeletions.size > 0 && (
-                                <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in slide-in-from-top-2 fade-in">
-                                    <span className="text-[10px] font-black text-amber-600">{pendingDeletions.size} baris akan dihapus otomatis</span>
-                                    <div className="flex-1" />
-                                    <button
-                                        onClick={undoDeletions}
-                                        className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
-                                    >
-                                        <ArrowClockwise className="w-3 h-3" />
-                                        Undo
-                                    </button>
-                                </div>
-                            )}
-
-                            <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
-                                <div className="max-h-[40vh] overflow-auto scrollbar-none">
-                                    <ReviewDesktopTable
-                                        visibleRows={visibleRows}
-                                        filterIssuesOnly={filterIssuesOnly}
-                                        visibleCols={visibleCols}
-                                        selectedRows={selectedRows}
-                                        onToggleRow={toggleRowSelection}
-                                        importEditCell={importEditCell}
-                                        setImportEditCell={setImportEditCell}
-                                        handleImportCellEdit={handleImportCellEdit}
-                                        handleRemoveImportRow={handleDeleteRow}
-                                    />
-
-                                    <ReviewMobileCards
-                                        visibleRows={visibleRows}
-                                        filterIssuesOnly={filterIssuesOnly}
-                                        visibleCols={visibleCols}
-                                        selectedRows={selectedRows}
-                                        onToggleRow={toggleRowSelection}
-                                        importEditCell={importEditCell}
-                                        setImportEditCell={setImportEditCell}
-                                        handleImportCellEdit={handleImportCellEdit}
-                                        handleRemoveImportRow={handleDeleteRow}
-                                    />
-                                </div>
-                                {displayPreview.length > visibleCount && (
-                                    <div className="px-4 py-2 border-t border-[var(--color-border)]">
-                                        <button
-                                            onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
-                                            className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all active:scale-[0.99]"
-                                        >
-                                            Muat {Math.min(PAGE_SIZE, displayPreview.length - visibleCount)} baris lagi ({displayPreview.length - visibleCount} tersisa) <CaretDown className="w-2 h-2 inline-block ml-1" />
-                                        </button>
-                                    </div>
-                                )}
-                                <div className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
-                                    <div className="flex items-center gap-4">
-                                        <span>Menampilkan {visibleRows.length} dari {displayPreview.length} baris (difilter)</span>
-                                        <div className="w-px h-4 bg-[var(--color-border)]" />
-                                        <span className="text-emerald-600 flex items-center gap-1.5">
-                                            <CheckCircle className="w-2 h-2" />
-                                            {importReadyRows.length} baris siap diimport
-                                        </span>
-                                    </div>
-                                    {filterIssuesOnly && <span className="text-red-500 animate-pulse">Filter "Hanya Isu" Aktif</span>}
-                                </div>
-                            </div>
-
-                            {importIssues.length > 0 && (
-                                <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface-alt)]/20">
-                                    <button
-                                        type="button"
-                                        onClick={() => setImportValidationOpen(v => !v)}
-                                        className="w-full px-3 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-border)]/30 transition-colors cursor-pointer"
-                                    >
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
-                                            <CaretDown className={`w-2 h-2 transition-transform ${importValidationOpen ? '' : '-rotate-90'}`} />
-                                            Catatan Validasi
-                                        </span>
-                                        <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">{importIssues.length} isu</span>
-                                    </button>
-                                    {importValidationOpen && <div className="max-h-[140px] overflow-auto divide-y divide-[var(--color-border)]">
-                                        {importIssues.map((issue, idx) => {
-                                            const levelStyle = getIssueLevelStyle(issue.level)
-                                            return (
-                                                <div key={idx} className={`flex items-start gap-3 px-3 py-2 ${levelStyle.row}`}>
-                                                    <span className={`mt-0.5 shrink-0 px-1.5 py-0.5 rounded text-[8px] font-black ${levelStyle.pill}`}>
-                                                        {issue.level === 'dupe' ? 'DUPLIKAT' : issue.level.toUpperCase()}
-                                                    </span>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-[9px] font-black text-[var(--color-text-muted)] mb-0.5">Baris {issue.row}</p>
-                                                        {issue.messages.map((msg, mi) => (
-                                                            <p key={mi} className="text-[10px] font-bold text-[var(--color-text)] leading-snug">{msg}</p>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>}
-                    </div>
                     )}
                 </div>
-            )}
-                </div>
-            )}</>)
+
+                {importFileHeaders.length === 0 ? (
+                    <div className="py-8">
+                        <EmptyState icon={FileText} title="Belum ada data kolom" description="Upload file Excel/CSV terlebih dahulu untuk melihat mapping kolom" color="slate" variant="plain" />
+                    </div>
+                ) : importMappingContent
+                }
+            </div>
+        )}
+
+        {importStep === 3 && (
+            <div key={importStep} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                {importLoading ? (
+                    <ReviewTableSkeleton />
+                ) : (
+                    <div className="space-y-4">
+                        {/* Minimal Status & Action Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 p-2 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] shadow-sm">
+                            {/* Stats */}
+                            <div className="flex items-center gap-2 p-1 bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)]/50">
+                                {STAT_DEFS.map((stat) => (
+                                    <div key={stat.key} className={`flex items-center gap-2 px-2 py-1 rounded-lg ${stat.bg} ${stat.color} transition-all`} title={stat.label}>
+                                        <stat.icon className="text-[10px] opacity-70" />
+                                        <span className="text-[11px] font-black">{statValues[stat.key]}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-0.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-0.5">
+                                    {[
+                                        { id: 'skip', label: 'Lewati', short: 'Lwt', icon: Copy },
+                                        { id: 'replace', label: 'Timpa', short: 'Tmp', icon: ArrowClockwise },
+                                        { id: 'keep', label: 'Biarkan', short: 'Brk', icon: Check },
+                                    ].map(strat => (
+                                        <button
+                                            key={strat.id}
+                                            onClick={() => setImportConflictStrategy(strat.id)}
+                                            className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all
+                                                    ${importConflictStrategy === strat.id
+                                                    ? 'bg-violet-500 text-white shadow-sm'
+                                                    : 'text-[var(--color-text-muted)] hover:text-violet-600 hover:bg-violet-500/5'}`}
+                                            title={strat.label}
+                                        >
+                                            <strat.icon className="w-3 h-3" />
+                                            <span className="hidden sm:inline">{strat.label}</span>
+                                            <span className="sm:hidden">{strat.short}</span>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={handleToggleFilterIssues}
+                                    className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
+                                            ${filterIssuesOnly
+                                            ? 'bg-red-500 text-white border-red-500 shadow-md shadow-red-500/20'
+                                            : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-red-500/40 hover:text-red-500'}`}
+                                >
+                                    {filterIssuesOnly ? <Check className="w-3 h-3" /> : <SlidersHorizontal className="w-3 h-3" />}
+                                    <span>{filterIssuesOnly ? 'Hanya Isu' : 'Semua'}</span>
+                                </button>
+
+                                {/* Column Visibility Toggle */}
+                                <div className="relative">
+                                    <button
+                                        ref={colMenuBtnRef}
+                                        onClick={handleToggleColMenu}
+                                        title="Atur tampilan kolom"
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${colMenuOpen ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                                    >
+                                        <SquaresFour />
+                                    </button>
+                                    {colMenuOpen && createPortal(
+                                        <div className={`fixed z-[9999] w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? 'slide-in-from-bottom-2' : 'slide-in-from-top-2'}`}
+                                            style={{ top: colMenuPos.top, right: colMenuPos.right }}>
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Atur Kolom</p>
+                                            {COL_VISIBLE_DEFS.map(({ key, label }) => (
+                                                <button key={key} onClick={() => handleToggleColVisibility(key)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group text-left">
+                                                    <span className="text-[11px] font-bold text-[var(--color-text)] group-hover:text-[var(--color-primary)] transition-colors">{label}</span>
+                                                    <div className={`w-8 h-4.5 rounded-full transition-all flex items-center px-0.5 ${visibleCols[key] ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)]'}`}>
+                                                        <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-all ${visibleCols[key] ? 'translate-x-[14px]' : 'translate-x-0'}`} />
+                                                    </div>
+                                                </button>
+                                            ))}
+                                        </div>,
+                                        document.body
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Diff Preview Section */}
+                        {diffUpdates.length > 0 && (
+                            <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setImportDiffOpen(v => !v)}
+                                    className="w-full px-3 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-border)]/30 transition-colors cursor-pointer"
+                                >
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                        <CaretDown className={`w-2 h-2 transition-transform ${importDiffOpen ? '' : '-rotate-90'}`} />
+                                        <GitDiff className="w-3 h-3 text-amber-500" />
+                                        Perubahan Data ({diffUpdates.length} baris akan ditimpa)
+                                    </span>
+                                    <span className="text-[8px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full">update</span>
+                                </button>
+                                {importDiffOpen && (
+                                    <div className="max-h-[180px] overflow-auto divide-y divide-[var(--color-border)]/50">
+                                        {diffUpdates.map((diff, idx) => (
+                                            <div key={idx} className="px-3 py-2.5 space-y-1.5 hover:bg-[var(--color-surface-alt)]/30 transition-colors">
+                                                <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--color-text)]">
+                                                    <span>{diff.academic_year}</span>
+                                                    <span className="px-1.5 py-0.5 rounded bg-[var(--color-surface-alt)] text-[8px] font-black text-[var(--color-text-muted)]">{diff.semester}</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 text-[9px] font-bold pl-2">
+                                                    <div className="flex-1 space-y-0.5">
+                                                        <span className="text-[8px] font-black uppercase tracking-wider text-red-500/60">Existing</span>
+                                                        {diff.existing ? (
+                                                            <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+                                                                <span>{diff.existing.start_date}</span>
+                                                                <ArrowFatRight className="w-2 h-2 opacity-40" />
+                                                                <span>{diff.existing.end_date}</span>
+                                                                {diff.existing.is_active && <span className="px-1 py-0.5 rounded bg-green-500/10 text-green-600 text-[7px] font-black">Aktif</span>}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-red-500/40 italic">-- tidak ada --</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 space-y-0.5">
+                                                        <span className="text-[8px] font-black uppercase tracking-wider text-emerald-500/60">Incoming</span>
+                                                        <div className="flex items-center gap-2 text-[var(--color-text)]">
+                                                            <span>{diff.incoming.start_date}</span>
+                                                            <ArrowFatRight className="w-2 h-2 opacity-40" />
+                                                            <span>{diff.incoming.end_date}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Search filter */}
+                        <div className="relative">
+                            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--color-text-muted)] opacity-40" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
+                                placeholder="Cari tahun pelajaran atau semester..."
+                                className="w-full h-9 pl-8 pr-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => { setSearchQuery(''); setVisibleCount(PAGE_SIZE) }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[var(--color-surface-alt)] flex items-center justify-center text-[8px] font-black text-[var(--color-text-muted)] hover:bg-[var(--color-border)] transition-all"
+                                >
+                                    X
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Bulk action bar when rows selected */}
+                        {selectedRows.size > 0 && (
+                            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 animate-in slide-in-from-top-2 fade-in">
+                                <span className="text-[10px] font-black text-red-600">{selectedRows.size} baris terpilih</span>
+                                <div className="flex-1" />
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
+                                >
+                                    <Trash className="w-3 h-3" />
+                                    Hapus
+                                </button>
+                                <button
+                                    onClick={() => setSelectedRows(new Set())}
+                                    className="text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-widest hover:text-[var(--color-text)] transition-colors"
+                                >
+                                    Batal
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Undo bar when rows pending deletion */}
+                        {pendingDeletions.size > 0 && (
+                            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in slide-in-from-top-2 fade-in">
+                                <span className="text-[10px] font-black text-amber-600">{pendingDeletions.size} baris akan dihapus otomatis</span>
+                                <div className="flex-1" />
+                                <button
+                                    onClick={undoDeletions}
+                                    className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
+                                >
+                                    <ArrowClockwise className="w-3 h-3" />
+                                    Undo
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
+                            <div className="max-h-[40vh] overflow-auto scrollbar-none">
+                                <ReviewDesktopTable
+                                    visibleRows={visibleRows}
+                                    filterIssuesOnly={filterIssuesOnly}
+                                    visibleCols={visibleCols}
+                                    selectedRows={selectedRows}
+                                    onToggleRow={toggleRowSelection}
+                                    importEditCell={importEditCell}
+                                    setImportEditCell={setImportEditCell}
+                                    handleImportCellEdit={handleImportCellEdit}
+                                    handleRemoveImportRow={handleDeleteRow}
+                                />
+
+                                <ReviewMobileCards
+                                    visibleRows={visibleRows}
+                                    filterIssuesOnly={filterIssuesOnly}
+                                    visibleCols={visibleCols}
+                                    selectedRows={selectedRows}
+                                    onToggleRow={toggleRowSelection}
+                                    importEditCell={importEditCell}
+                                    setImportEditCell={setImportEditCell}
+                                    handleImportCellEdit={handleImportCellEdit}
+                                    handleRemoveImportRow={handleDeleteRow}
+                                />
+                            </div>
+                            {displayPreview.length > visibleCount && (
+                                <div className="px-4 py-2 border-t border-[var(--color-border)]">
+                                    <button
+                                        onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                                        className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all active:scale-[0.99]"
+                                    >
+                                        Muat {Math.min(PAGE_SIZE, displayPreview.length - visibleCount)} baris lagi ({displayPreview.length - visibleCount} tersisa) <CaretDown className="w-2 h-2 inline-block ml-1" />
+                                    </button>
+                                </div>
+                            )}
+                            <div className="px-4 py-3 text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-4">
+                                    <span>Menampilkan {visibleRows.length} dari {displayPreview.length} baris (difilter)</span>
+                                    <div className="w-px h-4 bg-[var(--color-border)]" />
+                                    <span className="text-emerald-600 flex items-center gap-1.5">
+                                        <CheckCircle className="w-2 h-2" />
+                                        {importReadyRows.length} baris siap diimport
+                                    </span>
+                                </div>
+                                {filterIssuesOnly && <span className="text-red-500 animate-pulse">Filter "Hanya Isu" Aktif</span>}
+                            </div>
+                        </div>
+
+                        {importIssues.length > 0 && (
+                            <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface-alt)]/20">
+                                <button
+                                    type="button"
+                                    onClick={() => setImportValidationOpen(v => !v)}
+                                    className="w-full px-3 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-border)]/30 transition-colors cursor-pointer"
+                                >
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                        <CaretDown className={`w-2 h-2 transition-transform ${importValidationOpen ? '' : '-rotate-90'}`} />
+                                        Catatan Validasi
+                                    </span>
+                                    <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">{importIssues.length} isu</span>
+                                </button>
+                                {importValidationOpen && <div className="max-h-[140px] overflow-auto divide-y divide-[var(--color-border)]">
+                                    {importIssues.map((issue, idx) => {
+                                        const levelStyle = getIssueLevelStyle(issue.level)
+                                        return (
+                                            <div key={idx} className={`flex items-start gap-3 px-3 py-2 ${levelStyle.row}`}>
+                                                <span className={`mt-0.5 shrink-0 px-1.5 py-0.5 rounded text-[8px] font-black ${levelStyle.pill}`}>
+                                                    {issue.level === 'dupe' ? 'DUPLIKAT' : issue.level.toUpperCase()}
+                                                </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[9px] font-black text-[var(--color-text-muted)] mb-0.5">Baris {issue.row}</p>
+                                                    {issue.messages.map((msg, mi) => (
+                                                        <p key={mi} className="text-[10px] font-bold text-[var(--color-text)] leading-snug">{msg}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        )}</>)
 
     return (
         <Modal
@@ -1217,68 +1217,68 @@ export default function PeriodImportModal(props) {
                             </button>
                         </>
                     ) : (<React.Fragment>
-                    {importStep === 1 ? (
-                        <button
-                            onClick={onClose}
-                            className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-center"
-                        >
-                            Batal
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => handleGoToStep(v => v - 1)}
-                            disabled={importing}
-                            className="h-10 px-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px] font-black uppercase tracking-widest disabled:opacity-50 hover:bg-[var(--color-border)] transition-all flex items-center gap-2"
-                        >
-                            <ArrowLeft />
-                            Kembali
-                        </button>
-                    )}
-
-                    <div className="flex-1" />
-
-                    <div className="flex items-center gap-3">
-                        {importing && (
-                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] flex items-center gap-2">
-                                <Spinner className="animate-spin text-[var(--color-primary)]" />
-                                {importProgress.done}/{importProgress.total}
-                                <span className="text-[var(--color-primary)]">({Math.round((importProgress.done / Math.max(importProgress.total, 1)) * 100)}%)</span>
-                            </span>
-                        )}
-
                         {importStep === 1 ? (
                             <button
-                                onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                onClick={onClose}
+                                className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-center"
                             >
-                                {(importRawData.length > 0 && importFileName) ? (
-                                    <>Lanjutkan <ArrowRight /></>
-                                ) : (
-                                    <>Pilih File <UploadSimple /></>
-                                )}
-                            </button>
-                        ) : importStep === 2 ? (
-                            <button
-                                onClick={handleReviewPreview}
-                                disabled={!isMappingComplete(importColumnMapping)}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
-                            >
-                                Review Data <ArrowRight />
+                                Batal
                             </button>
                         ) : (
                             <button
-                                onClick={handleCommitImport}
-                                disabled={importing || hasImportBlockingErrors || importReadyRows.length === 0}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                onClick={() => handleGoToStep(v => v - 1)}
+                                disabled={importing}
+                                className="h-10 px-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px] font-black uppercase tracking-widest disabled:opacity-50 hover:bg-[var(--color-border)] transition-all flex items-center gap-2"
                             >
-                                {importing
-                                    ? <><Spinner className="animate-spin" /> Mengimport...</>
-                                    : <><Check /> Selesaikan Import</>}
+                                <ArrowLeft />
+                                Kembali
                             </button>
                         )}
-                    </div>
-                </React.Fragment>)}
-            </div>
+
+                        <div className="flex-1" />
+
+                        <div className="flex items-center gap-3">
+                            {importing && (
+                                <span className="text-[10px] font-bold text-[var(--color-text-muted)] flex items-center gap-2">
+                                    <Spinner className="animate-spin text-[var(--color-primary)]" />
+                                    {importProgress.done}/{importProgress.total}
+                                    <span className="text-[var(--color-primary)]">({Math.round((importProgress.done / Math.max(importProgress.total, 1)) * 100)}%)</span>
+                                </span>
+                            )}
+
+                            {importStep === 1 ? (
+                                <button
+                                    onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
+                                    className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                >
+                                    {(importRawData.length > 0 && importFileName) ? (
+                                        <>Lanjutkan <ArrowRight /></>
+                                    ) : (
+                                        <>Pilih File <UploadSimple /></>
+                                    )}
+                                </button>
+                            ) : importStep === 2 ? (
+                                <button
+                                    onClick={handleReviewPreview}
+                                    disabled={!isMappingComplete(importColumnMapping)}
+                                    className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                >
+                                    Review Data <ArrowRight />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleCommitImport}
+                                    disabled={importing || hasImportBlockingErrors || importReadyRows.length === 0}
+                                    className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                >
+                                    {importing
+                                        ? <><Spinner className="animate-spin" /> Mengimport...</>
+                                        : <><Check /> Selesaikan Import</>}
+                                </button>
+                            )}
+                        </div>
+                    </React.Fragment>)}
+                </div>
             }
         >
             {lastImportedIds.length > 0 ? successScreen : importSteps}
