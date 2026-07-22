@@ -543,7 +543,7 @@ export default function PeriodImportModal(props) {
     const diffUpdates = useMemo(() => importDiffPreview.filter(d => d.status === 'update'), [importDiffPreview])
 
     const fileHeaderOptions = useMemo(() =>
-        importFileHeaders.map(h => ({ id: h, name: h }))
+        (importFileHeaders || []).map(h => ({ id: h, name: h }))
     , [importFileHeaders])
 
     const handleProcessFile = useCallback((file) => {
