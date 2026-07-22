@@ -230,7 +230,8 @@ export default function PeriodsPage() {
         importIssues, setImportIssues, importLoading, setImportLoading,
         importValidationOpen, setImportValidationOpen, importDragOver, setImportDragOver,
         importing, importProgress,
-        importEditCell, setImportEditCell, importSkipDupes, setImportSkipDupes,
+        importEditCell, setImportEditCell,
+        importDiffPreview, setImportDiffPreview,
         exportScope, setExportScope, exportColumns, setExportColumns, exporting, exportError,
         importReadyRows, hasImportBlockingErrors, importFileInputRef,
         handleImportClick, handleFileChange, processImportFile, buildImportPreview,
@@ -1150,8 +1151,8 @@ export default function PeriodsPage() {
                             importEditCell={importEditCell}
                             setImportEditCell={setImportEditCell}
                             handleRemoveImportRow={handleRemoveImportRow}
-                            importSkipDupes={importSkipDupes}
-                            setImportSkipDupes={setImportSkipDupes}
+                            importDiffPreview={importDiffPreview}
+                            setImportDiffPreview={setImportDiffPreview}
                         />
                     )}
                 </React.Suspense>

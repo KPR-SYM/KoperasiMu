@@ -443,7 +443,7 @@ export default function PeriodImportModal(props) {
         setImportColumnAliases,
         importAliasEditorOpen,
         setImportAliasEditorOpen,
-        importDiffPreview,
+        importDiffPreview = [],
         lastImportedIds,
         setLastImportedIds,
         handleUndoImport
