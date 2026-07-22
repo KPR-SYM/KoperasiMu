@@ -91,9 +91,9 @@ const Modal = memo(function Modal({
         sm: 'max-w-sm',
         md: 'max-w-lg',
         lg: 'max-w-2xl',
-        xl: 'max-w-4xl',
-        xxl: 'max-w-5xl',
-        xxxl: 'max-w-7xl',
+        xl: 'max-w-3xl',
+        xxl: 'max-w-4xl',
+        xxxl: 'max-w-6xl',
         '2xl': 'max-w-2xl',
         '3xl': 'max-w-3xl',
         '4xl': 'max-w-4xl',
@@ -150,8 +150,8 @@ const Modal = memo(function Modal({
                     className={`bg-[var(--color-surface)] shadow-2xl w-full relative overflow-hidden flex flex-col border border-[var(--color-border)]/60
                     ${aspectSquare ? 'md:!h-full md:!max-h-full md:flex-1' : ''}
                     ${isBottomSheet
-                            ? 'rounded-t-[2.25rem] md:rounded-[2.25rem] md:max-h-[calc(100vh-6rem)]'
-                            : 'rounded-[2.25rem] max-h-[calc(100vh-6rem)]'
+                            ? 'rounded-t-2xl md:rounded-2xl md:max-h-[calc(100vh-6rem)]'
+                            : 'rounded-2xl max-h-[calc(100vh-6rem)]'
                         }
                 `}
                     style={isBottomSheet ? { maxHeight: `min(${maxMobileHeight}, calc(100vh - env(safe-area-inset-bottom, 0px)))` } : undefined}

@@ -302,7 +302,7 @@ export default function PeriodExportModal(props) {
             icon={FileArrowUp}
             iconBg="bg-amber-500/10"
             iconColor="text-amber-600"
-            size="lg"
+            size="xl"
             mobileVariant="bottom-sheet"
             contentClassName={exporting ? 'relative !overflow-hidden' : 'relative'}
             footer={
