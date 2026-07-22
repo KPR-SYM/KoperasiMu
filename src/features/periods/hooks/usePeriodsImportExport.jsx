@@ -142,13 +142,24 @@ export function usePeriodsImportExport({
                 return;
             }
 
-            const headers = (rawJson[0] || [])
+            // Find actual header row — skip metadata/instruction rows
+            let headerIdx = 0;
+            const KNOWN_KEYWORDS = ["tahun pelajaran", "semester", "tanggal mulai", "tanggal selesai", "academic_year", "start_date", "end_date"];
+            for (let i = 0; i < Math.min(rawJson.length, 20); i++) {
+                const cells = (rawJson[i] || []).map(c => String(c || "").trim().toLowerCase()).filter(Boolean);
+                if (cells.length >= 2 && cells.some(c => KNOWN_KEYWORDS.some(kw => c.includes(kw)))) {
+                    headerIdx = i;
+                    break;
+                }
+            }
+
+            const headers = (rawJson[headerIdx] || [])
                 .map((h) => String(h || "").trim())
                 .filter(Boolean);
             setImportFileHeaders(headers);
 
             const rows = rawJson
-                .slice(1)
+                .slice(headerIdx + 1)
                 .filter((r) => r.some((c) => c !== undefined && c !== null && c !== ""));
             setImportRawData(rows);
 
