@@ -44,14 +44,14 @@ const EXPORT_FORMAT_CONFIG = [
     { label: 'iCal', icon: Calendar, desc: '.ics', color: 'hover:border-blue-400 hover:bg-blue-50 text-blue-700', iconColor: 'text-blue-500', format: 'ics' },
 ]
 
-const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onToggle, onReorder, index, dragIdx, onDragStart, onDragOver, onDrop, onDragEnd }) => {
+const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onToggle, onReorder, index, dragIdx, onColumnDragStart, onColumnDragOver, onColumnDrop, onColumnDragEnd }) => {
     const orderIdx = exportColumns.indexOf(colKey) + 1
     const isSelected = orderIdx > 0
 
     const toggleColumn = useCallback(() => onToggle(colKey), [colKey, onToggle])
-    const handleDragStart = useCallback((e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart(index) }, [index, onDragStart])
-    const handleDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; onDragOver(index) }, [index, onDragOver])
-    const handleDrop = useCallback((e) => { e.preventDefault(); onDrop(index) }, [index, onDrop])
+    const handleDragStart = useCallback((e) => { e.dataTransfer.effectAllowed = 'move'; onColumnDragStart(index) }, [index, onColumnDragStart])
+    const handleDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; onColumnDragOver(index) }, [index, onColumnDragOver])
+    const handleDrop = useCallback((e) => { e.preventDefault(); onColumnDrop(index) }, [index, onColumnDrop])
 
     return (
         <button
@@ -59,7 +59,7 @@ const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onT
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            onDragEnd={onDragEnd}
+            onDragEnd={onColumnDragEnd}
             draggable={isSelected}
             aria-pressed={isSelected}
             aria-label={`Kolom ${label}${isSelected ? ` (urutan ${orderIdx})` : ''}`}
@@ -253,13 +253,15 @@ export default function PeriodExportModal(props) {
         })
     }, [])
 
-    const handleDragStart = useCallback((idx) => { setDragIdx(idx) }, [])
-    const handleDragOver = useCallback((_idx) => { /* drag-over tracking: child already calls e.preventDefault() */ }, [])
-    const handleDrop = useCallback((idx) => {
+    const handleColumnDragStart = useCallback((idx) => { setDragIdx(idx) }, [])
+    const handleColumnDragOver = useCallback((idx) => {
+        if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
+    }, [dragIdx, handleReorderColumn])
+    const handleColumnDrop = useCallback((idx) => {
         if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
         setDragIdx(null)
     }, [dragIdx, handleReorderColumn])
-    const handleDragEnd = useCallback(() => { setDragIdx(null) }, [])
+    const handleColumnDragEnd = useCallback(() => { setDragIdx(null) }, [])
 
     const handlePresetClick = useCallback((cols) => setExportColumns(cols), [setExportColumns])
 
@@ -413,10 +415,10 @@ export default function PeriodExportModal(props) {
                                     onToggle={handleToggleColumn}
                                     index={idx}
                                     dragIdx={dragIdx}
-                                    onDragStart={handleDragStart}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
-                                    onDragEnd={handleDragEnd}
+                                    onColumnDragStart={handleColumnDragStart}
+                                    onColumnDragOver={handleColumnDragOver}
+                                    onColumnDrop={handleColumnDrop}
+                                    onColumnDragEnd={handleColumnDragEnd}
                                 />
                             ))}
                         </div>

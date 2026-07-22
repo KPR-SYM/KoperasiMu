@@ -185,7 +185,6 @@ export function usePeriodsImportExport({
         } finally {
             setImportLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [addToast, detectDateFormat, handleError]);
 
     const buildImportPreview = useCallback(async (rawRows, mapping) => {

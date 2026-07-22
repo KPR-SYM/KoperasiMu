@@ -232,6 +232,12 @@ export default function PeriodsPage() {
         importing, importProgress,
         importEditCell, setImportEditCell,
         importDiffPreview, setImportDiffPreview,
+        importConflictStrategy, setImportConflictStrategy,
+        importDetectedDateFormat,
+        importColumnAliases, setImportColumnAliases,
+        importAliasEditorOpen, setImportAliasEditorOpen,
+        lastImportedIds, setLastImportedIds,
+        handleUndoImport,
         exportScope, setExportScope, exportColumns, setExportColumns, exporting, exportError,
         importReadyRows, hasImportBlockingErrors, importFileInputRef,
         handleImportClick, handleFileChange, processImportFile, buildImportPreview,
@@ -1151,6 +1157,16 @@ export default function PeriodsPage() {
                             importEditCell={importEditCell}
                             setImportEditCell={setImportEditCell}
                             handleRemoveImportRow={handleRemoveImportRow}
+                            importConflictStrategy={importConflictStrategy}
+                            setImportConflictStrategy={setImportConflictStrategy}
+                            importDetectedDateFormat={importDetectedDateFormat}
+                            importColumnAliases={importColumnAliases}
+                            setImportColumnAliases={setImportColumnAliases}
+                            importAliasEditorOpen={importAliasEditorOpen}
+                            setImportAliasEditorOpen={setImportAliasEditorOpen}
+                            lastImportedIds={lastImportedIds}
+                            setLastImportedIds={setLastImportedIds}
+                            handleUndoImport={handleUndoImport}
                             importDiffPreview={importDiffPreview}
                             setImportDiffPreview={setImportDiffPreview}
                         />
