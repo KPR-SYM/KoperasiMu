@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
-import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock, FileXls, FileText, FileArrowUp, Tag, TextH, SlidersHorizontal, Users } from '@phosphor-icons/react'
+import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock, FileXls, FileText, FileArrowUp, Tag, TextH, SlidersHorizontal, Users, DotsSixVertical, Eye, EyeSlash } from '@phosphor-icons/react'
 
 import { Modal } from '@shared/components'
 
@@ -44,21 +44,30 @@ const EXPORT_FORMAT_CONFIG = [
     { label: 'iCal', icon: Calendar, desc: '.ics', color: 'hover:border-blue-400 hover:bg-blue-50 text-blue-700', iconColor: 'text-blue-500', format: 'ics' },
 ]
 
-const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onToggle }) => {
+const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onToggle, onReorder, index, dragIdx, onDragStart, onDragOver, onDrop, onDragEnd }) => {
     const orderIdx = exportColumns.indexOf(colKey) + 1
     const isSelected = orderIdx > 0
 
     const toggleColumn = useCallback(() => onToggle(colKey), [colKey, onToggle])
+    const handleDragStart = useCallback((e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart(index) }, [index, onDragStart])
+    const handleDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; onDragOver(index) }, [index, onDragOver])
+    const handleDrop = useCallback((e) => { e.preventDefault(); onDrop(index) }, [index, onDrop])
 
     return (
         <button
             onClick={toggleColumn}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onDragEnd={onDragEnd}
+            draggable={isSelected}
             aria-pressed={isSelected}
             aria-label={`Kolom ${label}${isSelected ? ` (urutan ${orderIdx})` : ''}`}
             className={`group relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl border text-left transition-all
                 ${isSelected
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)] shadow-sm'
                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-surface-alt)]'}
+                ${dragIdx === index ? 'opacity-40 ring-2 ring-[var(--color-primary)] scale-95' : ''}
             `}
         >
             <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all 
@@ -69,9 +78,14 @@ const ColumnToggle = React.memo(({ colKey, label, icon: Icon, exportColumns, onT
                 <div className={`text-[9px] font-black uppercase tracking-tight truncate ${isSelected ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`}>{label}</div>
             </div>
             {isSelected && (
-                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[var(--color-primary)] text-white text-[8px] font-black flex items-center justify-center shadow-md border border-white dark:border-[var(--color-surface)] animate-in zoom-in duration-200">
-                    {orderIdx}
-                </div>
+                <>
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-[var(--color-primary)] text-white text-[8px] font-black flex items-center justify-center shadow-md border border-white dark:border-[var(--color-surface)] animate-in zoom-in duration-200">
+                        {orderIdx}
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-40 transition-opacity cursor-grab active:cursor-grabbing">
+                        <DotsSixVertical className="w-3 h-3 text-[var(--color-text-muted)]" />
+                    </div>
+                </>
             )}
         </button>
     )
@@ -176,6 +190,9 @@ export default function PeriodExportModal(props) {
     const [exportTemplate, setExportTemplate] = useState('ringkas')
     const [exportFormat, setExportFormat] = useState(null)
     const [exportPhase, setExportPhase] = useState(null)
+    const [allColumnsVisible, setAllColumnsVisible] = useState(true)
+    const [dragIdx, setDragIdx] = useState(null)
+    const [dragOverIdx, setDragOverIdx] = useState(null)
     const containerRef = useRef(null)
     const exportStartRef = useRef(0)
 
@@ -225,6 +242,24 @@ export default function PeriodExportModal(props) {
         }
     }, [exportColumns])
 
+    const handleDragStart = useCallback((idx) => { setDragIdx(idx); setDragOverIdx(idx) }, [])
+    const handleDragOver = useCallback((idx) => { if (idx !== dragOverIdx) setDragOverIdx(idx) }, [dragOverIdx])
+    const handleDrop = useCallback((idx) => {
+        if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
+        setDragIdx(null); setDragOverIdx(null)
+    }, [dragIdx, handleReorderColumn])
+    const handleDragEnd = useCallback(() => { setDragIdx(null); setDragOverIdx(null) }, [])
+
+    const handleReorderColumn = useCallback((from, to) => {
+        if (from === to) return
+        setExportColumns(prev => {
+            const next = [...prev]
+            const [moved] = next.splice(from, 1)
+            next.splice(to, 0, moved)
+            return next
+        })
+    }, [])
+
     const handlePresetClick = useCallback((cols) => setExportColumns(cols), [setExportColumns])
 
     const scopeOptions = useMemo(() => [
@@ -238,6 +273,17 @@ export default function PeriodExportModal(props) {
         orientation: pdfOrientation,
         template: exportTemplate,
     }), [includeHeader, pdfOrientation, exportTemplate])
+
+    const exportPreviewRows = useMemo(() => {
+        try {
+            const allRows = getExportData()
+            return allRows.slice(0, 5)
+        } catch { return [] }
+    }, [getExportData])
+
+    const exportPreviewCount = useMemo(() => {
+        try { return getExportData().length } catch { return 0 }
+    }, [getExportData])
 
     const exportHandlers = useMemo(() => ({
         csv: handleExportCSV,
@@ -360,7 +406,7 @@ export default function PeriodExportModal(props) {
                         </div>
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            {COLUMN_DEFS.map(({ key, label, icon }) => (
+                            {COLUMN_DEFS.map(({ key, label, icon }, idx) => (
                                 <ColumnToggle
                                     key={key}
                                     colKey={key}
@@ -368,8 +414,68 @@ export default function PeriodExportModal(props) {
                                     icon={icon}
                                     exportColumns={exportColumns}
                                     onToggle={handleToggleColumn}
+                                    index={idx}
+                                    dragIdx={dragIdx}
+                                    onDragStart={handleDragStart}
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    onDragEnd={handleDragEnd}
                                 />
                             ))}
+                        </div>
+                    </div>
+
+                    {/* 2b — Preview Data */}
+                    <div className="space-y-2">
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">2b &mdash; Preview Data</p>
+                        <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
+                            <button
+                                onClick={() => setAllColumnsVisible(v => !v)}
+                                className="w-full px-4 py-2 flex items-center justify-between bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] hover:bg-[var(--color-border)]/30 transition-colors"
+                            >
+                                <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-2">
+                                    {allColumnsVisible ? <EyeSlash className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                    {allColumnsVisible ? 'Sembunyikan Preview' : 'Lihat Preview'} ({exportPreviewCount} baris)
+                                </span>
+                                <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">{exportColumns.length} kolom</span>
+                            </button>
+                            {allColumnsVisible && exportColumns.length > 0 && (
+                                <div className="max-h-[200px] overflow-auto">
+                                    <table className="w-full border-collapse">
+                                        <thead>
+                                            <tr className="bg-[var(--color-surface-alt)]/50">
+                                                <th className="w-8 px-2 py-1.5 border-r border-b border-[var(--color-border)] text-[8px] font-black text-[var(--color-text-muted)] text-center">#</th>
+                                                {exportColumns.map(k => {
+                                                    const def = COLUMN_DEFS.find(c => c.key === k)
+                                                    return (
+                                                        <th key={k} className="px-2 py-1.5 border-r border-b border-[var(--color-border)] text-[9px] font-black text-[var(--color-text-muted)] text-left truncate max-w-[100px]">
+                                                            {def?.label || k}
+                                                        </th>
+                                                    )
+                                                })}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {exportPreviewRows.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={exportColumns.length + 1} className="px-4 py-6 text-center text-[10px] font-bold text-[var(--color-text-muted)] opacity-50">
+                                                        Tidak ada data untuk jangkauan yang dipilih
+                                                    </td>
+                                                </tr>
+                                            ) : exportPreviewRows.map((row, ri) => (
+                                                <tr key={ri} className="hover:bg-[var(--color-surface-alt)]/30 transition-colors">
+                                                    <td className="px-2 py-1 border-r border-b border-[var(--color-border)] text-[8px] font-bold text-[var(--color-text-muted)] text-center">{ri + 1}</td>
+                                                    {exportColumns.map(k => (
+                                                        <td key={k} className="px-2 py-1 border-r border-b border-[var(--color-border)] text-[9px] font-medium text-[var(--color-text)] truncate max-w-[120px]" title={String(row[k] ?? '')}>
+                                                            {String(row[k] ?? '') || <span className="opacity-30 italic">—</span>}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -386,9 +492,9 @@ export default function PeriodExportModal(props) {
                                 aria-label="Nama file export"
                                 className="w-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-xs font-bold focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all placeholder:opacity-50 pr-20"
                             />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)]">
-                                .xlsx / .pdf
-                            </div>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)]">
+                                    Multi Format
+                                </div>
                         </div>
 
                         <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)]/60 border border-[var(--color-border)] space-y-4">
@@ -463,7 +569,7 @@ export default function PeriodExportModal(props) {
                     {/* 4 — Mulai Ekspor */}
                     <div className="space-y-3">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] opacity-70">4 &mdash; Mulai Ekspor</p>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             {EXPORT_FORMAT_CONFIG.map(({ label, icon: Icon, desc, color, iconColor, format }) => {
                                 const handler = exportHandlers[format]
                                 const handleClick = () => { setExportFormat(format); setExportPhase('loading'); exportStartRef.current = Date.now(); handler(fileName, exportOptions) }

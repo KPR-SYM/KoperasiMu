@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass, SquaresFour, ArrowClockwise } from '@phosphor-icons/react'
+import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Calendar, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileArrowDown, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple, MagnifyingGlass, SquaresFour, ArrowClockwise, PencilSimple, GitDiff, ArrowFatRight } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 import { Modal, Select, EmptyState, Dropzone } from '@shared/components'
@@ -437,10 +437,22 @@ export default function PeriodImportModal(props) {
         setImportEditCell,
         handleRemoveImportRow,
         importSkipDupes,
-        setImportSkipDupes
+        setImportSkipDupes,
+        importConflictStrategy,
+        setImportConflictStrategy,
+        importDetectedDateFormat,
+        importColumnAliases,
+        setImportColumnAliases,
+        importAliasEditorOpen,
+        setImportAliasEditorOpen,
+        importDiffPreview,
+        lastImportedIds,
+        setLastImportedIds,
+        handleUndoImport
     } = props
 
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
+    const [importDiffOpen, setImportDiffOpen] = useState(true)
     const [colMenuOpen, setColMenuOpen] = useState(false)
     const colMenuBtnRef = useRef(null)
     const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
@@ -457,7 +469,7 @@ export default function PeriodImportModal(props) {
     const [pendingDeletions, setPendingDeletions] = useState(new Set())
     const pendingDeletionsRef = useRef(pendingDeletions)
     const deletionTimerRef = useRef(null)
-    const stepKeyRef = useRef(0)
+    const undoTimerRef = useRef(null)
 
     useEffect(() => {
         pendingDeletionsRef.current = pendingDeletions
@@ -479,6 +491,23 @@ export default function PeriodImportModal(props) {
         }
         prevOpenRef.current = isOpen
     }, [isOpen, setImportStep])
+
+    useEffect(() => {
+        if (lastImportedIds.length > 0) {
+            undoTimerRef.current = setTimeout(() => {
+                setLastImportedIds([])
+                onClose()
+            }, 15000)
+            return () => {
+                if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+            }
+        }
+    }, [lastImportedIds, setLastImportedIds, onClose])
+
+    const handleUndo = useCallback(() => {
+        if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+        handleUndoImport()
+    }, [handleUndoImport])
 
     const previewWithIdx = useMemo(() =>
         importPreview.map((r, i) => ({ ...r, originalIdx: i }))
@@ -593,10 +622,8 @@ export default function PeriodImportModal(props) {
 
     const handleGoToStep = useCallback((stepOrFn) => {
         if (typeof stepOrFn === 'function') {
-            stepKeyRef.current -= 1
             setImportStep(stepOrFn)
         } else {
-            stepKeyRef.current += 1
             setImportStep(stepOrFn)
         }
     }, [setImportStep])
@@ -624,84 +651,91 @@ export default function PeriodImportModal(props) {
         }
     }, [handleRemoveImportRow])
 
+    const importMappingContent = (<div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
+                        {SYSTEM_COLS.map(sys => {
+                            const mapped = importColumnMapping[sys.key]
+                            return (
+                                <div key={sys.key} className={`p-2.5 rounded-xl border transition-all ${mapped ? 'bg-emerald-500/4 border-emerald-500/20' : 'bg-[var(--color-surface-alt)]/50 border-[var(--color-border)]'}`}>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex flex-col w-[130px] shrink-0">
+                                            <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
+                                                {sys.label}
+                                                {REQUIRED_COL_KEYS.includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
+                                            </span>
+                                            <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 opacity-30">
+                                            <ArrowRight className={`w-2 h-2 ${mapped ? 'text-emerald-500 opacity-100' : ''}`} />
+                                        </div>
+
+                                        <div className="flex-1 min-w-0 relative">
+                                            <Select
+                                                small
+                                                value={mapped || ''}
+                                                onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}
+                                                options={fileHeaderOptions}
+                                                placeholder="-- Lewati Kolom --"
+                                                extraOption={{ id: '', name: '-- Lewati Kolom --' }}
+                                                status={mapped ? 'success' : 'normal'}
+                                                searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                        <button
+                            onClick={() => setImportAliasEditorOpen(v => !v)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${importAliasEditorOpen ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]' : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'}`}
+                        >
+                            <PencilSimple className="w-3 h-3" />
+                            Alias Kolom
+                        </button>
+                    </div>
+                    {importAliasEditorOpen && (
+                        <div className="p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">Sesuaikan Nama Kolom Kustom</p>
+                            {SYSTEM_COLS.map(sys => (
+                                <div key={sys.key} className="flex items-center gap-2">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] w-28 shrink-0 truncate" title={sys.label}>{sys.label}</span>
+                                    <input
+                                        type="text"
+                                        value={importColumnAliases[sys.key] || ''}
+                                        onChange={e => setImportColumnAliases(prev => ({ ...prev, [sys.key]: e.target.value }))}
+                                        placeholder="Nama kolom di file (kosongkan untuk auto-match)"
+                                        className="flex-1 h-7 px-2 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold outline-none focus:border-[var(--color-primary)] transition-all placeholder:text-[var(--color-text-muted)] placeholder:opacity-30"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    </div>)
+
     if (!isOpen) return null
 
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title="Import Data Tahun Pelajaran"
-            description="Unggah data periode masal dari file Excel/CSV"
-            icon={FileArrowDown}
-            iconBg="bg-emerald-500/10"
-            iconColor="text-emerald-600"
-            size="lg"
-            mobileVariant="bottom-sheet"
-            footer={
-                <div className="flex items-center w-full gap-3">
-                    {importStep === 1 ? (
-                        <button
-                            onClick={onClose}
-                            className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-center"
-                        >
-                            Batal
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => handleGoToStep(v => v - 1)}
-                            disabled={importing}
-                            className="h-10 px-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px] font-black uppercase tracking-widest disabled:opacity-50 hover:bg-[var(--color-border)] transition-all flex items-center gap-2"
-                        >
-                            <ArrowLeft />
-                            Kembali
-                        </button>
-                    )}
-
-                    <div className="flex-1" />
-
-                    <div className="flex items-center gap-3">
-                        {importing && (
-                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] flex items-center gap-2">
-                                <Spinner className="animate-spin text-[var(--color-primary)]" />
-                                {importProgress.done}/{importProgress.total}
-                                <span className="text-[var(--color-primary)]">({Math.round((importProgress.done / Math.max(importProgress.total, 1)) * 100)}%)</span>
-                            </span>
-                        )}
-
-                        {importStep === 1 ? (
-                            <button
-                                onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
-                            >
-                                {(importRawData.length > 0 && importFileName) ? (
-                                    <>Lanjutkan <ArrowRight /></>
-                                ) : (
-                                    <>Pilih File <UploadSimple /></>
-                                )}
-                            </button>
-                        ) : importStep === 2 ? (
-                            <button
-                                onClick={handleReviewPreview}
-                                disabled={!isMappingComplete(importColumnMapping)}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
-                            >
-                                Review Data <ArrowRight />
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleCommitImport}
-                                disabled={importing || hasImportBlockingErrors || importReadyRows.length === 0}
-                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
-                            >
-                                {importing
-                                    ? <><Spinner className="animate-spin" /> Mengimport...</>
-                                    : <><Check /> Selesaikan Import</>}
-                            </button>
-                        )}
-                    </div>
+    const successScreen = (
+        <div className="flex flex-col items-center justify-center py-10 gap-5 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="relative w-20 h-20 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping"></div>
+                <div className="absolute inset-0 rounded-full border-2 border-emerald-500/15"></div>
+                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                    <CheckCircle className="text-white w-7 h-7" weight="fill" />
                 </div>
-            }
-        >
+            </div>
+            <div className="flex flex-col items-center gap-1">
+                <span className="text-sm font-black text-emerald-700">Import Berhasil</span>
+                <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{lastImportedIds.length} periode berhasil ditambahkan</span>
+                <span className="text-[8px] font-extrabold text-emerald-500/60 uppercase tracking-[0.2em] animate-pulse mt-2">Menutup otomatis 15 detik...</span>
+            </div>
+        </div>
+    )
+
+    const importSteps = (<>
             {/* Header Progress Steppers */}
             <div className="flex items-center justify-center gap-3 mb-6">
                 {STEPS.map((s) => (
@@ -852,49 +886,20 @@ export default function PeriodImportModal(props) {
                         <span className="text-[9px] font-bold py-1 px-2 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)]">
                             {importFileHeaders.length} kolom ditemukan
                         </span>
+                        {importDetectedDateFormat && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 text-[8px] font-black uppercase tracking-wider ml-2">
+                                <Calendar className="w-2.5 h-2.5" />
+                                Format: {importDetectedDateFormat}
+                            </span>
+                        )}
                     </div>
 
                     {importFileHeaders.length === 0 ? (
                         <div className="py-8">
                             <EmptyState icon={FileText} title="Belum ada data kolom" description="Upload file Excel/CSV terlebih dahulu untuk melihat mapping kolom" color="slate" variant="plain" />
                         </div>
-                    ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
-                        {SYSTEM_COLS.map(sys => {
-                            const mapped = importColumnMapping[sys.key]
-                            return (
-                                <div key={sys.key} className={`p-2.5 rounded-xl border transition-all ${mapped ? 'bg-emerald-500/4 border-emerald-500/20' : 'bg-[var(--color-surface-alt)]/50 border-[var(--color-border)]'}`}>
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div className="flex flex-col w-[130px] shrink-0">
-                                            <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
-                                                {sys.label}
-                                                {REQUIRED_COL_KEYS.includes(sys.key) && <span className="text-red-500 text-[9px]">*</span>}
-                                            </span>
-                                            <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
-                                        </div>
-
-                                        <div className="flex items-center gap-1.5 opacity-30">
-                                            <ArrowRight className={`w-2 h-2 ${mapped ? 'text-emerald-500 opacity-100' : ''}`} />
-                                        </div>
-
-                                        <div className="flex-1 min-w-0 relative">
-                                            <Select
-                                                small
-                                                value={mapped || ''}
-                                                onChange={(val) => setImportColumnMapping(v => ({ ...v, [sys.key]: val }))}
-                                                options={fileHeaderOptions}
-                                                placeholder="-- Lewati Kolom --"
-                                                extraOption={{ id: '', name: '-- Lewati Kolom --' }}
-                                                status={mapped ? 'success' : 'normal'}
-                                                searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
-                    </div>
-                    )}
+                    ) : importMappingContent
+                    }
                 </div>
             )}
 
@@ -918,17 +923,27 @@ export default function PeriodImportModal(props) {
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleToggleSkipDupes}
-                                        className={`flex items-center gap-2 h-8 px-3 rounded-xl border text-[10px] font-black uppercase tracking-tight transition-all
-                                            ${importSkipDupes
-                                                ? 'bg-violet-500 text-white border-violet-500 shadow-md shadow-violet-500/20'
-                                                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] border-[var(--color-border)] hover:border-violet-500/40 hover:text-violet-600'}`}
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                        <span className="hidden sm:inline">{importSkipDupes ? 'Lewati Duplikat' : 'Ikutkan Duplikat'}</span>
-                                        <span className="sm:hidden">{importSkipDupes ? 'Lewati' : 'Ikut'}</span>
-                                    </button>
+                                    <div className="flex items-center gap-0.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] p-0.5">
+                                        {[
+                                            { id: 'skip', label: 'Lewati', short: 'Lwt', icon: Copy },
+                                            { id: 'replace', label: 'Timpa', short: 'Tmp', icon: ArrowClockwise },
+                                            { id: 'keep', label: 'Biarkan', short: 'Brk', icon: Check },
+                                        ].map(strat => (
+                                            <button
+                                                key={strat.id}
+                                                onClick={() => setImportConflictStrategy(strat.id)}
+                                                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-tight transition-all
+                                                    ${importConflictStrategy === strat.id
+                                                        ? 'bg-violet-500 text-white shadow-sm'
+                                                        : 'text-[var(--color-text-muted)] hover:text-violet-600 hover:bg-violet-500/5'}`}
+                                                title={strat.label}
+                                            >
+                                                <strat.icon className="w-3 h-3" />
+                                                <span className="hidden sm:inline">{strat.label}</span>
+                                                <span className="sm:hidden">{strat.short}</span>
+                                            </button>
+                                        ))}
+                                    </div>
 
                                     <button
                                         onClick={handleToggleFilterIssues}
@@ -969,6 +984,59 @@ export default function PeriodImportModal(props) {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Diff Preview Section */}
+                            {importDiffPreview.filter(d => d.status === 'update').length > 0 && (
+                                <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
+                                    <button
+                                        type="button"
+                                        onClick={() => setImportDiffOpen(v => !v)}
+                                        className="w-full px-3 py-2 bg-[var(--color-surface-alt)] border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-border)]/30 transition-colors cursor-pointer"
+                                    >
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
+                                            <CaretDown className={`w-2 h-2 transition-transform ${importDiffOpen ? '' : '-rotate-90'}`} />
+                                            <GitDiff className="w-3 h-3 text-amber-500" />
+                                            Perubahan Data ({importDiffPreview.filter(d => d.status === 'update').length} baris akan ditimpa)
+                                        </span>
+                                        <span className="text-[8px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full">update</span>
+                                    </button>
+                                    {importDiffOpen && (
+                                        <div className="max-h-[180px] overflow-auto divide-y divide-[var(--color-border)]/50">
+                                            {importDiffPreview.filter(d => d.status === 'update').map((diff, idx) => (
+                                                <div key={idx} className="px-3 py-2.5 space-y-1.5 hover:bg-[var(--color-surface-alt)]/30 transition-colors">
+                                                    <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--color-text)]">
+                                                        <span>{diff.academic_year}</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-[var(--color-surface-alt)] text-[8px] font-black text-[var(--color-text-muted)]">{diff.semester}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 text-[9px] font-bold pl-2">
+                                                        <div className="flex-1 space-y-0.5">
+                                                            <span className="text-[8px] font-black uppercase tracking-wider text-red-500/60">Existing</span>
+                                                            {diff.existing ? (
+                                                                <div className="flex items-center gap-2 text-[var(--color-text-muted)]">
+                                                                    <span>{diff.existing.start_date}</span>
+                                                                    <ArrowFatRight className="w-2 h-2 opacity-40" />
+                                                                    <span>{diff.existing.end_date}</span>
+                                                                    {diff.existing.is_active && <span className="px-1 py-0.5 rounded bg-green-500/10 text-green-600 text-[7px] font-black">Aktif</span>}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-red-500/40 italic">-- tidak ada --</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 space-y-0.5">
+                                                            <span className="text-[8px] font-black uppercase tracking-wider text-emerald-500/60">Incoming</span>
+                                                            <div className="flex items-center gap-2 text-[var(--color-text)]">
+                                                                <span>{diff.incoming.start_date}</span>
+                                                                <ArrowFatRight className="w-2 h-2 opacity-40" />
+                                                                <span>{diff.incoming.end_date}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Search filter */}
                             <div className="relative">
@@ -1106,12 +1174,102 @@ export default function PeriodImportModal(props) {
                                             )
                                         })}
                                     </div>}
-                                </div>
-                            )}
-                        </div>
+                    </div>
                     )}
                 </div>
             )}
+                </div>
+            )}</>)
+
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title="Import Data Tahun Pelajaran"
+            description="Unggah data periode masal dari file Excel/CSV"
+            icon={FileArrowDown}
+            iconBg="bg-emerald-500/10"
+            iconColor="text-emerald-600"
+            size="lg"
+            mobileVariant="bottom-sheet"
+            footer={
+                <div className="flex items-center w-full gap-3">
+                    {lastImportedIds.length > 0 ? (
+                        <>
+                            <button onClick={handleUndo} className="h-10 px-6 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-lg shadow-red-500/20">
+                                <Trash className="w-3 h-3" /> Batalkan Import
+                            </button>
+                            <div className="flex-1" />
+                            <button onClick={onClose} className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all">
+                                Tutup
+                            </button>
+                        </>
+                    ) : (<React.Fragment>
+                    {importStep === 1 ? (
+                        <button
+                            onClick={onClose}
+                            className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-center"
+                        >
+                            Batal
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => handleGoToStep(v => v - 1)}
+                            disabled={importing}
+                            className="h-10 px-6 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] text-[11px] font-black uppercase tracking-widest disabled:opacity-50 hover:bg-[var(--color-border)] transition-all flex items-center gap-2"
+                        >
+                            <ArrowLeft />
+                            Kembali
+                        </button>
+                    )}
+
+                    <div className="flex-1" />
+
+                    <div className="flex items-center gap-3">
+                        {importing && (
+                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] flex items-center gap-2">
+                                <Spinner className="animate-spin text-[var(--color-primary)]" />
+                                {importProgress.done}/{importProgress.total}
+                                <span className="text-[var(--color-primary)]">({Math.round((importProgress.done / Math.max(importProgress.total, 1)) * 100)}%)</span>
+                            </span>
+                        )}
+
+                        {importStep === 1 ? (
+                            <button
+                                onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
+                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                            >
+                                {(importRawData.length > 0 && importFileName) ? (
+                                    <>Lanjutkan <ArrowRight /></>
+                                ) : (
+                                    <>Pilih File <UploadSimple /></>
+                                )}
+                            </button>
+                        ) : importStep === 2 ? (
+                            <button
+                                onClick={handleReviewPreview}
+                                disabled={!isMappingComplete(importColumnMapping)}
+                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                            >
+                                Review Data <ArrowRight />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleCommitImport}
+                                disabled={importing || hasImportBlockingErrors || importReadyRows.length === 0}
+                                className="h-10 px-6 rounded-xl bg-[var(--color-primary)] hover:brightness-110 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 shadow-lg shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                            >
+                                {importing
+                                    ? <><Spinner className="animate-spin" /> Mengimport...</>
+                                    : <><Check /> Selesaikan Import</>}
+                            </button>
+                        )}
+                    </div>
+                </React.Fragment>)}
+            </div>
+            }
+        >
+            {lastImportedIds.length > 0 ? successScreen : importSteps}
         </Modal>
     )
 }

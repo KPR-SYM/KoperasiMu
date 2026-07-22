@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useRef } from "react";
 
 import { supabase } from "@lib/supabase";
 import { logAudit } from "@utils/auditLogger";
-import { useErrorHandler } from "@hooks";
 
 const LS_IMPORT_MAPPING = "periods_import_mapping";
 
@@ -11,6 +10,20 @@ export const SYSTEM_COLS = [
     { key: "semester", label: "Semester (Ganjil / Genap)" },
     { key: "start_date", label: "Tanggal Mulai (YYYY-MM-DD)" },
     { key: "end_date", label: "Tanggal Selesai (YYYY-MM-DD)" },
+];
+
+const DATE_FORMATS = [
+    { regex: /^\d{4}-\d{2}-\d{2}$/, label: "YYYY-MM-DD", parts: (s) => ({ y: s.slice(0, 4), m: s.slice(5, 7), d: s.slice(8, 10) }) },
+    { regex: /^\d{2}-\d{2}-\d{4}$/, label: "DD-MM-YYYY", parts: (s) => ({ d: s.slice(0, 2), m: s.slice(3, 5), y: s.slice(6, 10) }) },
+    { regex: /^\d{2}\/\d{2}\/\d{4}$/, label: "DD/MM/YYYY", parts: (s) => ({ d: s.slice(0, 2), m: s.slice(3, 5), y: s.slice(6, 10) }) },
+    { regex: /^\d{4}\/\d{2}\/\d{2}$/, label: "YYYY/MM/DD", parts: (s) => ({ y: s.slice(0, 4), m: s.slice(5, 7), d: s.slice(8, 10) }) },
+    { regex: /^\d{2}\.\d{2}\.\d{4}$/, label: "DD.MM.YYYY", parts: (s) => ({ d: s.slice(0, 2), m: s.slice(3, 5), y: s.slice(6, 10) }) },
+];
+
+const CONFLICT_STRATEGIES = [
+    { id: "skip", label: "Lewati Duplikat", desc: "Abaikan data yang sudah ada" },
+    { id: "replace", label: "Timpa Data Lama", desc: "Update data yang sudah ada" },
+    { id: "keep", label: "Biarkan Duplikat", desc: "Masukkan semua data apa adanya" },
 ];
 
 function normalizeSemester(value) {
@@ -32,8 +45,25 @@ export function usePeriodsImportExport({
     isExportModalOpen,
     setIsExportModalOpen,
 }) {
-    const { handleError: handleExportError } = useErrorHandler("PeriodsImportExport");
     const importFileInputRef = useRef(null);
+
+    // ── DATE FORMAT DETECT ────────────────────────────────────────────────────
+    const detectDateFormat = useCallback((rows) => {
+        const dateCandidates = [];
+        rows.forEach((r) => {
+            Object.values(r).forEach((v) => {
+                const s = String(v || "").trim();
+                if (s.length >= 8 && /[\d-/\\.]/.test(s)) dateCandidates.push(s);
+            });
+        });
+        const scores = DATE_FORMATS.map((fmt) => ({
+            ...fmt,
+            score: dateCandidates.filter((s) => fmt.regex.test(s)).length,
+        }));
+        const best = scores.sort((a, b) => b.score - a.score)[0];
+        setImportDetectedDateFormat(best?.score > 0 ? best.label : null);
+        return best?.score > 0 ? best : null;
+    }, []);
 
     // ── IMPORT STATE ─────────────────────────────────────────────────────────
     const [importStep, setImportStep] = useState(1);
@@ -50,6 +80,12 @@ export function usePeriodsImportExport({
     const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
     const [importEditCell, setImportEditCell] = useState(null);
     const [importSkipDupes, setImportSkipDupes] = useState(true);
+    const [importConflictStrategy, setImportConflictStrategy] = useState("skip");
+    const [importDetectedDateFormat, setImportDetectedDateFormat] = useState(null);
+    const [importColumnAliases, setImportColumnAliases] = useState({});
+    const [importAliasEditorOpen, setImportAliasEditorOpen] = useState(false);
+    const [importDiffPreview, setImportDiffPreview] = useState([]);
+    const [lastImportedIds, setLastImportedIds] = useState([]);
 
     // ── EXPORT STATE ─────────────────────────────────────────────────────────
     const [exportScope, setExportScope] = useState("filtered");
@@ -121,6 +157,9 @@ export function usePeriodsImportExport({
                 .filter((r) => r.some((c) => c !== undefined && c !== null && c !== ""));
             setImportRawData(rows);
 
+            // Auto detect date format from data
+            detectDateFormat(rows);
+
             // Auto mapping
             const map = {};
             SYSTEM_COLS.forEach((sys) => {
@@ -163,10 +202,22 @@ export function usePeriodsImportExport({
 
         setImportLoading(true);
         try {
-            const nameCol = importFileHeaders.indexOf(mapping.academic_year);
-            const semCol = importFileHeaders.indexOf(mapping.semester);
-            const startCol = importFileHeaders.indexOf(mapping.start_date);
-            const endCol = importFileHeaders.indexOf(mapping.end_date);
+            // Resolve aliases: if file header doesn't match, check alias mapping
+            const resolveHeader = (sysKey) => {
+                const mapped = mapping[sysKey];
+                if (mapped && importFileHeaders.includes(mapped)) return mapped;
+                const alias = importColumnAliases[sysKey];
+                if (alias && importFileHeaders.includes(alias)) {
+                    mapping[sysKey] = alias;
+                    return alias;
+                }
+                return mapped;
+            };
+
+            const nameCol = importFileHeaders.indexOf(resolveHeader("academic_year"));
+            const semCol = importFileHeaders.indexOf(resolveHeader("semester"));
+            const startCol = importFileHeaders.indexOf(resolveHeader("start_date"));
+            const endCol = importFileHeaders.indexOf(resolveHeader("end_date"));
 
             const preview = rawRows.map((row, i) => {
                 const data = {
@@ -177,6 +228,25 @@ export function usePeriodsImportExport({
                 };
                 return { ...data, _row: i };
             });
+
+            // Build diff preview: compare each new row against existing data
+            const diffMap = [];
+            preview.forEach((row) => {
+                const existing = row.academic_year && row.semester
+                    ? years.find(
+                        (y) => y.academic_year === row.academic_year && y.semester === row.semester,
+                    )
+                    : null;
+                diffMap.push({
+                    academic_year: row.academic_year,
+                    semester: row.semester,
+                    existing: existing ? { start_date: existing.start_date, end_date: existing.end_date, is_active: existing.is_active } : null,
+                    incoming: { start_date: row.start_date, end_date: row.end_date },
+                    status: existing ? "update" : "new",
+                });
+            });
+            setImportDiffPreview(diffMap);
+            setImportAliasEditorOpen(false);
 
             // Validation
             const issues = [];
@@ -198,8 +268,13 @@ export function usePeriodsImportExport({
                         (y) => y.academic_year === row.academic_year && y.semester === row.semester,
                     )
                 ) {
-                    rowIssues.push(`Periode "${row.academic_year} (${row.semester})" sudah ada di database`);
-                    row._isDupe = true;
+                    if (importConflictStrategy === "skip") {
+                        rowIssues.push(`Periode "${row.academic_year} (${row.semester})" sudah ada di database`);
+                        row._isDupe = true;
+                    }
+                }
+                if (importConflictStrategy === "replace") {
+                    delete row._isDupe;
                 }
 
                 if (rowIssues.length) {
@@ -213,7 +288,7 @@ export function usePeriodsImportExport({
         } finally {
             setImportLoading(false);
         }
-    }, [importFileHeaders, years]);
+    }, [importFileHeaders, years, importColumnAliases, importConflictStrategy]);
 
     const handleImportCellEdit = useCallback((rowIdx, colKey, newValue) => {
         setImportPreview((prev) => {
@@ -291,59 +366,115 @@ export function usePeriodsImportExport({
             addToast("Tidak ada data untuk diimport", "error");
             return;
         }
-        if (hasImportBlockingErrors) {
-            addToast("Masih ada ERROR. Perbaiki file dulu.", "error");
+        if (hasImportBlockingErrors && importConflictStrategy !== "keep") {
+            addToast("Masih ada ERROR. Perbaiki file dulu atau gunakan strategi 'Biarkan Duplikat'.", "error");
             return;
         }
 
-        const validRows = importPreview.filter(
-            (r) => !r._hasError && (!importSkipDupes || !r._isDupe),
-        );
-        if (!validRows.length) {
+        const validRows = importPreview.filter((r) => !r._hasError);
+        const skipDupes = importConflictStrategy === "skip";
+        const replaceDupes = importConflictStrategy === "replace";
+        const rowsToProcess = skipDupes ? validRows.filter((r) => !r._isDupe) : validRows;
+        if (!rowsToProcess.length) {
             addToast("Tidak ada baris valid yang baru", "warning");
             return;
         }
 
         setImporting(true);
-        setImportProgress({ done: 0, total: validRows.length });
+        setImportProgress({ done: 0, total: rowsToProcess.length });
+        let insertedCount = 0;
+        const allInsertedIds = [];
         try {
             const CHUNK = 50;
-            for (let i = 0; i < validRows.length; i += CHUNK) {
-                const chunk = validRows.slice(i, i + CHUNK).map((r) => ({
+            for (let i = 0; i < rowsToProcess.length; i += CHUNK) {
+                const chunk = rowsToProcess.slice(i, i + CHUNK).map((r) => ({
                     academic_year: r.academic_year,
                     semester: normalizeSemester(r.semester),
                     start_date: r.start_date,
                     end_date: r.end_date,
                     is_active: false,
                 }));
-                const { error } = await supabase.from("periods").insert(chunk);
-                if (error) throw error;
-                setImportProgress({
-                    done: Math.min(i + CHUNK, validRows.length),
-                    total: validRows.length,
-                });
+                if (replaceDupes) {
+                    for (const row of chunk) {
+                        const { data: existing } = await supabase
+                            .from("periods")
+                            .select("id")
+                            .eq("academic_year", row.academic_year)
+                            .eq("semester", row.semester)
+                            .maybeSingle();
+                        if (existing) {
+                            const { error } = await supabase
+                                .from("periods")
+                                .update(row)
+                                .eq("id", existing.id);
+                            if (error) throw error;
+                            allInsertedIds.push(existing.id);
+                        } else {
+                            const { data: inserted, error } = await supabase
+                                .from("periods").insert(row).select("id");
+                            if (error) throw error;
+                            if (inserted) allInsertedIds.push(...inserted.map(r => r.id));
+                        }
+                        insertedCount++;
+                        setImportProgress({ done: insertedCount, total: rowsToProcess.length });
+                    }
+                } else {
+                    const { data: inserted, error } = await supabase.from("periods").insert(chunk).select("id");
+                    if (error) throw error;
+                    if (inserted) allInsertedIds.push(...inserted.map(r => r.id));
+                    insertedCount += chunk.length;
+                    setImportProgress({
+                        done: Math.min(i + CHUNK, rowsToProcess.length),
+                        total: rowsToProcess.length,
+                    });
+                }
             }
-            addToast(`Berhasil import ${validRows.length} periode`, "success");
+            setLastImportedIds(allInsertedIds);
+            addToast(`Berhasil import ${rowsToProcess.length} periode`, "success");
             try {
                 await logAudit({
                     action: "INSERT", source: "MASTER", tableName: "periods",
-                    newData: { bulk_import: true, count: validRows.length, data: validRows },
+                    newData: { bulk_import: true, count: validRows.length, ids: allInsertedIds, data: validRows },
                 });
             } catch (e) {
                 console.warn("[usePeriodsImportExport] logAudit skip:", e.message);
             }
-            setIsImportModalOpen(false);
             setImportPreview([]);
             setImportIssues([]);
             setImportFileName("");
             setImportStep(1);
             fetchData();
         } catch (err) {
-            handleError(err, { context: "Gagal import (cek constraint DB / duplikat)" });
+            const msg = insertedCount > 0
+                ? `Gagal import: ${insertedCount} dari ${validRows.length} baris berhasil masuk. Error: ${err.message}`
+                : "Gagal import (cek constraint DB / duplikat)";
+            handleError(err, { context: msg });
         } finally {
             setImporting(false);
         }
-    }, [canEdit, importPreview, importSkipDupes, hasImportBlockingErrors, fetchData, addToast, handleError, setIsImportModalOpen]);
+    }, [canEdit, importPreview, importSkipDupes, hasImportBlockingErrors, fetchData, addToast, handleError]);
+
+    const handleUndoImport = useCallback(async () => {
+        if (!lastImportedIds.length) return;
+        try {
+            const { error } = await supabase.from("periods").delete().in("id", lastImportedIds);
+            if (error) throw error;
+            addToast(`Berhasil membatalkan ${lastImportedIds.length} periode yang diimport`, "success");
+            try {
+                await logAudit({
+                    action: "DELETE", source: "MASTER", tableName: "periods",
+                    newData: { undo_import: true, count: lastImportedIds.length, ids: lastImportedIds },
+                });
+            } catch (e) {
+                console.warn("[usePeriodsImportExport] logAudit skip:", e.message);
+            }
+            setLastImportedIds([]);
+            setIsImportModalOpen(false);
+            fetchData();
+        } catch (err) {
+            handleError(err, { context: "Gagal membatalkan import" });
+        }
+    }, [lastImportedIds, fetchData, addToast, handleError, setIsImportModalOpen]);
 
     // ── EXPORT LOGIC ─────────────────────────────────────────────────────────
     const getExportData = useCallback(() => {
@@ -528,6 +659,7 @@ export function usePeriodsImportExport({
         setExporting(true);
         try {
             const rows = getExportData();
+            if (!rows.length) return addToast("Tidak ada data untuk diekspor", "warning");
             const icsLines = [
                 "BEGIN:VCALENDAR",
                 "VERSION:2.0",
@@ -536,20 +668,17 @@ export function usePeriodsImportExport({
                 "METHOD:PUBLISH",
             ];
             for (const row of rows) {
-                const ds = row.start_date.replace(/-/g, "");
-                const de = row.end_date.replace(/-/g, "");
-                const uid = `period-${row.id || Math.random().toString(36).slice(2)}@koperasimu`;
+                const ds = (row["Mulai"] || "").replace(/-/g, "");
+                const de = (row["Selesai"] || "").replace(/-/g, "");
+                if (!ds || !de) continue;
+                const yearKey = row["Tahun Pelajaran"] || "";
+                const semKey = row["Semester"] || "";
+                const uid = `period-${yearKey.replace("/", "")}-${semKey.toLowerCase()}@koperasimu`;
                 icsLines.push("BEGIN:VEVENT");
                 icsLines.push(`DTSTART;VALUE=DATE:${ds}`);
                 icsLines.push(`DTEND;VALUE=DATE:${de}`);
                 icsLines.push(`UID:${uid}`);
-                icsLines.push(`SUMMARY:${row.academic_year} ${row.semester}`);
-                if (row.registration_start && row.registration_end) {
-                    const rds = row.registration_start.replace(/-/g, "");
-                    const rde = row.registration_end.replace(/-/g, "");
-                    icsLines.push(`X-REGISTRATION-START;VALUE=DATE:${rds}`);
-                    icsLines.push(`X-REGISTRATION-END;VALUE=DATE:${rde}`);
-                }
+                icsLines.push(`SUMMARY:${yearKey} ${semKey}`);
                 icsLines.push("END:VEVENT");
             }
             icsLines.push("END:VCALENDAR");
@@ -592,6 +721,12 @@ export function usePeriodsImportExport({
         importProgress, setImportProgress,
         importEditCell, setImportEditCell,
         importSkipDupes, setImportSkipDupes,
+        lastImportedIds, setLastImportedIds,
+        importConflictStrategy, setImportConflictStrategy,
+        importDetectedDateFormat, setImportDetectedDateFormat,
+        importColumnAliases, setImportColumnAliases,
+        importAliasEditorOpen, setImportAliasEditorOpen,
+        importDiffPreview, setImportDiffPreview,
 
         // Export state
         exportScope, setExportScope,
@@ -614,6 +749,8 @@ export function usePeriodsImportExport({
         handleRemoveImportRow,
         handleDownloadTemplate,
         handleCommitImport,
+        handleUndoImport,
+        detectDateFormat,
 
         // Export actions
         getExportData,
