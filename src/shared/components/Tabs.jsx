@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 
 const VARIANT_STYLES = {
     pill: {
@@ -39,16 +39,44 @@ const Tabs = memo(function Tabs({
         md: "h-10 px-6 text-[10px]",
     };
 
+    const handleKeyDown = useCallback((e, idx) => {
+        let targetIdx = null
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault()
+            targetIdx = (idx + 1) % items.length
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            targetIdx = (idx - 1 + items.length) % items.length
+        } else if (e.key === 'Home') {
+            e.preventDefault()
+            targetIdx = 0
+        } else if (e.key === 'End') {
+            e.preventDefault()
+            targetIdx = items.length - 1
+        }
+        if (targetIdx !== null) {
+            onChange(items[targetIdx].key)
+            e.currentTarget.parentElement?.querySelectorAll('[role="tab"]')[targetIdx]?.focus()
+        }
+    }, [items, onChange])
+
     return (
-        <div className={`${styles.container} ${fullWidth ? "w-full" : "w-fit"} overflow-x-auto scrollbar-hide shrink-0 ${className}`}>
-            {items.map((item) => {
+        <div
+            role="tablist"
+            className={`${styles.container} ${fullWidth ? "w-full" : "w-fit"} overflow-x-auto scrollbar-hide shrink-0 ${className}`}
+        >
+            {items.map((item, idx) => {
                 const isActive = value === item.key;
                 const Icon = item.icon;
 
                 return (
                     <button
                         key={item.key}
+                        role="tab"
+                        aria-selected={isActive}
+                        tabIndex={isActive ? 0 : -1}
                         onClick={() => onChange(item.key)}
+                        onKeyDown={(e) => handleKeyDown(e, idx)}
                         className={`
                             ${fullWidth ? "flex-1" : "flex-none"}
                             ${sizeClasses[size] || sizeClasses.sm}

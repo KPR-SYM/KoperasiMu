@@ -45,13 +45,14 @@ const SpinnerButton = forwardRef(function SpinnerButton({
         <button
             ref={ref}
             disabled={disabled || loading}
+            aria-busy={loading || undefined}
             className={`inline-flex items-center justify-center font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed ${variantClass} ${sizeClass} ${className}`}
             {...props}
         >
             {loading ? (
                 <Spinner size="xs" color="border-current" />
             ) : Icon ? (
-                <Icon className="shrink-0" style={{ fontSize: '0.65em' }} />
+                <Icon className="shrink-0 text-[0.65em]" />
             ) : null}
             {children}
         </button>

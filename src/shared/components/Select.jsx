@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -146,8 +146,9 @@ const Select = memo(({
         }
         document.addEventListener('mousedown', handleClickOutside)
 
+        let focusTimer
         if (searchable && searchInputRef.current) {
-            setTimeout(() => searchInputRef.current?.focus(), 100)
+            focusTimer = setTimeout(() => searchInputRef.current?.focus(), 100)
         }
 
         if (!compact && usePortal) {
@@ -165,6 +166,7 @@ const Select = memo(({
             window.addEventListener('resize', updateCoords)
 
             return () => {
+                clearTimeout(focusTimer)
                 document.removeEventListener('mousedown', handleClickOutside)
                 scrollableAncestors.forEach(a => a.removeEventListener('scroll', updateCoords))
                 window.removeEventListener('scroll', updateCoords, true)
@@ -173,6 +175,7 @@ const Select = memo(({
         }
 
         return () => {
+            clearTimeout(focusTimer)
             document.removeEventListener('mousedown', handleClickOutside)
         }
     }, [isOpen, updateCoords, searchable, compact, usePortal])

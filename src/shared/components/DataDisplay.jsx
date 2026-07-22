@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { useCountUp } from '@hooks/useCountUp'
 import { useLanguage } from '@context'
 
@@ -8,7 +8,7 @@ const renderIcon = (icon, className = '') => {
     return <IconComp className={className} />;
 };
 
-export function StatCard({
+export const StatCard = memo(function StatCard({
     icon,
     label,
     value,
@@ -159,7 +159,7 @@ export function StatCard({
 
     // ── FLAT VARIANT (original look, kept for backward-compat) ─────
     const finalBorderTop = borderColor
-        ? (colorMap[borderColor]?.flat_border ?? (borderColor.startsWith('border-t-') ? borderColor : `border-t-${borderColor}`))
+        ? (colorMap[borderColor]?.flat_border ?? resolved.flat_border)
         : resolved.flat_border
     const finalBg = iconBg || resolved.flat_iconBg
 
@@ -213,9 +213,9 @@ export function StatCard({
             )}
         </div>
     )
-}
+})
 
-export function StatsInline({ items, label, separator = true, className = '' }) {
+export const StatsInline = memo(function StatsInline({ items, label, separator = true, className = '' }) {
     return (
         <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.05] border border-[var(--color-border)] ${className}`}>
             {label && (
@@ -235,9 +235,9 @@ export function StatsInline({ items, label, separator = true, className = '' }) 
             ))}
         </div>
     );
-}
+})
 
-export function DataTable({ columns, data, onRowClick, loading, emptyMessage = 'Tidak ada data' }) {
+export const DataTable = memo(function DataTable({ columns, data, onRowClick, loading, loadingRows = 5, emptyMessage = 'Tidak ada data' }) {
     if (loading) {
         return (
             <div className="table-container">
@@ -250,7 +250,7 @@ export function DataTable({ columns, data, onRowClick, loading, emptyMessage = '
                         </tr>
                     </thead>
                     <tbody>
-                        {Array.from({ length: 5 }).map((_, i) => (
+                        {Array.from({ length: loadingRows }).map((_, i) => (
                             <tr key={i}>
                                 {columns.map((_, j) => (
                                     <td key={j}>
@@ -304,7 +304,7 @@ export function DataTable({ columns, data, onRowClick, loading, emptyMessage = '
             </table>
         </div>
     )
-}
+})
 
 const EMPTY_STATE_PRESETS = {
     'no-data': {
@@ -333,7 +333,7 @@ const EMPTY_STATE_PRESETS = {
     },
 }
 
-export function EmptyState({ icon, title, description, action, variant = 'glass', color = 'primary', preset }) {
+export const EmptyState = memo(function EmptyState({ icon, title, description, action, variant = 'glass', color = 'primary', preset }) {
     const presetConfig = preset ? (EMPTY_STATE_PRESETS[preset] || {}) : {}
     const finalTitle = title || presetConfig.title
     const finalDescription = description || presetConfig.description
@@ -390,4 +390,4 @@ export function EmptyState({ icon, title, description, action, variant = 'glass'
             </div>
         </div>
     )
-}
+})

@@ -12,6 +12,11 @@ const BulkActionsPreview = memo(({
 }) => {
   const [activeIdx, setActiveIdx] = useState(0)
   const scrollRef = useRef(null)
+  const removeTimeoutRef = useRef(null)
+
+  useEffect(() => {
+    return () => clearTimeout(removeTimeoutRef.current)
+  }, [])
 
   const handleScroll = () => {
     const el = scrollRef.current
@@ -50,7 +55,7 @@ const BulkActionsPreview = memo(({
               type="button"
               onClick={() => {
                 setRemovingItemId(item.id)
-                setTimeout(() => {
+                removeTimeoutRef.current = setTimeout(() => {
                   onRemoveItem(item.id)
                   setRemovingItemId(null)
                 }, 250)
@@ -81,7 +86,7 @@ const BulkActionsPreview = memo(({
                   onClick={(e) => {
                     e.stopPropagation()
                     setRemovingItemId(item.id)
-                    setTimeout(() => {
+                    removeTimeoutRef.current = setTimeout(() => {
                       onRemoveItem(item.id)
                       setRemovingItemId(null)
                     }, 250)
@@ -287,7 +292,7 @@ export default function BulkActionsBar({
 
           {/* Expandable Preview Panel */}
           {hasPreview && isExpanded && (
-            <div className="border-t border-white/10 bg-white/2.5 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="border-t border-white/10 bg-white/5 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <BulkActionsPreview
                 selectedItems={selectedItems}
                 removingItemId={removingItemId}

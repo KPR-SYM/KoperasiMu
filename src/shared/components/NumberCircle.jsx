@@ -23,6 +23,8 @@ export default function NumberCircle({
 
     return (
         <div
+            role="img"
+            aria-label={`Step ${value}`}
             className={`rounded-full flex items-center justify-center font-black shrink-0 transition-all shadow-sm
                 ${sizeClass}
                 ${active || completed

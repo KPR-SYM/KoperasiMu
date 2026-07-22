@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { ArrowLeft, ArrowRight, Warning } from '@phosphor-icons/react'
+import { ArrowLeft, ArrowRight } from '@phosphor-icons/react'
 import Select from '@shared/components/Select'
 
 function StepMapping({
@@ -16,8 +16,8 @@ function StepMapping({
     const mappedCount = Object.keys(importColumnMapping).filter(k => importColumnMapping[k]).length
 
     const headerOptions = [
-        { value: '', label: '-- Pilih Kolom --' },
-        ...importFileHeaders.map(h => ({ value: h, label: h }))
+        { id: '', name: '-- Pilih Kolom --' },
+        ...importFileHeaders.map(h => ({ id: h, name: h }))
     ]
 
     const handleMappingChange = (sysKey, headerValue) => {

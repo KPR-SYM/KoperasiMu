@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Warning, CaretDown, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench, X } from '@phosphor-icons/react'
+﻿import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
+import { Warning, CaretDown, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 
-import { fmtDate, fmtTime, fmtDateTime, fmtRelative } from '@utils/formatters'
+import { fmtDateTime, fmtRelative } from '@utils/formatters'
 import { EmptyState } from './DataDisplay'
 
 const SEVERITY_STYLES = {
@@ -17,7 +17,7 @@ const SEVERITY_STYLES = {
  * @param {string} action — Tipe aksi dari kolom `action` di audit_logs
  * @param {string} theme — Tema warna: 'default' | 'purple'
  */
-export const ActionBadge = ({ action, theme = 'default' }) => {
+export const ActionBadge = memo(function ActionBadge({ action, theme = 'default' }) {
     const purpleConfig = {
         INSERT: { label: 'TAMBAH', color: 'bg-purple-500/10 text-purple-500', icon: Plus },
         UPDATE: { label: 'UBAH', color: 'bg-purple-500/10 text-purple-500', icon: Pen },
@@ -46,13 +46,13 @@ export const ActionBadge = ({ action, theme = 'default' }) => {
             {c.label}
         </span>
     )
-}
+})
 
 /**
  * JsonVisualizer â€” Tampilkan objek JSON dalam format key:value berwarna
  * @param {object} data â€” Objek JSON yang akan ditampilkan
  */
-export const JsonVisualizer = ({ data }) => {
+export const JsonVisualizer = memo(function JsonVisualizer({ data }) {
     if (!data || typeof data !== 'object') {
         return <span className="text-[var(--color-text-muted)]">null</span>
     }
@@ -75,7 +75,7 @@ export const JsonVisualizer = ({ data }) => {
             ))}
         </div>
     )
-}
+})
 
 // Helper internal â€” hitung diff antara dua objek
 const _getDiff = (oldObj, newObj, changedFields = null) => {
@@ -97,7 +97,7 @@ const _getDiff = (oldObj, newObj, changedFields = null) => {
 /**
  * DiffViewer — Side-by-side diff antara old_data and new_data dari audit log
  */
-export const DiffViewer = ({ oldData, newData, changedFields }) => {
+export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFields }) {
     const diff = _getDiff(oldData, newData, changedFields || null)
     const keys = Object.keys(diff)
 
@@ -191,12 +191,12 @@ export const DiffViewer = ({ oldData, newData, changedFields }) => {
             })}
         </div>
     )
-}
+})
 
 /**
  * DeleteTombstone â€” Tampilkan snapshot record yang dihapus (old_data)
  */
-export const DeleteTombstone = ({ data }) => {
+export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
     if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-6 opacity-40">
@@ -238,12 +238,12 @@ export const DeleteTombstone = ({ data }) => {
             </p>
         </div>
     )
-}
+})
 
 /**
  * InsertViewer â€” Tampilkan field-field record baru untuk aksi INSERT
  */
-export const InsertViewer = ({ data }) => {
+export const InsertViewer = memo(function InsertViewer({ data }) {
     if (!data || typeof data !== 'object') return null
 
     const entries = Object.entries(data).filter(([, v]) => v !== null && v !== undefined)
@@ -272,7 +272,7 @@ export const InsertViewer = ({ data }) => {
             </div>
         </div>
     )
-}
+})
 
 /**
  * AuditTimeline — ClockClockwise vertikal audit log untuk satu record spesifik.
@@ -284,9 +284,13 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     const [expandedId, setExpandedId] = useState(null)
     const [search, setSearch] = useState('')
     const [restoringId, setRestoringId] = useState(null)
+    const abortRef = useRef(null)
 
     const fetchLogs = useCallback(async () => {
         if (!tableName || !recordId) return
+        abortRef.current?.abort()
+        const controller = new AbortController()
+        abortRef.current = controller
         setLoading(true)
         try {
             const { data, error } = await supabase
@@ -297,6 +301,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 .order('created_at', { ascending: false })
                 .limit(limit)
 
+            if (controller.signal.aborted) return
             if (error) throw error
 
             const uids = [...new Set((data || []).map(r => r.user_id).filter(Boolean))]
@@ -309,19 +314,20 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 if (pData) pData.forEach(p => { profileMap[p.id] = p })
             }
 
+            if (controller.signal.aborted) return
             setLogs((data || []).map(r => ({
                 ...r,
                 actor_name: profileMap[r.user_id]?.name || 'System',
             })))
         } catch (e) {
-            console.error('[AuditTimeline]', e.message)
+            if (e.name !== 'AbortError') console.error('[AuditTimeline]', e.message)
         } finally {
             setLoading(false)
         }
     }, [tableName, recordId, limit])
 
     const handleRestore = async (log) => {
-        if (!window.confirm('Pulihkan data ini? Aksi ini akan menulis ulang state record saat ini.')) return
+        if (!confirm('Pulihkan data ini? Aksi ini akan menulis ulang state record saat ini.')) return
         setRestoringId(log.id)
         try {
             const targetData = log.old_data
@@ -343,9 +349,9 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 new_data: { restored_from: log.id, action: log.action },
                 url: window.location.href,
             })
-            window.location.reload()
+            fetchLogs()
         } catch (e) {
-            alert('Gagal memulihkan: ' + e.message)
+            console.error('[AuditTimeline] Restore failed:', e.message)
         } finally {
             setRestoringId(null)
         }
@@ -353,10 +359,14 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
 
     useEffect(() => { fetchLogs() }, [fetchLogs])
 
-    const filteredLogs = logs.filter(l =>
-        l.action.toLowerCase().includes(search.toLowerCase()) ||
-        l.actor_name.toLowerCase().includes(search.toLowerCase())
-    )
+    const filteredLogs = useMemo(() => {
+        if (!search) return logs
+        const q = search.toLowerCase()
+        return logs.filter(l =>
+            l.action.toLowerCase().includes(q) ||
+            l.actor_name.toLowerCase().includes(q)
+        )
+    }, [logs, search])
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center h-full min-h-[160px] space-y-4 p-2">

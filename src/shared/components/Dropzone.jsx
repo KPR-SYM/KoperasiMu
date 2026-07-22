@@ -42,6 +42,7 @@ const Dropzone = memo(forwardRef(function Dropzone({
 }, ref) {
     const [internalDragOver, setInternalDragOver] = useState(false);
     const inputRef = useRef(null);
+    const dragCounter = useRef(0);
 
     const dragOver = externalDragOver !== undefined ? externalDragOver : internalDragOver;
     const setDragOver = externalSetDragOver || setInternalDragOver;
@@ -54,15 +55,25 @@ const Dropzone = memo(forwardRef(function Dropzone({
     const styles = VARIANT_STYLES[variant] || VARIANT_STYLES.compact;
     const Icon = CustomIcon || UploadSimple;
 
-    const handleDragOver = (e) => {
+    const handleDragEnter = (e) => {
         e.preventDefault();
-        if (!disabled) setDragOver(true);
+        if (!disabled) {
+            dragCounter.current++
+            setDragOver(true);
+        }
     };
 
-    const handleDragLeave = () => setDragOver(false);
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        dragCounter.current--
+        if (dragCounter.current === 0) {
+            setDragOver(false);
+        }
+    };
 
     const handleDrop = async (e) => {
         e.preventDefault();
+        dragCounter.current = 0;
         setDragOver(false);
         if (disabled) return;
         const file = e.dataTransfer.files?.[0];
@@ -81,7 +92,8 @@ const Dropzone = memo(forwardRef(function Dropzone({
 
     return (
         <div
-            onDragOver={handleDragOver}
+            onDragEnter={handleDragEnter}
+            onDragOver={(e) => e.preventDefault()}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={handleClick}

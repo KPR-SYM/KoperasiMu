@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { createPortal } from 'react-dom'
 
 const POSITIONS = {
@@ -16,7 +16,7 @@ const POSITIONS = {
  * @param {string} position - top|bottom|left|right (default: top)
  * @param {number} delay - show delay in ms (default: 300)
  */
-export default function Tooltip({
+const Tooltip = memo(function Tooltip({
     children,
     content,
     position = 'top',
@@ -36,10 +36,10 @@ export default function Tooltip({
 
             let top, left
             if (side === 'top') {
-                top = rect.top + window.scrollY + offset.y
+                top = rect.top + offset.y
                 left = rect.left + rect.width / 2 + offset.x
             } else if (side === 'bottom') {
-                top = rect.bottom + window.scrollY + offset.y
+                top = rect.bottom + offset.y
                 left = rect.left + rect.width / 2 + offset.x
             } else if (side === 'left') {
                 top = rect.top + rect.height / 2 + offset.y
@@ -65,6 +65,8 @@ export default function Tooltip({
 
     if (!content) return children
 
+    const tooltipId = `tooltip-${Math.random().toString(36).slice(2, 9)}`
+
     const transformOrigin = {
         top: 'bottom',
         bottom: 'top',
@@ -80,12 +82,15 @@ export default function Tooltip({
                 onMouseLeave={hide}
                 onFocus={show}
                 onBlur={hide}
+                aria-describedby={visible ? tooltipId : undefined}
                 className="inline-flex"
             >
                 {children}
             </span>
             {visible && createPortal(
                 <div
+                    id={tooltipId}
+                    role="tooltip"
                     className={`fixed z-[99999] px-2.5 py-1.5 rounded-lg bg-[var(--color-text)] text-white text-[10px] font-bold shadow-lg pointer-events-none animate-in fade-in zoom-in-95 ${className}`}
                     style={{
                         top: coords.top,
@@ -102,4 +107,6 @@ export default function Tooltip({
             )}
         </>
     )
-}
+})
+
+export default Tooltip

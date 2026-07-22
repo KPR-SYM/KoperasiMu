@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export function useCountUp(target, duration = 1000, loading = false) {
     const [count, setCount] = useState(0)
+    const rafRef = useRef(null)
 
     useEffect(() => {
         if (loading) {
@@ -27,18 +28,22 @@ export function useCountUp(target, duration = 1000, loading = false) {
             if (!startTimestamp) startTimestamp = timestamp
             const progress = Math.min((timestamp - startTimestamp) / duration, 1)
             
-            // Ease out expo for a premium feel
             const easing = 1 - Math.pow(2, -10 * progress)
             const current = Math.floor(easing * (end - start) + start)
             
             setCount(current)
             if (progress < 1) {
-                window.requestAnimationFrame(step)
+                rafRef.current = window.requestAnimationFrame(step)
             } else {
                 setCount(end)
             }
         }
-        window.requestAnimationFrame(step)
+        rafRef.current = window.requestAnimationFrame(step)
+        return () => cancelAnimationFrame(rafRef.current)
+    }, [target, duration, loading])
+
+    return count
+}
     }, [target, duration, loading])
 
     return count

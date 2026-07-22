@@ -65,13 +65,12 @@ const Modal = memo(function Modal({
             document.body.style.overflow = 'hidden'
             if (scrollBarWidth > 0) document.body.style.paddingRight = `${scrollBarWidth}px`
         } else {
-            // RELEASE IMMEDIATELY for better perceived responsiveness
             document.body.style.overflow = ''
-            document.body.style.paddingRight = '0px'
+            document.body.style.paddingRight = ''
         }
         return () => {
             document.body.style.overflow = ''
-            document.body.style.paddingRight = '0px'
+            document.body.style.paddingRight = ''
         }
     }, [isOpen])
 

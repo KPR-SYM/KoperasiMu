@@ -24,6 +24,8 @@ const Spinner = memo(function Spinner({
     const sizeClass = SPINNER_SIZES[size] || SPINNER_SIZES.sm
     return (
         <div
+            role="status"
+            aria-label="Loading"
             className={`rounded-full animate-spin ${sizeClass} ${color} border-t-transparent shrink-0 ${className}`}
             {...props}
         />

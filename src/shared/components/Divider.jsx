@@ -7,7 +7,7 @@
 export default function Divider({ label, className = '' }) {
     if (label) {
         return (
-            <div className={`flex items-center gap-3 ${className}`}>
+            <div className={`flex items-center gap-3 ${className}`} role="separator" aria-label={label}>
                 <div className="flex-1 h-px bg-[var(--color-border)]" />
                 <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] shrink-0">
                     {label}
@@ -16,5 +16,5 @@ export default function Divider({ label, className = '' }) {
             </div>
         )
     }
-    return <hr className={`border-0 h-px bg-[var(--color-border)] ${className}`} />
+    return <hr className={`border-0 h-px bg-[var(--color-border)] ${className}`} role="separator" aria-orientation="horizontal" />
 }

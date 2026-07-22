@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
+import { supabase } from '@lib/supabase'
 
 export function useImportWizard(config) {
     const {
@@ -127,8 +128,7 @@ export function useImportWizard(config) {
             const mapping = autoMapColumns(headers)
             setImportColumnMapping(mapping)
             setImportStep(2)
-        } catch (err) {
-            console.error(err)
+        } catch {
             addToast?.('Gagal membaca file import', 'error')
         } finally {
             setImportLoading(false)
@@ -144,7 +144,7 @@ export function useImportWizard(config) {
         }
         const preview = importRawData.map((r, idx) => {
             const parsed = parseRow ? parseRow(r, getVal, { systemCols }) : {}
-            const issues = validateRow ? validateRow(parsed, idx, { importPreview: preview }) : []
+            const issues = validateRow ? validateRow(parsed, idx, {}) : []
             const hasError = issues.some(i => i.level === 'error')
             const hasWarn = issues.some(i => i.level === 'warn')
             return { ...parsed, _isDupe: false, _hasError: hasError, _hasWarn: hasWarn }
@@ -244,8 +244,7 @@ export function useImportWizard(config) {
             addToast?.(`Berhasil import ${importReadyRows.length} data`, 'success')
             resetWizard()
             onSuccess?.()
-        } catch (err) {
-            console.error(err)
+        } catch {
             addToast?.('Gagal import. Cek koneksi atau constraint database.', 'error')
         } finally {
             setImporting(false)

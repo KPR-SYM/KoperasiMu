@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 /**
  * useLongPress custom hook
@@ -9,6 +9,10 @@ export default function useLongPress(onLongPress, { delay = 500, onClick = null 
     const timerRef = useRef();
     const sourceRef = useRef();
     const longPressTriggeredRef = useRef(false);
+
+    useEffect(() => {
+        return () => clearTimeout(timerRef.current);
+    }, []);
 
     const start = useCallback((event) => {
         event.persist();

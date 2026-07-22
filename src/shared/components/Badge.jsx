@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo } from "react";
 
 const COLOR_MAP = {
     emerald: {
@@ -129,7 +129,7 @@ const Badge = memo(function Badge({
             {finalDot && (
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${colors.dot}`} />
             )}
-            {Icon && <Icon className="shrink-0" style={{ fontSize: "0.65em" }} />}
+            {Icon && <Icon className="shrink-0 text-[0.65em]" />}
             {children}
         </span>
     );
@@ -146,7 +146,7 @@ const ROLE_META = {
 function RoleBadge({ role, className = "" }) {
     const meta = ROLE_META[role] || { label: role, color: "slate" };
     return (
-        <Badge color={meta.color} size="md" shape="rect" {...meta.icon && { icon: meta.icon }} className={className}>
+        <Badge color={meta.color} size="md" shape="rect" className={className}>
             {meta.label}
         </Badge>
     );

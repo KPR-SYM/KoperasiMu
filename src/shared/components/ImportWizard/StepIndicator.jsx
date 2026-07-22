@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import { memo } from 'react'
 
 const StepIndicator = memo(function StepIndicator({ steps = 3, activeStep = 1, completedSteps = [], className = '' }) {
     const stepLabels = [

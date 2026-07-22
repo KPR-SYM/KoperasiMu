@@ -1,5 +1,5 @@
-import React, { memo, useState, useEffect, useRef } from 'react'
-import { DownloadSimple, FileText, CaretDown, Spinner } from '@phosphor-icons/react'
+import { memo, useState, useEffect, useRef } from 'react'
+import { DownloadSimple, FileText, CaretDown } from '@phosphor-icons/react'
 import { Dropzone } from '@shared/components'
 import Select from '@shared/components/Select'
 

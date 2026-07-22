@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { Calendar, CaretDown, CaretLeft, CaretRight, XCircle } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -175,19 +175,14 @@ const DatePicker = memo(({
     maxDate = null  // Format: YYYY-MM-DD � dates after this are disabled
 }) => {
     // Access active language context with safe fallback
-    let systemLanguage = 'id'
-    let tNum = (val) => String(val)
+    let langCtx
     try {
-        const langCtx = useLanguage()
-        if (langCtx && langCtx.language) {
-            systemLanguage = langCtx.language
-        }
-        if (langCtx && langCtx.tNum) {
-            tNum = langCtx.tNum
-        }
+        langCtx = useLanguage()
     } catch {
-        // Safe fallback
+        langCtx = null
     }
+    const systemLanguage = langCtx?.language || 'id'
+    const tNum = langCtx?.tNum || ((val) => String(val))
 
     const currentLocale = useMemo(() => LOCALES[systemLanguage] || LOCALES.id, [systemLanguage])
     const isRTL = currentLocale.dir === 'rtl'

@@ -1,6 +1,5 @@
-import React, { memo, useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { CaretLeft, CaretRight, CheckCircle, WarningCircle, Warning, Trash, Spinner, SlidersHorizontal, CaretDown, CaretUp, Minus, ArrowsOutSimple, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { memo, useState } from 'react'
+import { CheckCircle, WarningCircle, Warning, Trash, Spinner, CaretDown, CaretUp } from '@phosphor-icons/react'
 import { Badge } from '@shared/components'
 import { Select } from '@shared/components'
 import EditableCell from './EditableCell'
@@ -33,25 +32,11 @@ const StepReview = memo(function StepReview({
     onBack,
 }) {
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
-    const [showColMenu, setShowColMenu] = useState(false)
-    const colMenuRef = useRef(null)
-
-    useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (colMenuRef.current && !colMenuRef.current.contains(e.target)) setShowColMenu(false)
-        }
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
 
     const totalRows = importPreview.length
     const errorRows = importIssues.filter(i => i.level === 'error').length
     const warnRows = importIssues.filter(i => i.level === 'warn').length
     const dupeRows = importDuplicates.length
-
-    const toggleCol = (key) => {
-        // Column visibility handled by parent
-    }
 
     return (
         <div className="flex flex-col h-full">
@@ -59,7 +44,7 @@ const StepReview = memo(function StepReview({
                 <div className="flex items-center gap-3">
                     <Badge variant="soft" color="slate">Total: {totalRows}</Badge>
                     <Badge variant="soft" color="emerald">Siap: {importReadyRows.length}</Badge>
-                    {dupeRows > 0 && <Badge variant="soft" color="violet">Duplikat: {dupeRows}</Badge>}
+                    {dupeRows > 0 && <Badge variant="soft" color="purple">Duplikat: {dupeRows}</Badge>}
                     {errorRows > 0 && <Badge variant="solid" color="rose">Error: {errorRows}</Badge>}
                     {warnRows > 0 && <Badge variant="soft" color="amber">Peringatan: {warnRows}</Badge>}
                 </div>
@@ -77,21 +62,6 @@ const StepReview = memo(function StepReview({
                     >
                         <Warning className="w-3.5 h-3.5" /> Filter Error
                     </button>
-                    <div className="relative" ref={colMenuRef}>
-                        <button onClick={() => setShowColMenu(!showColMenu)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
-                            <SlidersHorizontal className="w-3.5 h-3.5" /> Kolom
-                        </button>
-                        {showColMenu && (
-                            <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10">
-                                {columns?.map(c => (
-                                    <label key={c.key} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
-                                        <input type="checkbox" checked={true} onChange={() => toggleCol(c.key)} className="rounded border-gray-300 text-blue-600" />
-                                        <span>{c.label}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        )}
-                    </div>
                 </div>
             </div>
 

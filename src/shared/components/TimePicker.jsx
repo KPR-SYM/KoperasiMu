@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
 import { Check, CaretDown, CaretUp, Clock } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -75,19 +75,14 @@ const TimePicker = memo(({
     clearable = false
 }) => {
     // Access active language context with safe fallback
-    let systemLanguage = 'id'
-    let tNum = (val) => String(val)
+    let langCtx
     try {
-        const langCtx = useLanguage()
-        if (langCtx && langCtx.language) {
-            systemLanguage = langCtx.language
-        }
-        if (langCtx && langCtx.tNum) {
-            tNum = langCtx.tNum
-        }
+        langCtx = useLanguage()
     } catch {
-        // Safe fallback
+        langCtx = null
     }
+    const systemLanguage = langCtx?.language || 'id'
+    const tNum = langCtx?.tNum || ((val) => String(val))
 
     const currentLocale = useMemo(() => TIME_LOCALES[systemLanguage] || TIME_LOCALES.id, [systemLanguage])
 
@@ -227,12 +222,15 @@ const TimePicker = memo(({
         }
     }
 
+    const handleDoneRef = useRef(handleDone)
+    useEffect(() => { handleDoneRef.current = handleDone })
+
     useEffect(() => {
         if (!isOpen) return
 
         const handleClickOutside = (e) => {
             if (ref.current && !ref.current.contains(e.target)) {
-                handleDone()
+                handleDoneRef.current()
             }
         }
         document.addEventListener('mousedown', handleClickOutside)
@@ -256,7 +254,7 @@ const TimePicker = memo(({
             window.removeEventListener('scroll', updateCoords, true)
             window.removeEventListener('resize', updateCoords)
         }
-    }, [isOpen, updateCoords, activeTimeStr])
+    }, [isOpen, updateCoords])
 
     // Time adjustment functions
     const adjustHour = (amount) => {

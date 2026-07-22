@@ -1,5 +1,4 @@
-import React, { memo, useState, useCallback } from 'react'
-import { CaretLeft, CaretRight, CheckCircle, WarningCircle, Spinner, UploadSimple, FileText, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { memo, useState, useCallback } from 'react'
 import Modal from '@shared/components/Modal'
 import Select from '@shared/components/Select'
 import { Dropzone } from '@shared/components'
@@ -16,8 +15,6 @@ const ImportWizardModal = memo(function ImportWizardModal({
 }) {
     const [showValidation, setShowValidation] = useState(false)
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
-    const [showClassesDropdown, setShowClassesDropdown] = useState(false)
-    const classesDropdownRef = React.useRef(null)
 
     const {
         importStep,
@@ -78,8 +75,6 @@ const ImportWizardModal = memo(function ImportWizardModal({
     const displayedPreview = filterIssuesOnly
         ? importPreview.filter((_, i) => importIssues.some(issue => issue.row === i + 2 && issue.level === 'error'))
         : importPreview
-
-    if (!isOpen) return null
 
     return (
         <Modal

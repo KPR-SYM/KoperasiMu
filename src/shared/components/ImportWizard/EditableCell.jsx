@@ -1,7 +1,5 @@
-import React, { memo, useState, useRef, useLayoutEffect } from 'react'
+import { memo, useState, useRef, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { MagnifyingGlass, X, CaretDown } from '@phosphor-icons/react'
-import { Badge } from '@shared/components'
 
 const EditableCell = memo(function EditableCell({
     rowIdx,

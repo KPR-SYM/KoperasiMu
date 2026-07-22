@@ -1,4 +1,4 @@
-﻿import React from 'react'
+﻿import React, { useRef, useEffect } from 'react'
 import { CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight } from '@phosphor-icons/react'
 
 import Select from './Select'
@@ -52,6 +52,11 @@ export default function Pagination({
     const totalPages = Math.max(1, Math.ceil(totalRows / pageSize))
     const fromRow = totalRows === 0 ? 0 : (page - 1) * pageSize + 1
     const toRow = Math.min(page * pageSize, totalRows)
+    const jumpTimeoutRef = useRef(null)
+
+    useEffect(() => {
+        return () => clearTimeout(jumpTimeoutRef.current)
+    }, [])
     const maxDigits = String(totalPages).length
     const [jumpError, setJumpError] = React.useState(false)
 
@@ -208,7 +213,7 @@ export default function Pagination({
                                         setJumpError(false);
                                     } else {
                                         setJumpError(true);
-                                        setTimeout(() => { setJumpError(false); setJumpPage(''); }, 600);
+                                        jumpTimeoutRef.current = setTimeout(() => { setJumpError(false); setJumpPage(''); }, 600);
                                     }
                                 }
                             }}

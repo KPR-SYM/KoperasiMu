@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { WarningCircle, Warning, Bug, Copy, House, ArrowClockwise, X, TerminalWindow } from '@phosphor-icons/react'
+import { WarningCircle, Warning, Bug, Copy, House, ArrowClockwise, X } from '@phosphor-icons/react'
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -260,12 +260,12 @@ function ProductionErrorFallback({
                     to   { opacity:1; transform:translateY(0) scale(1); }
                 }
             `}</style>
-            <div className={`relative w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm flex flex-col items-center gap-4 px-6 pt-8 pb-6 border-t-4 border-t-${accent}-500`}>
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 bg-${accent}-500/10`}>
+            <div className={`relative w-full max-w-md bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-sm flex flex-col items-center gap-4 px-6 pt-8 pb-6 border-t-4 ${accent === 'amber' ? 'border-t-amber-500' : 'border-t-red-500'}`}>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 ${accent === 'amber' ? 'bg-amber-500/10' : 'bg-red-500/10'}`}>
                     {isOffline ? (
-                        <WarningCircle weight="bold" className={`text-2xl text-${accent}-500`} />
+                        <WarningCircle weight="bold" className={`text-2xl ${accent === 'amber' ? 'text-amber-500' : 'text-red-500'}`} />
                     ) : (
-                        <Warning weight="bold" className={`text-2xl text-${accent}-500`} />
+                        <Warning weight="bold" className={`text-2xl ${accent === 'amber' ? 'text-amber-500' : 'text-red-500'}`} />
                     )}
                 </div>
                 <div className="text-center max-w-xs">
@@ -294,7 +294,7 @@ function ProductionErrorFallback({
                         onClick={isModuleError ? () => window.location.reload() : onReset}
                         disabled={!canRetry}
                         autoFocus
-                        className={`w-full h-10 rounded-xl text-white text-[12px] font-black uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed bg-${accent}-600 hover:bg-${accent}-700`}
+                        className={`w-full h-10 rounded-xl text-white text-[12px] font-black uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${accent === 'amber' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-red-600 hover:bg-red-700'}`}
                     >
                         <ArrowClockwise />
                         {isModuleError ? 'Muat Ulang Halaman' : canRetry ? 'Coba Lagi' : 'Batas Tercapai'}

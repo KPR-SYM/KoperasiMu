@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, memo } from 'react'
 import { useLanguage } from '@context'
 
-export default function StatsCarousel({ children, count, cols = 4, className = '' }) {
+const StatsCarousel = memo(function StatsCarousel({ children, count, cols = 4, className = '' }) {
     const { dir } = useLanguage()
     const scrollRef = useRef(null)
     const [activeIdx, setActiveIdx] = useState(0)
@@ -53,4 +53,6 @@ export default function StatsCarousel({ children, count, cols = 4, className = '
             </div>
         </div>
     )
-}
+})
+
+export default StatsCarousel
