@@ -44,7 +44,3 @@ export function useCountUp(target, duration = 1000, loading = false) {
 
     return count
 }
-    }, [target, duration, loading])
-
-    return count
-}
