@@ -11,7 +11,7 @@ const STEPS = [
 ]
 
 const TEMPLATE_COLS = [
-    { l: 'A', k: 'academic_year', n: 'Tahun Pelajaran', w: 'w-[25%]' },
+    { l: 'A', k: 'period', n: 'Tahun Pelajaran', w: 'w-[25%]' },
     { l: 'B', k: 'semester', n: 'Semester', w: 'w-[25%]' },
     { l: 'C', k: 'start_date', n: 'Tanggal Mulai', w: 'w-[25%]' },
     { l: 'D', k: 'end_date', n: 'Tanggal Selesai', w: 'w-[25%]' },
@@ -436,8 +436,6 @@ export default function PeriodImportModal(props) {
         importEditCell,
         setImportEditCell,
         handleRemoveImportRow,
-        importSkipDupes,
-        setImportSkipDupes,
         importConflictStrategy,
         setImportConflictStrategy,
         importDetectedDateFormat,
@@ -452,7 +450,7 @@ export default function PeriodImportModal(props) {
     } = props
 
     const [filterIssuesOnly, setFilterIssuesOnly] = useState(false)
-    const [importDiffOpen, setImportDiffOpen] = useState(true)
+    const [importDiffOpen, setImportDiffOpen] = useState(false)
     const [colMenuOpen, setColMenuOpen] = useState(false)
     const colMenuBtnRef = useRef(null)
     const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
@@ -532,12 +530,17 @@ export default function PeriodImportModal(props) {
 
     const visibleRows = useMemo(() => displayPreview.slice(0, visibleCount), [displayPreview, visibleCount])
 
-    const statValues = useMemo(() => ({
-        total: importPreview.length - pendingDeletions.size,
-        ready: importReadyRows.length,
-        dupe: importPreview.filter((r, idx) => r._isDupe && !pendingDeletions.has(idx)).length,
-        error: importPreview.filter((r, idx) => r._hasError && !pendingDeletions.has(idx)).length,
-    }), [importPreview, importReadyRows, pendingDeletions])
+    const statValues = useMemo(() => {
+        let dupe = 0, error = 0
+        for (let idx = 0; idx < importPreview.length; idx++) {
+            if (pendingDeletions.has(idx)) continue
+            if (importPreview[idx]._isDupe) dupe++
+            else if (importPreview[idx]._hasError) error++
+        }
+        return { total: importPreview.length - pendingDeletions.size, ready: importReadyRows.length, dupe, error }
+    }, [importPreview, importReadyRows, pendingDeletions])
+
+    const diffUpdates = useMemo(() => importDiffPreview.filter(d => d.status === 'update'), [importDiffPreview])
 
     const fileHeaderOptions = useMemo(() =>
         importFileHeaders.map(h => ({ id: h, name: h }))
@@ -574,6 +577,7 @@ export default function PeriodImportModal(props) {
         const sorted = [...current].sort((a, b) => b - a)
         sorted.forEach(i => handleRemoveImportRow(i))
         setPendingDeletions(new Set())
+        setSelectedRows(new Set())
         deletionTimerRef.current = null
     }, [handleRemoveImportRow])
 
@@ -606,8 +610,6 @@ export default function PeriodImportModal(props) {
         setSelectedRows(new Set())
     }, [selectedRows, flushPendingDeletions])
 
-    const handleToggleSkipDupes = useCallback(() => setImportSkipDupes(v => !v), [setImportSkipDupes])
-
     const handleToggleFilterIssues = useCallback(() => setFilterIssuesOnly(v => !v), [])
 
     const handleToggleColMenu = useCallback((e) => {
@@ -616,16 +618,26 @@ export default function PeriodImportModal(props) {
         setColMenuOpen(v => !v)
     }, [])
 
+    useEffect(() => {
+        if (!colMenuOpen) return
+        const handleClickOutside = (e) => {
+            if (colMenuBtnRef.current && !colMenuBtnRef.current.contains(e.target)) {
+                setColMenuOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [colMenuOpen])
+
     const handleToggleColVisibility = useCallback((key) => {
         setVisibleCols(p => ({ ...p, [key]: !p[key] }))
     }, [])
 
     const handleGoToStep = useCallback((stepOrFn) => {
-        if (typeof stepOrFn === 'function') {
-            setImportStep(stepOrFn)
-        } else {
-            setImportStep(stepOrFn)
-        }
+        setImportStep(prev => {
+            const next = typeof stepOrFn === 'function' ? stepOrFn(prev) : stepOrFn
+            return Math.max(1, Math.min(3, next))
+        })
     }, [setImportStep])
 
     const handleReviewPreview = useCallback(async () => {
@@ -986,7 +998,7 @@ export default function PeriodImportModal(props) {
                             </div>
 
                             {/* Diff Preview Section */}
-                            {importDiffPreview.filter(d => d.status === 'update').length > 0 && (
+                            {diffUpdates.length > 0 && (
                                 <div className="rounded-2xl border border-[var(--color-border)] overflow-hidden bg-[var(--color-surface)] shadow-sm">
                                     <button
                                         type="button"
@@ -996,13 +1008,13 @@ export default function PeriodImportModal(props) {
                                         <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-1.5">
                                             <CaretDown className={`w-2 h-2 transition-transform ${importDiffOpen ? '' : '-rotate-90'}`} />
                                             <GitDiff className="w-3 h-3 text-amber-500" />
-                                            Perubahan Data ({importDiffPreview.filter(d => d.status === 'update').length} baris akan ditimpa)
+                                            Perubahan Data ({diffUpdates.length} baris akan ditimpa)
                                         </span>
                                         <span className="text-[8px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded-full">update</span>
                                     </button>
                                     {importDiffOpen && (
                                         <div className="max-h-[180px] overflow-auto divide-y divide-[var(--color-border)]/50">
-                                            {importDiffPreview.filter(d => d.status === 'update').map((diff, idx) => (
+                                            {diffUpdates.map((diff, idx) => (
                                                 <div key={idx} className="px-3 py-2.5 space-y-1.5 hover:bg-[var(--color-surface-alt)]/30 transition-colors">
                                                     <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--color-text)]">
                                                         <span>{diff.academic_year}</span>

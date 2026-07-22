@@ -181,6 +181,7 @@ export default function PeriodExportModal(props) {
         handleExportExcel,
         handleExportPDF,
         handleExportICS,
+        exportError,
         addToast,
     } = props
 
@@ -190,9 +191,8 @@ export default function PeriodExportModal(props) {
     const [exportTemplate, setExportTemplate] = useState('ringkas')
     const [exportFormat, setExportFormat] = useState(null)
     const [exportPhase, setExportPhase] = useState(null)
-    const [allColumnsVisible, setAllColumnsVisible] = useState(true)
+    const [allColumnsVisible, setAllColumnsVisible] = useState(false)
     const [dragIdx, setDragIdx] = useState(null)
-    const [dragOverIdx, setDragOverIdx] = useState(null)
     const containerRef = useRef(null)
     const exportStartRef = useRef(0)
 
@@ -207,12 +207,16 @@ export default function PeriodExportModal(props) {
 
     useEffect(() => {
         if (exportPhase === 'loading' && !exporting) {
-            const elapsed = Date.now() - exportStartRef.current
-            const remaining = Math.max(0, 2000 - elapsed)
-            const timer = setTimeout(() => setExportPhase('success'), remaining)
-            return () => clearTimeout(timer)
+            if (exportError) {
+                setExportPhase(null)
+            } else {
+                const elapsed = Date.now() - exportStartRef.current
+                const remaining = Math.max(0, 2000 - elapsed)
+                const timer = setTimeout(() => setExportPhase('success'), remaining)
+                return () => clearTimeout(timer)
+            }
         }
-    }, [exporting, exportPhase])
+    }, [exporting, exportPhase, exportError])
 
     useEffect(() => {
         if (exportPhase === 'success') {
@@ -235,20 +239,8 @@ export default function PeriodExportModal(props) {
     }, [exportColumns])
 
     const handleToggleColumn = useCallback((key) => {
-        if (exportColumns.includes(key)) {
-            setExportColumns(prev => prev.filter(k => k !== key))
-        } else {
-            setExportColumns(prev => [...prev, key])
-        }
-    }, [exportColumns])
-
-    const handleDragStart = useCallback((idx) => { setDragIdx(idx); setDragOverIdx(idx) }, [])
-    const handleDragOver = useCallback((idx) => { if (idx !== dragOverIdx) setDragOverIdx(idx) }, [dragOverIdx])
-    const handleDrop = useCallback((idx) => {
-        if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
-        setDragIdx(null); setDragOverIdx(null)
-    }, [dragIdx, handleReorderColumn])
-    const handleDragEnd = useCallback(() => { setDragIdx(null); setDragOverIdx(null) }, [])
+        setExportColumns(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])
+    }, [])
 
     const handleReorderColumn = useCallback((from, to) => {
         if (from === to) return
@@ -259,6 +251,14 @@ export default function PeriodExportModal(props) {
             return next
         })
     }, [])
+
+    const handleDragStart = useCallback((idx) => { setDragIdx(idx) }, [])
+    const handleDragOver = useCallback((e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }, [])
+    const handleDrop = useCallback((idx) => {
+        if (dragIdx !== null && dragIdx !== idx) handleReorderColumn(dragIdx, idx)
+        setDragIdx(null)
+    }, [dragIdx, handleReorderColumn])
+    const handleDragEnd = useCallback(() => { setDragIdx(null) }, [])
 
     const handlePresetClick = useCallback((cols) => setExportColumns(cols), [setExportColumns])
 
@@ -274,15 +274,11 @@ export default function PeriodExportModal(props) {
         template: exportTemplate,
     }), [includeHeader, pdfOrientation, exportTemplate])
 
-    const exportPreviewRows = useMemo(() => {
+    const exportPreviewData = useMemo(() => {
         try {
             const allRows = getExportData()
-            return allRows.slice(0, 5)
-        } catch { return [] }
-    }, [getExportData])
-
-    const exportPreviewCount = useMemo(() => {
-        try { return getExportData().length } catch { return 0 }
+            return { rows: allRows.slice(0, 5), total: allRows.length }
+        } catch { return { rows: [], total: 0 } }
     }, [getExportData])
 
     const exportHandlers = useMemo(() => ({
@@ -435,7 +431,7 @@ export default function PeriodExportModal(props) {
                             >
                                 <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] flex items-center gap-2">
                                     {allColumnsVisible ? <EyeSlash className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                                    {allColumnsVisible ? 'Sembunyikan Preview' : 'Lihat Preview'} ({exportPreviewCount} baris)
+                                    {allColumnsVisible ? 'Sembunyikan Preview' : 'Lihat Preview'} ({exportPreviewData.total} baris)
                                 </span>
                                 <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">{exportColumns.length} kolom</span>
                             </button>
@@ -456,13 +452,13 @@ export default function PeriodExportModal(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {exportPreviewRows.length === 0 ? (
+                                            {exportPreviewData.rows.length === 0 ? (
                                                 <tr>
                                                     <td colSpan={exportColumns.length + 1} className="px-4 py-6 text-center text-[10px] font-bold text-[var(--color-text-muted)] opacity-50">
                                                         Tidak ada data untuk jangkauan yang dipilih
                                                     </td>
                                                 </tr>
-                                            ) : exportPreviewRows.map((row, ri) => (
+                                            ) : exportPreviewData.rows.map((row, ri) => (
                                                 <tr key={ri} className="hover:bg-[var(--color-surface-alt)]/30 transition-colors">
                                                     <td className="px-2 py-1 border-r border-b border-[var(--color-border)] text-[8px] font-bold text-[var(--color-text-muted)] text-center">{ri + 1}</td>
                                                     {exportColumns.map(k => (
@@ -521,6 +517,8 @@ export default function PeriodExportModal(props) {
 
                             <hr className="border-t border-dashed border-[var(--color-border)]/50" />
 
+                            {exportFormat === 'pdf' && (
+                            <>
                             <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[var(--color-text-muted)] opacity-50">Opsi PDF</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
@@ -563,6 +561,8 @@ export default function PeriodExportModal(props) {
                                     </div>
                                 </div>
                             </div>
+                            </>
+                            )}
                         </div>
                     </div>
 

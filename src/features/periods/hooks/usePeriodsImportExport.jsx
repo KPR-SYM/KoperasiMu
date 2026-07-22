@@ -20,11 +20,6 @@ const DATE_FORMATS = [
     { regex: /^\d{2}\.\d{2}\.\d{4}$/, label: "DD.MM.YYYY", parts: (s) => ({ d: s.slice(0, 2), m: s.slice(3, 5), y: s.slice(6, 10) }) },
 ];
 
-const CONFLICT_STRATEGIES = [
-    { id: "skip", label: "Lewati Duplikat", desc: "Abaikan data yang sudah ada" },
-    { id: "replace", label: "Timpa Data Lama", desc: "Update data yang sudah ada" },
-    { id: "keep", label: "Biarkan Duplikat", desc: "Masukkan semua data apa adanya" },
-];
 
 function normalizeSemester(value) {
     const trimmed = String(value || "").trim();
@@ -79,7 +74,6 @@ export function usePeriodsImportExport({
     const [importing, setImporting] = useState(false);
     const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
     const [importEditCell, setImportEditCell] = useState(null);
-    const [importSkipDupes, setImportSkipDupes] = useState(true);
     const [importConflictStrategy, setImportConflictStrategy] = useState("skip");
     const [importDetectedDateFormat, setImportDetectedDateFormat] = useState(null);
     const [importColumnAliases, setImportColumnAliases] = useState({});
@@ -98,6 +92,7 @@ export function usePeriodsImportExport({
         "is_locked",
     ]);
     const [exporting, setExporting] = useState(false);
+    const [exportError, setExportError] = useState(false);
 
     // ── COMPUTED ─────────────────────────────────────────────────────────────
     const importReadyRows = useMemo(
@@ -203,12 +198,13 @@ export function usePeriodsImportExport({
         setImportLoading(true);
         try {
             // Resolve aliases: if file header doesn't match, check alias mapping
+            const workingMapping = { ...mapping };
             const resolveHeader = (sysKey) => {
-                const mapped = mapping[sysKey];
+                const mapped = workingMapping[sysKey];
                 if (mapped && importFileHeaders.includes(mapped)) return mapped;
                 const alias = importColumnAliases[sysKey];
                 if (alias && importFileHeaders.includes(alias)) {
-                    mapping[sysKey] = alias;
+                    workingMapping[sysKey] = alias;
                     return alias;
                 }
                 return mapped;
@@ -389,7 +385,7 @@ export function usePeriodsImportExport({
             for (let i = 0; i < rowsToProcess.length; i += CHUNK) {
                 const chunk = rowsToProcess.slice(i, i + CHUNK).map((r) => ({
                     academic_year: r.academic_year,
-                    semester: normalizeSemester(r.semester),
+                    semester: r.semester,
                     start_date: r.start_date,
                     end_date: r.end_date,
                     is_active: false,
@@ -452,7 +448,7 @@ export function usePeriodsImportExport({
         } finally {
             setImporting(false);
         }
-    }, [canEdit, importPreview, importSkipDupes, hasImportBlockingErrors, fetchData, addToast, handleError]);
+    }, [canEdit, importPreview, importConflictStrategy, hasImportBlockingErrors, fetchData, addToast, handleError]);
 
     const handleUndoImport = useCallback(async () => {
         if (!lastImportedIds.length) return;
@@ -503,6 +499,7 @@ export function usePeriodsImportExport({
 
     const handleExportCSV = useCallback(async (filename, options = {}) => {
         setExporting(true);
+        setExportError(false);
         try {
             const rows = getExportData();
             if (!rows.length) return addToast("Tidak ada data untuk diekspor", "warning");
@@ -519,10 +516,14 @@ export function usePeriodsImportExport({
             ].join("\n");
 
             const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `${filename || "export_tahun_pelajaran"}.csv`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
             try {
                 await logAudit({
@@ -536,6 +537,7 @@ export function usePeriodsImportExport({
             addToast(`Export CSV berhasil (${rows.length} periode)`, "success");
         } catch (err) {
             handleError(err, { context: "Gagal export CSV" });
+            setExportError(true);
         } finally {
             setExporting(false);
         }
@@ -543,6 +545,7 @@ export function usePeriodsImportExport({
 
     const handleExportExcel = useCallback(async (filename, options = {}) => {
         setExporting(true);
+        setExportError(false);
         try {
             const rows = getExportData();
             if (!rows.length) return addToast("Tidak ada data untuk diekspor", "warning");
@@ -566,6 +569,7 @@ export function usePeriodsImportExport({
             addToast(`Export Excel berhasil (${rows.length} periode)`, "success");
         } catch (err) {
             handleError(err, { context: "Gagal export Excel" });
+            setExportError(true);
         } finally {
             setExporting(false);
         }
@@ -573,6 +577,7 @@ export function usePeriodsImportExport({
 
     const handleExportPDF = useCallback(async (filename, options = {}) => {
         setExporting(true);
+        setExportError(false);
         try {
             const { buildPrintHTML, openPrintWindow } = await import("@shared/utils/printTemplate");
             const allRows = getExportData();
@@ -588,7 +593,6 @@ export function usePeriodsImportExport({
                     const fields = tableHeaders.map((h) => `<div class="kartu-row"><span class="kartu-lbl">${h}</span><span class="kartu-val">${row[h] ?? ''}</span></div>`).join('');
                     return `<div class="kartu-wrap"><div class="kartu"><div class="kartu-head"><span class="kartu-num">${i + 1}</span> ${row[tableHeaders[0]] || `Record ${i + 1}`}</div><div class="kartu-body">${fields}</div></div></div>`;
                 }).join('');
-                tableHeaders.length = 0;
             } else if (template === "lengkap") {
                 const regCols = tableHeaders.filter(h => h.includes("Pendaftaran") || h.includes("Daftar"));
                 tableRowsHTML = allRows.map((row, i) => {
@@ -631,7 +635,7 @@ export function usePeriodsImportExport({
                 tableRowsHTML,
                 showSignature: false,
                 paperSize: options.orientation === "portrait" ? "A4 portrait" : "A4 landscape",
-                footerAppTitle: "KoperasiSenyumMu",
+                footerAppTitle: "KoperasiMu",
                 footerAppSubtitle: "Data Tahun Pelajaran",
             });
 
@@ -650,6 +654,7 @@ export function usePeriodsImportExport({
             addToast(`Export PDF berhasil (${allRows.length} periode) — gunakan "Save as PDF" di dialog cetak`, "success");
         } catch (err) {
             handleError(err, { context: "Gagal export PDF" });
+            setExportError(true);
         } finally {
             setExporting(false);
         }
@@ -657,6 +662,7 @@ export function usePeriodsImportExport({
 
     const handleExportICS = useCallback(async (filename, options = {}) => {
         setExporting(true);
+        setExportError(false);
         try {
             const rows = getExportData();
             if (!rows.length) return addToast("Tidak ada data untuk diekspor", "warning");
@@ -700,6 +706,7 @@ export function usePeriodsImportExport({
             addToast(`Export iCal berhasil (${rows.length} periode)`, "success");
         } catch (err) {
             handleError(err, { context: "Gagal export iCal" });
+            setExportError(true);
         } finally {
             setExporting(false);
         }
@@ -720,7 +727,6 @@ export function usePeriodsImportExport({
         importing, setImporting,
         importProgress, setImportProgress,
         importEditCell, setImportEditCell,
-        importSkipDupes, setImportSkipDupes,
         lastImportedIds, setLastImportedIds,
         importConflictStrategy, setImportConflictStrategy,
         importDetectedDateFormat, setImportDetectedDateFormat,
@@ -732,6 +738,7 @@ export function usePeriodsImportExport({
         exportScope, setExportScope,
         exportColumns, setExportColumns,
         exporting, setExporting,
+        exportError,
 
         // Computed
         importReadyRows,
@@ -750,7 +757,6 @@ export function usePeriodsImportExport({
         handleDownloadTemplate,
         handleCommitImport,
         handleUndoImport,
-        detectDateFormat,
 
         // Export actions
         getExportData,

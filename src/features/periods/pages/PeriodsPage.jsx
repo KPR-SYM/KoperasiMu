@@ -231,11 +231,12 @@ export default function PeriodsPage() {
         importValidationOpen, setImportValidationOpen, importDragOver, setImportDragOver,
         importing, importProgress,
         importEditCell, setImportEditCell, importSkipDupes, setImportSkipDupes,
-        exportScope, setExportScope, exportColumns, setExportColumns, exporting,
+        exportScope, setExportScope, exportColumns, setExportColumns, exporting, exportError,
         importReadyRows, hasImportBlockingErrors, importFileInputRef,
         handleImportClick, handleFileChange, processImportFile, buildImportPreview,
         handleImportCellEdit, handleRemoveImportRow, handleDownloadTemplate, handleCommitImport,
         handleExportCSV, handleExportExcel, handleExportPDF, handleExportICS,
+        getExportData,
     } = usePeriodsImportExport({
         years, filtered, selectedIds, canEdit, fetchData, addToast,
         handleError,
@@ -1095,10 +1096,12 @@ export default function PeriodsPage() {
                             exportColumns={exportColumns}
                             setExportColumns={setExportColumns}
                             exporting={exporting}
+                            exportError={exportError}
                             handleExportCSV={handleExportCSV}
                             handleExportExcel={handleExportExcel}
                             handleExportPDF={handleExportPDF}
                             handleExportICS={handleExportICS}
+                            getExportData={getExportData}
                             addToast={addToast}
                         />
                     )}
