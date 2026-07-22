@@ -409,29 +409,29 @@ export default function PeriodImportModal(props) {
         importing,
         importStep,
         setImportStep,
-        importPreview,
+        importPreview = [],
         importFileName,
         importFileInputRef,
         importDragOver,
         setImportDragOver,
         processImportFile,
         handleDownloadTemplate,
-        importFileHeaders,
+        importFileHeaders = [],
         SYSTEM_COLS,
-        importColumnMapping,
+        importColumnMapping = {},
         setImportColumnMapping,
         importRawData,
         importLoading,
         setImportLoading,
         buildImportPreview,
-        importIssues,
+        importIssues = [],
         importValidationOpen,
         setImportValidationOpen,
         importProgress,
         handleCommitImport,
         handleImportClick,
         hasImportBlockingErrors,
-        importReadyRows,
+        importReadyRows = [],
         handleImportCellEdit,
         importEditCell,
         setImportEditCell,
@@ -439,7 +439,7 @@ export default function PeriodImportModal(props) {
         importConflictStrategy,
         setImportConflictStrategy,
         importDetectedDateFormat,
-        importColumnAliases,
+        importColumnAliases = {},
         setImportColumnAliases,
         importAliasEditorOpen,
         setImportAliasEditorOpen,
@@ -663,6 +663,8 @@ export default function PeriodImportModal(props) {
         }
     }, [handleRemoveImportRow])
 
+    if (!isOpen) return null
+
     const importMappingContent = (<div className="space-y-3">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[35vh] overflow-y-auto pr-1 custom-scrollbar">
                         {SYSTEM_COLS.map(sys => {
@@ -727,8 +729,6 @@ export default function PeriodImportModal(props) {
                         </div>
                     )}
                     </div>)
-
-    if (!isOpen) return null
 
     const successScreen = (
         <div className="flex flex-col items-center justify-center py-10 gap-5 animate-in fade-in slide-in-from-top-4 duration-300">
