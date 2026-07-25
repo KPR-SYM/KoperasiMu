@@ -7,7 +7,8 @@ import {
   ToastProvider,
   ThemeProvider, useTheme,
   LanguageProvider,
-  FeatureFlagsProvider, useFeatureFlags
+  FeatureFlagsProvider, useFeatureFlags,
+  CustomizeProvider,
 } from '@context'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
@@ -548,6 +549,11 @@ function AppRoutes() {
                 <PeriodsPage />
               </RoleFlagRoute>
             } />
+            <Route path="/master/periods/import" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Import Periode">
+                <PeriodsPage />
+              </RoleFlagRoute>
+            } />
             <Route path="/master/enrollment" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.enrollment" label="PSB / Enrollment">
                 <EnrollmentPage />
@@ -603,13 +609,15 @@ export default function App() {
         />
         <LanguageProvider>
           <ThemeProvider>
-            <ToastProvider>
-              <AuthProvider>
-                <FeatureFlagsProvider>
-                  <AppRoutes />
-                </FeatureFlagsProvider>
-              </AuthProvider>
-            </ToastProvider>
+            <CustomizeProvider>
+              <ToastProvider>
+                <AuthProvider>
+                  <FeatureFlagsProvider>
+                    <AppRoutes />
+                  </FeatureFlagsProvider>
+                </AuthProvider>
+              </ToastProvider>
+            </CustomizeProvider>
           </ThemeProvider>
         </LanguageProvider>
       </ErrorBoundaryWithRouter>

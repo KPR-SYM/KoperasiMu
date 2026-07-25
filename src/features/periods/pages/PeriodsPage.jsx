@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import {
     Archive,
     Calendar,
@@ -25,6 +25,7 @@ import { useToast } from "@context/Toast";
 import { findOverlappingPeriods, findPeriodGaps } from "@features/periods/utils/periodValidation";
 import {
     Badge,
+    Breadcrumb,
     Checkbox,
     EmptyState,
     PageHeader,
@@ -64,8 +65,8 @@ const LazyPeriodArchiveModal = React.lazy(
 const LazyPeriodExportModal = React.lazy(
     () => import("@features/periods/components/PeriodExportModal"),
 );
-const LazyPeriodImportModal = React.lazy(
-    () => import("@features/periods/components/PeriodImportModal"),
+const LazyPeriodImportPanel = React.lazy(
+    () => import("@features/periods/components/PeriodImportPanel"),
 );
 
 function PeriodSkeletonRow() {
@@ -124,6 +125,9 @@ function PeriodSkeletonCard() {
 
 export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast();
+    const location = useLocation();
+    const navigate = useNavigate();
+    const isImportView = location.pathname === '/master/periods/import';
 
     // ── Core Hook ──
     const {
@@ -251,6 +255,10 @@ export default function PeriodsPage() {
         isExportModalOpen, setIsExportModalOpen,
     });
 
+    const handleOpenImport = useCallback(() => {
+        navigate('/master/periods/import');
+    }, [navigate]);
+
     // ── Notifikasi Terjadwal ───────────────────────────────────────────
     usePeriodsNotifications({ years, reminderDays, addToast });
 
@@ -321,6 +329,90 @@ export default function PeriodsPage() {
     const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
     const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
     const gaps = useMemo(() => findPeriodGaps(years), [years]);
+
+    if (isImportView) {
+        return (
+            <DashboardLayout title="Import Tahun Pelajaran">
+                <div className="flex flex-col h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 -mb-24 lg:-mb-6">
+                    {/* Breadcrumb + PageHeader */}
+                    <div className="px-5 pt-5 pb-3 shrink-0">
+                        {/* Breadcrumb */}
+                        <Breadcrumb
+                            className="mb-3"
+                            items={[
+                                { label: 'Master', onClick: () => navigate('/master') },
+                                { label: 'Tahun Pelajaran', onClick: () => navigate('/master/periods') },
+                                { label: 'Import' },
+                            ]}
+                        />
+
+                        {/* Title */}
+                        <div>
+                            <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
+                                Import Tahun Pelajaran
+                            </h1>
+                            <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
+                                Unggah file Excel/CSV, petakan kolom, lalu tinjau sebelum diimport.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Split Panel */}
+                    <div className="flex-1 min-h-0 px-5 pb-5">
+                        <React.Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+                            <LazyPeriodImportPanel
+                                isOpen={true}
+                                onClose={() => navigate('/master/periods')}
+                                importing={importing}
+                                importStep={importStep}
+                                setImportStep={setImportStep}
+                                importPreview={importPreview}
+                                importFileName={importFileName}
+                                importFileInputRef={importFileInputRef}
+                                importDragOver={importDragOver}
+                                setImportDragOver={setImportDragOver}
+                                processImportFile={processImportFile}
+                                handleDownloadTemplate={handleDownloadTemplate}
+                                importFileHeaders={importFileHeaders}
+                                SYSTEM_COLS={SYSTEM_COLS}
+                                importColumnMapping={importColumnMapping}
+                                setImportColumnMapping={setImportColumnMapping}
+                                importRawData={importRawData}
+                                importLoading={importLoading}
+                                setImportLoading={setImportLoading}
+                                buildImportPreview={buildImportPreview}
+                                importIssues={importIssues}
+                                importValidationOpen={importValidationOpen}
+                                setImportValidationOpen={setImportValidationOpen}
+                                importProgress={importProgress}
+                                handleCommitImport={handleCommitImport}
+                                handleImportClick={handleImportClick}
+                                hasImportBlockingErrors={hasImportBlockingErrors}
+                                importReadyRows={importReadyRows}
+                                handleImportCellEdit={handleImportCellEdit}
+                                importEditCell={importEditCell}
+                                setImportEditCell={setImportEditCell}
+                                handleRemoveImportRow={handleRemoveImportRow}
+                                importConflictStrategy={importConflictStrategy}
+                                setImportConflictStrategy={setImportConflictStrategy}
+                                importDetectedDateFormat={importDetectedDateFormat}
+                                importColumnAliases={importColumnAliases}
+                                setImportColumnAliases={setImportColumnAliases}
+                                importAliasEditorOpen={importAliasEditorOpen}
+                                setImportAliasEditorOpen={setImportAliasEditorOpen}
+                                lastImportedIds={lastImportedIds}
+                                setLastImportedIds={setLastImportedIds}
+                                handleUndoImport={handleUndoImport}
+                                importDiffPreview={importDiffPreview}
+                                setImportDiffPreview={setImportDiffPreview}
+                            />
+                        </React.Suspense>
+                    </div>
+                </div>
+            </DashboardLayout>
+        );
+    }
+
     return (
         <DashboardLayout title="Tahun Pelajaran">
             <div className="space-y-4 max-w-[1800px] mx-auto relative">
@@ -438,7 +530,7 @@ export default function PeriodsPage() {
                                 isMutating={isMutating}
                                 years={years}
                                 onClose={() => setIsHeaderMenuOpen(false)}
-                                onImportClick={handleImportClick}
+                                onImportClick={handleOpenImport}
                                 onOpenExport={() => setIsExportModalOpen(true)}
                                 onGenerate={() => setIsGenerateConfirmOpen(true)}
                                 onOpenArchived={() => setIsArchivedOpen(true)}
@@ -1110,65 +1202,6 @@ export default function PeriodsPage() {
                             handleExportICS={handleExportICS}
                             getExportData={getExportData}
                             addToast={addToast}
-                        />
-                    )}
-                    {isImportModalOpen && (
-                        <LazyPeriodImportModal
-                            isOpen={isImportModalOpen}
-                            onClose={() => {
-                                if (importing) {
-                                    addToast("Import sedang berjalan...", "info", 2000);
-                                    return;
-                                }
-                                setIsImportModalOpen(false);
-                                setImportPreview([]);
-                                setImportIssues([]);
-                                setImportFileName("");
-                                setImportDragOver(false);
-                                setImportStep(1);
-                            }}
-                            importing={importing}
-                            importStep={importStep}
-                            setImportStep={setImportStep}
-                            importPreview={importPreview}
-                            importFileName={importFileName}
-                            importFileInputRef={importFileInputRef}
-                            importDragOver={importDragOver}
-                            setImportDragOver={setImportDragOver}
-                            processImportFile={processImportFile}
-                            handleDownloadTemplate={handleDownloadTemplate}
-                            importFileHeaders={importFileHeaders}
-                            SYSTEM_COLS={SYSTEM_COLS}
-                            importColumnMapping={importColumnMapping}
-                            setImportColumnMapping={setImportColumnMapping}
-                            importRawData={importRawData}
-                            importLoading={importLoading}
-                            setImportLoading={setImportLoading}
-                            buildImportPreview={buildImportPreview}
-                            importIssues={importIssues}
-                            importValidationOpen={importValidationOpen}
-                            setImportValidationOpen={setImportValidationOpen}
-                            importProgress={importProgress}
-                            handleCommitImport={handleCommitImport}
-                            handleImportClick={handleImportClick}
-                            hasImportBlockingErrors={hasImportBlockingErrors}
-                            importReadyRows={importReadyRows}
-                            handleImportCellEdit={handleImportCellEdit}
-                            importEditCell={importEditCell}
-                            setImportEditCell={setImportEditCell}
-                            handleRemoveImportRow={handleRemoveImportRow}
-                            importConflictStrategy={importConflictStrategy}
-                            setImportConflictStrategy={setImportConflictStrategy}
-                            importDetectedDateFormat={importDetectedDateFormat}
-                            importColumnAliases={importColumnAliases}
-                            setImportColumnAliases={setImportColumnAliases}
-                            importAliasEditorOpen={importAliasEditorOpen}
-                            setImportAliasEditorOpen={setImportAliasEditorOpen}
-                            lastImportedIds={lastImportedIds}
-                            setLastImportedIds={setLastImportedIds}
-                            handleUndoImport={handleUndoImport}
-                            importDiffPreview={importDiffPreview}
-                            setImportDiffPreview={setImportDiffPreview}
                         />
                     )}
                 </React.Suspense>

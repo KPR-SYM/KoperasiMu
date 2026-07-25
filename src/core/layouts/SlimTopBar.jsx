@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Globe, Check, Sparkle, SidebarSimple } from '@phosphor-icons/react'
+import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Globe, Check, Sparkle, SidebarSimple, Palette } from '@phosphor-icons/react'
 import { useTheme, useAuth, useLanguage, useFeatureFlags } from "@context"
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
 import logoSenyum from '../../assets/images/logos/logo-senyum.png'
@@ -35,13 +35,13 @@ function NavIcon({ icon, className = "" }) {
 }
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
-function Avatar({ url, name, size = "w-8 h-8", textSize = "text-xs", rounded = "rounded-xl" }) {
+function Avatar({ url, name, size = "w-8 h-8", textSize = "text-xs", rounded = "rounded-full" }) {
     const [imgError, setImgError] = useState(false)
     const letter = name?.charAt(0)?.toUpperCase() || 'U'
     const showImg = url && !imgError
 
     return (
-        <div className={`${size} ${rounded} bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-extrabold shadow-sm overflow-hidden shrink-0`}>
+        <div className={`${size} ${rounded} bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-bold overflow-hidden shrink-0`}>
             {showImg ? (
                 <img
                     src={url}
@@ -61,7 +61,7 @@ function SearchResultItem({ item, isHighlighted, onClick }) {
     return (
         <button
             onClick={() => onClick(item.to)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition text-left
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-left
                 ${isHighlighted
                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-semibold'
                     : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'}`}
@@ -251,7 +251,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 onClick={onToggleSidebar}
                                 type="button"
                                 aria-label="Toggle sidebar"
-                                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
                             >
                                 {dir === 'rtl' ? (
                                     sidebarCollapsed ? (
@@ -273,7 +273,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 onClick={() => navigate(-1)}
                                 type="button"
                                 aria-label="Kembali"
-                                className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
                             >
                                 <CaretLeft className="w-4.5 h-4.5" strokeWidth={2} />
                             </button>
@@ -289,14 +289,14 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                     type="button"
                                     aria-label="Cari halaman"
                                     onClick={() => setSearchFocused(true)}
-                                    className="sm:hidden w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition"
+                                    className="sm:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition"
                                 >
                                     <MagnifyingGlass className="w-4 h-4" strokeWidth={2} />
                                 </button>
                             )}
 
                             {/* Full search bar: always visible on sm+, expands on mobile when focused */}
-                            <div className={`w-full ${searchFocused ? 'flex' : 'hidden sm:flex'} items-center gap-2 h-8 px-3 rounded-xl border transition-all
+                            <div className={`w-full ${searchFocused ? 'flex' : 'hidden sm:flex'} items-center gap-2 h-8 px-3 rounded-lg border transition-all
                                 ${searchFocused
                                     ? 'border-[var(--color-primary)] bg-[var(--color-surface)] shadow-sm ring-2 ring-[var(--color-primary)]/20'
                                     : 'border-[var(--color-border)] bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface)]'}`}
@@ -314,7 +314,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 />
                                 {/* Keyboard shortcut badge — sm+ only */}
                                 {!searchFocused && (
-                                    <span className="hidden sm:flex items-center gap-0.5 text-[9px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface)] px-1.5 py-0.5 rounded-md border border-[var(--color-border)]">
+                                    <span className="hidden sm:flex items-center gap-0.5 text-[9px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface)] px-1.5 py-0.5 rounded border border-[var(--color-border)]">
                                         <span>⌘</span><span>K</span>
                                     </span>
                                 )}
@@ -332,7 +332,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             {showSearchDropdown && (
                                 <div
                                     ref={searchDropdownRef}
-                                    className="absolute top-full left-0 right-0 mt-2 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
+                                    className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
                                 >
                                     {searchResults.length === 0 ? (
                                         <div className="px-4 py-6 text-center text-[var(--color-text-muted)]">
@@ -367,7 +367,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                         <div className={`relative ${searchFocused ? 'hidden' : 'block'}`} ref={langRef}>
                             <button
                                 onClick={() => setLangOpen(v => !v)}
-                                className={`w-8 h-8 sm:h-8 sm:w-auto flex items-center justify-center sm:gap-1.5 sm:px-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition text-[var(--color-text-muted)] hover:text-[var(--color-text)] border border-transparent sm:border-[var(--color-border)]/80
+                                className={`w-8 h-8 sm:h-8 sm:w-auto flex items-center justify-center sm:gap-1.5 sm:px-2.5 rounded-lg hover:bg-[var(--color-surface-alt)] transition text-[var(--color-text-muted)] hover:text-[var(--color-text)] border border-transparent sm:border-[var(--color-border)]/80
                                     ${langOpen
                                         ? 'bg-[var(--color-surface-alt)] text-[var(--color-primary)] border-[var(--color-primary)]/30'
                                         : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
@@ -380,7 +380,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             </button>
 
                             {langOpen && (
-                                <div className={`absolute mt-2 w-48 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50 p-1
+                                    <div className={`absolute mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50 p-1
                                     ${dir === 'rtl' ? 'left-0' : 'right-0'}`}
                                 >
                                     {[
@@ -390,7 +390,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                         <button
                                             key={item.code}
                                             onClick={() => { setLanguage(item.code); setLangOpen(false); }}
-                                            className={`w-full px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-3
+                                            className={`w-full px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between gap-3
                                                 ${language === item.code
                                                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
                                                     : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text)]'}`}
@@ -415,7 +415,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                         {/* Asisten button */}
                         <button
                             onClick={onOpenChatAssistant}
-                            className={`w-8 h-8 sm:w-auto sm:h-8 flex items-center justify-center sm:gap-1.5 sm:px-3 rounded-xl border border-transparent sm:border-[var(--color-border)]/80 hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-primary)] transition text-[11px] font-extrabold text-[var(--color-text-muted)] ${searchFocused ? 'hidden' : 'flex'}`}
+                            className={`w-8 h-8 sm:w-auto sm:h-8 flex items-center justify-center sm:gap-1.5 sm:px-3 rounded-lg border border-transparent sm:border-[var(--color-border)]/80 hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-primary)] transition text-[11px] font-extrabold text-[var(--color-text-muted)] ${searchFocused ? 'hidden' : 'flex'}`}
                             type="button"
                         >
                             <Sparkle className="w-4 h-4 shrink-0" strokeWidth={2} />
@@ -426,7 +426,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                         <button
                             onClick={toggleTheme}
                             aria-label={isDark ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap"}
-                            className={`w-8 h-8 items-center justify-center rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition ${searchFocused ? 'hidden' : 'flex'}`}
+                            className={`w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition ${searchFocused ? 'hidden' : 'flex'}`}
                             type="button"
                         >
                             {isDark ? (
@@ -436,11 +436,21 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             )}
                         </button>
 
+                        {/* Customize button */}
+                        <button
+                            onClick={() => navigate('/settings')}
+                            aria-label="Customize theme"
+                            className={`w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition ${searchFocused ? 'hidden' : 'flex'}`}
+                            type="button"
+                        >
+                            <Palette className="w-4.5 h-4.5" strokeWidth={2} />
+                        </button>
+
                         {/* Notification bell */}
                         <div className={`relative ${searchFocused ? 'hidden' : 'block'}`} ref={notifBtnRef}>
                             <button
                                 onClick={() => setNotifOpen(v => !v)}
-                                className={`relative w-8 h-8 flex items-center justify-center rounded-xl transition
+                                className={`relative w-8 h-8 flex items-center justify-center rounded-lg transition
                                     ${notifOpen
                                         ? 'bg-[var(--color-surface-alt)] text-[var(--color-primary)]'
                                         : 'hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'}
@@ -461,7 +471,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             <button
                                 onClick={() => setProfileOpen(v => !v)}
                                 aria-label="List Profil"
-                                className={`flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-[var(--color-surface-alt)] transition border border-transparent hover:border-[var(--color-border)]
+                                className={`flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-[var(--color-surface-alt)] transition border border-transparent hover:border-[var(--color-border)]
                                     ${profileOpen ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)]' : ''}`}
                                 type="button"
                             >
@@ -478,7 +488,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             </button>
 
                             {profileOpen && (
-                                <div className={`absolute mt-2 w-52 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl overflow-hidden z-50
+                                <div className={`absolute mt-2 w-52 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl overflow-hidden z-50
                                     ${dir === 'rtl' ? 'left-0' : 'right-0'}`}>
                                     {/* User info header */}
                                     <div className="px-4 py-3 border-b border-[var(--color-border)]">
@@ -526,12 +536,9 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
 
 // ─── Notification SealCheck Helper ─────────────────────────────────────────────────
 function NotifBadge({ count }) {
-    const { tNum } = useLanguage()
     if (!count || count <= 0) return null
     return (
-        <span className="absolute -top-0.5 -end-0.5 w-4 h-4 bg-red-500 rounded-full text-[9px] font-black text-white flex items-center justify-center border border-[var(--color-surface)]">
-            {count > 9 ? tNum("9+") : tNum(count)}
-        </span>
+        <span className="absolute -top-0.5 -end-0.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[var(--color-surface)]" />
     )
 }
 
@@ -542,7 +549,7 @@ function NotifItem({ item, onDismiss, onNavigate }) {
     const Icon = s.icon
 
     return (
-        <div className={`group relative p-3 rounded-xl border ${s.bg} ${s.border} transition-all hover:scale-[1.01] flex gap-2.5 min-w-0`}>
+        <div className={`group relative p-3 rounded-lg border ${s.bg} ${s.border} transition-all hover:scale-[1.01] flex gap-2.5 min-w-0`}>
             {/* TextT badge icon */}
             <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 bg-[var(--color-surface)] shadow-sm ${s.text}`}>
                 <Icon className="w-3.5 h-3.5" />
@@ -579,7 +586,7 @@ function NotifItem({ item, onDismiss, onNavigate }) {
             {/* Dismiss button */}
             <button
                 onClick={() => onDismiss(item.id)}
-                className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-md hover:bg-black/5 dark:hover:bg-white/5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
                 type="button"
                 aria-label={t('notif.close')}
             >
@@ -597,7 +604,7 @@ function NotifPanel({ isOpen, notifications, loading, refreshing, onDismiss, onR
     return (
         <div
             ref={panelRef}
-            className={`absolute top-[52px] w-full max-w-[340px] rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-[99999] flex flex-col ${dir === 'rtl' ? 'left-3 sm:left-4' : 'right-3 sm:right-4'}`}
+            className={`absolute top-[52px] w-full max-w-[340px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-[99999] flex flex-col ${dir === 'rtl' ? 'left-3 sm:left-4' : 'right-3 sm:right-4'}`}
         >
             {/* Header */}
             <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] flex items-center justify-between">

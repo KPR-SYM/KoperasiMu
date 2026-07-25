@@ -277,14 +277,15 @@ export function usePeriodsImportExport({
                 }
 
                 const hasError = rowIssues.length > 0;
+                const issueLevel = isDupe ? "warn" : "error";
                 if (hasError) {
-                    issues.push({ row: i + 2, level: "error", messages: rowIssues });
+                    issues.push({ row: i + 2, level: issueLevel, messages: rowIssues });
                 }
 
                 return {
                     ...row,
                     _isDupe: isDupe,
-                    _hasError: hasError,
+                    _hasError: hasError && !isDupe,
                 };
             });
 

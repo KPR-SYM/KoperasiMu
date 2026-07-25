@@ -1,4 +1,5 @@
 export { AuthProvider, useAuth } from './Auth'
+export { CustomizeProvider, useCustomize } from './Customize'
 export { FeatureFlagsProvider, useFeatureFlags, useFlag } from './FeatureFlags'
 export { LanguageProvider, useLanguage } from './Language'
 export { SchoolSettingsProvider, useSchoolSettings } from './SchoolSettings'

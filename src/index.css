@@ -832,3 +832,8 @@ input[type=number] {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
+
+/* ─── Container Modes ───────────────────────────────────────────────────── */
+.container-boxed {
+  --container-max-width: 1280px;
+}

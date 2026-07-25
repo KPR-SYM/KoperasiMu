@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useSessionGuard } from '@hooks/useSessionGuard'
-import { useLanguage } from '@context'
+import { useLanguage, useCustomize } from '@context'
 import BottomNav from "./BottomNav"
 import Sidebar from './Sidebar'
 import SlimTopBar from './SlimTopBar'
@@ -22,6 +22,7 @@ export default function DashboardLayout({ children, title }) {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialCollapsed)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const { dir } = useLanguage()
+    const { container } = useCustomize()
 
     // Persist collapse state
     useEffect(() => {
@@ -83,7 +84,7 @@ export default function DashboardLayout({ children, title }) {
                         }
                     }
                 `}</style>
-                <div className="mx-auto w-full max-w-[1600px]">
+                <div className={`mx-auto w-full ${container === 'boxed' ? 'max-w-[1280px]' : 'max-w-[1600px]'}`}>
                     {children}
                 </div>
             </main>

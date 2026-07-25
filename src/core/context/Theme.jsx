@@ -5,22 +5,37 @@ const ThemeContext = createContext({})
 
 const STORAGE_KEY = 'koperasimu_theme'
 
+function getSystemDark() {
+    try { return window.matchMedia('(prefers-color-scheme: dark)').matches }
+    catch { return false }
+}
+
+function getInitialMode() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY)
+        if (saved === 'dark' || saved === 'light') return saved
+        if (saved === 'system') return 'system'
+    } catch { /* ignore */ }
+    return 'system'
+}
+
 export function ThemeProvider({ children }) {
-    // Tentukan Tema Awal: Pakai Preferensi Tersimpan, Atau Ikuti Setting Sistem Jika Belum Pernah Diatur
-    // [FIX] Bungkus dengan try-catch — localStorage.getItem bisa throw di mode incognito ketat
-    // atau saat app di-embed dalam iframe dengan storage access yang diblokir browser
+    const [themeMode, setThemeModeRaw] = useState(getInitialMode)
     const [isDark, setIsDark] = useState(() => {
-        try {
-            const saved = localStorage.getItem(STORAGE_KEY)
-            if (saved) return saved === 'dark'
-            return window.matchMedia('(prefers-color-scheme: dark)').matches
-        } catch {
-            return false
-        }
+        const mode = getInitialMode()
+        return mode === 'dark' || (mode === 'system' && getSystemDark())
     })
 
-    // Sinkronkan Class "dark" Di Elemen html Dan Simpan Preferensi Ke LocalStorage Setiap Kali Tema Berubah
-    // [FIX] Bungkus localStorage.setItem dengan try-catch — sama, bisa throw di lingkungan terbatas
+    // Listen for system theme changes when in system mode
+    useEffect(() => {
+        if (themeMode !== 'system') return
+        const mq = window.matchMedia('(prefers-color-scheme: dark)')
+        const handler = (e) => setIsDark(e.matches)
+        mq.addEventListener('change', handler)
+        return () => mq.removeEventListener('change', handler)
+    }, [themeMode])
+
+    // Sync dark class + localStorage
     useEffect(() => {
         const root = document.documentElement
         if (isDark) {
@@ -29,33 +44,33 @@ export function ThemeProvider({ children }) {
             root.classList.remove('dark')
         }
         try {
-            localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light')
-        } catch { /* ignore — tema tetap berjalan, hanya tidak tersimpan */ }
-    }, [isDark])
+            localStorage.setItem(STORAGE_KEY, themeMode)
+        } catch { /* ignore */ }
+    }, [isDark, themeMode])
 
-    // [FIX] Wrap useCallback — referensi toggleTheme stabil, tidak trigger re-render
-    // child React.memo yang menerima toggleTheme sebagai prop (misal: tombol toggle di Navbar)
-    const toggleTheme = useCallback(() => {
-        // Fallback Untuk Browser Yang Belum Mendukung View Transitions API (Misalnya Firefox Dan Safari Saat Ini) — Ganti Tema Langsung Tanpa Animasi Transisi
+    const setThemeMode = useCallback((mode) => {
         if (!document.startViewTransition) {
-            setIsDark(prev => !prev)
+            setThemeModeRaw(mode)
+            if (mode === 'dark') setIsDark(true)
+            else if (mode === 'light') setIsDark(false)
+            else setIsDark(getSystemDark())
             return
         }
-
-        // Browser Modern: Gunakan View Transitions API Untuk Animasi Pudar Antar Tema.
-        // flushSync Dipakai Agar React Merender Tema Baru Secara Synchronous Sebelum Browser
-        // Mengambil Snapshot "Sesudah" — Tanpa Ini, Snapshot Bisa Terambil Sebelum DOM Selesai Berubah,
-        // Sehingga Transisinya Jadi Patah Atau Salah.
         document.startViewTransition(() => {
             flushSync(() => {
-                setIsDark(prev => !prev)
+                setThemeModeRaw(mode)
+                if (mode === 'dark') setIsDark(true)
+                else if (mode === 'light') setIsDark(false)
+                else setIsDark(getSystemDark())
             })
         })
     }, [])
 
-    // [FIX] useMemo pada value object — tanpa ini, object baru dibuat setiap render
-    // sehingga semua consumer context ikut re-render meski isDark dan toggleTheme tidak berubah
-    const value = useMemo(() => ({ isDark, toggleTheme }), [isDark, toggleTheme])
+    const toggleTheme = useCallback(() => {
+        setThemeMode(isDark ? 'light' : 'dark')
+    }, [isDark, setThemeMode])
+
+    const value = useMemo(() => ({ isDark, toggleTheme, themeMode, setThemeMode }), [isDark, toggleTheme, themeMode, setThemeMode])
 
     return (
         <ThemeContext.Provider value={value}>
@@ -64,7 +79,6 @@ export function ThemeProvider({ children }) {
     )
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useTheme() {
     const context = useContext(ThemeContext)
     if (!context) {
