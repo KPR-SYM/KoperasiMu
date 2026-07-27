@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import Skeleton from "@shared/components/Skeleton";
 import {
     Archive,
     Calendar,
+    CaretLeft,
     CheckCircle,
     Eye,
     EyeSlash,
@@ -14,6 +16,7 @@ import {
     Plus,
     Pencil,
     SlidersHorizontal,
+    Spinner,
     Warning,
     MagnifyingGlass,
     Clock,
@@ -68,30 +71,33 @@ const LazyPeriodExportModal = React.lazy(
 const LazyPeriodImportPanel = React.lazy(
     () => import("@features/periods/components/PeriodImportPanel"),
 );
+const LazyPeriodExportPanel = React.lazy(
+    () => import("@features/periods/components/PeriodExportPanel"),
+);
 
 function PeriodSkeletonRow() {
     return (
         <tr className="animate-pulse border-b border-[var(--color-border)]/50">
-            <td className="py-4 px-4 w-12 text-center">
-                <div className="w-5 h-5 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
+            <td className="py-2.5 px-3 w-12 text-center">
+                <div className="w-4 h-4 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
             </td>
-            <td className="py-4 px-4">
-                <div className="w-32 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+            <td className="py-2.5 px-4">
+                <div className="w-28 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
             </td>
-            <td className="py-4 px-4">
-                <div className="w-16 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+            <td className="py-2.5 px-4">
+                <div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-full" />
             </td>
-            <td className="py-4 px-4">
-                <div className="w-24 h-4 bg-[var(--color-surface-alt)] rounded-md" />
+            <td className="py-2.5 px-4">
+                <div className="w-20 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
             </td>
-            <td className="py-4 px-4">
-                <div className="w-20 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+            <td className="py-2.5 px-4">
+                <div className="w-18 h-4 bg-[var(--color-surface-alt)] rounded-full" />
             </td>
-            <td className="py-4 px-4 text-center w-32">
-                <div className="flex gap-1.5 justify-center">
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+            <td className="py-2.5 px-4 text-center w-32">
+                <div className="flex gap-1 justify-center">
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
                 </div>
             </td>
         </tr>
@@ -100,23 +106,23 @@ function PeriodSkeletonRow() {
 
 function PeriodSkeletonCard() {
     return (
-        <div className="animate-pulse rounded-2xl border border-[var(--color-border)]/50 p-4 bg-[var(--color-surface)]">
-            <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--color-surface-alt)]" />
-                <div className="flex-1 space-y-2">
-                    <div className="w-3/4 h-4 bg-[var(--color-surface-alt)] rounded-md" />
-                    <div className="w-1/2 h-3 bg-[var(--color-surface-alt)]/60 rounded-md" />
+        <div className="animate-pulse rounded-2xl border border-[var(--color-border)]/50 p-3 bg-[var(--color-surface)]">
+            <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-surface-alt)]" />
+                <div className="flex-1 space-y-1.5">
+                    <div className="w-3/4 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
+                    <div className="w-1/2 h-2.5 bg-[var(--color-surface-alt)]/60 rounded-md" />
                 </div>
             </div>
-            <div className="flex gap-2 mb-3">
-                <div className="w-16 h-5 bg-[var(--color-surface-alt)] rounded-full" />
-                <div className="w-12 h-5 bg-[var(--color-surface-alt)] rounded-full" />
+            <div className="flex gap-2 mb-2">
+                <div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-full" />
+                <div className="w-10 h-4 bg-[var(--color-surface-alt)] rounded-full" />
             </div>
             <div className="flex items-center justify-between">
-                <div className="flex gap-1.5">
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-7 h-7 bg-[var(--color-surface-alt)] rounded-lg" />
+                <div className="flex gap-1">
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
+                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
                 </div>
             </div>
         </div>
@@ -128,6 +134,7 @@ export default function PeriodsPage() {
     const location = useLocation();
     const navigate = useNavigate();
     const isImportView = location.pathname === '/master/periods/import';
+    const isExportView = location.pathname === '/master/periods/export';
 
     // ── Core Hook ──
     const {
@@ -259,6 +266,10 @@ export default function PeriodsPage() {
         navigate('/master/periods/import');
     }, [navigate]);
 
+    const handleOpenExport = useCallback(() => {
+        navigate('/master/periods/export');
+    }, [navigate]);
+
     // ── Notifikasi Terjadwal ───────────────────────────────────────────
     usePeriodsNotifications({ years, reminderDays, addToast });
 
@@ -333,18 +344,26 @@ export default function PeriodsPage() {
     if (isImportView) {
         return (
             <DashboardLayout title="Import Tahun Pelajaran">
-                <div className="flex flex-col h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 -mb-24 lg:-mb-6">
+                <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 ">
                     {/* Breadcrumb + PageHeader */}
                     <div className="px-5 pt-5 pb-3 shrink-0">
-                        {/* Breadcrumb */}
-                        <Breadcrumb
-                            className="mb-3"
-                            items={[
-                                { label: 'Master', onClick: () => navigate('/master') },
-                                { label: 'Tahun Pelajaran', onClick: () => navigate('/master/periods') },
-                                { label: 'Import' },
-                            ]}
-                        />
+                        {/* Back + Breadcrumb */}
+                        <div className="flex items-center gap-2 mb-3">
+                            <button
+                                onClick={() => navigate('/master/periods')}
+                                className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                                title="Kembali ke Tahun Pelajaran"
+                            >
+                                <CaretLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <Breadcrumb
+                                items={[
+                                    { label: 'Master' },
+                                    { label: 'Tahun Pelajaran', onClick: () => navigate('/master/periods') },
+                                    { label: 'Import' },
+                                ]}
+                            />
+                        </div>
 
                         {/* Title */}
                         <div>
@@ -358,8 +377,24 @@ export default function PeriodsPage() {
                     </div>
 
                     {/* Split Panel */}
-                    <div className="flex-1 min-h-0 px-5 pb-5">
-                        <React.Suspense fallback={<div className="flex items-center justify-center h-full">Loading...</div>}>
+                    <div className="flex-1 min-h-0 px-5">
+                        <React.Suspense fallback={
+                            <div className="grid gap-4 h-full w-full min-h-0" style={{ gridTemplateColumns: '1fr' }}>
+                                <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 space-y-3">
+                                    <Skeleton className="h-7 w-44 rounded-lg" />
+                                    <Skeleton className="h-3.5 w-28 rounded-lg" />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {[1,2,3,4].map(i => (
+                                            <div key={i} className="p-3 rounded-xl border border-[var(--color-border)] space-y-2">
+                                                <Skeleton className="h-3 w-24 rounded" />
+                                                <Skeleton className="h-8 w-full rounded-lg" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Skeleton className="h-9 w-32 rounded-xl" />
+                                </div>
+                            </div>
+                        }>
                             <LazyPeriodImportPanel
                                 isOpen={true}
                                 onClose={() => navigate('/master/periods')}
@@ -408,6 +443,50 @@ export default function PeriodsPage() {
                             />
                         </React.Suspense>
                     </div>
+
+                    <input
+                        type="file"
+                        ref={importFileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".csv,.xlsx"
+                    />
+                </div>
+            </DashboardLayout>
+        );
+    }
+
+    if (isExportView) {
+        return (
+            <DashboardLayout title="Export Tahun Pelajaran">
+                <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
+                    <React.Suspense fallback={
+                        <div className="flex-1 flex items-center justify-center">
+                            <div className="flex flex-col items-center gap-3">
+                                <Spinner className="w-6 h-6 text-[var(--color-primary)] animate-spin" />
+                                <span className="text-[11px] font-bold text-[var(--color-text-muted)]">Memuat panel export...</span>
+                            </div>
+                        </div>
+                    }>
+                        <LazyPeriodExportPanel
+                            isOpen={true}
+                            onClose={() => navigate('/master/periods')}
+                            years={years}
+                            selectedIds={selectedIds}
+                            exportScope={exportScope}
+                            setExportScope={setExportScope}
+                            exportColumns={exportColumns}
+                            setExportColumns={setExportColumns}
+                            exporting={exporting}
+                            exportError={exportError}
+                            handleExportCSV={handleExportCSV}
+                            handleExportExcel={handleExportExcel}
+                            handleExportPDF={handleExportPDF}
+                            handleExportICS={handleExportICS}
+                            getExportData={getExportData}
+                            addToast={addToast}
+                        />
+                    </React.Suspense>
                 </div>
             </DashboardLayout>
         );
@@ -415,7 +494,7 @@ export default function PeriodsPage() {
 
     return (
         <DashboardLayout title="Tahun Pelajaran">
-            <div className="space-y-4 max-w-[1800px] mx-auto relative">
+            <div className="space-y-3 max-w-[1800px] mx-auto relative">
                 {selectedIds.length > 0 && (
                     <BulkActionsBar
                         selectedCount={selectedIds.length}
@@ -531,7 +610,7 @@ export default function PeriodsPage() {
                                 years={years}
                                 onClose={() => setIsHeaderMenuOpen(false)}
                                 onImportClick={handleOpenImport}
-                                onOpenExport={() => setIsExportModalOpen(true)}
+                                onOpenExport={handleOpenExport}
                                 onGenerate={() => setIsGenerateConfirmOpen(true)}
                                 onOpenArchived={() => setIsArchivedOpen(true)}
                                 fetchArchived={fetchArchived}
@@ -651,7 +730,16 @@ export default function PeriodsPage() {
                 )}
                 {gaps.length > 0 && (
                     <Alert variant="warning" size="md" animate>
-                        {gaps.length} celah periode terdeteksi (total {gaps.reduce((s, g) => s + g.gapDays, 0)} hari)
+                        {gaps.length} celah periode terdeteksi (total {gaps.reduce((s, g) => s + g.gapDays, 0)} hari):{" "}
+                        {gaps.map((g, i) => (
+                            <span key={i}>
+                                <span className="font-bold">{g.before.academic_year} {g.before.semester}</span>
+                                {" → "}
+                                <span className="font-bold">{g.after.academic_year} {g.after.semester}</span>
+                                {" ("}{g.gapDays} hari{")"}
+                                {i < gaps.length - 1 ? ", " : ""}
+                            </span>
+                        ))}
                     </Alert>
                 )}
 
@@ -720,7 +808,7 @@ export default function PeriodsPage() {
                     )}
                     {loading ? (
                         viewMode === "timeline" ? (
-                            <div className="p-6 space-y-4">
+                            <div className="p-5 space-y-3">
                                 {Array.from({ length: 3 }).map((_, i) => (
                                     <PeriodSkeletonCard key={i} />
                                 ))}
@@ -730,23 +818,23 @@ export default function PeriodsPage() {
                                 <table className="w-full text-sm">
                                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                                            <th className="px-6 py-4 text-center w-12">
-                                                <div className="w-5 h-5 bg-[var(--color-border)] rounded-lg mx-auto animate-pulse" />
+                                            <th className="px-4 py-2.5 text-center w-12">
+                                                <div className="w-4 h-4 bg-[var(--color-border)] rounded-lg mx-auto animate-pulse" />
                                             </th>
-                                            <th className="px-6 py-4 text-left">
-                                                <div className="w-24 h-3 bg-[var(--color-border)] rounded animate-pulse" />
-                                            </th>
-                                            <th className="px-6 py-4 text-left">
-                                                <div className="w-16 h-3 bg-[var(--color-border)] rounded animate-pulse" />
-                                            </th>
-                                            <th className="px-6 py-4 text-left">
+                                            <th className="px-4 py-2.5 text-left">
                                                 <div className="w-20 h-3 bg-[var(--color-border)] rounded animate-pulse" />
                                             </th>
-                                            <th className="px-6 py-4 text-left">
+                                            <th className="px-4 py-2.5 text-left">
                                                 <div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse" />
                                             </th>
-                                            <th className="px-6 py-4 text-center w-32">
-                                                <div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" />
+                                            <th className="px-4 py-2.5 text-left">
+                                                <div className="w-18 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                            </th>
+                                            <th className="px-4 py-2.5 text-left">
+                                                <div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                            </th>
+                                            <th className="px-4 py-2.5 text-center w-32">
+                                                <div className="w-10 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" />
                                             </th>
                                         </tr>
                                     </thead>
@@ -834,6 +922,7 @@ export default function PeriodsPage() {
                                     }
                                     selectedIds={selectedIds}
                                     visibleCols={visibleCols}
+                                    columnOrder={columnOrder}
                                     isPrivacyMode={isPrivacyMode}
                                     canEdit={canEdit}
                                     colMenuRef={colMenuRef}

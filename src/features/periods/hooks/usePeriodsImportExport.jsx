@@ -198,6 +198,20 @@ export function usePeriodsImportExport({
         }
     }, [addToast, detectDateFormat, handleError]);
 
+    const isValidDateStr = (str) => {
+        if (typeof str !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+        const [y, m, d] = str.split("-").map(Number);
+        if (m < 1 || m > 12) return false;
+        const date = new Date(y, m - 1, d);
+        // Round-trip check: kalau JS "membetulkan sendiri" tanggal invalid
+        // (misal 2024-02-31 -> dibaca jadi 2 Maret), berarti input aslinya salah.
+        return (
+            date.getFullYear() === y &&
+            date.getMonth() === m - 1 &&
+            date.getDate() === d
+        );
+    };
+
     const buildImportPreview = useCallback(async (rawRows, mapping) => {
         // Save mapping template
         try {
@@ -268,6 +282,23 @@ export function usePeriodsImportExport({
                     rowIssues.push("Semester harus Ganjil atau Genap");
                 }
 
+                // --- FIX #1: validasi format & keabsahan tanggal, bukan cuma cek kosong ---
+                if (row.start_date && !isValidDateStr(row.start_date)) {
+                    rowIssues.push(`Tanggal mulai tidak valid: "${row.start_date}" (format harus YYYY-MM-DD, bulan 01-12)`);
+                }
+                if (row.end_date && !isValidDateStr(row.end_date)) {
+                    rowIssues.push(`Tanggal selesai tidak valid: "${row.end_date}" (format harus YYYY-MM-DD, bulan 01-12)`);
+                }
+                // Tanggal selesai harus setelah tanggal mulai (hanya cek kalau keduanya valid,
+                // biar nggak numpuk pesan error yang membingungkan di atas pesan format).
+                if (
+                    row.start_date && row.end_date &&
+                    isValidDateStr(row.start_date) && isValidDateStr(row.end_date) &&
+                    row.end_date <= row.start_date
+                ) {
+                    rowIssues.push("Tanggal selesai harus setelah tanggal mulai");
+                }
+
                 const isDupeInDb = row.academic_year && row.semester &&
                     years.some((y) => y.academic_year === row.academic_year && y.semester === row.semester);
 
@@ -279,7 +310,9 @@ export function usePeriodsImportExport({
                 const hasError = rowIssues.length > 0;
                 const issueLevel = isDupe ? "warn" : "error";
                 if (hasError) {
-                    issues.push({ row: i + 2, level: issueLevel, messages: rowIssues });
+                    // --- FIX #2: i + 1, bukan i + 2, biar sinkron dengan nomor baris
+                    // yang ditampilkan di ReviewDesktopTable (rowNum = originalIdx + 1) ---
+                    issues.push({ row: i + 1, level: issueLevel, messages: rowIssues });
                 }
 
                 return {

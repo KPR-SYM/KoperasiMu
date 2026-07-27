@@ -217,19 +217,19 @@ export const StatCard = memo(function StatCard({
 
 export const StatsInline = memo(function StatsInline({ items, label, separator = true, className = '' }) {
     return (
-        <div className={`flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white dark:bg-white/[0.05] border border-[var(--color-border)] ${className}`}>
+        <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/[0.05] border border-[var(--color-border)] ${className}`}>
             {label && (
                 <>
-                    <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>
+                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider">{label}</span>
                     {separator && <span className="w-1 h-1 rounded-full bg-[var(--color-border)] shrink-0" />}
                 </>
             )}
             {items.map((item, i) => (
                 <React.Fragment key={item.label || i}>
                     {i > 0 && separator && <span className="w-1 h-1 rounded-full bg-[var(--color-border)] shrink-0" />}
-                    <span className="text-xs font-bold whitespace-nowrap">
+                    <span className="text-[11px] font-bold whitespace-nowrap">
                         <span className={item.color || 'text-[var(--color-text)]'}>{item.value}</span>
-                        <span className="text-[var(--color-text-muted)] ml-1 text-[10px]">{item.label}</span>
+                        <span className="text-[var(--color-text-muted)] ml-1 text-[9px]">{item.label}</span>
                     </span>
                 </React.Fragment>
             ))}

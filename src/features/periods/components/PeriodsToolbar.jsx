@@ -52,7 +52,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
 }) {
     return (
         <div>
-            <div className="flex items-center gap-2 p-2.5 lg:p-3">
+            <div className="flex items-center gap-2 p-2 lg:p-2.5">
                 <div className="flex-1 min-w-[120px] transition-all duration-300">
                     <DebouncedSearchInput
                         searchQuery={searchQuery}

@@ -554,6 +554,11 @@ function AppRoutes() {
                 <PeriodsPage />
               </RoleFlagRoute>
             } />
+            <Route path="/master/periods/export" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Export Periode">
+                <PeriodsPage />
+              </RoleFlagRoute>
+            } />
             <Route path="/master/enrollment" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.enrollment" label="PSB / Enrollment">
                 <EnrollmentPage />
