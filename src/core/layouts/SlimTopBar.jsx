@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Globe, Check, Sparkle, SidebarSimple, Palette } from '@phosphor-icons/react'
-import { useTheme, useAuth, useLanguage, useFeatureFlags } from "@context"
+import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Globe, Check, Sparkle, SidebarSimple, Palette, House, SquaresFour, Sidebar } from '@phosphor-icons/react'
+import { useTheme, useAuth, useLanguage, useFeatureFlags, useCustomize } from "@context"
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
 import logoSenyum from '../../assets/images/logos/logo-senyum.png'
 import {
@@ -89,6 +89,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
     const { profile, signOut } = useAuth()
     const { flags } = useFeatureFlags()
     const { language, setLanguage, t, tNav, tNavDesc, tGroup, dir } = useLanguage()
+    const { layoutMode, setLayoutMode } = useCustomize()
     const navigate = useNavigate()
     const location = useLocation()
     const { notifications, loading, refreshing, dismiss, refresh } = useNotifications()
@@ -221,6 +222,40 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
 
     const showSearchDropdown = searchFocused && searchQuery.trim().length > 0
 
+    // ── Breadcrumb generation ──
+    const breadcrumbs = useMemo(() => {
+        const crumbs = [{ label: 'Home', to: '/dashboard', icon: House }]
+        const path = location.pathname
+
+        // Find matching group and item
+        for (const group of NAV_GROUPS) {
+            const groupItem = group.items.find(item =>
+                path === item.to || path.startsWith(item.to + '/')
+            )
+            if (groupItem) {
+                crumbs.push({ label: tGroup(group.key, group.label) })
+                crumbs.push({ label: tNav(groupItem), to: groupItem.to })
+                return crumbs
+            }
+        }
+
+        // Check standalone items
+        if (path === DASHBOARD_ITEM.to) {
+            return [{ label: tNav(DASHBOARD_ITEM) }]
+        }
+        if (path === TASK_CENTER_ITEM.to) {
+            return [crumbs[0], { label: tNav(TASK_CENTER_ITEM) }]
+        }
+
+        // Fallback: use last path segment
+        const segments = path.split('/').filter(Boolean)
+        if (segments.length > 1) {
+            crumbs.push({ label: segments[segments.length - 1].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) })
+        }
+
+        return crumbs
+    }, [location.pathname, tNav, tGroup])
+
     return (
         <>
             {/* Bell shake animation */}
@@ -236,54 +271,71 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
 
             <header
                 className={`sticky top-0 z-40 bg-[var(--color-surface)]/85 backdrop-blur-xl border-b border-[var(--color-border)]
-                    ${dir === 'rtl'
-                        ? (sidebarCollapsed ? 'lg:pr-[56px]' : 'lg:pr-[220px]')
-                        : (sidebarCollapsed ? 'lg:pl-[56px]' : 'lg:pl-[220px]')}`}
+                    ${layoutMode === 'sidebar'
+                        ? (dir === 'rtl'
+                            ? (sidebarCollapsed ? 'lg:pr-[56px]' : 'lg:pr-[220px]')
+                            : (sidebarCollapsed ? 'lg:pl-[56px]' : 'lg:pl-[220px]'))
+                        : ''}`}
             >
                 <div className="flex items-center justify-between h-14 px-3 sm:px-4 lg:px-4 gap-2 sm:gap-4">
 
-                    {/* Left + MagnifyingGlass UsersThree to align search left next to the navigation controls */}
-                    <div className={`flex items-center gap-2 sm:gap-3 min-w-0 transition-all duration-200 ${searchFocused ? 'flex-1' : 'flex-1 sm:flex-1'}`}>
-                        {/* ── Left: Hamburger + Back — hidden when mobile search is open ── */}
-                        <div className={`flex items-center gap-1 shrink-0 ${searchFocused ? 'hidden sm:flex' : 'flex'}`}>
-                            {/* Hamburger — desktop only */}
+                    {/* Left: Breadcrumbs */}
+                    <div className={`flex items-center gap-2 min-w-0 transition-all duration-200 ${searchFocused ? 'flex-1' : 'flex-1 sm:flex-1'}`}>
+                        {/* Sidebar toggle — only in sidebar mode */}
+                        {layoutMode === 'sidebar' && (
                             <button
                                 onClick={onToggleSidebar}
                                 type="button"
                                 aria-label="Toggle sidebar"
-                                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                                className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
                             >
-                                {dir === 'rtl' ? (
-                                    sidebarCollapsed ? (
-                                        <SidebarSimple className="w-4.5 h-4.5" strokeWidth={2} />
-                                    ) : (
-                                        <SidebarSimple className="w-4.5 h-4.5" strokeWidth={2} />
-                                    )
-                                ) : (
-                                    sidebarCollapsed ? (
-                                        <SidebarSimple className="w-4.5 h-4.5" strokeWidth={2} />
-                                    ) : (
-                                        <SidebarSimple className="w-4.5 h-4.5" strokeWidth={2} />
-                                    )
-                                )}
+                                <SidebarSimple className="w-4.5 h-4.5" strokeWidth={2} />
                             </button>
+                        )}
 
-                            {/* Back button */}
-                            <button
-                                onClick={() => navigate(-1)}
-                                type="button"
-                                aria-label="Kembali"
-                                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-                            >
-                                <CaretLeft className="w-4.5 h-4.5" strokeWidth={2} />
-                            </button>
-                        </div>
+                        {/* Layout mode toggle */}
+                        <button
+                            onClick={() => setLayoutMode(layoutMode === 'sidebar' ? 'horizontal' : 'sidebar')}
+                            type="button"
+                            aria-label="Toggle layout mode"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
+                            title={layoutMode === 'sidebar' ? 'Switch to horizontal nav' : 'Switch to sidebar'}
+                        >
+                            {layoutMode === 'sidebar' ? (
+                                <SquaresFour className="w-4.5 h-4.5" strokeWidth={2} />
+                            ) : (
+                                <Sidebar className="w-4.5 h-4.5" strokeWidth={2} />
+                            )}
+                        </button>
 
-                        {/* ── Center: MagnifyingGlass ── */}
-                        {/* Mobile: collapsed icon → expands to full bar when tapped */}
-                        <div className={`relative transition-all duration-200 ${searchFocused ? 'flex-1' : 'sm:flex-1'}`} ref={searchRef}>
+                        {/* Breadcrumbs */}
+                        <nav className={`flex items-center gap-1.5 min-w-0 ${searchFocused ? 'hidden sm:flex' : 'flex'}`} aria-label="Breadcrumb">
+                            {breadcrumbs.map((crumb, idx) => (
+                                <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                                    {idx > 0 && <span className="text-[var(--color-text-muted)] opacity-40 text-[11px]">/</span>}
+                                    {crumb.to ? (
+                                        <button
+                                            onClick={() => navigate(crumb.to)}
+                                            className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors truncate max-w-[140px]"
+                                        >
+                                            {crumb.icon && <crumb.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />}
+                                            <span className="truncate">{crumb.label}</span>
+                                        </button>
+                                    ) : (
+                                        <span className={`text-[12px] font-bold truncate max-w-[160px] ${idx === breadcrumbs.length - 1 ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                                            {crumb.label}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </nav>
+                    </div>
 
-                            {/* Mobile collapsed state: search icon button */}
+                    {/* ── Right: Search + Actions ── */}
+                    <div className="flex items-center gap-1 shrink-0">
+                        {/* Search */}
+                        <div className={`relative ${searchFocused ? 'flex-1' : ''}`} ref={searchRef}>
+                            {/* Mobile collapsed: icon only */}
                             {!searchFocused && (
                                 <button
                                     type="button"
@@ -295,13 +347,13 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 </button>
                             )}
 
-                            {/* Full search bar: always visible on sm+, expands on mobile when focused */}
-                            <div className={`w-full ${searchFocused ? 'flex' : 'hidden sm:flex'} items-center gap-2 h-8 px-3 rounded-lg border transition-all
+                            {/* Full search bar */}
+                            <div className={`w-full max-w-[200px] ${searchFocused ? 'flex max-w-none' : 'hidden sm:flex'} items-center gap-1.5 h-7 px-2.5 rounded-lg border transition-all
                                 ${searchFocused
                                     ? 'border-[var(--color-primary)] bg-[var(--color-surface)] shadow-sm ring-2 ring-[var(--color-primary)]/20'
                                     : 'border-[var(--color-border)] bg-[var(--color-surface-alt)] hover:bg-[var(--color-surface)]'}`}
                             >
-                                <MagnifyingGlass className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" strokeWidth={2} />
+                                <MagnifyingGlass className="w-3.5 h-3.5 text-[var(--color-text-muted)] shrink-0" strokeWidth={2} />
                                 <input
                                     type="text"
                                     placeholder={t("ui.search_placeholder")}
@@ -310,15 +362,13 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                     onFocus={() => setSearchFocused(true)}
                                     onKeyDown={handleSearchKeyDown}
                                     autoFocus={searchFocused}
-                                    className="flex-1 min-w-0 bg-transparent outline-none text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
+                                    className="flex-1 min-w-0 bg-transparent outline-none text-[12px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)]"
                                 />
-                                {/* Keyboard shortcut badge — sm+ only */}
                                 {!searchFocused && (
                                     <span className="hidden sm:flex items-center gap-0.5 text-[9px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface)] px-1.5 py-0.5 rounded border border-[var(--color-border)]">
                                         <span>⌘</span><span>K</span>
                                     </span>
                                 )}
-                                {/* Clear / close button */}
                                 <button
                                     type="button"
                                     onClick={() => { setSearchQuery(''); setSearchFocused(false) }}
@@ -328,11 +378,11 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 </button>
                             </div>
 
-                            {/* MagnifyingGlass dropdown */}
+                            {/* Search dropdown */}
                             {showSearchDropdown && (
                                 <div
                                     ref={searchDropdownRef}
-                                    className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
+                                    className="absolute top-full right-0 mt-2 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
                                 >
                                     {searchResults.length === 0 ? (
                                         <div className="px-4 py-6 text-center text-[var(--color-text-muted)]">
@@ -359,24 +409,18 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    {/* ── Right: Language + Theme + Bell + Avatar ── */}
-                    <div className="flex items-center gap-1 shrink-0">
                         {/* Language Selector */}
                         <div className={`relative ${searchFocused ? 'hidden' : 'block'}`} ref={langRef}>
                             <button
                                 onClick={() => setLangOpen(v => !v)}
-                                className={`w-8 h-8 sm:h-8 sm:w-auto flex items-center justify-center sm:gap-1.5 sm:px-2.5 rounded-lg hover:bg-[var(--color-surface-alt)] transition text-[var(--color-text-muted)] hover:text-[var(--color-text)] border border-transparent sm:border-[var(--color-border)]/80
+                                className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] transition
                                     ${langOpen
-                                        ? 'bg-[var(--color-surface-alt)] text-[var(--color-primary)] border-[var(--color-primary)]/30'
+                                        ? 'bg-[var(--color-surface-alt)] text-[var(--color-primary)]'
                                         : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                                aria-label="Pilih Bahasa / Language Selection"
+                                aria-label="Pilih Bahasa"
                                 type="button"
                             >
                                 <Globe className="w-4 h-4 shrink-0" strokeWidth={2} />
-                                <span className="hidden sm:inline text-[11px] font-extrabold uppercase tracking-tight">{language}</span>
-                                <CaretDown className={`hidden sm:block w-3 h-3 text-[var(--color-text-muted)] transition-transform duration-200 ${langOpen ? 'rotate-180 text-[var(--color-primary)]' : ''}`} />
                             </button>
 
                             {langOpen && (
@@ -415,11 +459,11 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                         {/* Asisten button */}
                         <button
                             onClick={onOpenChatAssistant}
-                            className={`w-8 h-8 sm:w-auto sm:h-8 flex items-center justify-center sm:gap-1.5 sm:px-3 rounded-lg border border-transparent sm:border-[var(--color-border)]/80 hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-primary)] transition text-[11px] font-extrabold text-[var(--color-text-muted)] ${searchFocused ? 'hidden' : 'flex'}`}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-primary)] transition text-[var(--color-text-muted)] ${searchFocused ? 'hidden' : 'flex'}`}
                             type="button"
+                            aria-label="Asisten AI"
                         >
                             <Sparkle className="w-4 h-4 shrink-0" strokeWidth={2} />
-                            <span className="hidden sm:inline">{t('ui.assistant') || 'Asisten'}</span>
                         </button>
 
                         {/* Theme toggle */}
@@ -461,6 +505,46 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 <Bell className="w-4.5 h-4.5" strokeWidth={2} />
                                 <NotifBadge count={urgentCount || (totalCount > 0 ? totalCount : 0)} />
                             </button>
+
+                            {/* NotifPanel — absolute inside relative wrapper → anchored to bell, scrolls with header */}
+                            {notifOpen && (
+                                <div
+                                    ref={notifPanelRef}
+                                    className={`absolute top-[40px] w-[340px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-[99999] flex flex-col ${dir === 'rtl' ? 'left-0' : 'right-0'}`}
+                                >
+                                    <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <Bell className="w-3.5 h-3.5 text-[var(--color-primary)]" strokeWidth={2} />
+                                            <span className="text-[12px] font-extrabold text-[var(--color-text)]">{t('notif.header')}</span>
+                                        </div>
+                                        <button onClick={() => refresh()} className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] transition" disabled={refreshing} type="button">
+                                            <ArrowClockwise className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2} />
+                                        </button>
+                                    </div>
+                                    <div className="max-h-[350px] overflow-y-auto p-2 space-y-2 no-scrollbar">
+                                        {loading ? (
+                                            <div className="py-8 text-center text-[var(--color-text-muted)] flex flex-col items-center gap-2">
+                                                <div className="w-5 h-5 border-2 border-[var(--color-primary)] border-t-transparent rounded-full animate-spin" />
+                                                <span className="text-[11px] font-bold">{t('notif.loading')}</span>
+                                            </div>
+                                        ) : notifications.length === 0 ? (
+                                            <div className="py-12 text-center text-[var(--color-text-muted)] flex flex-col items-center justify-center">
+                                                <Bell className="w-8 h-8 opacity-15 mb-2.5" strokeWidth={1.5} />
+                                                <p className="text-[11.5px] font-bold">{t('notif.empty_title')}</p>
+                                                <p className="text-[10px] mt-0.5">{t('notif.empty_desc')}</p>
+                                            </div>
+                                        ) : (
+                                            notifications.map(item => (
+                                                <NotifItem key={item.id} item={item} onDismiss={dismiss} onNavigate={handleNotifNavigate} />
+                                            ))
+                                        )}
+                                    </div>
+                                    <div className="px-3.5 py-2 bg-black/5 dark:bg-white/5 border-t border-[var(--color-border)] flex items-center justify-between text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-wider">
+                                        <span>{t('notif.realtime')}</span>
+                                        <span>Koperasi SenyumMu</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Divider */}
@@ -517,19 +601,6 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                     </div>
                 </div>
             </header>
-
-            {/* Notification Panel ── */}
-            <NotifPanel
-                isOpen={notifOpen}
-                notifications={notifications.map(n => translateNotification(n, t))}
-                loading={loading}
-                refreshing={refreshing}
-                onDismiss={dismiss}
-                onRefresh={refresh}
-                onNavigate={handleNotifNavigate}
-                anchorRef={notifBtnRef}
-                panelRef={notifPanelRef}
-            />
         </>
     )
 }
@@ -604,7 +675,7 @@ function NotifPanel({ isOpen, notifications, loading, refreshing, onDismiss, onR
     return (
         <div
             ref={panelRef}
-            className={`absolute top-[52px] w-full max-w-[340px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-[99999] flex flex-col ${dir === 'rtl' ? 'left-3 sm:left-4' : 'right-3 sm:right-4'}`}
+            className="w-full max-w-[340px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-[99999] flex flex-col"
         >
             {/* Header */}
             <div className="px-3.5 py-2.5 border-b border-[var(--color-border)] flex items-center justify-between">

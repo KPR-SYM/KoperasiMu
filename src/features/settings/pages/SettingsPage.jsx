@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { Warning, SealCheck, Bell, Camera, Check, Clock, Eye, EyeSlash, Spinner, Envelope, ChatCircle, Moon, Sun, Monitor, Shield, Trash, X, Palette, User, PaintBrush, Key, Globe, CaretDown, ArrowClockwise, Rows, SquaresFour } from '@phosphor-icons/react'
+import { Warning, SealCheck, Bell, Camera, Check, Clock, Eye, EyeSlash, Spinner, Envelope, ChatCircle, Moon, Sun, Monitor, Shield, Trash, X, Palette, User, PaintBrush, Key, Globe, CaretDown, ArrowClockwise, Rows, SquaresFour, Sidebar } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useTheme, useLanguage, useCustomize } from '@context'
@@ -403,7 +403,7 @@ function ProfileSection() {
 function AppearanceSection() {
     const { isDark, toggleTheme, themeMode, setThemeMode } = useTheme()
     const { language, setLanguage } = useLanguage()
-    const { colorPreset, density, container, setColorPreset, setDensity, setContainer, resetDefaults } = useCustomize()
+    const { colorPreset, density, container, layoutMode, setColorPreset, setDensity, setContainer, setLayoutMode, resetDefaults } = useCustomize()
 
     return (
         <div className="space-y-8">
@@ -496,6 +496,33 @@ function AppearanceSection() {
                             onClick={() => setContainer(opt.id)}
                             className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all
                                 ${container === opt.id
+                                    ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
+                                    : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
+                            type="button"
+                        >
+                            <opt.icon className="w-5 h-5 shrink-0" />
+                            <div>
+                                <span className="text-[11px] font-semibold block">{opt.label}</span>
+                                <span className="text-[9px] text-[var(--color-text-muted)]">{opt.desc}</span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Layout Mode */}
+            <div className="space-y-3">
+                <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Layout Mode</p>
+                <div className="grid grid-cols-2 gap-2">
+                    {[
+                        { id: 'sidebar', label: 'Sidebar', desc: 'Vertical navigation', icon: Sidebar },
+                        { id: 'horizontal', label: 'Horizontal', desc: 'Top navigation bar', icon: SquaresFour },
+                    ].map(opt => (
+                        <button
+                            key={opt.id}
+                            onClick={() => setLayoutMode(opt.id)}
+                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all
+                                ${layoutMode === opt.id
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
                             type="button"

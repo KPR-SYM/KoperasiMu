@@ -575,22 +575,26 @@ export default function PeriodExportPanel(props) {
                                         <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50">— .ics calendar events</span>
                                     </div>
                                     <pre className="bg-blue-50 rounded-xl p-3 text-[9px] font-mono text-blue-700 overflow-x-auto border border-blue-200">
-{`BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//KoperasiSimu//Export//ID
-`}
-{exportPreviewData.rows.slice(0, 2).map((row, ri) => {
-    const start = row['Mulai']?.replace(/-/g, '') || ''
-    const end = row['Selesai']?.replace(/-/g, '') || ''
-    return `BEGIN:VEVENT
-DTSTART;VALUE=DATE:${start}
-DTEND;VALUE=DATE:${end}
-SUMMARY:${row['Tahun Pelajaran']} - ${row['Semester']}
-DESCRIPTION:Status: ${row['Status Aktif']}, Kunci: ${row['Status Kunci']}
-END:VEVENT`
-}).join('\n')}
-{exportPreviewData.total > 2 && `\n... +${exportPreviewData.total - 2} event lagi`}
-END:VCALENDAR`}</pre>
+{[
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//KoperasiSimu//Export//ID',
+    ...exportPreviewData.rows.slice(0, 2).map((row) => {
+        const start = row['Mulai']?.replace(/-/g, '') || ''
+        const end = row['Selesai']?.replace(/-/g, '') || ''
+        return [
+            'BEGIN:VEVENT',
+            `DTSTART;VALUE=DATE:${start}`,
+            `DTEND;VALUE=DATE:${end}`,
+            `SUMMARY:${row['Tahun Pelajaran']} - ${row['Semester']}`,
+            `DESCRIPTION:Status: ${row['Status Aktif']}, Kunci: ${row['Status Kunci']}`,
+            'END:VEVENT',
+        ].join('\n')
+    }),
+    ...(exportPreviewData.total > 2 ? [`... +${exportPreviewData.total - 2} event lagi`] : []),
+    'END:VCALENDAR',
+].join('\n')}
+                                    </pre>
                                 </div>
                             )}
                         </div>

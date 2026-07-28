@@ -6,6 +6,7 @@ const DEFAULTS = {
     colorPreset: 'blue',
     density: 'comfortable',
     container: 'fluid',
+    layoutMode: 'sidebar',
 }
 
 function loadSettings() {
@@ -160,6 +161,10 @@ export function CustomizeProvider({ children }) {
         setSettings(prev => ({ ...prev, container }))
     }, [])
 
+    const setLayoutMode = useCallback((layoutMode) => {
+        setSettings(prev => ({ ...prev, layoutMode }))
+    }, [])
+
     const resetDefaults = useCallback(() => {
         setSettings({ ...DEFAULTS })
     }, [])
@@ -169,8 +174,9 @@ export function CustomizeProvider({ children }) {
         setColorPreset,
         setDensity,
         setContainer,
+        setLayoutMode,
         resetDefaults,
-    }), [settings, setColorPreset, setDensity, setContainer, resetDefaults])
+    }), [settings, setColorPreset, setDensity, setContainer, setLayoutMode, resetDefaults])
 
     return (
         <CustomizeContext.Provider value={value}>

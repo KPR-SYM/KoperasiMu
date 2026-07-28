@@ -3,6 +3,7 @@ import { useSessionGuard } from '@hooks/useSessionGuard'
 import { useLanguage, useCustomize } from '@context'
 import BottomNav from "./BottomNav"
 import Sidebar from './Sidebar'
+import HorizontalNav from './HorizontalNav'
 import SlimTopBar from './SlimTopBar'
 
 const ChatAssistant = lazy(() => import('./ChatAssistant'))
@@ -22,7 +23,7 @@ export default function DashboardLayout({ children, title }) {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialCollapsed)
     const [isChatOpen, setIsChatOpen] = useState(false)
     const { dir } = useLanguage()
-    const { container } = useCustomize()
+    const { container, layoutMode } = useCustomize()
 
     // Persist collapse state
     useEffect(() => {
@@ -37,15 +38,17 @@ export default function DashboardLayout({ children, title }) {
     // Sidebar dimensions (must match Sidebar.jsx)
     const sidebarExpandedW = '220px'
     const sidebarCollapsedW = '56px'
-    const currentW = sidebarCollapsed ? sidebarCollapsedW : sidebarExpandedW
+    const currentW = layoutMode === 'sidebar' ? (sidebarCollapsed ? sidebarCollapsedW : sidebarExpandedW) : '0px'
 
     return (
         <div className="min-h-screen bg-[var(--color-app-bg)] transition-colors" translate="no">
             {/* Mobile bottom tab bar */}
             <BottomNav />
 
-            {/* Desktop sidebar */}
-            <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+            {/* Desktop sidebar — only in sidebar mode */}
+            {layoutMode === 'sidebar' && (
+                <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />
+            )}
 
             {/* Slim top bar */}
             <SlimTopBar
@@ -53,6 +56,9 @@ export default function DashboardLayout({ children, title }) {
                 sidebarCollapsed={sidebarCollapsed}
                 onOpenChatAssistant={() => setIsChatOpen(prev => !prev)}
             />
+
+            {/* Horizontal nav — only in horizontal mode */}
+            {layoutMode === 'horizontal' && <HorizontalNav />}
 
             {/* Chat Assistant Widget */}
             <Suspense fallback={null}>
