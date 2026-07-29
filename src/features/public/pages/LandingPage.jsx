@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CreditCard, ShieldCheck, ArrowRight, Phone, Buildings, House, SignIn, CheckCircle, ShoppingBag, MapPin, Clock, Envelope, Calendar, Eye, Headphones, Star, ChatCircle, UserPlus, MagnifyingGlassPlus, FileText, Wallet } from '@phosphor-icons/react';
+import { CreditCard, ShieldCheck, ArrowRight, Phone, Buildings, House, SignIn, CheckCircle, ShoppingBag, MapPin, Clock, Envelope, Calendar, Eye, Headphones, Star, ChatCircle, UserPlus, MagnifyingGlassPlus, FileText, Wallet, List, X } from '@phosphor-icons/react';
 import ThemeToggle from '../components/common/ThemeToggle';
 import BillingCheckSection from '../components/features/landing/BillingCheckSection';
 import AnnouncementSection from '../components/features/landing/AnnouncementSection';
@@ -180,7 +181,7 @@ function SectionHeader({ eyebrow, title, desc }) {
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-3">
         {eyebrow}
       </p>
-      <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">
+      <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">
         {title}
       </h2>
       <p className="text-gray-500 dark:text-white/40 max-w-md mx-auto text-sm leading-relaxed">
@@ -245,10 +246,10 @@ function StepItem({ step, index, isLast }) {
           style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           {String(index + 1).padStart(2, '0')}
         </span>
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1.5 max-w-[140px]">
+        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1.5">
           {step.title}
         </h3>
-        <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed max-w-[160px]">
+        <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed">
           {step.desc}
         </p>
       </div>
@@ -256,7 +257,19 @@ function StepItem({ step, index, isLast }) {
   );
 }
 
+const NAV_LINKS = [
+  ['#services', 'Layanan'],
+  ['#how-it-works', 'Cara Kerja'],
+  ['#check-billing', 'Cek Tagihan'],
+  ['#announcements', 'Pengumuman'],
+  ['#programs', 'Program'],
+  ['#faq', 'FAQ'],
+  ['#contact', 'Kontak'],
+];
+
 export default function LandingPage() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0e1a] transition-colors duration-300 overflow-x-hidden">
 
@@ -267,8 +280,8 @@ export default function LandingPage() {
 
       {/* ── Navbar ── */}
       <nav className="fixed w-full z-50 border-b border-gray-100 dark:border-white/[0.06] bg-white/80 dark:bg-[#0a0e1a]/85 backdrop-blur-md transition-colors duration-300">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-15 items-center py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
 
             {/* Logo */}
             <div className="flex items-center gap-2.5">
@@ -282,9 +295,9 @@ export default function LandingPage() {
               </span>
             </div>
 
-            {/* Nav links */}
+            {/* Nav links (desktop) */}
             <div className="hidden md:flex items-center gap-8">
-              {[['#services', 'Layanan'], ['#how-it-works', 'Cara Kerja'], ['#check-billing', 'Cek Tagihan'], ['#announcements', 'Pengumuman'], ['#programs', 'Program'], ['#faq', 'FAQ'], ['#contact', 'Kontak']].map(([href, label]) => (
+              {NAV_LINKS.map(([href, label]) => (
                 <a
                   key={href}
                   href={href}
@@ -295,22 +308,68 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* CTA */}
+            {/* CTA + Hamburger */}
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <Link
                 to="/login"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/10 transition-all duration-200 hover:-translate-y-px"
               >
-                <SignIn size={15} className="md:hidden" />
+                <SignIn size={15} />
                 <span className="hidden md:inline">Login Staff</span>
                 <span className="md:hidden">Masuk</span>
               </Link>
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                className="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
+              >
+                {mobileOpen ? <X size={20} /> : <List size={20} />}
+              </button>
             </div>
 
           </div>
         </div>
       </nav>
+
+      {/* ── Mobile Menu Drawer ── */}
+      <div
+        className={`fixed inset-0 z-40 md:hidden transition-all duration-300 ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setMobileOpen(false)}
+        />
+
+        {/* Panel */}
+        <div
+          className={`absolute top-0 right-0 h-full w-72 max-w-[85vw] bg-white dark:bg-[#0f1425] border-l border-gray-200 dark:border-white/[0.08] shadow-2xl transition-transform duration-300 ease-out ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/[0.06]">
+            <span className="text-sm font-bold text-gray-900 dark:text-white">Menu</span>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+              aria-label="Tutup menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          <nav className="px-3 py-3 space-y-0.5">
+            {NAV_LINKS.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+        </div>
+      </div>
 
       {/* ── Hero ── */}
       <section className="relative pt-28 pb-16 lg:pt-40 lg:pb-24 text-center z-10">
@@ -319,7 +378,7 @@ export default function LandingPage() {
         <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full bg-blue-100/60 dark:bg-blue-500/8 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[500px] h-[500px] rounded-full bg-amber-100/50 dark:bg-amber-400/6 blur-3xl" />
 
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6">
 
           {/* SealCheck */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-7 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/25 text-blue-700 dark:text-blue-400">
@@ -364,7 +423,7 @@ export default function LandingPage() {
 
       {/* ── Stats Bar ── */}
       <div className="relative z-10 border-y border-gray-100 dark:border-white/[0.06] bg-gray-50/70 dark:bg-white/[0.02]">
-        <div className="max-w-3xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-100 dark:divide-white/[0.06]">
             {STATS.map(({ number, label }, index) => (
               <StatItem key={label} number={number} label={label} index={index} />
@@ -375,13 +434,13 @@ export default function LandingPage() {
 
       {/* ── Layanan & Keunggulan ── */}
       <section id="services" className="relative z-10 py-20 lg:py-28 scroll-mt-16 bg-white dark:bg-transparent">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Layanan &amp; Keunggulan"
             title="Solusi Lengkap Koperasi Sekolah"
             desc="Memenuhi kebutuhan perlengkapan santri dengan sistem transparan dan terpercaya."
           />
-          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
             {BENEFITS.map((f, index) => (
               <RevealCard key={f.title} index={index} direction="up">
                 <div className="rounded-2xl p-6 border border-gray-200 dark:border-white/[0.07] bg-white dark:bg-white/[0.03] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_-6px_rgba(0,0,0,0.08)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.06),0_16px_32px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-1 transition-all duration-300 h-full flex flex-col items-center text-center">
@@ -403,13 +462,13 @@ export default function LandingPage() {
 
       {/* ── Cara Kerja ── */}
       <section id="how-it-works" className="relative z-10 py-20 lg:py-28 scroll-mt-16 bg-gray-50 dark:bg-white/[0.015] border-y border-gray-100 dark:border-white/[0.05]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Alur Layanan"
             title="Cara Kerja"
             desc="Empat langkah mudah untuk memantau tagihan santri Anda."
           />
-          <div className="flex flex-col sm:flex-row gap-10 sm:gap-4">
+          <div className="flex flex-col sm:flex-row gap-6 sm:gap-4">
             {STEPS.map((step, index) => (
               <StepItem key={step.title} step={step} index={index} isLast={index === STEPS.length - 1} />
             ))}
@@ -427,7 +486,7 @@ export default function LandingPage() {
 
       {/* ── Testimoni ── */}
       <section className="relative z-10 py-20 lg:py-28 bg-white dark:bg-transparent">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SectionHeader
             eyebrow="Kata Wali Murid"
             title="Testimoni"
@@ -459,7 +518,7 @@ export default function LandingPage() {
 
       {/* ── Informasi Program ── */}
       <section id="programs" className="relative z-10 py-20 lg:py-28 scroll-mt-16 bg-white dark:bg-transparent">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Rows header */}
           <SectionHeader
@@ -531,7 +590,7 @@ export default function LandingPage() {
 
       {/* ── CTA WhatsApp ── */}
       <section className="relative z-10 py-10 px-4">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <RevealCard>
             <div className="rounded-2xl p-10 sm:p-12 text-center shadow-sm
                       bg-blue-50 dark:bg-blue-500/10 
@@ -567,7 +626,7 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer id="contact" className="relative z-10 py-6 bg-white dark:bg-[#0a0e1a] border-t border-gray-100 dark:border-white/[0.05]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-6 sm:gap-0 sm:divide-x sm:divide-gray-100 dark:sm:divide-white/[0.06] mb-4">
 
@@ -581,7 +640,7 @@ export default function LandingPage() {
                 />
                 <span className="text-sm font-bold text-gray-900 dark:text-white">Koperasi Senyum</span>
               </div>
-              <p className="text-xs text-gray-400 dark:text-white/30 leading-relaxed max-w-[240px]">
+              <p className="text-xs text-gray-400 dark:text-white/30 leading-relaxed">
                 Melayani kebutuhan santri dengan sepenuh hati. Jujur, Amanah, dan Profesional.
               </p>
             </div>

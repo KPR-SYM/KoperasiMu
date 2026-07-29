@@ -81,7 +81,7 @@ export default function FAQSection() {
                        bg-gray-50 dark:bg-white/[0.015]
                        border-y border-gray-100 dark:border-white/[0.05]"
         >
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div
                     ref={headerRef}

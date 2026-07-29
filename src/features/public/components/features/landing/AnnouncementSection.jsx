@@ -81,7 +81,7 @@ export default function AnnouncementSection() {
             id="announcements"
             className="relative z-10 py-20 lg:py-28 scroll-mt-16 bg-white dark:bg-transparent"
         >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div
                     ref={headerRef}

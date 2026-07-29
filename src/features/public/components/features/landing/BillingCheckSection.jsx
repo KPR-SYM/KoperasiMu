@@ -127,7 +127,7 @@ export default function BillingCheckSection() {
                        bg-blue-50/60 dark:bg-transparent
                        border-y border-blue-100 dark:border-white/[0.05]"
         >
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {(
                     <div className="text-center mb-5">
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">
@@ -154,7 +154,7 @@ export default function BillingCheckSection() {
                             <div className="relative lg:col-span-5 overflow-hidden
                                             bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900
                                             dark:from-[#0b1220] dark:via-blue-950/50 dark:to-[#0b1220]
-                                            border-r border-blue-500/10 dark:border-blue-500/15
+                                            lg:border-r border-blue-500/10 dark:border-blue-500/15
                                             px-6 py-6 lg:py-7 flex flex-col justify-between">
 
                                 {/* Decorative coin/orbit motif */}
