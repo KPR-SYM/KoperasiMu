@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CaretDown, Question } from '@phosphor-icons/react';
+import { Question, CaretDown } from '@phosphor-icons/react';
 import useScrollReveal from '../../../hooks/useScrollReveal';
 
 /* ─── Data FAQ ────────────────────────────────────────────── */
@@ -72,31 +72,22 @@ function FAQItem({ faq, index, openIndex, setOpenIndex }) {
 
 export default function FAQSection() {
     const [openIndex, setOpenIndex] = useState(0);
-    const { ref: headerRef, isVisible: headerVisible } = useScrollReveal({ threshold: 0.3 });
 
     return (
         <section
             id="faq"
-            className="relative z-10 py-20 lg:py-28 scroll-mt-16
-                       bg-gray-50 dark:bg-white/[0.015]
-                       border-y border-gray-100 dark:border-white/[0.05]"
+            className="relative z-10 py-20 sm:py-24 lg:py-28 scroll-mt-16"
         >
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-[calc(100%-32px)] sm:w-4/5 mx-auto">
 
-                <div
-                    ref={headerRef}
-                    className={`text-center mb-12 transition-all duration-700
-                        ${headerVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}
-                >
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-3">
+                <div className="max-w-2xl">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-3">
                         Bantuan
                     </p>
-                    <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3
-                                   inline-flex items-center gap-3">
-                        <Question className="w-7 h-7 text-amber-500" />
+                    <h2 className="text-[36px] sm:text-[45px] lg:text-[56px] font-normal leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-white">
                         Pertanyaan Umum
                     </h2>
-                    <p className="text-gray-500 dark:text-white/40 max-w-md mx-auto text-sm leading-relaxed">
+                    <p className="text-gray-500 dark:text-white/40 text-[15px] leading-relaxed mt-2">
                         Hal-hal yang sering ditanyakan oleh wali murid dan guru.
                     </p>
                 </div>

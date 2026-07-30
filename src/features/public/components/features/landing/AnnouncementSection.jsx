@@ -1,8 +1,9 @@
 import { MegaphoneSimple, Warning, CalendarBlank, Spinner, Megaphone } from '@phosphor-icons/react';
 import { EmptyState } from '@shared/components';
 import useAnnouncements from '../../../hooks/useAnnouncements';
-import useScrollReveal from '../../../hooks/useScrollReveal';
 import { formatDate } from '../../../utils/formatters';
+import useScrollReveal from '../../../hooks/useScrollReveal';
+
 
 /* ─── Style per tipe pengumuman ──────────────────────────── */
 const typeStyles = {
@@ -74,29 +75,21 @@ function AnnouncementCard({ announcement, index }) {
 
 export default function AnnouncementSection() {
     const { announcements, loading, error } = useAnnouncements(6);
-    const { ref: headerRef, isVisible: headerVisible } = useScrollReveal({ threshold: 0.3 });
 
     return (
         <section
             id="announcements"
-            className="relative z-10 py-20 lg:py-28 scroll-mt-16 bg-white dark:bg-transparent"
+            className="relative z-10 py-20 sm:py-24 lg:py-28 scroll-mt-16"
         >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-[calc(100%-32px)] sm:w-4/5 mx-auto">
 
-                <div
-                    ref={headerRef}
-                    className={`text-center mb-14 transition-all duration-700
-                        ${headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-                >
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 mb-3">
+                <div className="max-w-2xl">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-3">
                         Informasi &amp; Pengumuman
                     </p>
-                    <h2 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">
+                    <h2 className="text-[36px] sm:text-[45px] lg:text-[56px] font-normal leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-white">
                         Pengumuman
                     </h2>
-                    <p className="text-gray-500 dark:text-white/40 max-w-md mx-auto text-sm leading-relaxed">
-                        Update terkini seputar Koperasi SenyumMu, jadwal, dan pengumuman penting sekolah.
-                    </p>
                 </div>
 
                 {loading && (
