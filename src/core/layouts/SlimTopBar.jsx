@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Globe, Check, Sparkle, SidebarSimple, Palette, House, SquaresFour, Sidebar } from '@phosphor-icons/react'
+import { List, CaretLeft, MagnifyingGlass, Moon, Sun, Bell, CaretDown, GearSix, SignOut, X, ArrowRight, ArrowClockwise, Translate, Check, Sparkle, SidebarSimple, Palette, House, SquaresFour, Sidebar } from '@phosphor-icons/react'
 import { useTheme, useAuth, useLanguage, useFeatureFlags, useCustomize } from "@context"
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
 import logoSenyum from '../../assets/images/logos/logo-senyum.png'
@@ -369,6 +369,15 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                         <span>⌘</span><span>K</span>
                                     </span>
                                 )}
+                                {searchQuery && (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setSearchQuery(''); setSearchFocused(false) }}
+                                        className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xs shrink-0"
+                                    >
+                                        <X className="w-4 h-4" strokeWidth={2} />
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => { setSearchQuery(''); setSearchFocused(false) }}
@@ -409,6 +418,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 </div>
                             )}
                         </div>
+
                         {/* Language Selector */}
                         <div className={`relative ${searchFocused ? 'hidden' : 'block'}`} ref={langRef}>
                             <button
@@ -420,11 +430,11 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                 aria-label="Pilih Bahasa"
                                 type="button"
                             >
-                                <Globe className="w-4 h-4 shrink-0" strokeWidth={2} />
+                                <Translate className="w-4 h-4 shrink-0" strokeWidth={2} />
                             </button>
 
                             {langOpen && (
-                                    <div className={`absolute mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50 p-1
+                                <div className={`absolute mt-2 w-48 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50 p-1
                                     ${dir === 'rtl' ? 'left-0' : 'right-0'}`}
                                 >
                                     {[
@@ -609,7 +619,9 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
 function NotifBadge({ count }) {
     if (!count || count <= 0) return null
     return (
-        <span className="absolute -top-0.5 -end-0.5 h-2 w-2 bg-red-500 rounded-full border-2 border-[var(--color-surface)]" />
+        <span className="absolute -top-1.5 -end-1.5 min-w-[16px] h-[16px] px-1 flex items-center justify-center bg-red-500 text-white text-[9px] font-black rounded-full border-2 border-[var(--color-surface)]">
+            {count > 9 ? '9+' : count}
+        </span>
     )
 }
 

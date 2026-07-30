@@ -74,7 +74,9 @@ function SidebarItem({ item, collapsed }) {
                     </div>
 
                     {/* Label — animated slide/fade */}
-                    <span className={`truncate leading-none text-left transition-all duration-300
+                    <span
+                        title={tNav(item)}
+                        className={`truncate leading-none text-left transition-all duration-300
                         ${collapsed ? 'w-0 opacity-0 group-hover/sidebar:w-36 group-hover/sidebar:opacity-100 overflow-hidden' : 'w-auto opacity-100'}`}
                     >
                         {tNav(item)}
@@ -219,10 +221,10 @@ export default function Sidebar({ collapsed, onToggle }) {
             {/* ── Logo Rows ── */}
             <div className={`shrink-0 border-b border-[var(--color-border)] ${collapsed ? 'px-2 py-3 group-hover/sidebar:px-3.5 group-hover/sidebar:py-3' : 'px-3.5 py-3'} transition-all duration-300`}>
                 <div className={`flex items-center ${collapsed ? 'justify-center group-hover/sidebar:justify-start group-hover/sidebar:gap-2.5' : 'gap-2.5'} transition-all duration-300`}>
-                        {/* Logo badge */}
-                        <div className="rounded-xl overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 w-8 h-8">
-                            <img src={logoSenyum} alt="Koperasi SenyumMu" className="w-full h-full object-cover" />
-                        </div>
+                    {/* Logo badge */}
+                    <div className="rounded-xl overflow-hidden shrink-0 shadow-lg shadow-blue-500/20 w-8 h-8">
+                        <img src={logoSenyum} alt="Koperasi SenyumMu" className="w-full h-full object-cover" />
+                    </div>
 
                     {/* TextT — hidden smoothly, expands on hover */}
                     <div className={`min-w-0 flex flex-col transition-all duration-300
