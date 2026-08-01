@@ -3,13 +3,27 @@ import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
-import { STATUS_CONFIG } from '@features/teachers/components/TeacherRow'
 import { useDebounce } from '@hooks'
 import { useErrorHandler } from '@hooks'
 
 const LS_FILTERS = 'teachers_filters'
 const LS_COLS = 'teachers_columns'
 const LS_PAGE_SIZE = 'teachers_page_size'
+
+const DEFAULT_SUBJECTS = [
+    'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'Fisika', 'Kimia',
+    'Biologi', 'Ekonomi', 'Sosiologi', 'Geografi', 'Sejarah',
+    'Pendidikan Agama Islam', 'Pendidikan Agama Kristen', 'Pendidikan Kewarganegaraan',
+    'Informatika', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Bahasa Arab',
+]
+
+const mapTeacher = (row) => ({
+    ...row,
+    name: row.full_name || '',
+    nbm: row.nip || '',
+    status: row.is_active ? 'active' : 'inactive',
+})
+const mapTeacherList = (rows) => (rows || []).map(mapTeacher)
 
 export function useTeachersCore({ addToast }) {
     const { handleError } = useErrorHandler('TeachersCore')
@@ -179,19 +193,19 @@ export function useTeachersCore({ addToast }) {
         setLoading(true)
         try {
             const from = (page - 1) * pageSize, to = from + pageSize - 1
-            const sortMap = { name_asc: { col: 'name', asc: true }, name_desc: { col: 'name', asc: false }, subject_asc: { col: 'subject', asc: true }, join_asc: { col: 'join_date', asc: true }, join_desc: { col: 'join_date', asc: false } }
+            const sortMap = { name_asc: { col: 'full_name', asc: true }, name_desc: { col: 'full_name', asc: false }, join_asc: { col: 'created_at', asc: true }, join_desc: { col: 'created_at', asc: false } }
             const { col, asc } = sortMap[sortBy] || sortMap.name_asc
             let q = supabase.from('teachers').select('*', { count: 'exact' }).is('deleted_at', null).order(col, { ascending: asc }).range(from, to)
-            if (filterStatus) q = q.eq('status', filterStatus)
+            if (filterStatus) q = q.eq('is_active', filterStatus === 'active')
             if (filterGender) q = q.eq('gender', filterGender)
             if (filterSubject) q = q.eq('subject', filterSubject)
             if (filterType) q = q.eq('type', filterType)
             if (filterMissing === 'wa') q = q.or('phone.is.null,phone.eq.""')
-            if (debouncedSearch) { const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_'); q = q.or(`name.ilike.%${s}%,nbm.ilike.%${s}%,email.ilike.%${s}%,subject.ilike.%${s}%`) }
+            if (debouncedSearch) { const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_'); q = q.or(`full_name.ilike.%${s}%,nip.ilike.%${s}%,email.ilike.%${s}%,subject.ilike.%${s}%`) }
             const { data, error, count } = await q
             if (error) throw error
 
-            let teachersWithAvatar = data || []
+            let teachersWithAvatar = mapTeacherList(data)
             const emails = teachersWithAvatar.map(t => t.email).filter(Boolean)
             if (emails.length > 0) {
                 try {
@@ -219,17 +233,23 @@ export function useTeachersCore({ addToast }) {
             setTeachers([...teachersWithAvatar].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)))
             setTotalRows(count ?? 0)
             const { data: allSubj } = await supabase.from('teachers').select('subject').is('deleted_at', null).not('subject', 'is', null)
-            if (allSubj) setSubjectsList([...new Set(allSubj.map(r => r.subject).filter(Boolean))].sort())
-            const { data: cls } = await supabase.from('classes').select('id,name').order('name')
-            if (cls) setClassesList(cls)
+            const dbSubjects = allSubj ? allSubj.map(r => r.subject).filter(Boolean) : []
+            setSubjectsList([...new Set([...DEFAULT_SUBJECTS, ...dbSubjects])].sort())
         } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
         finally { setLoading(false) }
     }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, addToast])
 
     const fetchStats = useCallback(async () => {
         try {
-            const { data } = await supabase.from('teachers').select('id,gender,status,type').is('deleted_at', null)
-            if (data) setStats({ total: data.length, active: data.filter(t => t.status === 'active').length, male: data.filter(t => t.gender === 'L').length, female: data.filter(t => t.gender === 'P').length, guru: data.filter(t => !t.type || t.type === 'guru').length, karyawan: data.filter(t => t.type === 'karyawan').length })
+            const { data } = await supabase.from('teachers').select('id,is_active,gender,type').is('deleted_at', null)
+            if (data) setStats({
+                total: data.length,
+                active: data.filter(t => t.is_active).length,
+                male: data.filter(t => t.gender === 'L').length,
+                female: data.filter(t => t.gender === 'P').length,
+                guru: data.filter(t => !t.type || t.type === 'guru').length,
+                karyawan: data.filter(t => t.type === 'karyawan').length,
+            })
         } catch { }
     }, [])
 
@@ -252,16 +272,26 @@ export function useTeachersCore({ addToast }) {
     const handleSubmit = useCallback(async (payload) => {
         setSubmitting(true)
         try {
+            const dbPayload = {
+                full_name: payload.name || payload.full_name,
+                nip: payload.nbm || payload.nip,
+                phone: payload.phone,
+                email: payload.email,
+                gender: payload.gender || null,
+                subject: payload.subject || null,
+                type: payload.type || 'guru',
+                is_active: payload.status === 'active' || payload.is_active === true,
+            }
             if (selectedItem) {
-                const { error } = await supabase.from('teachers').update(payload).eq('id', selectedItem.id)
+                const { error } = await supabase.from('teachers').update(dbPayload).eq('id', selectedItem.id)
                 if (error) throw error
                 addToast('Data guru berhasil diupdate', 'success')
-                await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } })
+                await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...dbPayload } })
             } else {
-                const { data: insData, error } = await supabase.from('teachers').insert([payload]).select().single()
+                const { data: insData, error } = await supabase.from('teachers').insert([dbPayload]).select().single()
                 if (error) throw error
                 addToast('Guru baru berhasil ditambahkan', 'success')
-                await logAudit({ action: 'INSERT', source: 'OPERATIONAL', tableName: 'teachers', recordId: insData?.id, newData: payload })
+                await logAudit({ action: 'INSERT', source: 'OPERATIONAL', tableName: 'teachers', recordId: insData?.id, newData: dbPayload })
             }
             setIsModalOpen(false); fetchData(); fetchStats()
             return null
@@ -306,7 +336,7 @@ export function useTeachersCore({ addToast }) {
         try {
             const { data, error } = await supabase.from('teachers').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
             if (error) throw error
-            setArchivedTeachers(data || [])
+            setArchivedTeachers(mapTeacherList(data))
         } catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally {
             setLoadingArchived(false)
         }
@@ -384,10 +414,11 @@ export function useTeachersCore({ addToast }) {
     // ── quick status ──────────────────────────────────────────────────────────
     const handleQuickStatus = useCallback(async (teacher, newStatus) => {
         try {
-            const { error } = await supabase.from('teachers').update({ status: newStatus }).eq('id', teacher.id)
+            const isActive = newStatus === 'active'
+            const { error } = await supabase.from('teachers').update({ is_active: isActive }).eq('id', teacher.id)
             if (error) throw error
-            addToast(`Status ${teacher.name} → ${STATUS_CONFIG[newStatus].label}`, 'success')
-            await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, status: newStatus } })
+            addToast(`Status ${teacher.name} → ${isActive ? 'Aktif' : 'Nonaktif'}`, 'success')
+            await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, is_active: isActive } })
             setQuickStatusId(null)
             fetchData()
             fetchStats()

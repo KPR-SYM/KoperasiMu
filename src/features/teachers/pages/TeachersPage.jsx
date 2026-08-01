@@ -43,8 +43,7 @@ export default function TeachersPage() {
         filterMissing, setFilterMissing, sortBy, setSortBy,
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
         showAdvFilter, setShowAdvFilter,
-        visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen,
-        menuPos, setMenuPos,
+        visibleCols,
         isPrivacyMode, setIsPrivacyMode,
         isShortcutOpen, setIsShortcutOpen,
         isHeaderMenuOpen, setIsHeaderMenuOpen,
@@ -279,35 +278,30 @@ export default function TeachersPage() {
 
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
-                    <div className="border-b border-[var(--color-border)]">
-                        <TeachersToolbar
-                            searchQuery={searchQuery}
-                            setSearchQuery={setSearchQuery}
-                            searchInputRef={searchInputRef}
-                            loading={loading}
-                            totalRows={totalRows}
-                            filterStatus={filterStatus}
-                            setFilterStatus={setFilterStatus}
-                            filterGender={filterGender}
-                            setFilterGender={setFilterGender}
-                            sortBy={sortBy}
-                            setSortBy={setSortBy}
-                            showAdvFilter={showAdvFilter}
-                            setShowAdvFilter={setShowAdvFilter}
-                            activeFilterCount={activeFilterCount}
-                            resetAllFilters={resetAllFilters}
-                            selectedIds={selectedIds}
-                            toggleSelectAll={toggleSelectAll}
-                            filterType={filterType}
-                            setFilterType={setFilterType}
-                            filterSubject={filterSubject}
-                            setFilterSubject={setFilterSubject}
-                            filterMissing={filterMissing}
-                            setFilterMissing={setFilterMissing}
-                            subjectsList={subjectsList}
-                            setPage={setPage}
-                        />
-                    </div>
+                    <TeachersToolbar
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        searchInputRef={searchInputRef}
+                        loading={loading}
+                        showAdvFilter={showAdvFilter}
+                        setShowAdvFilter={setShowAdvFilter}
+                        activeFilterCount={activeFilterCount}
+                        resetAllFilters={resetAllFilters}
+                        filterStatus={filterStatus}
+                        setFilterStatus={setFilterStatus}
+                        filterGender={filterGender}
+                        setFilterGender={setFilterGender}
+                        filterSubject={filterSubject}
+                        setFilterSubject={setFilterSubject}
+                        filterType={filterType}
+                        setFilterType={setFilterType}
+                        filterMissing={filterMissing}
+                        setFilterMissing={setFilterMissing}
+                        sortBy={sortBy}
+                        setSortBy={setSortBy}
+                        subjectsList={subjectsList}
+                        setPage={setPage}
+                    />
                     <TeachersTable
                         teachers={teachers}
                         totalRows={totalRows}
@@ -333,7 +327,9 @@ export default function TeachersPage() {
                         searchQuery={searchQuery}
                         filterStatus={filterStatus}
                         filterGender={filterGender}
+                        filterSubject={filterSubject}
                         filterType={filterType}
+                        filterMissing={filterMissing}
                         resetAllFilters={resetAllFilters}
                         handleAdd={handleAdd}
                         page={page}
@@ -342,11 +338,6 @@ export default function TeachersPage() {
                         setPageSize={setPageSize}
                         jumpPage={jumpPage}
                         setJumpPage={setJumpPage}
-                        isColMenuOpen={isColMenuOpen}
-                        setIsColMenuOpen={setIsColMenuOpen}
-                        menuPos={menuPos}
-                        setMenuPos={setMenuPos}
-                        setVisibleCols={setVisibleCols}
                     />
                 </div>
 
