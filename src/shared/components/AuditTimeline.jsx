@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
 import { Warning, CaretDown, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 
@@ -292,6 +292,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
         const controller = new AbortController()
         abortRef.current = controller
         setLoading(true)
+        setLogs([])
         try {
             const { data, error } = await supabase
                 .from('audit_logs')
@@ -322,7 +323,9 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
         } catch (e) {
             if (e.name !== 'AbortError') console.error('[AuditTimeline]', e.message)
         } finally {
-            setLoading(false)
+            if (!controller.signal.aborted) {
+                setLoading(false)
+            }
         }
     }, [tableName, recordId, limit])
 
@@ -357,7 +360,12 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
         }
     }
 
-    useEffect(() => { fetchLogs() }, [fetchLogs])
+    useEffect(() => {
+        fetchLogs()
+        return () => {
+            abortRef.current?.abort()
+        }
+    }, [fetchLogs])
 
     const filteredLogs = useMemo(() => {
         if (!search) return logs

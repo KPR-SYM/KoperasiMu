@@ -74,7 +74,7 @@ function TimelineView({
                             <div
                                 key={year.id}
                                 className="relative flex flex-col items-center group/item shrink-0"
-                                style={{ width: "220px" }}
+                                style={{ width: "240px" }}
                             >
                                 {/* Node */}
                                 <div className="relative z-10 flex items-center justify-center w-10 h-10 mb-4">
@@ -100,7 +100,7 @@ function TimelineView({
                                     className={`px-3 w-full transition-all duration-300 ${isActive ? "opacity-100" : "opacity-70 group-hover/item:opacity-100"}`}
                                 >
                                     <div
-                                        className={`relative rounded-2xl p-4 border transition-all duration-300 hover:-translate-y-1 ${isActive ? "bg-[var(--color-surface)] border-[var(--color-primary)]/40 shadow-lg shadow-[var(--color-primary)]/5" : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-primary)]/30 shadow-sm"}`}
+                                        className={`relative rounded-2xl p-3.5 border transition-all duration-300 hover:-translate-y-1 ${isActive ? "bg-[var(--color-surface)] border-[var(--color-primary)]/40 shadow-lg shadow-[var(--color-primary)]/5" : "bg-[var(--color-surface)] border-[var(--color-border)] hover:border-[var(--color-primary)]/30 shadow-sm"}`}
                                     >
                                         {/* Badges */}
                                         <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">

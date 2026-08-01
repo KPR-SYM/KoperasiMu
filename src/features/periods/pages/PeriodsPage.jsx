@@ -34,7 +34,8 @@ import {
     PageHeader,
     Pagination,
     BulkActionsBar,
-    StatsInline,
+    StatCard,
+    StatsCarousel,
     ConfirmDialog,
     Alert,
 } from "@shared/components";
@@ -700,14 +701,32 @@ export default function PeriodsPage() {
                 />
 
                 {/* ── Stats ── */}
-                <StatsInline
-                    items={[
-                        { label: "Periode", value: stats.total, color: "text-[var(--color-text)]" },
-                        { label: "Aktif", value: stats.active, color: "text-emerald-600" },
-                        { label: "Ganjil", value: stats.ganjil, color: "text-indigo-500" },
-                        { label: "Genap", value: stats.genap, color: "text-purple-500" },
-                    ]}
-                />
+                <StatsCarousel count={4} cols={4}>
+                    <StatCard
+                        icon={Calendar}
+                        label="Total Periode"
+                        value={stats.total}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={CheckCircle}
+                        label="Periode Aktif"
+                        value={stats.active}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Calendar}
+                        label="Semester Ganjil"
+                        value={stats.ganjil}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Calendar}
+                        label="Semester Genap"
+                        value={stats.genap}
+                        color="primary"
+                    />
+                </StatsCarousel>
 
                 {/* ── Conflict Detection Badge ── */}
                 {overlaps.length > 0 && (
