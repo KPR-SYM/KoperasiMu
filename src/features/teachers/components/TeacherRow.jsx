@@ -9,6 +9,15 @@ export const STATUS_CONFIG = {
     inactive: { label: 'Nonaktif', color: 'bg-rose-500/10 text-rose-600' },
     cuti: { label: 'Cuti', color: 'bg-amber-500/10 text-amber-600' }}
 
+export const TYPE_LABELS = {
+    guru: 'Guru',
+    karyawan: 'Karyawan',
+    kepsek: 'Kepala Sekolah',
+    tu: 'Tata Usaha',
+    security: 'Security',
+    cleaning: 'Cleaning Service',
+}
+
 // ─── Avatar — handles error state, no gradient bleed ──────────────────────────
 function Avatar({ url, name, size = 'w-10 h-10', textSize = 'text-xs', rounded = 'rounded-full' }) {
     const [imgError, setImgError] = useState(false)
@@ -74,13 +83,13 @@ const TeacherRow = memo(({
                         <Avatar url={teacher.avatar_url} name={teacher.name} />
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
-                        <button onClick={() => openProfile(teacher)} className="font-extrabold w-4 h-4 text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors text-left leading-snug truncate">
+                        <button onClick={() => openProfile(teacher)} className="font-extrabold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors text-left leading-snug truncate">
                             {teacher.name}
                         </button>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             {teacher.nbm && <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider">{teacher.nbm}</p>}
                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border ${teacher.type === 'karyawan' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'}`}>
-                                {teacher.type === 'karyawan' ? 'Karyawan' : 'Guru'}
+                                {TYPE_LABELS[teacher.type] || teacher.type || 'Guru'}
                             </span>
                         </div>
                     </div>
@@ -187,7 +196,7 @@ const TeacherMobileCard = memo(({
                             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                 {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest">{teacher.subject}</span>}
                                 <Badge color={teacher.status === 'active' ? 'emerald' : teacher.status === 'inactive' ? 'rose' : 'amber'}>{STATUS_CONFIG[teacher.status]?.label}</Badge>
-                                <Badge color={teacher.type === 'karyawan' ? 'blue' : 'indigo'}>{teacher.type === 'karyawan' ? 'Karyawan' : 'Guru'}</Badge>
+                                <Badge color={teacher.type === 'karyawan' ? 'blue' : 'indigo'}>{TYPE_LABELS[teacher.type] || teacher.type || 'Guru'}</Badge>
                             </div>
                             <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">{teacher.nbm || 'NO NBM'}</p>
                         </div>

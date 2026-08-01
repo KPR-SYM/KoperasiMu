@@ -276,7 +276,6 @@ export function useTeachersCore({ addToast }) {
                 full_name: payload.name || payload.full_name,
                 nip: payload.nbm || payload.nip,
                 phone: payload.phone,
-                email: payload.email,
                 gender: payload.gender || null,
                 subject: payload.subject || null,
                 type: payload.type || 'guru',
@@ -289,7 +288,10 @@ export function useTeachersCore({ addToast }) {
                 await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...dbPayload } })
             } else {
                 const { data: insData, error } = await supabase.from('teachers').insert([dbPayload]).select().single()
-                if (error) throw error
+                if (error) {
+                    console.error('Supabase insert error:', error)
+                    throw error
+                }
                 addToast('Guru baru berhasil ditambahkan', 'success')
                 await logAudit({ action: 'INSERT', source: 'OPERATIONAL', tableName: 'teachers', recordId: insData?.id, newData: dbPayload })
             }

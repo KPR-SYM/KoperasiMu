@@ -139,7 +139,9 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 options={[
                                     { id: '', name: 'Semua Jenis' },
                                     { id: 'guru', name: 'Guru' },
-                                    { id: 'karyawan', name: 'Karyawan' }
+                                    { id: 'karyawan', name: 'Karyawan' },
+                                    { id: 'kepsek', name: 'Kepala Sekolah' },
+                                    { id: 'tu', name: 'Tata Usaha' },
                                 ]}
                                 placeholder="Semua Jenis"
                                 small

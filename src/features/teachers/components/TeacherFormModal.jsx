@@ -28,7 +28,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
                 subject: selectedItem.subject || '',
                 gender: selectedItem.gender || 'L',
                 phone: selectedItem.phone || '',
-                email: selectedItem.email || '',
                 status: selectedItem.status || 'active',
                 type: selectedItem.type || 'guru',
                 avatar_url: selectedItem.avatar_url || selectedItem.photo_url || '',
@@ -82,7 +81,9 @@ const TeacherFormModal = memo(function TeacherFormModal({
         e?.preventDefault()
         setAttemptedSubmit(true)
         const name = (form.name || '').trim()
+        const phone = (form.phone || '').trim()
         if (!name) { setFormError('Nama lengkap wajib diisi.'); return }
+        if (!phone) { setFormError('No. Handphone wajib diisi.'); return }
         setFormError('')
         const payload = {
             name,
@@ -90,7 +91,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
             subject: (form.subject || '').trim() || null,
             gender: form.gender || null,
             phone: (form.phone || '').trim() || null,
-            email: (form.email || '').trim() || null,
             status: form.status || 'active',
             type: form.type || 'guru',
             avatar_url: form.avatar_url || null,
@@ -282,8 +282,8 @@ const TeacherFormModal = memo(function TeacherFormModal({
 
                 {/* No. Handphone */}
                 <div>
-                    <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">No. Handphone</label>
-                    <input type="tel" value={form.phone} onChange={e => setField('phone', e.target.value)} placeholder="08xxxxxxxxxx" className={inputCls('phone')} />
+                    <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">No. Handphone <span className="text-rose-500">*</span></label>
+                    <input type="tel" value={form.phone} onChange={e => setField('phone', e.target.value)} onBlur={() => setFieldTouched('phone')} placeholder="08xxxxxxxxxx" className={inputCls('phone', true)} />
                 </div>
 
                 {formError && (
