@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
+import { useAuth } from '@context/Auth'
+import { useFlag } from '@context/FeatureFlags'
 import { STATUS_CONFIG } from '@features/teachers/components/TeacherRow'
 import { useDebounce } from '@hooks'
 import { useErrorHandler } from '@hooks'
@@ -9,8 +11,10 @@ const LS_FILTERS = 'teachers_filters'
 const LS_COLS = 'teachers_columns'
 const LS_PAGE_SIZE = 'teachers_page_size'
 
-export function useTeachersCore({ addToast, profile }) {
+export function useTeachersCore({ addToast }) {
     const { handleError } = useErrorHandler('TeachersCore')
+    const { profile } = useAuth()
+    const { enabled: canEdit } = useFlag('access.teacher_teachers')
     // core
     const [teachers, setTeachers] = useState([])
     const [loading, setLoading] = useState(true)
@@ -456,6 +460,7 @@ export function useTeachersCore({ addToast, profile }) {
     }, [bulkWAIndex, bulkWATeachers, waTemplate])
 
     return {
+        canEdit, profile,
         teachers, setTeachers, loading, setLoading, submitting, setSubmitting, totalRows, setTotalRows,
         subjectsList, setSubjectsList, classesList, setClassesList, stats, setStats, uploadingPhoto, setUploadingPhoto,
         searchQuery, setSearchQuery, debouncedSearch, filterSubject, setFilterSubject, filterGender, setFilterGender,
