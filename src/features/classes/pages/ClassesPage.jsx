@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
-import { Archive, Bed, Buildings, Eye, EyeSlash, Keyboard, Plus, SlidersHorizontal, Spinner, Trash, Users, X } from '@phosphor-icons/react'
+import { Archive, Bed, Buildings, Calendar, CaretLeft, CheckCircle, Eye, EyeSlash, Keyboard, List, MagnifyingGlass, Plus, SlidersHorizontal, Spinner, Trash, Users, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
-import Modal from '@shared/components/Modal'
 import { useToast } from '@context/Toast'
 import { useClassesCore } from '@features/classes/hooks/useClassesCore'
 import { useClassesKeyboard } from '@features/classes/hooks/useClassesKeyboard'
@@ -114,14 +113,7 @@ export default function ClassesPage() {
     return (
         <DashboardLayout title="Data Kelas" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
             <style>{isAnyModalOpen ? ` .top-nav, .sidebar, .floating-dock { display: none !important; } main { padding-top: 0 !important; } ` : ''}</style>
-            <div className="space-y-4 max-w-[1800px] mx-auto relative">
-
-                {/* Read-only Banner */}
-                {!canEdit && (
-                    <Alert variant="rose" size="md">
-                        Mode Read-only — Pen data kelas dinonaktifkan oleh administrator.
-                    </Alert>
-                )}
+            <div className="space-y-3 max-w-[1800px] mx-auto relative">
 
                 {/* Bulk Action Bar */}
                 {selectedIds.length > 0 && (
@@ -142,7 +134,13 @@ export default function ClassesPage() {
                     />
                 )}
 
-                {/* ── Header ── */}
+                {!canEdit && (
+                    <Alert variant="rose" size="md">
+                        Mode Read-only — Pen data kelas dinonaktifkan oleh administrator.
+                    </Alert>
+                )}
+
+                {/* ── Header Row ── */}
                 <PageHeader
                     title="Data Kelas"
                     subtitle={`Kelola ${stats.total} data kelas dalam sistem.`}
@@ -211,7 +209,7 @@ export default function ClassesPage() {
 
                             {canEdit && (
                                 <button onClick={handleAdd} className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 border border-white/10">
-                                    <Plus className="w-3 h-3" />
+                                    <Plus className="w-3.5 h-3.5" />
                                     <span>Tambah Kelas</span>
                                 </button>
                             )}
@@ -221,75 +219,62 @@ export default function ClassesPage() {
 
                 {/* ── Stats ── */}
                 <StatsCarousel count={4} cols={4}>
-                    {[
-                        { icon: Buildings, label: 'Total Kelas', value: stats.total, borderColor: 'border-t-[var(--color-primary)]', iconBg: 'bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]', onClick: () => { setFilterProgram(''); setFilterLevel(''); setPage(1) } },
-                        { icon: Bed, label: 'Boarding', value: stats.boarding, borderColor: 'border-t-amber-500', iconBg: 'bg-amber-500/10 text-amber-500', onClick: () => { setFilterProgram('Boarding'); setPage(1) } },
-                        { icon: Buildings, label: 'Reguler', value: stats.reguler, borderColor: 'border-t-emerald-500', iconBg: 'bg-emerald-500/10 text-emerald-500', onClick: () => { setFilterProgram('Reguler'); setPage(1) } },
-                        { icon: Users, label: 'Total Siswa', value: stats.totalStudents, borderColor: 'border-t-pink-500', iconBg: 'bg-pink-500/10 text-pink-500', onClick: () => { setFilterCrowded(true); setPage(1) } },
-                    ].map((s, i) => (
-                        <StatCard
-                            key={i}
-                            icon={s.icon}
-                            label={s.label}
-                            value={s.value}
-                            borderColor={s.borderColor}
-                            iconBg={s.iconBg}
-                            onClick={s.onClick}
-                        />
-                    ))}
+                    <StatCard
+                        icon={Buildings}
+                        label="Total Kelas"
+                        value={stats.total}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Bed}
+                        label="Boarding"
+                        value={stats.boarding}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Buildings}
+                        label="Reguler"
+                        value={stats.reguler}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Users}
+                        label="Total Siswa"
+                        value={stats.totalStudents}
+                        color="primary"
+                    />
                 </StatsCarousel>
 
-                {/* Insights Hub */}
-                {insights.length > 0 && (
-                    <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-6 animate-in fade-in slide-in-from-top-1 duration-500 pb-1">
-                        {insights.map((ins) => (
-                            <button
-                                key={ins.id}
-                                onClick={ins.onClick}
-                                className={`flex items-center gap-3 px-3 py-2 rounded-xl border transition-all hover:scale-[1.02] active:scale-95 shrink-0
-                                    ${ins.active
-                                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 ring-1 ring-[var(--color-primary)]'
-                                        : 'bg-[var(--color-primary)]/[0.08] hover:bg-[var(--color-primary)]/[0.15] border-[var(--color-primary)]/20'
-                                    }`}
-                            >
-                                <div className="text-left whitespace-nowrap">
-                                    <p className={`text-[10px] font-black leading-none ${ins.active ? 'text-[var(--color-primary)]' : 'text-[var(--color-primary)]'}`}>{ins.label}</p>
-                                    <p className="text-[9px] text-[var(--color-text-muted)] font-bold mt-0.5">{ins.desc}</p>
-                                </div>
-                            </button>
-                        ))}
+                {/* ── Main Data View ── */}
+                <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
+                    <div className="border-b border-[var(--color-border)]">
+                        <ClassesToolbar
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            searchInputRef={searchInputRef}
+                            loading={loading}
+                            totalRows={totalRows}
+                            filterLevel={filterLevel}
+                            setFilterLevel={setFilterLevel}
+                            filterProgram={filterProgram}
+                            setFilterProgram={setFilterProgram}
+                            sortBy={sortBy}
+                            setSortBy={setSortBy}
+                            filterNoTeacher={filterNoTeacher}
+                            setFilterNoTeacher={setFilterNoTeacher}
+                            filterCrowded={filterCrowded}
+                            setFilterCrowded={setFilterCrowded}
+                            isFilterOpen={isFilterOpen}
+                            setIsFilterOpen={setIsFilterOpen}
+                            activeFilterCount={activeFilterCount}
+                            resetAllFilters={resetAllFilters}
+                            selectedIds={selectedIds}
+                            toggleSelectAll={toggleSelectAll}
+                            LEVELS={LEVELS}
+                            PROGRAMS={PROGRAMS}
+                            setPage={setPage}
+                        />
                     </div>
-                )}
-
-                {/* ── Filter Bar ── */}
-                <ClassesToolbar
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    searchInputRef={searchInputRef}
-                    loading={loading}
-                    filterLevel={filterLevel}
-                    setFilterLevel={setFilterLevel}
-                    filterProgram={filterProgram}
-                    setFilterProgram={setFilterProgram}
-                    sortBy={sortBy}
-                    setSortBy={setSortBy}
-                    filterNoTeacher={filterNoTeacher}
-                    setFilterNoTeacher={setFilterNoTeacher}
-                    filterCrowded={filterCrowded}
-                    setFilterCrowded={setFilterCrowded}
-                    isFilterOpen={isFilterOpen}
-                    setIsFilterOpen={setIsFilterOpen}
-                    activeFilterCount={activeFilterCount}
-                    resetAllFilters={resetAllFilters}
-                    selectedIds={selectedIds}
-                    toggleSelectAll={toggleSelectAll}
-                    LEVELS={LEVELS}
-                    PROGRAMS={PROGRAMS}
-                    setPage={setPage}
-                />
-
-                {/* Main Content Area */}
-                <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden min-h-[400px]">
                     <ClassesTable
                         paged={paged}
                         totalFilteredRows={totalRows}

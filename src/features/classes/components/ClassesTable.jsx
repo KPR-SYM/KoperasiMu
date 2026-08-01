@@ -1,6 +1,7 @@
 import React, { memo } from 'react'
-import { MagnifyingGlass, Plus, X } from '@phosphor-icons/react'
+import { Buildings, MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { ClassRow, ClassMobileCard } from '@features/classes/components/ClassRow'
+import { EmptyState } from '@shared/components/DataDisplay'
 import Pagination from '@shared/components/Pagination'
 
 const ClassesTable = memo(function ClassesTable({
@@ -48,7 +49,19 @@ const ClassesTable = memo(function ClassesTable({
         )
     }
 
-    const emptyState = totalFilteredRows === 0
+    const hasActiveFilters = !!(searchQuery || filterLevel || filterProgram || filterNoTeacher || filterCrowded)
+    const isEmpty = totalFilteredRows === 0
+
+    const emptyAction = hasActiveFilters ? (
+        <button onClick={resetAllFilters} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition">
+            Reset Semua Filter
+        </button>
+    ) : canEdit ? (
+        <button onClick={handleAdd} className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 hover:brightness-110 transition-all flex items-center gap-2">
+            <Plus />
+            Tambah Kelas
+        </button>
+    ) : null
 
     return (
         <>
@@ -70,36 +83,18 @@ const ClassesTable = memo(function ClassesTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {emptyState ? (
+                        {isEmpty ? (
                             <tr>
-                                <td colSpan={10} className="px-6 py-28 text-center align-middle">
-                                    <div className="w-full h-full flex flex-col items-center justify-center text-center mx-auto animate-in fade-in zoom-in-95 duration-700">
-                                        <div className="relative mb-6">
-                                            <div className="absolute inset-0 bg-[var(--color-primary)]/10 blur-3xl rounded-full scale-150 animate-pulse" />
-                                            <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-alt)] border border-[var(--color-border)] shadow-xl flex items-center justify-center">
-                                                <MagnifyingGlass className="text-4xl text-[var(--color-primary)]/30" />
-                                                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-[var(--color-surface)] shadow-lg flex items-center justify-center border border-[var(--color-border)]">
-                                                    <X className="text-red-500 w-4 h-4" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <h3 className="w-5 h-5 font-black text-[var(--color-text)] mb-2">Pencarian Tidak Ditemukan</h3>
-                                        <p className="text-xs font-bold text-[var(--color-text-muted)] max-w-sm leading-relaxed mb-6">
-                                            Tidak ditemukan kelas yang cocok dengan filter atau database masih kosong.
-                                        </p>
-                                        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4">
-                                            {searchQuery || filterLevel || filterProgram || filterNoTeacher || filterCrowded ? (
-                                                <button onClick={resetAllFilters} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition">
-                                                    Reset Semua Filter
-                                                </button>
-                                            ) : (
-                                                <button onClick={handleAdd} disabled={!canEdit} className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                                                    <Plus />
-                                                    Tambah Kelas Pertama
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
+                                <td colSpan={10} className="p-0">
+                                    <EmptyState
+                                        icon={hasActiveFilters ? MagnifyingGlass : Buildings}
+                                        title={hasActiveFilters ? 'Tidak Ada Hasil' : 'Belum Ada Data Kelas'}
+                                        description={hasActiveFilters
+                                            ? 'Tidak ditemukan kelas yang cocok dengan filter yang dipilih. Coba ubah kata kunci atau filter lainnya.'
+                                            : 'Mulai dengan menambah kelas baru atau import data dari file CSV/Excel.'}
+                                        action={emptyAction}
+                                        variant="plain"
+                                    />
                                 </td>
                             </tr>
                         ) : paged.map(cls => (
@@ -109,34 +104,16 @@ const ClassesTable = memo(function ClassesTable({
                 </table>
             </div>
             <div className="md:hidden divide-y divide-[var(--color-border)]">
-                {emptyState ? (
-                    <div className="py-24 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in-95 duration-700">
-                        <div className="relative mb-6">
-                            <div className="absolute inset-0 bg-[var(--color-primary)]/10 blur-3xl rounded-full scale-150 animate-pulse" />
-                            <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[var(--color-surface)] to-[var(--color-surface-alt)] border border-[var(--color-border)] shadow-xl flex items-center justify-center">
-                                <MagnifyingGlass className="text-4xl text-[var(--color-primary)]/30" />
-                                <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-2xl bg-[var(--color-surface)] shadow-lg flex items-center justify-center border border-[var(--color-border)]">
-                                    <X className="text-red-500 w-4 h-4" />
-                                </div>
-                            </div>
-                        </div>
-                        <h3 className="w-5 h-5 font-black text-[var(--color-text)] mb-2">Pencarian Tidak Ditemukan</h3>
-                        <p className="text-xs font-bold text-[var(--color-text-muted)] max-w-[280px] leading-relaxed mb-6">
-                            Tidak ditemukan kelas yang cocok dengan filter atau database masih kosong.
-                        </p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-4">
-                            {searchQuery || filterLevel || filterProgram || filterNoTeacher || filterCrowded ? (
-                                <button onClick={resetAllFilters} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border border-[var(--color-border)] hover:bg-[var(--color-surface-alt)] transition">
-                                    Reset Semua Filter
-                                </button>
-                            ) : (
-                                <button onClick={handleAdd} disabled={!canEdit} className="h-9 px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                                    <Plus />
-                                    Tambah Kelas Pertama
-                                </button>
-                            )}
-                        </div>
-                    </div>
+                {isEmpty ? (
+                    <EmptyState
+                        icon={hasActiveFilters ? MagnifyingGlass : Buildings}
+                        title={hasActiveFilters ? 'Tidak Ada Hasil' : 'Belum Ada Data Kelas'}
+                        description={hasActiveFilters
+                            ? 'Tidak ditemukan kelas yang cocok dengan filter yang dipilih. Coba ubah kata kunci atau filter lainnya.'
+                            : 'Mulai dengan menambah kelas baru atau import data dari file CSV/Excel.'}
+                        action={emptyAction}
+                        variant="plain"
+                    />
                 ) : paged.map(cls => (
                     <ClassMobileCard key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} handleEdit={canEdit ? handleEdit : null} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} />
                 ))}
