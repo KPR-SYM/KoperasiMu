@@ -7,15 +7,12 @@ import { useErrorHandler } from '@hooks'
 
 const SYSTEM_COLS = [
     { key: 'name', label: 'Nama Lengkap', synonyms: ['nama', 'name', 'nama lengkap', 'nama guru', 'guru'] },
-    { key: 'nbm', label: 'NBM', synonyms: ['nbm', 'nomor baku muhammadiyah', 'no. btm', 'btm'] },
     { key: 'subject', label: 'Mata Pelajaran', synonyms: ['mapel', 'mata pelajaran', 'subject', 'bidang studi'] },
     { key: 'gender', label: 'Jenis Kelamin', synonyms: ['gender', 'jk', 'jenis kelamin', 'kelamin', 'sex', 'l/p', 'jenis kelamin (l/p)'] },
     { key: 'phone', label: 'No. WhatsApp', synonyms: ['wa', 'no. hp/wa', 'phone', 'whatsapp', 'no hp', 'no telp'] },
-    { key: 'email', label: 'Email', synonyms: ['email', 'surel', 'e-mail'] },
     { key: 'status', label: 'Status', synonyms: ['status', 'aktif', 'status aktif', 'status (active/inactive/cuti)'] },
     { key: 'type', label: 'Jenis Pegawai', synonyms: ['jenis', 'type', 'jenis pegawai', 'tipe', 'peran', 'jenis pegawai (guru/karyawan)'] },
     { key: 'nik', label: 'NIK', synonyms: ['nik', 'nomor induk kependudukan', 'no ktp', 'ktp'] },
-    { key: 'nip', label: 'NIP', synonyms: ['nip', 'nomor induk pegawai'] },
     { key: 'nuptk', label: 'NUPTK', synonyms: ['nuptk'] },
     { key: 'birth_place', label: 'Tempat Lahir', synonyms: ['tempat lahir', 'birth_place', 'birthplace', 'tmp lahir'] },
     { key: 'birth_date', label: 'Tanggal Lahir', synonyms: ['tanggal lahir', 'birth_date', 'tgl lahir', 'tanggal_lahir', 'tanggal lahir (yyyy-mm-dd)'] },
@@ -27,19 +24,16 @@ const SYSTEM_COLS = [
     { key: 'graduation_year', label: 'Tahun Lulus', synonyms: ['tahun lulus', 'graduation_year', 'tahun_lulus', 'lulus tahun'] },
 ]
 
-const ALL_EXPORT_COLUMNS = [
-    { key: 'nama', label: 'Nama', fn: t => t.name || '' },
-    { key: 'nbm', label: 'NBM', fn: t => t.nbm || '' },
+    const ALL_EXPORT_COLUMNS = [
+    { key: 'nama', label: 'Nama', fn: t => t.full_name || t.name || '' },
     { key: 'subject', label: 'Mata Pelajaran', fn: t => t.subject || '' },
     { key: 'gender', label: 'Gender', fn: t => t.gender === 'L' ? 'Laki-laki' : t.gender === 'P' ? 'Perempuan' : '-' },
     { key: 'phone', label: 'No. HP/WA', fn: t => t.phone || '' },
-    { key: 'email', label: 'Email', fn: t => t.email || '' },
-    { key: 'status', label: 'Status', fn: t => STATUS_CONFIG[t.status]?.label || t.status || '' },
-    { key: 'join_date', label: 'Tgl Bergabung', fn: t => t.join_date || '' },
+    { key: 'status', label: 'Status', fn: t => t.is_active ? 'Aktif' : t.status === 'cuti' ? 'Cuti' : 'Non-Aktif' },
+    { key: 'join_date', label: 'Tgl Bergabung', fn: t => t.created_at || t.join_date || '' },
     { key: 'address', label: 'Alamat', fn: t => t.address || '' },
-    { key: 'type', label: 'Jenis Pegawai', fn: t => t.type === 'karyawan' ? 'Karyawan' : 'Guru' },
+    { key: 'type', label: 'Jenis Pegawai', fn: t => { const types = Array.isArray(t.type) ? t.type : t.type ? [t.type] : []; return types.map(tp => tp === 'karyawan' ? 'Karyawan' : tp === 'guru' ? 'Guru' : TYPE_LABELS[tp] || tp).join(', ') || 'Guru' } },
     { key: 'nik', label: 'NIK', fn: t => t.nik || '' },
-    { key: 'nip', label: 'NIP', fn: t => t.nip || '' },
     { key: 'nuptk', label: 'NUPTK', fn: t => t.nuptk || '' },
     { key: 'birth_place', label: 'Tempat Lahir', fn: t => t.birth_place || '' },
     { key: 'birth_date', label: 'Tanggal Lahir', fn: t => t.birth_date || '' },
@@ -82,7 +76,7 @@ export function useTeachersImportExport({
 
     // export
     const [exportScope, setExportScope] = useState('filtered')
-    const [exportColumns, setExportColumns] = useState(['nama', 'nbm', 'subject', 'gender', 'phone', 'email', 'status', 'join_date'])
+    const [exportColumns, setExportColumns] = useState(['nama', 'subject', 'gender', 'phone', 'status', 'join_date'])
     const [exporting, setExporting] = useState(false)
 
     // ── import processing ─────────────────────────────────────────────────────
@@ -175,7 +169,6 @@ export function useTeachersImportExport({
             preview.forEach((row, i) => {
                 const rowIssues = []
                 if (!row.name) rowIssues.push('Nama tidak boleh kosong')
-                if (row.nbm && preview.slice(0, i).some(p => p.nbm === row.nbm)) rowIssues.push(`NBM "${row.nbm}" duplikat di file`)
 
                 if (rowIssues.length) {
                     issues.push({ row: i + 2, level: 'error', messages: rowIssues })
@@ -227,27 +220,27 @@ export function useTeachersImportExport({
 
     const handleDownloadTemplate = useCallback(async () => {
         const headers = [
-            'Nama Lengkap', 'NBM', 'Mata Pelajaran', 'Jenis Kelamin', 'No. WhatsApp',
-            'Email', 'Status', 'Jenis Pegawai', 'NIK', 'NIP',
-            'NUPTK', 'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'Status Kepegawaian',
+            'Nama Lengkap', 'Mata Pelajaran', 'Jenis Kelamin', 'No. WhatsApp',
+            'Status', 'Jenis Pegawai', 'NIK', 'NUPTK',
+            'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'Status Kepegawaian',
             'Jam Mengajar', 'Pendidikan Terakhir', 'Jurusan', 'Tahun Lulus'
         ]
         const data = [
             [
-                'Ahmad Fauzi, S.Pd', '12345678', 'Bahasa Indonesia', 'L', '081234567890',
-                'ahmad@sekolah.sch.id', 'active', 'guru', '320101XXXXXXXXXX', '19850312XXXXXXXXXX',
+                'Ahmad Fauzi, S.Pd', 'Bahasa Indonesia', 'L', '081234567890',
+                'active', 'guru', '320101XXXXXXXXXX',
                 '9876543210987654', 'Jakarta', '1985-03-12', 'Jl. Merdeka No. 123', 'GTY',
                 24, 'S1', 'Pendidikan Bahasa Indonesia', 2008
             ],
             [
-                'Siti Aminah, M.Pd', '87654321', 'Matematika', 'P', '089876543210',
-                'siti@sekolah.sch.id', 'active', 'guru', '320101XXXXXXXXXY', '',
+                'Siti Aminah, M.Pd', 'Matematika', 'P', '089876543210',
+                'active', 'guru', '320101XXXXXXXXXY',
                 '', 'Bandung', '1989-07-24', 'Jl. Kenanga No. 45', 'GTY',
                 28, 'S2', 'Pendidikan Matematika', 2013
             ],
             [
-                'Budi Hartono', '', '', 'L', '085678901234',
-                'budi@sekolah.sch.id', 'active', 'karyawan', '320101XXXXXXXXXZ', '',
+                'Budi Hartono', '', 'L', '085678901234',
+                'active', 'karyawan', '320101XXXXXXXXXZ',
                 '', 'Surabaya', '1992-11-05', 'Jl. Melati No. 8', 'PTY',
                 0, 'SMA', 'IPS', 2010
             ]
@@ -258,15 +251,12 @@ export function useTeachersImportExport({
         // Auto column width (perfectly padded like in Student template!)
         ws['!cols'] = [
             { wch: 25 }, // Nama Lengkap
-            { wch: 12 }, // NBM
             { wch: 20 }, // Mata Pelajaran
             { wch: 15 }, // Jenis Kelamin (L/P)
             { wch: 18 }, // No. WhatsApp
-            { wch: 25 }, // Email
             { wch: 12 }, // Status (active)
             { wch: 15 }, // Jenis Pegawai (guru/karyawan)
             { wch: 20 }, // NIK
-            { wch: 22 }, // NIP
             { wch: 20 }, // NUPTK
             { wch: 15 }, // Tempat Lahir
             { wch: 15 }, // Tanggal Lahir
@@ -299,16 +289,13 @@ export function useTeachersImportExport({
             const CHUNK = 50
             for (let i = 0; i < validRows.length; i += CHUNK) {
                 const chunk = validRows.slice(i, i + CHUNK).map(r => ({
-                    name: r.name,
-                    nbm: r.nbm || null,
+                    full_name: r.name,
                     subject: r.subject || null,
                     gender: r.gender || null,
                     phone: r.phone || null,
-                    email: r.email || null,
-                    status: r.status || 'active',
-                    type: r.type || 'guru',
+                    is_active: r.status === 'active',
+                    type: r.type ? [r.type] : ['guru'],
                     nik: r.nik || null,
-                    nip: r.nip || null,
                     nuptk: r.nuptk || null,
                     birth_place: r.birth_place || null,
                     birth_date: r.birth_date || null,
@@ -338,7 +325,7 @@ export function useTeachersImportExport({
 
     // ── export data ───────────────────────────────────────────────────────────
     const getExportData = useCallback(async () => {
-        let q = supabase.from('teachers').select('name,nbm,subject,gender,phone,email,status,join_date,address').is('deleted_at', null)
+        let q = supabase.from('teachers').select('full_name,subject,gender,phone,is_active,type,address,created_at').is('deleted_at', null)
 
         if (exportScope === 'selected' && selectedIds.length > 0) {
             q = q.in('id', selectedIds)
@@ -462,9 +449,7 @@ export function useTeachersImportExport({
                 alternateRowStyles: { fillColor: [248, 250, 252] },
                 columnStyles: {
                     'Gender': { halign: 'center' },
-                    'NBM': { halign: 'center' },
                     'NIK': { halign: 'center' },
-                    'NIP': { halign: 'center' },
                     'NUPTK': { halign: 'center' },
                     'Status': { halign: 'center' },
                     'Tgl Bergabung': { halign: 'center' },

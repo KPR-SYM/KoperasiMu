@@ -77,7 +77,6 @@ const TeachersTable = memo(function TeachersTable({
                                 <input type="checkbox" checked={allSelected} ref={el => { if (el) el.indeterminate = someSelected }} onChange={toggleSelectAll} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
                             </th>
                             <th className="px-6 py-4">Guru</th>
-                            {visibleCols.nbm && <th className="px-6 py-4">NBM</th>}
                             {visibleCols.subject && <th className="px-6 py-4">Mata Pelajaran</th>}
                             {visibleCols.gender && <th className="px-6 py-4 text-center">Gender</th>}
                             {visibleCols.contact && <th className="px-6 py-4">Kontak</th>}

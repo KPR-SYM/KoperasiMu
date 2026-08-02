@@ -1,23 +1,25 @@
 import React, { memo } from 'react'
-import { Book, Suitcase, Calendar, CalendarCheck, CheckCircle, Copy, Fingerprint, GraduationCap, ClockCounterClockwise, IdentificationCard, Info, Envelope, MapPin, GenderMale, ChatCircle, Pencil, Phone, PresentationChart, Lightning, Briefcase, Note } from '@phosphor-icons/react'
+import { IdentificationCard, Briefcase, Phone, ClockCounterClockwise, Pencil, ChatCircle, Copy, Book, PresentationChart } from '@phosphor-icons/react'
 
-import { Modal, AuditTimeline, Tabs } from '@shared/components'
+import { Modal, AuditTimeline } from '@shared/components'
 import { useErrorHandler } from '@hooks'
-
+import { TYPE_LABELS } from '@features/teachers/components/TeacherRow'
 
 const STATUS_CONFIG = {
     active: { label: 'Aktif', color: 'bg-emerald-500 text-white border-white/20' },
     inactive: { label: 'Nonaktif', color: 'bg-rose-500 text-white border-white/20' },
-    leave: { label: 'Cuti', color: 'bg-amber-500 text-white border-white/20' }
 }
 
 export default memo(function TeacherProfileModal({
     isOpen, onClose, selectedTeacher,
     profileTab, setProfileTab,
-    canEdit, handleEdit, addToast, fetchData
+    canEdit, handleEdit, addToast, fetchData, userRole
 }) {
     const { handleError } = useErrorHandler('TeacherProfileModal')
     if (!isOpen || !selectedTeacher) return null
+
+    const isAdmin = ['developer', 'admin'].includes(userRole)
+    if (profileTab === 'audit' && !isAdmin) setProfileTab('info')
 
     const copyToClipboard = async (text, label) => {
         if (!text) return
@@ -27,25 +29,25 @@ export default memo(function TeacherProfileModal({
         } catch (err) { handleError(err, { context: 'Gagal menyalin ke clipboard' }) }
     }
 
-    const InfoRow = ({ label, value }) => (
+    const InfoRow = ({ label, value, hint }) => (
         <div className="space-y-1">
             <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest opacity-80">
                 {label}
             </p>
-            <p className="text-[12px] font-bold text-[var(--color-text)] truncate">{value || '-'}</p>
+            {value ? (
+                <p className="text-[12px] font-bold text-[var(--color-text)] truncate">{value}</p>
+            ) : (
+                <p className="text-[11px] text-[var(--color-text-muted)] italic">{hint || 'Belum diisi'}</p>
+            )}
         </div>
     )
-
-    const workDaysMap = {
-        'Senin': 'Sn', 'Selasa': 'Sl', 'Rabu': 'Rb', 'Kamis': 'Km', 'Jumat': 'Jm', 'Sabtu': 'Sb'
-    }
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
             title="Profil Guru & Karyawan"
-            description="Detail informasi kepegawaian, jadwal kerja, statistik performa, dan jejak aktivitas."
+            description="Detail informasi kepegawaian dan data kontak."
             icon={PresentationChart}
             size="lg"
             mobileVariant="bottom-sheet"
@@ -64,14 +66,14 @@ export default memo(function TeacherProfileModal({
                             }}
                             className="h-10 px-8 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 border border-white/10"
                         >
-                            <Pencil className="opacity-70" /> Pen Data Guru
+                            <Pencil className="opacity-70" /> Edit Data
                         </button>
                     )}
                 </div>
             }
         >
             <div className="space-y-4">
-                {/* â”€â”€ Header Profile Card â”€â”€ */}
+                {/* Header Profile Card */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white shadow-xl">
                     <div className="relative flex items-center gap-5">
                         <div className="relative shrink-0">
@@ -92,56 +94,63 @@ export default memo(function TeacherProfileModal({
                                 {selectedTeacher.name}
                             </h2>
                             <div className="flex flex-wrap gap-3 items-center text-[10px] font-bold text-white/70 uppercase tracking-wider">
-                                <span className="flex items-center gap-1.5"><IdentificationCard className="text-indigo-400" /> {selectedTeacher.nbm || 'Tanpa NBM'}</span>
-                                <span className="w-1 h-1 rounded-full bg-white/30" />
-                                <span className="flex items-center gap-1.5"><Briefcase className="text-indigo-400" /> {selectedTeacher.type === 'guru' ? 'Guru' : 'Karyawan'}</span>
+                                <span className="flex items-center gap-1.5"><Briefcase className="text-indigo-400" /> {(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'}</span>
                                 {selectedTeacher.subject && (
                                     <>
                                         <span className="w-1 h-1 rounded-full bg-white/30" />
-                                        <span className="flex items-center gap-1.5 text-emerald-300"><PresentationChart /> {selectedTeacher.subject}</span>
+                                        <span className="flex items-center gap-1.5 text-emerald-300"><Book className="text-emerald-400" /> {selectedTeacher.subject}</span>
                                     </>
                                 )}
                             </div>
-
-                            {/* Work Days display */}
-
+                            {selectedTeacher.created_at && (
+                                <p className="text-[10px] text-white/40 mt-2">
+                                    Bergabung sejak {new Date(selectedTeacher.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </p>
+                            )}
                         </div>
-
-
                     </div>
                 </div>
 
-                {/* â”€â”€ Tabs â”€â”€ */}
-                <Tabs
-                    value={profileTab}
-                    onChange={setProfileTab}
-                    variant="underline"
-                    items={[
+                {/* Tabs */}
+                <div className="flex gap-6 border-b border-[var(--color-border)]">
+                    {[
                         { key: 'info', label: 'Info', icon: IdentificationCard },
-                        { key: 'audit', label: 'Audit', icon: ClockCounterClockwise },
-                    ]}
-                />
+                        ...(isAdmin ? [{ key: 'audit', label: 'Audit', icon: ClockCounterClockwise }] : []),
+                    ].map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setProfileTab(tab.key)}
+                            className={`flex items-center gap-1.5 pb-3 text-[11px] font-bold border-b-2 transition-all ${
+                                profileTab === tab.key
+                                    ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                                    : 'border-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                            }`}
+                        >
+                            <tab.icon className="w-3.5 h-3.5" />
+                            {tab.label}
+                        </button>
+                    ))}
+                </div>
 
-                {/* â”€â”€ Content Sections â”€â”€ */}
+                {/* Content Sections */}
                 {profileTab === 'info' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        {/* â”€â”€ Rows: Identitas & Biodata â”€â”€ */}
+                        {/* Identitas */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
                                 <div className="w-1 h-4 bg-indigo-500 rounded-full" />
                                 <IdentificationCard className="text-indigo-500 w-3 h-3 opacity-70" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Identitas & Biodata</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Identitas</span>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
                             </div>
                             <div className="grid grid-cols-2 gap-y-5 gap-x-6">
-                                <InfoRow label="NIK (KTP)" value={selectedTeacher.nik} />
-                                <InfoRow label="Gender" value={selectedTeacher.gender === 'L' ? 'Laki-laki' : selectedTeacher.gender === 'P' ? 'Perempuan' : '-'} />
-                                <InfoRow label="NIP / NUPTK" value={`${selectedTeacher.nip || '-'} / ${selectedTeacher.nuptk || '-'}`} />
-                                <InfoRow label="Tempat, Tgl Lahir" value={`${selectedTeacher.birth_place || '-'}${selectedTeacher.birth_date ? `, ${new Date(selectedTeacher.birth_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}` : ''}`} />
+                                <InfoRow label="Nama Lengkap" value={selectedTeacher.name} hint="Klik Edit untuk menambahkan" />
+                                <InfoRow label="Jenis Kelamin" value={selectedTeacher.gender === 'L' ? 'Laki-laki' : selectedTeacher.gender === 'P' ? 'Perempuan' : null} hint="Pilih di form Edit" />
+                                <InfoRow label="Tipe Tugas" value={(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'} hint="Klik Edit untuk ubah" />
                             </div>
                         </div>
 
-                        {/* â”€â”€ Rows: Kepegawaian â”€â”€ */}
+                        {/* Kepegawaian */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
                                 <div className="w-1 h-4 bg-emerald-500 rounded-full" />
@@ -150,127 +159,56 @@ export default memo(function TeacherProfileModal({
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
                             </div>
                             <div className="grid grid-cols-2 gap-y-5 gap-x-6">
-                                <InfoRow label="Status Pegawai" value={selectedTeacher.employment_status || 'GTY'} />
-                                <InfoRow label="Mata Pelajaran" value={selectedTeacher.subject} />
-                                <InfoRow label="Tgl Bergabung" value={selectedTeacher.join_date ? new Date(selectedTeacher.join_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-'} />
-                                <InfoRow label="Jam Mengajar" value={`${selectedTeacher.teaching_hours || 0} Jam / Minggu`} />
+                                <InfoRow label="Mata Pelajaran" value={selectedTeacher.subject} hint="Pilih di form Edit" />
+                                <InfoRow label="Status" value={STATUS_CONFIG[selectedTeacher.status]?.label || selectedTeacher.status} />
+                                <InfoRow label="Bergabung" value={selectedTeacher.created_at ? new Date(selectedTeacher.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : null} />
                             </div>
                         </div>
 
-                        {/* â”€â”€ Rows: Pendidikan â”€â”€ */}
+                        {/* Kontak */}
                         <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
                             <div className="flex items-center gap-2.5 pt-1">
-                                <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                                <GraduationCap className="text-blue-500 w-3 h-3 opacity-70" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Pendidikan Terakhir</span>
+                                <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+                                <Phone className="text-emerald-500 w-3 h-3 opacity-70" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Kontak</span>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
                             </div>
-                            <div className="grid grid-cols-2 gap-y-5 gap-x-6">
-                                <InfoRow label="Tingkat" value={selectedTeacher.last_education} />
-                                <InfoRow label="Lulus Tahun" value={selectedTeacher.graduation_year} />
-                                <div className="col-span-2">
-                                    <InfoRow label="Jurusan / Program Studi" value={selectedTeacher.major} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* â”€â”€ Rows: Kontak & Lokasi â”€â”€ */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
-                                <div className="flex items-center gap-2.5 pt-1">
-                                    <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-                                    <Phone className="text-emerald-500 w-3 h-3 opacity-70" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Kontak</span>
-                                    <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1 opacity-80">
-                                            No. HP / WhatsApp
+                            <div className="space-y-4">
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1 opacity-80">
+                                        No. HP / WhatsApp
+                                    </p>
+                                    <div className="flex items-center justify-between group/wa">
+                                        <p className="text-[13px] font-bold text-[var(--color-text)] tracking-wider">
+                                            {selectedTeacher.phone || '---'}
                                         </p>
-                                        <div className="flex items-center justify-between group/wa">
-                                            <p className="text-[13px] font-bold text-[var(--color-text)] tracking-wider">
-                                                {selectedTeacher.phone || '---'}
-                                            </p>
-                                            {selectedTeacher.phone && (
-                                                <div className="flex gap-1.5">
-                                                    <button onClick={() => copyToClipboard(selectedTeacher.phone, 'HP')} className="w-7 h-7 rounded-lg bg-[var(--color-surface-alt)] flex items-center justify-center text-[11px] hover:bg-[var(--color-border)] transition-colors">
-                                                        <Copy className="opacity-40" />
-                                                    </button>
-                                                    <a
-                                                        href={`https://wa.me/${selectedTeacher.phone.replace(/\D/g, '').replace(/^0/, '62')}`}
-                                                        target="_blank" rel="noopener noreferrer"
-                                                        className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[11px] hover:brightness-110 transition-all shadow-sm"
-                                                    >
-                                                        <ChatCircle />
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    <InfoRow label="Email Institusi" value={selectedTeacher.email} />
-                                </div>
-                            </div>
-
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
-                                <div className="flex items-center gap-2.5 pt-1">
-                                    <div className="w-1 h-4 bg-amber-500 rounded-full" />
-                                    <Fingerprint className="text-amber-500 w-3 h-3 opacity-70" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Presensi</span>
-                                    <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
-                                </div>
-                                <div className="space-y-4">
-                                    <InfoRow label="ID Mesin Fingerspot" value={selectedTeacher.fingerspot_name} />
-                                    <div className="space-y-1">
-                                        <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1.5 opacity-80">Hari Kerja Aktif</p>
-                                        <div className="flex flex-wrap gap-1.5">
-                                            {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map(day => {
-                                                const isActive = selectedTeacher.work_days?.includes(day)
-                                                return (
-                                                    <div key={day} className={`px-2 py-1 rounded-lg border text-[9px] font-bold transition-all ${isActive ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] opacity-40'}`}>
-                                                        {workDaysMap[day] || day}
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
+                                        {selectedTeacher.phone && (
+                                            <div className="flex gap-1.5">
+                                                <button onClick={() => copyToClipboard(selectedTeacher.phone, 'HP')} className="w-7 h-7 rounded-lg bg-[var(--color-surface-alt)] flex items-center justify-center text-[11px] hover:bg-[var(--color-border)] transition-colors">
+                                                    <Copy className="opacity-40" />
+                                                </button>
+                                                <a
+                                                    href={`https://wa.me/${selectedTeacher.phone.replace(/\D/g, '').replace(/^0/, '62')}`}
+                                                    target="_blank" rel="noopener noreferrer"
+                                                    className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[11px] hover:brightness-110 transition-all shadow-sm"
+                                                >
+                                                    <ChatCircle />
+                                                </a>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Alamat & Catatan */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
-                                <div className="flex items-center gap-2.5 pt-1">
-                                    <div className="w-1 h-4 bg-blue-500 rounded-full" />
-                                    <MapPin className="text-blue-500 w-3 h-3 opacity-70" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Domisili</span>
-                                    <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
-                                </div>
-                                <div className="p-3.5 rounded-xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)]/50">
-                                    <p className="text-[11px] font-bold leading-relaxed text-[var(--color-text)]">
-                                        {selectedTeacher.address || 'Alamat belum dilengkapi.'}
+                                {selectedTeacher.updated_at && (
+                                    <p className="text-[9px] text-[var(--color-text-muted)] opacity-50">
+                                        Terakhir diperbarui {new Date(selectedTeacher.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                     </p>
-                                </div>
-                            </div>
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-5">
-                                <div className="flex items-center gap-2.5 pt-1">
-                                    <div className="w-1 h-4 bg-amber-500 rounded-full" />
-                                    <Note className="text-amber-500 w-3 h-3 opacity-70" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Catatan Internal</span>
-                                    <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
-                                </div>
-                                <div className="p-3.5 rounded-xl bg-amber-50/10 border border-amber-200/20">
-                                    <p className="text-[11px] font-medium leading-relaxed text-[var(--color-text)]">
-                                        {selectedTeacher.notes || 'Tidak ada catatan tambahan.'}
-                                    </p>
-                                </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {profileTab === 'audit' && (
+                {profileTab === 'audit' && isAdmin && (
                     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/10 p-1">
                         <AuditTimeline
                             tableName="teachers"

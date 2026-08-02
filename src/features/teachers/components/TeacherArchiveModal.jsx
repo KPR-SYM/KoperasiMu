@@ -178,7 +178,7 @@ export default function TeacherArchiveModal({
                                         <tr key={t.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
                                             <td className="px-3 py-2.5">
                                                 <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{t.name}</p>
-                                                <p className="text-[9px] font-mono text-[var(--color-text-muted)]">{t.nbm || 'Tanpa NBM'}</p>
+                                                <p className="text-[9px] font-mono text-[var(--color-text-muted)]">{(Array.isArray(t.type) ? t.type : [t.type]).map(tp => TYPE_LABELS[tp] || tp).join(', ') || 'Guru'}</p>
                                             </td>
                                             <td className="px-3 py-2.5 text-center whitespace-nowrap">
                                                 <span className="text-[9px] font-black bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-1.5 py-0.5 rounded-md border border-[var(--color-primary)]/20">{t.subject || 'â€”'}</span>

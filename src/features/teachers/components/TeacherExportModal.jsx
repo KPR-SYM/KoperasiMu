@@ -6,15 +6,12 @@ import { Modal } from '@shared/components'
 
 const COLUMN_DEFS = [
     { key: 'nama', label: 'Nama Lengkap', icon: User },
-    { key: 'nbm', label: 'NBM', icon: Barcode },
     { key: 'subject', label: 'Mata Pelajaran', icon: Book },
     { key: 'gender', label: 'Jenis Kelamin', icon: GenderIntersex },
     { key: 'phone', label: 'No. WhatsApp', icon: ChatCircle },
-    { key: 'email', label: 'Email', icon: Envelope },
     { key: 'status', label: 'Status', icon: Question },
     { key: 'type', label: 'Jenis Pegawai', icon: IdentificationCard },
     { key: 'nik', label: 'NIK', icon: IdentificationCard },
-    { key: 'nip', label: 'NIP', icon: IdentificationCard },
     { key: 'nuptk', label: 'NUPTK', icon: Hash },
     { key: 'birth_place', label: 'Tempat Lahir', icon: MapPin },
     { key: 'birth_date', label: 'Tanggal Lahir', icon: Calendar },
@@ -29,10 +26,10 @@ const COLUMN_DEFS = [
 
 const PRESETS = [
     { id: 'all', label: 'Data Lengkap', cols: COLUMN_DEFS.map(c => c.key) },
-    { id: 'contact', label: 'Kontak', cols: ['nama', 'phone', 'email', 'address'] },
-    { id: 'employment', label: 'Kepegawaian', cols: ['nama', 'nbm', 'status', 'type', 'employment_status', 'join_date', 'teaching_hours'] },
+    { id: 'contact', label: 'Kontak', cols: ['nama', 'phone', 'address'] },
+    { id: 'employment', label: 'Kepegawaian', cols: ['nama', 'status', 'type', 'employment_status', 'join_date', 'teaching_hours'] },
     { id: 'academic', label: 'Akademik', cols: ['nama', 'subject', 'last_education', 'major', 'graduation_year'] },
-    { id: 'personal', label: 'Pribadi', cols: ['nama', 'gender', 'birth_place', 'birth_date', 'nik', 'nip', 'nuptk'] },
+    { id: 'personal', label: 'Pribadi', cols: ['nama', 'gender', 'birth_place', 'birth_date', 'nik', 'nuptk'] },
 ]
 
 export default function TeacherExportModal({

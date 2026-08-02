@@ -1,5 +1,5 @@
 import React, { memo, useState } from 'react'
-import { Archive, ClockCounterClockwise, IdentificationCard, GenderMale, ChatCircle, Pencil, ShieldCheck, Trash, UserCheck, GenderFemale, MapPin } from '@phosphor-icons/react'
+import { Archive, ClockCounterClockwise, IdentificationCard, GenderMale, ChatCircle, Pencil, Trash, Eye, GenderFemale, MapPin } from '@phosphor-icons/react'
 import { Badge } from '@shared/components'
 
 
@@ -7,7 +7,8 @@ import { Badge } from '@shared/components'
 export const STATUS_CONFIG = {
     active: { label: 'Aktif', color: 'bg-emerald-500/10 text-emerald-600' },
     inactive: { label: 'Nonaktif', color: 'bg-rose-500/10 text-rose-600' },
-    cuti: { label: 'Cuti', color: 'bg-amber-500/10 text-amber-600' }}
+    cuti: { label: 'Cuti', color: 'bg-amber-500/10 text-amber-600' }
+}
 
 export const TYPE_LABELS = {
     guru: 'Guru',
@@ -51,7 +52,7 @@ const TeacherRow = memo(({
     setIsDeleteModalOpen,
     quickStatusId,
     setQuickStatusId,
-    quickStatusRef}) => {
+    quickStatusRef }) => {
     const isSelected = selectedIds.includes(teacher.id)
 
     return (
@@ -62,19 +63,6 @@ const TeacherRow = memo(({
             <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                     <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(teacher.id)} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
-                    <button
-                        onClick={() => handleTogglePin(teacher)}
-                        title={teacher.is_pinned ? 'Unpin guru' : 'MapPin ke atas'}
-                        className={`w-5 h-5 rounded-md flex items-center justify-center transition-all
-                            ${teacher.is_pinned
-                                ? 'text-amber-500 opacity-100'
-                                : 'text-[var(--color-text-muted)] opacity-0 group-hover/row:opacity-100 hover:text-amber-500'
-                            }`}
-                    >
-                        <MapPin
-                            className={`w-2.5 h-2.5 transition-transform ${teacher.is_pinned ? 'rotate-0' : 'rotate-45'}`}
-                        />
-                    </button>
                 </div>
             </td>
             <td className="px-6 py-4">
@@ -87,22 +75,21 @@ const TeacherRow = memo(({
                             {teacher.name}
                         </button>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                            {teacher.nbm && <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider">{teacher.nbm}</p>}
-                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border ${teacher.type === 'karyawan' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'}`}>
-                                {TYPE_LABELS[teacher.type] || teacher.type || 'Guru'}
-                            </span>
+                            {(Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []).map(t => (
+                                <span key={t} className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border ${t === 'karyawan' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20'}`}>
+                                    {TYPE_LABELS[t] || t}
+                                </span>
+                            ))}
                         </div>
                     </div>
                 </div>
             </td>
-            {visibleCols.nbm && <td className="px-6 py-4 w-3 h-3 text-[var(--color-text-muted)] font-mono">{disp(teacher.nbm)}</td>}
             {visibleCols.subject && <td className="px-6 py-4">{teacher.subject ? <span className="px-2.5 py-1 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[10px] font-black uppercase tracking-widest">{teacher.subject}</span> : <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}</td>}
             {visibleCols.gender && <td className="px-6 py-4 text-left"><span className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner border transition-all ${teacher.gender === 'L' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' : teacher.gender === 'P' ? 'bg-pink-500/10 text-pink-500 border-pink-500/20' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-transparent'}`}>{teacher.gender === 'L' ? <GenderMale /> : <GenderFemale />}</span></td>}
             {visibleCols.contact && (
                 <td className="px-6 py-4 space-y-1">
                     {teacher.phone && <a href={`https://wa.me/${teacher.phone.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-bold w-fit"><ChatCircle className="text-sm" />{disp(teacher.phone)}</a>}
-                    {teacher.email && <p className="text-xs text-[var(--color-text-muted)] truncate max-w-[180px]">{disp(teacher.email)}</p>}
-                    {!teacher.phone && !teacher.email && <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}
+                    {!teacher.phone && <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}
                 </td>
             )}
             {visibleCols.status && (
@@ -128,7 +115,7 @@ const TeacherRow = memo(({
             <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-1">
                     <button onClick={() => openProfile(teacher)} title="Lihat Profil" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-emerald-500 hover:bg-emerald-500/10 transition-all text-sm">
-                        <UserCheck />
+                        <Eye />
                     </button>
                     <button
                         disabled={!teacher.phone}
@@ -146,8 +133,16 @@ const TeacherRow = memo(({
                             <Pencil />
                         </button>
                     )}
-                    <button onClick={() => openProfile(teacher, 'audit')} title="Audit Trail" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 transition-all text-sm">
-                        <ShieldCheck />
+                    <button
+                        onClick={() => handleTogglePin(teacher)}
+                        title={teacher.is_pinned ? 'Unpin guru' : 'Pin ke atas'}
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all text-sm
+                            ${teacher.is_pinned
+                                ? 'text-amber-500 bg-amber-500/10'
+                                : 'text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10'
+                            }`}
+                    >
+                        <MapPin className={`w-3.5 h-3.5 transition-transform ${teacher.is_pinned ? '' : 'rotate-45'}`} />
                     </button>
                     {setIsArchiveModalOpen && (
                         <button onClick={() => { setTeacherToAction(teacher); setIsArchiveModalOpen(true) }} title="Arsipkan" className="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:text-red-500 hover:bg-red-500/10 transition-all text-sm">
@@ -171,7 +166,7 @@ const TeacherMobileCard = memo(({
     handleEdit,
     handleTogglePin,
     setTeacherToAction,
-    setIsArchiveModalOpen}) => {
+    setIsArchiveModalOpen }) => {
     const isSelected = selectedIds.includes(teacher.id)
 
     return (
@@ -179,12 +174,6 @@ const TeacherMobileCard = memo(({
             <div className="flex items-start gap-3">
                 <div className="flex flex-col items-center gap-3">
                     <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(teacher.id)} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer shrink-0 mt-1" />
-                    <button
-                        onClick={() => handleTogglePin(teacher)}
-                        className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${teacher.is_pinned ? 'text-amber-500' : 'text-[var(--color-text-muted)] opacity-40'}`}
-                    >
-                        <MapPin className={`w-3 h-3 ${teacher.is_pinned ? '' : 'rotate-45'}`} />
-                    </button>
                 </div>
                 <div className="relative shrink-0">
                     <Avatar url={teacher.avatar_url} name={teacher.name} size="w-12 h-12" textSize="text-sm" />
@@ -196,13 +185,20 @@ const TeacherMobileCard = memo(({
                             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                 {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest">{teacher.subject}</span>}
                                 <Badge color={teacher.status === 'active' ? 'emerald' : teacher.status === 'inactive' ? 'rose' : 'amber'}>{STATUS_CONFIG[teacher.status]?.label}</Badge>
-                                <Badge color={teacher.type === 'karyawan' ? 'blue' : 'indigo'}>{TYPE_LABELS[teacher.type] || teacher.type || 'Guru'}</Badge>
+                                {(Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []).map(t => (
+                                    <Badge key={t} color={t === 'karyawan' ? 'blue' : 'indigo'}>{TYPE_LABELS[t] || t}</Badge>
+                                ))}
                             </div>
-                            <p className="text-[10px] text-[var(--color-text-muted)] font-mono mt-1 opacity-60 uppercase tracking-widest">{teacher.nbm || 'NO NBM'}</p>
                         </div>
                         <div className="flex items-center gap-1">
-                            <button onClick={() => openProfile(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><UserCheck className="text-xs" /></button>
+                            <button onClick={() => openProfile(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Eye className="text-xs" /></button>
                             {handleEdit && <button onClick={() => handleEdit(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Pencil className="text-xs" /></button>}
+                            <button
+                                onClick={() => handleTogglePin(teacher)}
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${teacher.is_pinned ? 'text-amber-500 bg-amber-500/10' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                            >
+                                <MapPin className={`w-3 h-3 ${teacher.is_pinned ? '' : 'rotate-45'}`} />
+                            </button>
                         </div>
                     </div>
                     <div className="mt-3 flex items-center gap-2">

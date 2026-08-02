@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
-import { CaretDown, MagnifyingGlass, X } from '@phosphor-icons/react'
+import { CaretDown, MagnifyingGlass, X, Check } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
 
@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom'
  * 
  * @param {boolean} compact - Lightweight mode: no portal, smaller padding, inline absolute dropdown.
  *                             Ideal for pagination or toolbar selects with few options.
+ * @param {boolean} multi - Multi-select mode: value is an array, onChange returns updated array.
  */
 const renderIcon = (icon, className = '') => {
     if (!icon) return null
@@ -31,7 +32,8 @@ const Select = memo(({
     compact = false,
     usePortal = true,
     buttonClassName = "",
-    maxHeight
+    maxHeight,
+    multi = false,
 }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [search, setSearch] = useState('')
@@ -134,9 +136,15 @@ const Select = memo(({
     }, [isOpen, compact, usePortal, updateCoords, options.length, searchable])
 
     const handleSelect = useCallback((id) => {
-        onChange(id)
-        setIsOpen(false)
-    }, [onChange])
+        if (multi) {
+            const current = Array.isArray(value) ? value : []
+            const next = current.includes(id) ? current.filter(v => v !== id) : [...current, id]
+            onChange(next)
+        } else {
+            onChange(id)
+            setIsOpen(false)
+        }
+    }, [onChange, multi, value])
 
     useEffect(() => {
         if (!isOpen) return
@@ -207,8 +215,18 @@ const Select = memo(({
     }, [filteredOptions, uniqueGroups])
 
     const selectedOption = useMemo(() => {
+        if (multi) return null
         return options.find(o => String(o.id) === String(value)) || (extraOption?.id === value ? extraOption : (allowCustom && value ? { id: value, name: value } : null))
-    }, [options, value, extraOption, allowCustom])
+    }, [options, value, extraOption, allowCustom, multi])
+
+    const selectedNames = useMemo(() => {
+        if (!multi) return []
+        const vals = Array.isArray(value) ? value : []
+        return vals.map(v => {
+            const opt = options.find(o => String(o.id) === String(v))
+            return opt ? opt.name : v
+        })
+    }, [options, value, multi])
 
     // --- Dropdown content (shared between compact & portal modes) ---
     const renderDropdown = () => (
@@ -327,36 +345,54 @@ const Select = memo(({
                             </div>
 
                             {/* UsersThree Options */}
-                            {groupedOptions[groupName].map(opt => (
-                                <button
-                                    key={opt.id}
-                                    type="button"
-                                    onClick={(e) => { e.stopPropagation(); handleSelect(opt.id) }}
-                                    className={`w-full text-left ${compact ? 'px-3 py-1' : 'px-3 py-1.5'} text-[10px] font-bold hover:bg-[var(--color-primary)]/5 transition-all flex items-center justify-between group whitespace-nowrap ${String(value) === String(opt.id) ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'text-[var(--color-text)]'}`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${String(value) === String(opt.id) ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
-                                {opt.render ? opt.render : opt.name}
-                            </div>
-                        </button>
-                            ))}
+                            {groupedOptions[groupName].map(opt => {
+                                const isSelected = multi ? (Array.isArray(value) && value.includes(opt.id)) : String(value) === String(opt.id)
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={(e) => { e.stopPropagation(); handleSelect(opt.id) }}
+                                        className={`w-full text-left ${compact ? 'px-3 py-1' : 'px-3 py-1.5'} text-[10px] font-bold hover:bg-[var(--color-primary)]/5 transition-all flex items-center justify-between group whitespace-nowrap ${isSelected ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'text-[var(--color-text)]'}`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {multi ? (
+                                                <div className={`w-3.5 h-3.5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[var(--color-border)] group-hover:border-[var(--color-primary)]/40'}`}>
+                                                    {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                                                </div>
+                                            ) : (
+                                                <div className={`w-1.5 h-1.5 rounded-full transition-all ${isSelected ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
+                                            )}
+                                            {opt.render ? opt.render : opt.name}
+                                        </div>
+                                    </button>
+                                )
+                            })}
                         </div>
                     ))
                 ) : (
                     /* --- Flat Rendering --- */
-                    filteredOptions.map((opt) => (
-                        <button
-                            key={opt.id}
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); handleSelect(opt.id) }}
-                            className={`w-full text-left ${compact ? 'px-3 py-1' : 'px-3 py-1.5'} text-[10px] font-bold hover:bg-[var(--color-primary)]/5 transition-all flex items-center justify-between group whitespace-nowrap ${String(value) === String(opt.id) ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'text-[var(--color-text)]'}`}
-                        >
-                            <div className="flex items-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full transition-all ${String(value) === String(opt.id) ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
-                                {opt.render ? opt.render : opt.name}
-                            </div>
-                        </button>
-                    ))
+                    filteredOptions.map((opt) => {
+                        const isSelected = multi ? (Array.isArray(value) && value.includes(opt.id)) : String(value) === String(opt.id)
+                        return (
+                            <button
+                                key={opt.id}
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); handleSelect(opt.id) }}
+                                className={`w-full text-left ${compact ? 'px-3 py-1' : 'px-3 py-1.5'} text-[10px] font-bold hover:bg-[var(--color-primary)]/5 transition-all flex items-center justify-between group whitespace-nowrap ${isSelected ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/5' : 'text-[var(--color-text)]'}`}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {multi ? (
+                                        <div className={`w-3.5 h-3.5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-[var(--color-primary)] border-[var(--color-primary)]' : 'border-[var(--color-border)] group-hover:border-[var(--color-primary)]/40'}`}>
+                                            {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
+                                        </div>
+                                    ) : (
+                                        <div className={`w-1.5 h-1.5 rounded-full transition-all ${isSelected ? 'bg-[var(--color-primary)] scale-125 shadow-[0_0_8px_rgba(var(--color-primary-rgb),0.4)]' : 'bg-[var(--color-border)] group-hover:bg-[var(--color-text-muted)]'}`} />
+                                    )}
+                                    {opt.render ? opt.render : opt.name}
+                                </div>
+                            </button>
+                        )
+                    })
                 )}
             </div>
         </div>
@@ -385,11 +421,30 @@ const Select = memo(({
                 disabled={disabled}
                 className={`w-full flex items-center justify-between gap-2 ${hasCustomHeight ? '' : heightClass} ${paddingClass} rounded-xl border ${statusClasses[status]} bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]/50 focus:ring-1 outline-none transition-all text-[10px] font-bold relative group ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${buttonClassName}`}
             >
-                <div className="flex items-center gap-2 truncate">
+                <div className="flex items-center gap-2 truncate flex-1 min-w-0">
                     {icon && !compact && renderIcon(icon, `absolute ${small ? 'left-3 rtl:left-auto rtl:right-3 w-2.5 h-2.5' : 'left-3.5 rtl:left-auto rtl:right-3.5 w-3 h-3'} top-1/2 -translate-y-1/2 transition-colors ${iconStatusClasses[status]}`)}
-                    <span className={selectedOption ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-60'}>
-                        {selectedOption ? (selectedOption.render ? selectedOption.render : selectedOption.name) : placeholder}
-                    </span>
+                    {multi ? (
+                        <div className="flex items-center gap-1 truncate flex-1 min-w-0">
+                            {selectedNames.length > 0 ? (
+                                <div className="flex items-center gap-1 truncate">
+                                    {selectedNames.slice(0, 3).map((name, i) => (
+                                        <span key={i} className="px-1.5 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-bold truncate max-w-[80px]">
+                                            {name}
+                                        </span>
+                                    ))}
+                                    {selectedNames.length > 3 && (
+                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)]">+{selectedNames.length - 3}</span>
+                                    )}
+                                </div>
+                            ) : (
+                                <span className="text-[var(--color-text-muted)] opacity-60">{placeholder}</span>
+                            )}
+                        </div>
+                    ) : (
+                        <span className={selectedOption ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-60'}>
+                            {selectedOption ? (selectedOption.render ? selectedOption.render : selectedOption.name) : placeholder}
+                        </span>
+                    )}
                 </div>
                 <CaretDown className={`w-3 h-3 opacity-40 transition-transform duration-300 shrink-0 ${isOpen ? 'rotate-180 text-[var(--color-primary)]' : 'text-[var(--color-text-muted)]'}`} />
             </button>

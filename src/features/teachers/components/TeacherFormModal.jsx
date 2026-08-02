@@ -3,9 +3,18 @@ import { Warning, Book, Camera, Spinner, Pencil, Plus, FloppyDisk, Briefcase } f
 
 import { Modal, Select } from '@shared/components'
 
+const TYPE_OPTIONS = [
+    { id: 'guru', name: 'Guru' },
+    { id: 'karyawan', name: 'Karyawan' },
+    { id: 'kepsek', name: 'Kepala Sekolah' },
+    { id: 'tu', name: 'Tata Usaha' },
+    { id: 'security', name: 'Security' },
+    { id: 'cleaning', name: 'Cleaning Service' },
+]
+
 const EMPTY_FORM = {
-    name: '', nbm: '', subject: '', gender: 'L', phone: '',
-    status: 'active', type: 'guru', avatar_url: '',
+    name: '', subject: '', gender: 'L', phone: '',
+    status: 'active', type: [], avatar_url: '',
 }
 
 const TeacherFormModal = memo(function TeacherFormModal({
@@ -22,14 +31,15 @@ const TeacherFormModal = memo(function TeacherFormModal({
     useEffect(() => {
         if (!isOpen) return
         if (selectedItem) {
+            const rawType = selectedItem.type
+            const types = Array.isArray(rawType) ? rawType : rawType ? [rawType] : []
             setForm({
                 name: selectedItem.name || '',
-                nbm: selectedItem.nbm || '',
                 subject: selectedItem.subject || '',
                 gender: selectedItem.gender || 'L',
                 phone: selectedItem.phone || '',
                 status: selectedItem.status || 'active',
-                type: selectedItem.type || 'guru',
+                type: types,
                 avatar_url: selectedItem.avatar_url || selectedItem.photo_url || '',
             })
             setAvatarPreview(selectedItem.avatar_url || selectedItem.photo_url || null)
@@ -87,12 +97,11 @@ const TeacherFormModal = memo(function TeacherFormModal({
         setFormError('')
         const payload = {
             name,
-            nbm: (form.nbm || '').trim() || null,
             subject: (form.subject || '').trim() || null,
             gender: form.gender || null,
             phone: (form.phone || '').trim() || null,
             status: form.status || 'active',
-            type: form.type || 'guru',
+            type: form.type.length > 0 ? form.type : ['guru'],
             avatar_url: form.avatar_url || null,
             photo_url: form.avatar_url || null,
         }
@@ -104,7 +113,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
     }
 
     const overallProgress = (() => {
-        const fields = ['name', 'nbm', 'subject', 'phone']
+        const fields = ['name', 'subject', 'phone']
         const filled = fields.filter(f => {
             const v = form[f]
             return v && (typeof v === 'string' ? v.trim() : true)
@@ -212,10 +221,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Nama Lengkap <span className="text-rose-500">*</span></label>
                             <input type="text" value={form.name} onChange={e => setField('name', e.target.value)} onBlur={() => setFieldTouched('name')} placeholder="Nama lengkap dengan gelar..." className={inputCls('name', true)} />
                         </div>
-                        <div>
-                            <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">NBM</label>
-                            <input type="text" value={form.nbm} onChange={e => setField('nbm', e.target.value)} placeholder="Nomor Baku Muhammadiyah" className={inputCls('nbm')} />
-                        </div>
                     </div>
                 </div>
 
@@ -237,16 +242,10 @@ const TeacherFormModal = memo(function TeacherFormModal({
                         <Select
                             value={form.type}
                             onChange={val => setField('type', val)}
-                            options={[
-                                { id: 'guru', name: 'Guru' },
-                                { id: 'karyawan', name: 'Karyawan' },
-                                { id: 'kepsek', name: 'Kepala Sekolah' },
-                                { id: 'tu', name: 'Tata Usaha' },
-                                { id: 'security', name: 'Security' },
-                                { id: 'cleaning', name: 'Cleaning Service' },
-                            ]}
-                            placeholder="e.g. Guru, Kepsek, TU..."
+                            options={TYPE_OPTIONS}
+                            placeholder="Pilih atau ketik tipe tugas..."
                             icon={Briefcase}
+                            multi
                             searchable
                             allowCustom
                         />

@@ -20,8 +20,8 @@ const DEFAULT_SUBJECTS = [
 const mapTeacher = (row) => ({
     ...row,
     name: row.full_name || '',
-    nbm: row.nip || '',
     status: row.is_active ? 'active' : 'inactive',
+    type: Array.isArray(row.type) ? row.type : row.type ? [row.type] : [],
 })
 const mapTeacherList = (rows) => (rows || []).map(mapTeacher)
 
@@ -56,7 +56,7 @@ export function useTeachersCore({ addToast }) {
     })
 
     // columns
-    const [visibleCols, setVisibleCols] = useState({ nbm: true, subject: true, gender: true, contact: true, status: true, join: true })
+    const [visibleCols, setVisibleCols] = useState({ subject: true, gender: true, contact: true, status: true, join: true })
     const [isColMenuOpen, setIsColMenuOpen] = useState(false)
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
     const colMenuRef = useRef(null)
@@ -189,8 +189,8 @@ export function useTeachersCore({ addToast }) {
     const resetAllFilters = useCallback(() => { setSearchQuery(''); setFilterSubject(''); setFilterGender(''); setFilterMissing(''); setFilterStatus('active'); setFilterType(''); setPage(1) }, [])
 
     // ── fetch ─────────────────────────────────────────────────────────────────
-    const fetchData = useCallback(async () => {
-        setLoading(true)
+    const _fetchData = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true)
         try {
             const from = (page - 1) * pageSize, to = from + pageSize - 1
             const sortMap = { name_asc: { col: 'full_name', asc: true }, name_desc: { col: 'full_name', asc: false }, join_asc: { col: 'created_at', asc: true }, join_desc: { col: 'created_at', asc: false } }
@@ -199,70 +199,72 @@ export function useTeachersCore({ addToast }) {
             if (filterStatus) q = q.eq('is_active', filterStatus === 'active')
             if (filterGender) q = q.eq('gender', filterGender)
             if (filterSubject) q = q.eq('subject', filterSubject)
-            if (filterType) q = q.eq('type', filterType)
+            if (filterType) q = q.contains('type', [filterType])
             if (filterMissing === 'wa') q = q.or('phone.is.null,phone.eq.""')
-            if (debouncedSearch) { const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_'); q = q.or(`full_name.ilike.%${s}%,nip.ilike.%${s}%,email.ilike.%${s}%,subject.ilike.%${s}%`) }
+            if (debouncedSearch) { const s = debouncedSearch.replace(/%/g, '\\%').replace(/_/g, '\\_'); q = q.or(`full_name.ilike.%${s}%,subject.ilike.%${s}%,phone.ilike.%${s}%`) }
             const { data, error, count } = await q
             if (error) throw error
 
-            let teachersWithAvatar = mapTeacherList(data)
-            const emails = teachersWithAvatar.map(t => t.email).filter(Boolean)
-            if (emails.length > 0) {
-                try {
-                    const { data: profilesData } = await supabase
-                        .from('profiles_with_email')
-                        .select('avatar_url, email')
-                        .not('avatar_url', 'is', null)
-                        .in('email', emails)
-
-                    if (profilesData?.length) {
-                        const avatarByEmail = Object.fromEntries(
-                            profilesData.map(p => [p.email, p.avatar_url])
-                        )
-                        teachersWithAvatar = teachersWithAvatar.map(t =>
-                            t.email && avatarByEmail[t.email]
-                                ? { ...t, avatar_url: avatarByEmail[t.email] }
-                                : t
-                        )
-                    }
-                } catch {
-                    // View belum dibuat — skip
-                }
-            }
-
-            setTeachers([...teachersWithAvatar].sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0)))
+            const sorted = mapTeacherList(data).sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
+            setTeachers(sorted)
             setTotalRows(count ?? 0)
+        } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
+        finally { if (showLoading) setLoading(false) }
+    }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, addToast])
+
+    const fetchData = useCallback(() => _fetchData(true), [_fetchData])
+    const fetchDataSilent = useCallback(() => _fetchData(false), [_fetchData])
+
+    const fetchSubjects = useCallback(async () => {
+        try {
             const { data: allSubj } = await supabase.from('teachers').select('subject').is('deleted_at', null).not('subject', 'is', null)
             const dbSubjects = allSubj ? allSubj.map(r => r.subject).filter(Boolean) : []
             setSubjectsList([...new Set([...DEFAULT_SUBJECTS, ...dbSubjects])].sort())
-        } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
-        finally { setLoading(false) }
-    }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, addToast])
+        } catch { }
+    }, [])
 
     const fetchStats = useCallback(async () => {
         try {
             const { data } = await supabase.from('teachers').select('id,is_active,gender,type').is('deleted_at', null)
-            if (data) setStats({
-                total: data.length,
-                active: data.filter(t => t.is_active).length,
-                male: data.filter(t => t.gender === 'L').length,
-                female: data.filter(t => t.gender === 'P').length,
-                guru: data.filter(t => !t.type || t.type === 'guru').length,
-                karyawan: data.filter(t => t.type === 'karyawan').length,
-            })
+            if (data) {
+                let guru = 0, karyawan = 0
+                data.forEach(t => {
+                    const types = Array.isArray(t.type) ? t.type : t.type ? [t.type] : []
+                    if (types.includes('guru')) guru++
+                    if (types.includes('karyawan')) karyawan++
+                })
+                setStats({
+                    total: data.length,
+                    active: data.filter(t => t.is_active).length,
+                    male: data.filter(t => t.gender === 'L').length,
+                    female: data.filter(t => t.gender === 'P').length,
+                    guru,
+                    karyawan,
+                })
+            }
         } catch { }
     }, [])
 
-    const fetchDataRef = useRef(fetchData); const fetchStatsRef = useRef(fetchStats)
+    const fetchDataRef = useRef(fetchData); const fetchStatsRef = useRef(fetchStats); const fetchSubjectsRef = useRef(fetchSubjects); const fetchDataSilentRef = useRef(fetchDataSilent)
     useEffect(() => { fetchDataRef.current = fetchData }, [fetchData])
     useEffect(() => { fetchStatsRef.current = fetchStats }, [fetchStats])
+    useEffect(() => { fetchSubjectsRef.current = fetchSubjects }, [fetchSubjects])
+    useEffect(() => { fetchDataSilentRef.current = fetchDataSilent }, [fetchDataSilent])
 
     useEffect(() => {
-        const ch = supabase.channel('teachers-rt').on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => { fetchDataRef.current(); fetchStatsRef.current() }).subscribe()
-        return () => supabase.removeChannel(ch)
+        let timer = null
+        const ch = supabase.channel(`teachers-ch-${Date.now()}`)
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+                if (timer) clearTimeout(timer)
+                timer = setTimeout(() => {
+                    Promise.all([fetchDataSilentRef.current(), fetchStatsRef.current()])
+                }, 300)
+            })
+            .subscribe()
+        return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch) }
     }, [])
 
-    useEffect(() => { fetchStats() }, [])
+    useEffect(() => { fetchStats(); fetchSubjects() }, [])
     useEffect(() => { fetchData() }, [page, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch])
 
     // ── crud ──────────────────────────────────────────────────────────────────
@@ -274,11 +276,10 @@ export function useTeachersCore({ addToast }) {
         try {
             const dbPayload = {
                 full_name: payload.name || payload.full_name,
-                nip: payload.nbm || payload.nip,
                 phone: payload.phone,
                 gender: payload.gender || null,
                 subject: payload.subject || null,
-                type: payload.type || 'guru',
+                type: Array.isArray(payload.type) ? payload.type : payload.type ? [payload.type] : ['guru'],
                 is_active: payload.status === 'active' || payload.is_active === true,
             }
             if (selectedItem) {
@@ -295,14 +296,14 @@ export function useTeachersCore({ addToast }) {
                 addToast('Guru baru berhasil ditambahkan', 'success')
                 await logAudit({ action: 'INSERT', source: 'OPERATIONAL', tableName: 'teachers', recordId: insData?.id, newData: dbPayload })
             }
-            setIsModalOpen(false); fetchData(); fetchStats()
+            setIsModalOpen(false)
             return null
         } catch (err) {
             return { error: true, code: err.code, message: 'Gagal menyimpan data.' }
         } finally {
             setSubmitting(false)
         }
-    }, [selectedItem, fetchData, fetchStats, addToast])
+    }, [selectedItem, addToast])
 
     const handleArchive = useCallback(async () => {
         if (!teacherToAction) return
@@ -314,12 +315,10 @@ export function useTeachersCore({ addToast }) {
             await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacherToAction.id, oldData: teacherToAction, newData: { ...teacherToAction, deleted_at: new Date().toISOString() } })
             setIsArchiveModalOpen(false)
             setTeacherToAction(null)
-            fetchData()
-            fetchStats()
         } catch (err) { handleError(err, { context: 'Gagal mengarsipkan' }) } finally {
             setSubmitting(false)
         }
-    }, [teacherToAction, fetchData, fetchStats, addToast])
+    }, [teacherToAction, addToast])
 
     const handleRestore = useCallback(async teacher => {
         try {
@@ -328,10 +327,8 @@ export function useTeachersCore({ addToast }) {
             addToast(`"${teacher.name}" dipulihkan`, 'success')
             await logAudit({ action: 'RESTORE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, deleted_at: null } })
             setArchivedTeachers(prev => prev.filter(t => t.id !== teacher.id))
-            fetchData()
-            fetchStats()
         } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
-    }, [fetchData, fetchStats, addToast])
+    }, [addToast])
 
     const fetchArchived = useCallback(async () => {
         setLoadingArchived(true)
@@ -363,27 +360,6 @@ export function useTeachersCore({ addToast }) {
                 .eq('id', teacher.id)
 
             if (error) throw error
-
-            await logAudit({
-                action: 'UPDATE',
-                source: 'OPERATIONAL',
-                tableName: 'teachers',
-                recordId: teacher.id,
-                oldData: { is_pinned: teacher.is_pinned },
-                newData: { is_pinned: newPinned }
-            })
-
-            addToast(
-                newPinned ? (
-                    <span className="flex items-center gap-1.5">
-                        <MapPin className="text-amber-400 rotate-[-45deg] w-3 h-3" />
-                        "{teacher.name}" disematkan ke atas
-                    </span>
-                ) : (
-                    `Sematkan "${teacher.name}" dilepas`
-                ),
-                'success'
-            )
         } catch (err) {
             console.error('MapPin error:', err)
             // Rollback on failure
@@ -422,10 +398,8 @@ export function useTeachersCore({ addToast }) {
             addToast(`Status ${teacher.name} → ${isActive ? 'Aktif' : 'Nonaktif'}`, 'success')
             await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, is_active: isActive } })
             setQuickStatusId(null)
-            fetchData()
-            fetchStats()
         } catch (err) { handleError(err, { context: 'Gagal update status' }) }
-    }, [fetchData, fetchStats, addToast])
+    }, [addToast])
 
     // ── profile ───────────────────────────────────────────────────────────────
     const openProfile = useCallback(async (teacher, tab = 'info') => {
@@ -453,8 +427,6 @@ export function useTeachersCore({ addToast }) {
             await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', newData: { bulk_archive: true, count: idsSnap.length, ids: idsSnap } })
             setSelectedIds([])
             setIsBulkModalOpen(false)
-            fetchData()
-            fetchStats()
         } catch (err) { handleError(err, { context: 'Gagal arsip massal' }) } finally {
             setSubmitting(false)
         }

@@ -3,6 +3,7 @@ import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, M
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
+import { useAuth } from '@context/Auth'
 import { useTeachersCore } from '@features/teachers/hooks/useTeachersCore'
 import { useTeachersKeyboard } from '@features/teachers/hooks/useTeachersKeyboard'
 import { useTeachersModals } from '@features/teachers/hooks/useTeachersModals'
@@ -31,6 +32,7 @@ import {
 
 export default function TeachersPage() {
     const { addToast } = useToast()
+    const { profile } = useAuth()
 
     // ── Core Hook ──
     const {
@@ -341,99 +343,110 @@ export default function TeachersPage() {
                     />
                 </div>
 
-                {/* ── Modals ── */}
-                <TeacherFormModal
-                    isOpen={isModalOpen}
-                    onClose={() => { setIsModalOpen(false); setSelectedItem(null) }}
-                    selectedItem={selectedItem}
-                    classesList={classesList}
-                    subjectsList={subjectsList}
-                    onSubmit={handleSubmit}
-                    submitting={submitting}
-                    onPhotoUpload={handlePhotoUpload}
-                    uploadingPhoto={uploadingPhoto}
-                />
+                {/* ── Modals (lazy render) ── */}
+                {isModalOpen && (
+                    <TeacherFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => { setIsModalOpen(false); setSelectedItem(null) }}
+                        selectedItem={selectedItem}
+                        classesList={classesList}
+                        subjectsList={subjectsList}
+                        onSubmit={handleSubmit}
+                        submitting={submitting}
+                        onPhotoUpload={handlePhotoUpload}
+                        uploadingPhoto={uploadingPhoto}
+                    />
+                )}
 
-                <TeacherProfileModal
-                    isOpen={isProfileOpen}
-                    onClose={() => setIsProfileOpen(false)}
-                    selectedTeacher={profileTeacher}
-                    loadingProfile={loadingProfile}
-                    profileTab={profileTab}
-                    setProfileTab={setProfileTab}
-                    canEdit={canEdit}
-                    handleEdit={handleEdit}
-                    addToast={addToast}
-                    fetchData={fetchData}
-                />
+                {isProfileOpen && (
+                    <TeacherProfileModal
+                        isOpen={isProfileOpen}
+                        onClose={() => setIsProfileOpen(false)}
+                        selectedTeacher={profileTeacher}
+                        loadingProfile={loadingProfile}
+                        profileTab={profileTab}
+                        setProfileTab={setProfileTab}
+                        canEdit={canEdit}
+                        handleEdit={handleEdit}
+                        addToast={addToast}
+                        fetchData={fetchData}
+                        userRole={profile?.role}
+                    />
+                )}
 
-                <TeacherImportModal
-                    isOpen={isImportModalOpen}
-                    onClose={() => { if (importing) return; setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1) }}
-                    importing={importing}
-                    importStep={importStep}
-                    setImportStep={setImportStep}
-                    importPreview={importPreview}
-                    importFileName={importFileName}
-                    importFileInputRef={importFileRef}
-                    importDragOver={importDrag}
-                    setImportDragOver={setImportDrag}
-                    processImportFile={processImportFile}
-                    subjectsList={subjectsList}
-                    handleDownloadTemplate={handleDownloadTemplate}
-                    importFileHeaders={importFileHeaders}
-                    SYSTEM_COLS={SYSTEM_COLS}
-                    importColumnMapping={importColumnMapping}
-                    setImportColumnMapping={setImportColumnMapping}
-                    importRawData={importRawData}
-                    importLoading={importLoading}
-                    setImportLoading={setImportLoading}
-                    buildImportPreview={buildImportPreview}
-                    importIssues={importIssues}
-                    importValidationOpen={importValidationOpen}
-                    setImportValidationOpen={setImportValidationOpen}
-                    importProgress={importProgress}
-                    handleCommitImport={handleCommitImport}
-                    handleImportClick={() => importFileRef.current?.click()}
-                    hasImportBlockingErrors={hasImportBlockingErrors}
-                    importReadyRows={importReadyRows}
-                    handleImportCellEdit={handleImportCellEdit}
-                    importEditCell={importEditCell}
-                    setImportEditCell={setImportEditCell}
-                    handleRemoveImportRow={handleRemoveImportRow}
-                    importSkipDupes={importSkipDupes}
-                    setImportSkipDupes={setImportSkipDupes}
-                    handleBulkFix={handleBulkFix}
-                    STATUS_CONFIG={STATUS_CONFIG}
-                />
+                {isImportModalOpen && (
+                    <TeacherImportModal
+                        isOpen={isImportModalOpen}
+                        onClose={() => { if (importing) return; setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1) }}
+                        importing={importing}
+                        importStep={importStep}
+                        setImportStep={setImportStep}
+                        importPreview={importPreview}
+                        importFileName={importFileName}
+                        importFileInputRef={importFileRef}
+                        importDragOver={importDrag}
+                        setImportDragOver={setImportDrag}
+                        processImportFile={processImportFile}
+                        subjectsList={subjectsList}
+                        handleDownloadTemplate={handleDownloadTemplate}
+                        importFileHeaders={importFileHeaders}
+                        SYSTEM_COLS={SYSTEM_COLS}
+                        importColumnMapping={importColumnMapping}
+                        setImportColumnMapping={setImportColumnMapping}
+                        importRawData={importRawData}
+                        importLoading={importLoading}
+                        setImportLoading={setImportLoading}
+                        buildImportPreview={buildImportPreview}
+                        importIssues={importIssues}
+                        importValidationOpen={importValidationOpen}
+                        setImportValidationOpen={setImportValidationOpen}
+                        importProgress={importProgress}
+                        handleCommitImport={handleCommitImport}
+                        handleImportClick={() => importFileRef.current?.click()}
+                        hasImportBlockingErrors={hasImportBlockingErrors}
+                        importReadyRows={importReadyRows}
+                        handleImportCellEdit={handleImportCellEdit}
+                        importEditCell={importEditCell}
+                        setImportEditCell={setImportEditCell}
+                        handleRemoveImportRow={handleRemoveImportRow}
+                        importSkipDupes={importSkipDupes}
+                        setImportSkipDupes={setImportSkipDupes}
+                        handleBulkFix={handleBulkFix}
+                        STATUS_CONFIG={STATUS_CONFIG}
+                    />
+                )}
 
-                <TeacherExportModal
-                    isOpen={isExportModalOpen}
-                    onClose={() => setIsExportModalOpen(false)}
-                    teachers={teachers}
-                    selectedTeacherIds={selectedIds}
-                    exportScope={exportScope}
-                    setExportScope={setExportScope}
-                    exportColumns={exportColumns}
-                    setExportColumns={setExportColumns}
-                    exporting={exporting}
-                    handleExportCSV={handleExportCSV}
-                    handleExportExcel={handleExportExcel}
-                    handleExportPDF={handleExportPDF}
-                    addToast={addToast}
-                />
+                {isExportModalOpen && (
+                    <TeacherExportModal
+                        isOpen={isExportModalOpen}
+                        onClose={() => setIsExportModalOpen(false)}
+                        teachers={teachers}
+                        selectedTeacherIds={selectedIds}
+                        exportScope={exportScope}
+                        setExportScope={setExportScope}
+                        exportColumns={exportColumns}
+                        setExportColumns={setExportColumns}
+                        exporting={exporting}
+                        handleExportCSV={handleExportCSV}
+                        handleExportExcel={handleExportExcel}
+                        handleExportPDF={handleExportPDF}
+                        addToast={addToast}
+                    />
+                )}
 
-                <TeacherArchiveModal
-                    isOpen={isArchivedOpen}
-                    onClose={() => setIsArchivedOpen(false)}
-                    archivedTeachers={archivedTeachers}
-                    loadingArchived={loadingArchived}
-                    setArchivedTeachers={setArchivedTeachers}
-                    fetchArchivedTeachers={fetchArchived}
-                    fetchData={fetchData}
-                    fetchStats={fetchStats}
-                    addToast={addToast}
-                />
+                {isArchivedOpen && (
+                    <TeacherArchiveModal
+                        isOpen={isArchivedOpen}
+                        onClose={() => setIsArchivedOpen(false)}
+                        archivedTeachers={archivedTeachers}
+                        loadingArchived={loadingArchived}
+                        setArchivedTeachers={setArchivedTeachers}
+                        fetchArchivedTeachers={fetchArchived}
+                        fetchData={fetchData}
+                        fetchStats={fetchStats}
+                        addToast={addToast}
+                    />
+                )}
 
                 {/* Archive Confirm Modal */}
                 <Modal

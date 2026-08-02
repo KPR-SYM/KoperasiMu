@@ -25,7 +25,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                         onSearch={setSearchQuery}
                         inputRef={searchInputRef}
                         isLoading={loading}
-                        placeholder="Cari nama guru, NBM, mapel, email... (Ctrl+K)"
+                        placeholder="Cari nama guru, mapel, no. HP... (Ctrl+K)"
                     />
                 </div>
 
