@@ -25,8 +25,8 @@ const PeriodComparisonModal = memo(function PeriodComparisonModal({
         </div>
     );
 
-    const statsA = getPeriodStats?.(itemA.start_date, itemA.end_date, itemA.registration_start, itemA.registration_end);
-    const statsB = getPeriodStats?.(itemB.start_date, itemB.end_date, itemB.registration_start, itemB.registration_end);
+    const statsA = getPeriodStats?.(itemA.start_date, itemA.end_date);
+    const statsB = getPeriodStats?.(itemB.start_date, itemB.end_date);
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Bandingkan Periode" size="full" mobileVariant="bottom-sheet">
@@ -75,13 +75,6 @@ const PeriodComparisonModal = memo(function PeriodComparisonModal({
                             label="Hari"
                             renderA={<>{statsA.elapsed}/{statsA.totalDays} · {statsA.remaining} lg</>}
                             renderB={<>{statsB.elapsed}/{statsB.totalDays} · {statsB.remaining} lg</>}
-                        />
-                    )}
-                    {itemA.registration_start && itemB.registration_start && (
-                        <Row
-                            label="Daftar"
-                            renderA={<>{formatDate(itemA.registration_start)} — {formatDate(itemA.registration_end)}</>}
-                            renderB={<>{formatDate(itemB.registration_start)} — {formatDate(itemB.registration_end)}</>}
                         />
                     )}
                     <Row

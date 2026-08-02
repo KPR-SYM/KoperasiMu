@@ -1,5 +1,5 @@
 import React, { memo } from 'react'
-import { IdentificationCard, Briefcase, Phone, ClockCounterClockwise, Pencil, ChatCircle, Copy, Book, PresentationChart } from '@phosphor-icons/react'
+import { IdentificationCard, Briefcase, Phone, ClockCounterClockwise, Pencil, ChatCircle, Copy, PresentationChart } from '@phosphor-icons/react'
 
 import { Modal, AuditTimeline } from '@shared/components'
 import { useErrorHandler } from '@hooks'
@@ -64,7 +64,7 @@ export default memo(function TeacherProfileModal({
                                 onClose();
                                 handleEdit(selectedTeacher);
                             }}
-                            className="h-10 px-8 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 border border-white/10"
+                            className="h-10 px-8 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[var(--color-primary)]/20 hover:brightness-110 transition-all flex items-center justify-center gap-2 border border-white/10"
                         >
                             <Pencil className="opacity-70" /> Edit Data
                         </button>
@@ -74,36 +74,44 @@ export default memo(function TeacherProfileModal({
         >
             <div className="space-y-4">
                 {/* Header Profile Card */}
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 to-indigo-900 p-5 text-white shadow-xl">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--color-primary)] via-[var(--color-primary)]/90 to-[var(--color-accent)]/80 p-5 text-white shadow-xl">
+                    {/* Decorative circles */}
+                    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5" />
+                    <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-white/5" />
+
                     <div className="relative flex items-center gap-5">
                         <div className="relative shrink-0">
-                            <div className="w-20 h-20 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 p-1 flex items-center justify-center text-2xl font-black overflow-hidden shadow-lg">
+                            <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-0.5 flex items-center justify-center text-2xl font-black overflow-hidden shadow-lg transition-transform hover:scale-105">
                                 {selectedTeacher.avatar_url || selectedTeacher.photo_url ? (
-                                    <img src={selectedTeacher.avatar_url || selectedTeacher.photo_url} className="w-full h-full object-cover rounded-lg" alt="" />
+                                    <img src={selectedTeacher.avatar_url || selectedTeacher.photo_url} className="w-full h-full object-cover rounded-[14px]" alt="" />
                                 ) : (
-                                    <span>{selectedTeacher.name?.charAt(0) || '?'}</span>
+                                    <span className="drop-shadow-lg">{selectedTeacher.name?.charAt(0) || '?'}</span>
                                 )}
                             </div>
-                            <div className={`absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md text-[8px] font-black shadow-lg border border-white/20 ${STATUS_CONFIG[selectedTeacher.status]?.color || 'bg-slate-500 text-white'}`}>
+                            <div className={`absolute -bottom-2 -right-2 px-2 py-0.5 rounded-lg text-[8px] font-black shadow-lg border border-white/20 backdrop-blur-sm ${STATUS_CONFIG[selectedTeacher.status]?.color || 'bg-white/20 text-white'}`}>
                                 {STATUS_CONFIG[selectedTeacher.status]?.label || selectedTeacher.status}
                             </div>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <h2 className="text-xl font-black tracking-tight truncate mb-1">
+                            <h2 className="text-xl font-black tracking-tight truncate drop-shadow-lg">
                                 {selectedTeacher.name}
                             </h2>
-                            <div className="flex flex-wrap gap-3 items-center text-[10px] font-bold text-white/70 uppercase tracking-wider">
-                                <span className="flex items-center gap-1.5"><Briefcase className="text-indigo-400" /> {(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'}</span>
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                                {(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => (
+                                    <span key={t} className="px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-sm text-[9px] font-bold uppercase tracking-wider border border-white/10">
+                                        {TYPE_LABELS[t] || t}
+                                    </span>
+                                ))}
                                 {selectedTeacher.subject && (
-                                    <>
-                                        <span className="w-1 h-1 rounded-full bg-white/30" />
-                                        <span className="flex items-center gap-1.5 text-emerald-300"><Book className="text-emerald-400" /> {selectedTeacher.subject}</span>
-                                    </>
+                                    <span className="px-2 py-0.5 rounded-md bg-emerald-400/20 backdrop-blur-sm text-[9px] font-bold uppercase tracking-wider border border-emerald-400/20 text-emerald-100">
+                                        {selectedTeacher.subject}
+                                    </span>
                                 )}
                             </div>
                             {selectedTeacher.created_at && (
-                                <p className="text-[10px] text-white/40 mt-2">
+                                <p className="text-[10px] text-white/50 mt-2.5 flex items-center gap-1.5">
+                                    <span className="w-1 h-1 rounded-full bg-white/40" />
                                     Bergabung sejak {new Date(selectedTeacher.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                                 </p>
                             )}
@@ -146,7 +154,7 @@ export default memo(function TeacherProfileModal({
                             <div className="grid grid-cols-2 gap-y-5 gap-x-6">
                                 <InfoRow label="Nama Lengkap" value={selectedTeacher.name} hint="Klik Edit untuk menambahkan" />
                                 <InfoRow label="Jenis Kelamin" value={selectedTeacher.gender === 'L' ? 'Laki-laki' : selectedTeacher.gender === 'P' ? 'Perempuan' : null} hint="Pilih di form Edit" />
-                                <InfoRow label="Tipe Tugas" value={(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'} hint="Klik Edit untuk ubah" />
+                                <InfoRow label="Jabatan" value={(Array.isArray(selectedTeacher.type) ? selectedTeacher.type : [selectedTeacher.type]).map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'} hint="Klik Edit untuk ubah" />
                             </div>
                         </div>
 

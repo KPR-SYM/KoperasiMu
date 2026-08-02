@@ -20,16 +20,16 @@ export const ArchiveModal = memo(function ArchiveModal({
             title="Konfirmasi Arsip"
             description="Tahun akademik ini akan diarsipkan."
             icon={Archive}
-            iconBg="bg-red-500/10"
-            iconColor="text-red-500"
+            iconBg="bg-amber-500/10"
+            iconColor="text-amber-500"
             confirmText="Arsipkan Sekarang"
             confirmIcon={Archive}
-            confirmColor="red"
+            confirmColor="amber"
             submitting={submitting}
         >
-            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
-                Tahun Pelajaran <span className="px-2 py-0.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black mx-1 whitespace-nowrap">{selectedItem.academic_year} {selectedItem.semester}</span> akan diarsipkan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
-            </div>
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                Tahun Pelajaran <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black mx-0.5">{selectedItem.academic_year} {selectedItem.semester}</span> akan diarsipkan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
+            </p>
         </ConfirmDialog>
     )
 })
@@ -58,9 +58,9 @@ export const DeactivateModal = memo(function DeactivateModal({
             confirmColor="orange"
             submitting={submitting}
         >
-            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
-                Nonaktifkan <span className="px-2 py-0.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black mx-1 whitespace-nowrap">{selectedItem.academic_year} {selectedItem.semester}</span>? Seluruh sistem tidak akan memiliki tahun aktif sampai Anda mengaktifkan periode lain.
-            </div>
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                Nonaktifkan <span className="px-1.5 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-600 font-black mx-0.5">{selectedItem.academic_year} {selectedItem.semester}</span>? Seluruh sistem tidak akan memiliki tahun aktif sampai Anda mengaktifkan periode lain.
+            </p>
         </ConfirmDialog>
     )
 })
@@ -87,9 +87,9 @@ export const LockModal = memo(function LockModal({
             confirmColor="rose"
             submitting={submitting}
         >
-            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
                 Sebanyak <span className="font-black text-[var(--color-text)]">{selectedCount}</span> periode akan dikunci. Data tidak dapat diubah sampai dibuka kembali.
-            </div>
+            </p>
         </ConfirmDialog>
     )
 })
@@ -116,9 +116,9 @@ export const UnlockModal = memo(function UnlockModal({
             confirmColor="emerald"
             submitting={submitting}
         >
-            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
                 Sebanyak <span className="font-black text-[var(--color-text)]">{selectedCount}</span> periode akan dibuka kembali.
-            </div>
+            </p>
         </ConfirmDialog>
     )
 })
@@ -147,8 +147,10 @@ export const ShiftDatesModal = memo(function ShiftDatesModal({
             confirmColor="indigo"
             submitting={submitting}
         >
-            <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-3">
-                <p>Masukkan jumlah hari untuk menggeser semua tanggal (start, end, pendaftaran):</p>
+            <div className="space-y-3">
+                <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                    Masukkan jumlah hari untuk menggeser semua tanggal (start, end, pendaftaran):
+                </p>
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={() => setDays((d) => d - 1)} className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-sm font-bold hover:bg-[var(--color-surface-alt)] disabled:opacity-30" disabled={days <= -365}>−</button>
                     <input type="number" value={days} onChange={(e) => setDays(parseInt(e.target.value) || 0)} className="w-20 text-center h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-sm font-bold text-[var(--color-text)]" />

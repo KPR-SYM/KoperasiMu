@@ -17,8 +17,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
         semester: 'Ganjil',
         startDate: '',
         endDate: '',
-        registrationStart: '',
-        registrationEnd: '',
         makeActive: false
     })
     const [formErrors, setFormErrors] = useState({})
@@ -33,8 +31,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     semester: selectedItem.semester || 'Ganjil',
                     startDate: selectedItem.start_date || '',
                     endDate: selectedItem.end_date || '',
-                    registrationStart: selectedItem.registration_start || '',
-                    registrationEnd: selectedItem.registration_end || '',
                     makeActive: selectedItem.is_active || false
                 })
             } else {
@@ -43,8 +39,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     semester: 'Ganjil',
                     startDate: '',
                     endDate: '',
-                    registrationStart: '',
-                    registrationEnd: '',
                     makeActive: false
                 })
             }
@@ -123,25 +117,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
             if (key === 'name' || key === 'semester') {
                 setIsDuplicateName(checkDuplicate(nextData.name, nextData.semester))
             }
-            // Validasi live Periode Pendaftaran (opsional, tapi jika diisi harus lengkap & dalam rentang)
-            if (['registrationStart', 'registrationEnd', 'startDate', 'endDate'].includes(key)) {
-                const rs = nextData.registrationStart
-                const re = nextData.registrationEnd
-                const newErrors = {}
-                if (rs || re) {
-                    if (!rs || !re) {
-                        if (!rs) newErrors.registrationStart = 'Mulai & selesai pendaftaran wajib diisi bersama'
-                        if (!re) newErrors.registrationEnd = 'Mulai & selesai pendaftaran wajib diisi bersama'
-                    } else if (re <= rs) {
-                        newErrors.registrationEnd = 'Selesai pendaftaran harus setelah mulai pendaftaran'
-                    } else if (nextData.startDate && nextData.endDate) {
-                        if (rs < nextData.startDate || re > nextData.endDate) {
-                            newErrors.registrationEnd = 'Periode pendaftaran harus berada dalam rentang periode akademik'
-                        }
-                    }
-                }
-                setFormErrors(prevE => ({ ...prevE, registrationStart: newErrors.registrationStart || '', registrationEnd: newErrors.registrationEnd || '' }))
-            }
             return nextData
         })
         setFormErrors(prev => ({ ...prev, [key]: '' }))
@@ -182,7 +157,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     <button
                         type="button"
                         onClick={handleFormSubmit}
-                        disabled={submitting || isDuplicateName || !formData.name || !formData.startDate || !formData.endDate || formErrors.registrationStart || formErrors.registrationEnd}
+                        disabled={submitting || isDuplicateName || !formData.name || !formData.startDate || !formData.endDate}
                         className="h-10 px-6 sm:px-8 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 shrink-0"
                     >
                         {submitting ? (
@@ -312,40 +287,6 @@ const PeriodFormModal = memo(function PeriodFormModal({
                             )}
                         </div>
                     )}
-                </div>
-
-                <div className="space-y-4 pt-2 border-t border-[var(--color-border)]">
-                    <div className="flex items-center gap-2.5 pt-1">
-                        <div className="w-1 h-4 bg-sky-500 rounded-full" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text)]">Periode Pendaftaran</span>
-                        <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Opsional</span>
-                        <div className="h-[1px] flex-1 bg-gradient-to-r from-[var(--color-border)] to-transparent opacity-40" />
-                    </div>
-
-                    <p className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-60 -mt-1 leading-snug">
-                        Tentukan jendela waktu pendaftaran siswa. Jika diisi, harus berada dalam rentang periode akademik.
-                    </p>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Mulai</label>
-                            <DatePicker
-                                value={formData.registrationStart}
-                                onChange={val => handleChange('registrationStart', val)}
-                                placeholder="dd/mm/yyyy"
-                            />
-                            {formErrors.registrationStart && <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.registrationStart}</p>}
-                        </div>
-                        <div>
-                            <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Selesai</label>
-                            <DatePicker
-                                value={formData.registrationEnd}
-                                onChange={val => handleChange('registrationEnd', val)}
-                                placeholder="dd/mm/yyyy"
-                            />
-                            {formErrors.registrationEnd && <p className="mt-1 text-[9px] font-bold text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1"><Warning className="w-2 h-2" />{formErrors.registrationEnd}</p>}
-                        </div>
-                    </div>
                 </div>
 
                 <div className="space-y-4 pt-2 border-t border-[var(--color-border)]">

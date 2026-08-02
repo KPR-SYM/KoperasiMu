@@ -255,7 +255,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         return `${diff} Bulan`;
     }, []);
 
-    const getPeriodStats = useCallback((start, end, regStart, regEnd) => {
+    const getPeriodStats = useCallback((start, end) => {
         if (!start || !end) return null;
         const now = Date.now();
         const s = new Date(start).getTime();
@@ -264,15 +264,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         const elapsed = Math.max(0, Math.min(totalDays, Math.floor((now - s) / (1000 * 60 * 60 * 24))));
         const remaining = Math.max(0, totalDays - elapsed);
         const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
-        let regStatus = null;
-        if (regStart && regEnd) {
-            const rs = new Date(regStart).getTime();
-            const re = new Date(regEnd).getTime();
-            if (now < rs) regStatus = { label: "Pendaftaran: Akan datang", cls: "text-blue-500" };
-            else if (now > re) regStatus = { label: "Pendaftaran: Tutup", cls: "text-gray-500" };
-            else regStatus = { label: "Pendaftaran: Dibuka", cls: "text-emerald-500" };
-        }
-        return { totalDays, elapsed, remaining, pct, regStatus };
+        return { totalDays, elapsed, remaining, pct };
     }, []);
 
     // ── FETCH DATA ───────────────────────────────────────────────────────────
@@ -282,7 +274,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         try {
             const { data, error } = await supabase
                 .from("periods")
-                .select("id,academic_year,semester,start_date,end_date,registration_start,registration_end,is_active,created_at,is_locked,locked_at,locked_by,deleted_at")
+                .select("id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked,locked_at,locked_by,deleted_at")
                 .is("deleted_at", null)
                 .order("academic_year", { ascending: false });
             if (error) throw error;
@@ -532,8 +524,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 semester: String(formData.semester || "").trim(),
                 start_date: formData.startDate,
                 end_date: formData.endDate,
-                registration_start: formData.registrationStart || null,
-                registration_end: formData.registrationEnd || null,
             };
 
             if (selectedItem?.id) {
@@ -765,8 +755,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 semester: item.semester,
                 start_date: shiftDate(item.start_date),
                 end_date: shiftDate(item.end_date),
-                registration_start: shiftDate(item.registration_start),
-                registration_end: shiftDate(item.registration_end),
                 is_active: false,
             };
 
@@ -812,8 +800,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                     id: y.id,
                     start_date: shift(y.start_date),
                     end_date: shift(y.end_date),
-                    registration_start: shift(y.registration_start),
-                    registration_end: shift(y.registration_end),
                 };
             });
             for (const u of updates) {
@@ -828,8 +814,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                             id: u.id,
                             start_date: shifted.find((y) => y.id === u.id).start_date,
                             end_date: shifted.find((y) => y.id === u.id).end_date,
-                            registration_start: shifted.find((y) => y.id === u.id).registration_start,
-                            registration_end: shifted.find((y) => y.id === u.id).registration_end,
                         };
                         await supabase.from("periods").update(revert).eq("id", u.id);
                     }
@@ -902,8 +886,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         if (fields.semester !== undefined) payload.semester = fields.semester;
         if (fields.start_date !== undefined) payload.start_date = fields.start_date;
         if (fields.end_date !== undefined) payload.end_date = fields.end_date;
-        if (fields.registration_start !== undefined) payload.registration_start = fields.registration_start;
-        if (fields.registration_end !== undefined) payload.registration_end = fields.registration_end;
         if (Object.keys(payload).length === 0) {
             addToast("Tidak ada perubahan yang dipilih", "warning");
             setIsSaving(false);

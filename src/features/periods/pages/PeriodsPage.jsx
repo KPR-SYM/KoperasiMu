@@ -1105,10 +1105,12 @@ export default function PeriodsPage() {
                     confirmColor="amber"
                     submitting={isDeleting}
                 >
-                    <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-2">
-                        <p>Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun pelajaran secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.</p>
+                    <div className="space-y-2">
+                        <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                            Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun pelajaran secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
+                        </p>
                         {selectedItemsData.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-1">
+                            <div className="flex flex-wrap gap-2">
                                 {(() => {
                                     const ganjilCount = selectedItemsData.filter(y => y.semester === "Ganjil").length;
                                     const genapCount = selectedItemsData.filter(y => y.semester === "Genap").length;
@@ -1169,11 +1171,10 @@ export default function PeriodsPage() {
                     submitting={isSaving}
                 >
                     {itemToDuplicate && duplicatePreview && (
-                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-3">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-3.5 h-3.5 text-[var(--color-primary)] shrink-0" />
-                                <p className="text-[var(--color-text)]">Periode baru dibuat dengan tanggal sama, tahun bergeser +1.</p>
-                            </div>
+                        <div className="space-y-3">
+                            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                                Periode baru dibuat dengan tanggal sama, tahun bergeser +1.
+                            </p>
                             <div className="rounded-xl border border-[var(--color-border)] overflow-hidden divide-y divide-[var(--color-border)]">
                                 <div className="p-2.5 bg-[var(--color-surface)]">
                                     <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-0.5">Sumber</p>
@@ -1189,9 +1190,9 @@ export default function PeriodsPage() {
                         </div>
                     )}
                     {itemToDuplicate && !duplicatePreview && (
-                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm">
+                        <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
                             Format tahun tidak valid, tidak bisa menampilkan preview.
-                        </div>
+                        </p>
                     )}
                 </ConfirmDialog>
 
@@ -1226,9 +1227,13 @@ export default function PeriodsPage() {
                     submitting={isSaving}
                 >
                     {activateTarget && (
-                        <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed shadow-sm space-y-2">
-                            <p>Periode <span className="font-black text-[var(--color-text)]">{activateTarget.academic_year} {activateTarget.semester}</span> akan menjadi periode aktif. Semua periode lain akan dinonaktifkan secara otomatis.</p>
-                            <p className="text-[10px] opacity-70">Aksi ini dapat dibatalkan lewat undo toast setelah konfirmasi.</p>
+                        <div className="space-y-2">
+                            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                                Periode <span className="font-black text-[var(--color-text)]">{activateTarget.academic_year} {activateTarget.semester}</span> akan menjadi periode aktif. Semua periode lain akan dinonaktifkan secara otomatis.
+                            </p>
+                            <p className="text-[10px] text-[var(--color-text-muted)] opacity-70">
+                                Aksi ini dapat dibatalkan lewat undo toast setelah konfirmasi.
+                            </p>
                         </div>
                     )}
                 </ConfirmDialog>
@@ -1255,7 +1260,7 @@ export default function PeriodsPage() {
                     submitting={isSaving}
                 >
                     <div className="space-y-4">
-                        <p className="text-[11px] text-[var(--color-text-muted)] p-4 rounded-2xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)]">
+                        <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
                             Sistem akan membuat{" "}
                             <span className="font-black text-[var(--color-text)]">{batchCount * 2} periode baru</span>{" "}
                             ({batchCount} × Ganjil + Genap) berdasarkan tahun pelajaran terakhir yang ada.

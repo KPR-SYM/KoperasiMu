@@ -72,12 +72,11 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                         {getDuration(year.start_date, year.end_date)}
                     </span>
                     {!isPrivacyMode && (() => {
-                        const st = getPeriodStats?.(year.start_date, year.end_date, year.registration_start, year.registration_end);
+                        const st = getPeriodStats?.(year.start_date, year.end_date);
                         if (!st) return null;
                         return (
                             <span className="text-[8px] text-[var(--color-text-muted)] mt-0.5">
                                 {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
-                                {st.regStatus && <span className={`ml-1 ${st.regStatus.cls}`}>{st.regStatus.label}</span>}
                             </span>
                         );
                     })()}
@@ -94,15 +93,6 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                         );
                     })()}
                 </div>
-            </td>
-        );
-    }
-    if (key === "registration") {
-        return (
-            <td className="px-4 py-2.5">
-                <span className={`text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap ${isPrivacyMode ? "blur-sm select-none" : ""}`}>
-                    {year.registration_start ? `${formatDate(year.registration_start)} — ${formatDate(year.registration_end)}` : "—"}
-                </span>
             </td>
         );
     }
@@ -265,7 +255,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     </button>
                                                 )}
                                                 {canEdit && !year.is_locked && (
-                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); }} title="Hapus" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all text-sm">
+                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); }} title="Hapus" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all text-sm">
                                                         <Trash />
                                                     </button>
                                                 )}
@@ -336,18 +326,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                                         {formatDate(year.start_date)} —{" "}
                                                         {formatDate(year.end_date)}
                                                     </span>
-                                                    {year.registration_start && (
-                                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">
-                                                            Daftar: {formatDate(year.registration_start)} — {formatDate(year.registration_end)}
-                                                        </span>
-                                                    )}
                                                     {!isPrivacyMode && (() => {
-                                                        const st = getPeriodStats?.(year.start_date, year.end_date, year.registration_start, year.registration_end);
+                                                        const st = getPeriodStats?.(year.start_date, year.end_date);
                                                         if (!st) return null;
                                                         return (
                                                             <span className="text-[8px] text-[var(--color-text-muted)]">
                                                                 {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
-                                                                {st.regStatus && <span className={`ml-1 ${st.regStatus.cls}`}>{st.regStatus.label}</span>}
                                                             </span>
                                                         );
                                                     })()}

@@ -185,12 +185,11 @@ function TimelineView({
                                             );
                                         })()}
                                         {!isPrivacyMode && (() => {
-                                            const st = getPeriodStats?.(year.start_date, year.end_date, year.registration_start, year.registration_end);
+                                            const st = getPeriodStats?.(year.start_date, year.end_date);
                                             if (!st) return null;
                                             return (
                                                 <div className="mt-1.5 flex items-center gap-2 text-[7px] text-[var(--color-text-muted)]">
                                                     <span>{st.elapsed}/{st.totalDays} hari · {st.remaining} hr lagi</span>
-                                                    {st.regStatus && <span className={st.regStatus.cls}>{st.regStatus.label}</span>}
                                                 </div>
                                             );
                                         })()}

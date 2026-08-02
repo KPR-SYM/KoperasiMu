@@ -1,5 +1,5 @@
 import React from 'react'
-import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, MagnifyingGlass, Plus, SlidersHorizontal, Spinner, Suitcase, ChatCircle, Trash, X } from '@phosphor-icons/react'
+import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, MagnifyingGlass, Plus, SlidersHorizontal, Suitcase, ChatCircle, Trash, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
@@ -448,82 +448,46 @@ export default function TeachersPage() {
                     />
                 )}
 
-                {/* Archive Confirm Modal */}
-                <Modal
+                <ConfirmDialog
                     isOpen={isArchiveModalOpen}
                     onClose={() => { setIsArchiveModalOpen(false); setTeacherToAction(null) }}
+                    onConfirm={handleArchive}
                     title="Konfirmasi Arsip"
                     description="Guru akan dipindahkan ke folder Arsip"
                     icon={Archive}
                     iconBg="bg-amber-500/10"
                     iconColor="text-amber-600"
-                    size="sm"
-                    mobileVariant="bottom-sheet"
-                    footer={
-                        <div className="flex items-center w-full gap-3">
-                            <button
-                                type="button"
-                                onClick={() => { setIsArchiveModalOpen(false); setTeacherToAction(null) }}
-                                className="h-10 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] text-[10px] font-black uppercase tracking-widest transition-all shrink-0"
-                            >
-                                Batal
-                            </button>
-                            <div className="flex-1" />
-                            <button
-                                type="button"
-                                onClick={handleArchive}
-                                disabled={submitting}
-                                className="h-10 px-6 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
-                            >
-                                {submitting ? <Spinner className="animate-spin w-3 h-3" /> : <Archive className="w-3 h-3 opacity-70" />}
-                                Arsipkan
-                            </button>
-                        </div>
-                    }
+                    confirmText="Arsipkan"
+                    confirmIcon={Archive}
+                    confirmColor="amber"
+                    submitting={submitting}
                 >
-                    <div className="px-1">
-                        <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed font-bold">
-                            Guru <span className="text-amber-600 font-black px-1.5 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">{teacherToAction?.name}</span> akan diarsipkan. Riwayat mengajar & data tetap tersimpan dengan aman.
-                        </p>
-                    </div>
-                </Modal>
+                    <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed font-bold">
+                        Guru <span className="text-amber-600 font-black px-1.5 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">{teacherToAction?.name}</span> akan diarsipkan. Riwayat mengajar & data tetap tersimpan dengan aman.
+                    </p>
+                </ConfirmDialog>
 
-                {/* Bulk Archive Modal */}
-                <Modal
+                <ConfirmDialog
                     isOpen={isBulkModalOpen}
                     onClose={() => setIsBulkModalOpen(false)}
+                    onConfirm={handleBulkArchive}
                     title="Arsip Massal"
                     description={`${selectedIds.length} guru akan diarsipkan`}
                     icon={Archive}
                     iconBg="bg-amber-500/10"
                     iconColor="text-amber-600"
-                    size="sm"
+                    confirmText="Arsipkan Semua"
+                    confirmIcon={Archive}
+                    confirmColor="amber"
+                    submitting={submitting}
                 >
-                    <div className="space-y-6">
-                        <div className="py-2">
-                            <p className="w-3 h-3 text-[var(--color-text-muted)] leading-relaxed font-bold">
-                                Anda akan mengarsipkan <span className="text-amber-600 font-black px-1.5 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">{selectedIds.length} guru</span>.
-                            </p>
-                            <p className="text-[10px] text-[var(--color-text-muted)] mt-1 font-medium italic">
-                                Data ini dapat dipulihkan kapan saja melalui folder Arsip.
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button onClick={() => setIsBulkModalOpen(false)} className="flex-1 h-11 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)] text-[10px] font-black uppercase tracking-widest transition-all">
-                                BATAL
-                            </button>
-                            <button
-                                onClick={handleBulkArchive}
-                                disabled={submitting}
-                                className="flex-[2] h-11 rounded-xl bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
-                            >
-                                {submitting ? <Spinner className="animate-spin" /> : (
-                                    <><Archive className="w-3 h-3" /> ARSIPKAN SEMUA</>
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                </Modal>
+                    <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed font-bold">
+                        Anda akan mengarsipkan <span className="text-amber-600 font-black px-1.5 py-0.5 bg-amber-500/10 rounded-md border border-amber-500/20">{selectedIds.length} guru</span>.
+                    </p>
+                    <p className="text-[10px] text-[var(--color-text-muted)] mt-1 font-medium italic">
+                        Data ini dapat dipulihkan kapan saja melalui folder Arsip.
+                    </p>
+                </ConfirmDialog>
 
                 {/* Bulk WA Modal */}
                 <Modal isOpen={isBulkWAOpen} onClose={() => setIsBulkWAOpen(false)} title="WA Massal Guru" size="sm">

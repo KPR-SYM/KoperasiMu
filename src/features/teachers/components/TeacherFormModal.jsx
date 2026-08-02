@@ -224,7 +224,7 @@ const TeacherFormModal = memo(function TeacherFormModal({
                     </div>
                 </div>
 
-                {/* Jenis Kelamin + Tipe Tugas */}
+                {/* Jenis Kelamin + Jabatan */}
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Jenis Kelamin</label>
@@ -238,12 +238,12 @@ const TeacherFormModal = memo(function TeacherFormModal({
                         </div>
                     </div>
                     <div>
-                        <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tipe Tugas</label>
+                        <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Jabatan</label>
                         <Select
                             value={form.type}
                             onChange={val => setField('type', val)}
                             options={TYPE_OPTIONS}
-                            placeholder="Pilih atau ketik tipe tugas..."
+                            placeholder="Pilih atau ketik jabatan..."
                             icon={Briefcase}
                             multi
                             searchable

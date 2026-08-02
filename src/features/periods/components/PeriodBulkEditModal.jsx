@@ -6,8 +6,6 @@ export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, on
     const [semester, setSemester] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-    const [registrationStart, setRegistrationStart] = useState("");
-    const [registrationEnd, setRegistrationEnd] = useState("");
 
     if (!isOpen) return null;
 
@@ -16,16 +14,10 @@ export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, on
         if (semester) payload.semester = semester;
         if (startDate) payload.start_date = startDate;
         if (endDate) payload.end_date = endDate;
-        if (registrationStart) payload.registration_start = registrationStart;
-        if (registrationEnd) payload.registration_end = registrationEnd;
-        if (registrationStart || registrationEnd) {
-            if (!registrationStart) payload.registration_start = null;
-            if (!registrationEnd) payload.registration_end = null;
-        }
         onConfirm(payload);
     };
 
-    const hasChanges = semester || startDate || endDate || registrationStart || registrationEnd;
+    const hasChanges = semester || startDate || endDate;
 
     return (
         <Modal
@@ -95,25 +87,6 @@ export default function PeriodBulkEditModal({ isOpen, onClose, selectedCount, on
                         <DatePicker
                             value={endDate}
                             onChange={(val) => setEndDate(val)}
-                            placeholder="Pilih tanggal"
-                        />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Mulai</label>
-                        <DatePicker
-                            value={registrationStart}
-                            onChange={(val) => setRegistrationStart(val)}
-                            placeholder="Pilih tanggal"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">Pendaftaran Selesai</label>
-                        <DatePicker
-                            value={registrationEnd}
-                            onChange={(val) => setRegistrationEnd(val)}
                             placeholder="Pilih tanggal"
                         />
                     </div>

@@ -72,17 +72,6 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
                                         )}
                                     </div>
                                 </div>
-                                {item.registration_start && (
-                                    <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-2">
-                                            Pendaftaran
-                                        </p>
-                                        <div className="font-bold">
-                                            {formatDate(item.registration_start)} —{" "}
-                                            {formatDate(item.registration_end)}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                             {usageStats && (
                                 <div className="grid grid-cols-2 gap-3">
