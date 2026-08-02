@@ -20,12 +20,12 @@ const COL_LABELS = {
     period: "Tahun Pelajaran",
     semester: "Semester",
     duration: "Pelaksanaan",
-    registration: "Pendaftaran",
     status: "Status",
 };
 
 function renderColHeader(key) {
-    return <th className="px-4 py-2.5 text-left">{COL_LABELS[key]}</th>;
+    if (!COL_LABELS[key]) return null;
+    return <th className="px-4 py-2.5 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
 }
 
 function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years }) {
@@ -63,13 +63,13 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
         return (
             <td className="px-4 py-2.5">
                 <div className="flex flex-col">
-                    <span className={`text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap ${isPrivacyMode ? "blur-sm select-none" : ""}`}>
-                        <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={formatDate(year.start_date)} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                    <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
+                        <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={maskValue(formatDate(year.start_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                         {" — "}
-                        <InlineCell id={year.id} field="end_date" value={year.end_date} displayValue={formatDate(year.end_date)} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                        <InlineCell id={year.id} field="end_date" value={year.end_date} displayValue={maskValue(formatDate(year.end_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                     </span>
-                    <span className={`text-[10px] text-[var(--color-text-muted)] mt-0.5 ${isPrivacyMode ? "blur-sm select-none" : ""}`}>
-                        {getDuration(year.start_date, year.end_date)}
+                    <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
+                        {maskValue(getDuration(year.start_date, year.end_date), "duration")}
                     </span>
                     {!isPrivacyMode && (() => {
                         const st = getPeriodStats?.(year.start_date, year.end_date);
@@ -98,8 +98,8 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     }
     if (key === "status") {
         return (
-            <td className="px-4 py-2.5 text-left">
-                <div className="flex flex-wrap items-center gap-1.5">
+            <td className="px-4 py-2.5 text-left whitespace-nowrap">
+                <div className="flex items-center gap-1.5">
                     {year.is_active ? (
                         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600">Aktif</span>
                     ) : (
@@ -150,13 +150,13 @@ const PeriodsTable = memo(function PeriodsTable({
     setIsDeleteModalOpen,
     onQuickFilterYear,
 }) {
-    const orderedCols = columnOrder.filter(k => visibleCols[k]);
+    const orderedCols = columnOrder.filter(k => visibleCols[k] && COL_LABELS[k]);
     const colCellArgs = { isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years };
 
     return (
         <>
             <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm" style={{ tableLayout: "auto" }}>
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                             <th className="px-4 py-2.5 text-center w-12">
@@ -168,11 +168,9 @@ const PeriodsTable = memo(function PeriodsTable({
                             {orderedCols.map(key => (
                                 <React.Fragment key={key}>{renderColHeader(key)}</React.Fragment>
                             ))}
-                            <th className="px-4 py-2.5 text-center pr-4 w-32 relative">
-                                <div className="flex items-center justify-center">
+                            <th className="px-4 py-2.5 text-right pr-4 relative">
+                                <div className="flex items-center justify-end gap-2">
                                     <span>Aksi</span>
-                                </div>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                     <button
                                         ref={colMenuRef}
                                         onClick={(e) => {
@@ -232,7 +230,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                             <React.Fragment key={key}>{renderColCell(key, { year, ...colCellArgs })}</React.Fragment>
                                         ))}
                                         <td className="px-4 py-2.5">
-                                            <div className="flex items-center justify-center gap-1">
+                                            <div className="flex items-center justify-end gap-1">
                                                 <button onClick={() => onTogglePin?.(year.id)} title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"} className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all text-sm ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}>
                                                     <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} />
                                                 </button>

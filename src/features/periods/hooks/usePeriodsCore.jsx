@@ -83,20 +83,31 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         period: true,
         semester: true,
         duration: true,
-        registration: false,
         status: true,
     };
+    const VALID_COL_KEYS = ["period", "semester", "duration", "status"];
     const [visibleCols, setVisibleCols] = useState(() => {
         try {
-            return JSON.parse(localStorage.getItem(LS_COLS)) || defaultCols;
+            const saved = JSON.parse(localStorage.getItem(LS_COLS));
+            if (saved) {
+                const cleaned = {};
+                VALID_COL_KEYS.forEach(k => { if (k in saved) cleaned[k] = saved[k]; });
+                return Object.keys(cleaned).length === VALID_COL_KEYS.length ? cleaned : defaultCols;
+            }
+            return defaultCols;
         } catch {
             return defaultCols;
         }
     });
-    const defaultColOrder = ["period", "semester", "duration", "registration", "status"];
+    const defaultColOrder = ["period", "semester", "duration", "status"];
     const [columnOrder, setColumnOrder] = useState(() => {
         try {
-            return JSON.parse(localStorage.getItem(LS_COL_ORDER)) || defaultColOrder;
+            const saved = JSON.parse(localStorage.getItem(LS_COL_ORDER));
+            if (saved) {
+                const cleaned = saved.filter(k => VALID_COL_KEYS.includes(k));
+                return cleaned.length === VALID_COL_KEYS.length ? cleaned : defaultColOrder;
+            }
+            return defaultColOrder;
         } catch {
             return defaultColOrder;
         }
@@ -171,15 +182,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
     // ── REMINDER (session-only, no duplicates) ──────────────────────────────
     const remindedPeriods = useRef(new Set());
-    const [reminderDays, _setReminderDays] = useState(() => {
-        const saved = localStorage.getItem("periods_reminder_days");
-        return saved ? parseInt(saved, 10) : 7;
-    });
-    const setReminderDays = (val) => {
-        _setReminderDays(val);
-        localStorage.setItem("periods_reminder_days", String(val));
-        remindedPeriods.current.clear(); // reset sentinel agar toasts bisa muncul lagi dengan threshold baru
-    };
+    const reminderDays = 7;
 
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
@@ -1207,6 +1210,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
         // Helpers
         formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
-        reminderDays, setReminderDays,
+        reminderDays,
     };
 }

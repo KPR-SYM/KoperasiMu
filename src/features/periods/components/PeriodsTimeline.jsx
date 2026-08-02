@@ -146,30 +146,22 @@ function TimelineView({
                                         {/* Dates */}
                                         <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
                                             <Calendar className="w-3 h-3 opacity-50 shrink-0" />
-                                            <span
-                                                className={
-                                                    isPrivacyMode
-                                                        ? "blur-sm select-none transition-all duration-200"
-                                                        : ""
-                                                }
-                                            >
-                                                {new Date(year.start_date).toLocaleDateString("id-ID", {
+                                            <span>
+                                                {maskValue(new Date(year.start_date).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "short",
-                                                })}
+                                                }), "date")}
                                                 {" – "}
-                                                {new Date(year.end_date).toLocaleDateString("id-ID", {
+                                                {maskValue(new Date(year.end_date).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "short",
                                                     year: "2-digit",
-                                                })}
+                                                }), "date")}
                                             </span>
                                         </div>
                                         {dur && (
-                                            <div
-                                                className={`mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60 ${isPrivacyMode ? "blur-sm select-none" : ""}`}
-                                            >
-                                                {dur}
+                                            <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">
+                                                {maskValue(dur, "duration")}
                                             </div>
                                         )}
                                         {year.start_date && year.end_date && !isPrivacyMode && (() => {

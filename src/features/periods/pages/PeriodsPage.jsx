@@ -19,7 +19,6 @@ import {
     Spinner,
     Warning,
     MagnifyingGlass,
-    Clock,
 } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 
@@ -172,9 +171,9 @@ export default function PeriodsPage() {
         handleUndo, handleRedo, undoStack, redoStack,
         handleOpenReadOnlyDetail, handleOpenHistory,
         handleQuickDuplicate, togglePin, pinnedIds,
-        formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
+        formatDate, getDuration, getTimeStatus, getPeriodStats,         handleError,
         columnOrder, moveColumnLeft, moveColumnRight,
-        reminderDays, setReminderDays,
+        reminderDays,
     } = usePeriodsCore({ addToast, addUndoToast });
 
     // ── Modal State ──
@@ -655,35 +654,10 @@ export default function PeriodsPage() {
                             {/* Privasi toggle */}
                             <button
                                 onClick={togglePrivacyMode}
-                                className={`h-9 w-9 sm:w-auto sm:px-3 rounded-lg border flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${isPrivacyMode ? "bg-amber-500/10 border-amber-500/30 text-amber-600" : "bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"} `}
-                                title={
-                                    isPrivacyMode
-                                        ? "Matikan Mode Privasi"
-                                        : "Aktifkan Mode Privasi"
-                                }
+                                className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? "bg-amber-500/10 border-amber-500/30 text-amber-600" : "bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"} `}
+                                title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}
                             >
-                                {isPrivacyMode ? (
-                                    <EyeSlash className="w-4 h-4" />
-                                ) : (
-                                    <Eye className="w-4 h-4" />
-                                )}
-                                <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">
-                                    Privasi
-                                </span>
-                            </button>
-
-                            {/* Reminder threshold */}
-                            <button
-                                onClick={() => {
-                                    const next = { 3: 7, 7: 14, 14: 3 }[reminderDays] || 7
-                                    setReminderDays(next)
-                                    addToast(`Notifikasi diubah: ${next} hari sebelum mulai/berakhir`, "info")
-                                }}
-                                className="h-9 px-2.5 rounded-lg border flex items-center gap-1.5 transition-all active:scale-95 bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-                                title={`Notifikasi ${reminderDays} hari sebelum mulai/berakhir. Klik untuk ganti.`}
-                            >
-                                <Clock className="w-3.5 h-3.5" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">{reminderDays} hr</span>
+                                {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
 
                             {/* Add button */}
@@ -1005,7 +979,6 @@ export default function PeriodsPage() {
                                         period: "Tahun Pelajaran",
                                         semester: "Semester",
                                         duration: "Pelaksanaan",
-                                        registration: "Pendaftaran",
                                         status: "Status",
                                     };
                                     return columnOrder.filter(k => colLabels[k]).map((key, idx) => (

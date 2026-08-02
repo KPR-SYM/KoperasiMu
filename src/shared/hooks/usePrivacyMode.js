@@ -6,7 +6,10 @@ const DEFAULT_MASKS = {
   date:     (v) => v.replace(/\d/g, 'X'),                  // 2024-07-14 → XXXX-XX-XX
   duration: (v) => v.replace(/\d+/g, '**'),               // 6 bulan → ** bulan
   id:       (v) => v?.toString().replace(/\d/g, '*'),      // 1 → *
-  text:     (v) => '••••',
+  text:     (v) => {
+    const len = Math.min(v.length, 4)
+    return '•'.repeat(len) || '••••'
+  },
   phone:    (v) => v.replace(/.(?=.{3})/g, 'X'),          // 08123456789 → XXXXXXXXX89
   email:    (v) => {
     const [local, domain] = v.split('@')
@@ -128,6 +131,7 @@ export function PrivacyValue({
   revealOn = 'hover',        // 'hover' | 'click' | 'longpress' | 'none'
   revealDuration = 2000,     // ms before re-masking
   onReveal,                  // callback when revealed (for audit)
+  maskType = 'text',         // mask type for maskValue function
 }) {
   const [isRevealed, setIsRevealed] = useState(false)
   const timeoutRef = useRef(null)
@@ -177,6 +181,13 @@ export function PrivacyValue({
 
   if (!active) return createElement(Fragment, null, children)
 
+  // Generate masked content
+  const maskedContent = (() => {
+    if (typeof children !== 'string') return children
+    const maskFn = DEFAULT_MASKS[maskType] || DEFAULT_MASKS.text
+    return maskFn(children)
+  })()
+
   return createElement(
     'span',
     {
@@ -187,13 +198,12 @@ export function PrivacyValue({
       'aria-label': isRevealed ? undefined : 'Data terlindungi',
       className: `inline-block align-middle select-none transition-all duration-200 ${className}`,
       style: {
-        filter: !isRevealed ? 'blur(6px)' : 'blur(0px)',
         cursor: revealOn !== 'none' ? 'pointer' : 'default',
         transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
         userSelect: isRevealed ? 'text' : 'none',
         WebkitUserSelect: isRevealed ? 'text' : 'none',
       },
     },
-    children
+    isRevealed ? children : maskedContent
   )
 }
