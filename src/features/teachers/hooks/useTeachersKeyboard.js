@@ -14,6 +14,7 @@ export function useTeachersKeyboard({
     resetAllFilters,
     setSelectedIds,
     setIsExportModalOpen,
+    handleOpenImport,
     fetchData,
 }) {
     useEffect(() => {
@@ -28,6 +29,7 @@ export function useTeachersKeyboard({
                 if (hasActiveFilters) { resetAllFilters(); return }
             }
             if (ctrl && e.key === 'k') { e.preventDefault(); searchInputRef.current?.focus(); searchInputRef.current?.select(); return }
+            if (ctrl && e.key === 'i' && !isTyping) { e.preventDefault(); handleOpenImport?.(); return }
             if (ctrl && e.key === 'f' && !isTyping) { e.preventDefault(); return }
             if (ctrl && e.key === 'a' && !isTyping) { e.preventDefault(); return }
             if (ctrl && e.key === 'e' && !isTyping) { e.preventDefault(); if (setIsExportModalOpen) setIsExportModalOpen(true); return }
@@ -39,5 +41,5 @@ export function useTeachersKeyboard({
         }
         window.addEventListener('keydown', handler)
         return () => window.removeEventListener('keydown', handler)
-    }, [setIsPrivacyMode, canEdit, handleAdd, searchInputRef, selectedIds, setIsBulkModalOpen, setIsShortcutOpen, searchQuery, setSearchQuery, hasActiveFilters, resetAllFilters, setSelectedIds, setIsExportModalOpen, fetchData])
+    }, [setIsPrivacyMode, canEdit, handleAdd, searchInputRef, selectedIds, setIsBulkModalOpen, setIsShortcutOpen, searchQuery, setSearchQuery, hasActiveFilters, resetAllFilters, setSelectedIds, setIsExportModalOpen, handleOpenImport, fetchData])
 }

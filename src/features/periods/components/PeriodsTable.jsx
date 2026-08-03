@@ -173,9 +173,11 @@ const PeriodsTable = memo(function PeriodsTable({
                             {orderedCols.map(key => (
                                 <React.Fragment key={key}>{renderColHeader(key)}</React.Fragment>
                             ))}
-                            <th className="px-4 py-2.5 text-right pr-4 relative">
-                                <div className="flex items-center justify-end gap-2">
+                            <th className="px-4 py-2.5 relative">
+                                <div className="flex items-center justify-center">
                                     <span>Aksi</span>
+                                </div>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                     <button
                                         ref={colMenuRef}
                                         onClick={(e) => {
@@ -235,7 +237,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                             <React.Fragment key={key}>{renderColCell(key, { year, ...colCellArgs })}</React.Fragment>
                                         ))}
                                         <td className="px-4 py-2.5">
-                                            <div className="flex items-center justify-end gap-1">
+                                            <div className="flex items-center justify-center gap-1">
                                                 <button onClick={() => onTogglePin?.(year.id)} title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"} className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all text-sm ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}>
                                                     <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} />
                                                 </button>

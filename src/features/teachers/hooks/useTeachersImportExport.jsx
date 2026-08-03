@@ -333,7 +333,7 @@ export function useTeachersImportExport({
             if (filterStatus) q = q.eq('status', filterStatus)
             if (filterGender) q = q.eq('gender', filterGender)
             if (filterSubject) q = q.eq('subject', filterSubject)
-            if (filterType) q = q.eq('type', filterType)
+            if (filterType) q = q.contains('type', [filterType])
         }
 
         q = q.order('name')

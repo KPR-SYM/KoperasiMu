@@ -165,11 +165,28 @@ export default function BulkActionsBar({
   useEffect(() => {
     const el = actionsRef.current
     if (!el) return
-    const check = () => setCompact(el.scrollWidth > el.clientWidth)
+    let timeout
+    const ENTER_THRESHOLD = 16
+    const EXIT_THRESHOLD = 60
+    const check = () => {
+      clearTimeout(timeout)
+      timeout = setTimeout(() => {
+        const overflowing = el.scrollWidth > el.clientWidth + ENTER_THRESHOLD
+        const hasRoom = el.clientWidth > el.scrollWidth + EXIT_THRESHOLD
+        setCompact(prev => {
+          if (prev && !hasRoom) return true
+          if (!prev && overflowing) return true
+          return prev
+        })
+      }, 100)
+    }
     check()
     const observer = new ResizeObserver(check)
     observer.observe(el)
-    return () => observer.disconnect()
+    return () => {
+      clearTimeout(timeout)
+      observer.disconnect()
+    }
   }, [secondaryActions, primaryAction])
 
   if (selectedCount <= 0) return null

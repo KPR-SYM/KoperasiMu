@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, MagnifyingGlass, Plus, SlidersHorizontal, Suitcase, ChatCircle, Trash, X } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
@@ -110,6 +110,10 @@ export default function TeachersPage() {
         setIsImportModalOpen, setIsExportModalOpen,
     })
 
+    const handleOpenImport = useCallback(() => {
+        setImportStep(1); setImportPreview([]); setImportFileName(''); setIsImportModalOpen(true)
+    }, [setImportStep, setImportPreview, setImportFileName, setIsImportModalOpen])
+
     // ── Keyboard Shortcuts ──
     useTeachersKeyboard({
         setIsPrivacyMode,
@@ -121,6 +125,7 @@ export default function TeachersPage() {
         searchQuery, setSearchQuery,
         hasActiveFilters, resetAllFilters,
         setIsExportModalOpen,
+        handleOpenImport,
         fetchData,
     })
 
@@ -188,12 +193,11 @@ export default function TeachersPage() {
                                 isOpen={isHeaderMenuOpen}
                                 rect={headerMenuRect}
                                 mounted={headerMenuMounted}
-                                canEdit={canEdit}
-                                isMutating={submitting}
                                 onClose={() => setIsHeaderMenuOpen(false)}
                                 onImportClick={() => { setImportStep(1); setImportPreview([]); setImportFileName(''); setIsImportModalOpen(true) }}
                                 onExportClick={() => setIsExportModalOpen(true)}
                                 onArchivedClick={() => { fetchArchived(); setIsArchivedOpen(true) }}
+                                archivedCount={archivedTeachers.length}
                             />
 
                             <input

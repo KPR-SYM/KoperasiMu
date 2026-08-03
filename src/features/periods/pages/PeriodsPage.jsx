@@ -52,9 +52,7 @@ import PeriodsTable from "@features/periods/components/PeriodsTable";
 import PeriodsHeaderMenu from "@features/periods/components/PeriodsHeaderMenu";
 import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMenu";
 import PeriodsReadOnlyDetail, { PeriodsHistoryModal } from "@features/periods/components/PeriodsReadOnlyDetail";
-import PeriodTemplateModal from "@features/periods/components/PeriodTemplateModal";
 import { usePeriodsNotifications } from "@features/periods/hooks/usePeriodsNotifications";
-import { usePeriodTemplates } from "@features/periods/hooks/usePeriodTemplates";
 
 const LazyPeriodComparisonModal = React.lazy(
     () => import("@features/periods/components/PeriodComparisonModal"),
@@ -207,6 +205,67 @@ export default function PeriodsPage() {
         setItemToDuplicate(item);
     }, [setItemToDuplicate]);
 
+    const handleOpenImport = useCallback(() => {
+        navigate('/master/periods/import');
+    }, [navigate]);
+
+    const handleOpenExport = useCallback(() => {
+        navigate('/master/periods/export');
+    }, [navigate]);
+
+    const handleShortcutAction = useCallback((action) => {
+        switch (action) {
+            case "focusSearch":
+                searchInputRef.current?.focus();
+                break;
+            case "toggleView":
+                setViewMode(prev => prev === "table" ? "timeline" : prev === "timeline" ? "calendar" : "table");
+                break;
+            case "add":
+                if (canEdit) handleAdd();
+                break;
+            case "import":
+                if (canEdit) handleOpenImport();
+                break;
+            case "export":
+                handleOpenExport();
+                break;
+            case "generate":
+                if (canEdit && !isMutating && years.length > 0) setIsGenerateConfirmOpen(true);
+                break;
+            case "edit":
+                if (selectedIds.length === 1) handleEdit(years.find(y => y.id === selectedIds[0]));
+                break;
+            case "duplicate":
+                if (selectedIds.length === 1) handleDuplicateClick(years.find(y => y.id === selectedIds[0]));
+                break;
+            case "resetFilter":
+                resetAllFilters();
+                break;
+            case "selectAll":
+                toggleSelectAll();
+                break;
+            case "bulkDelete":
+                if (selectedIds.length > 0) setIsBulkDeleteOpen(true);
+                break;
+            case "toggleLock":
+                if (selectedIds.length === 1) handleToggleLock(years.find(y => y.id === selectedIds[0]));
+                break;
+            case "history":
+                if (selectedIds.length === 1) handleOpenHistory(years.find(y => y.id === selectedIds[0]));
+                break;
+            case "privacy":
+                togglePrivacyMode();
+                break;
+            case "undo":
+                if (undoStack.length > 0) handleUndo();
+                break;
+            case "redo":
+                if (redoStack.length > 0) handleRedo();
+                break;
+        }
+    }, [canEdit, isMutating, years, selectedIds, handleAdd, handleOpenImport, handleOpenExport, handleEdit, handleDuplicateClick, resetAllFilters, toggleSelectAll, setIsBulkDeleteOpen, handleToggleLock, handleOpenHistory, togglePrivacyMode, handleUndo, handleRedo, undoStack, redoStack, searchInputRef, setViewMode]);
+
     const handleDuplicateConfirm = useCallback(() => {
         if (itemToDuplicate) {
             handleQuickDuplicate(itemToDuplicate);
@@ -262,26 +321,8 @@ export default function PeriodsPage() {
         isExportModalOpen, setIsExportModalOpen,
     });
 
-    const handleOpenImport = useCallback(() => {
-        navigate('/master/periods/import');
-    }, [navigate]);
-
-    const handleOpenExport = useCallback(() => {
-        navigate('/master/periods/export');
-    }, [navigate]);
-
     // ── Notifikasi Terjadwal ───────────────────────────────────────────
     usePeriodsNotifications({ years, reminderDays, addToast });
-
-    // ── Template Periode ────────────────────────────────────────────────
-    const {
-        templates,
-        isModalOpen: isTemplateModalOpen,
-        setIsModalOpen: setIsTemplateModalOpen,
-        saveTemplate,
-        deleteTemplate,
-        applyTemplate,
-    } = usePeriodTemplates({ addToast });
 
     // ── Keyboard Shortcuts ─────────────────────────────────────────────
     usePeriodsKeyboard({
@@ -296,6 +337,18 @@ export default function PeriodsPage() {
         setViewMode,
         selectedIds,
         setIsBulkDeleteOpen,
+        resetAllFilters,
+        setIsShortcutOpen,
+        handleEdit,
+        onQuickDuplicate: handleDuplicateClick,
+        toggleSelectAll,
+        handleToggleLock,
+        handleOpenHistory,
+        handleOpenImport,
+        handleOpenExport,
+        handleGenerate: () => setIsGenerateConfirmOpen(true),
+        isMutating,
+        years,
     });
 
     // ── Deep-linking: ?period=uuid ────────────────────────────────────
@@ -608,13 +661,13 @@ export default function PeriodsPage() {
                                 canEdit={canEdit}
                                 isMutating={isMutating}
                                 years={years}
+                                archivedCount={archivedYears.length}
                                 onClose={() => setIsHeaderMenuOpen(false)}
                                 onImportClick={handleOpenImport}
                                 onOpenExport={handleOpenExport}
                                 onGenerate={() => setIsGenerateConfirmOpen(true)}
                                 onOpenArchived={() => setIsArchivedOpen(true)}
                                 fetchArchived={fetchArchived}
-                                onOpenTemplates={() => setIsTemplateModalOpen(true)}
                             />
 
                             <input
@@ -627,13 +680,7 @@ export default function PeriodsPage() {
 
                             {/* Keyboard Shortcuts Button - hidden on mobile */}
                             <button
-                                onClick={() => {
-                                    if (!isShortcutOpen)
-                                        setShortcutRect(
-                                            shortcutBtnRef.current?.getBoundingClientRect(),
-                                        );
-                                    setIsShortcutOpen((v) => !v);
-                                }}
+                                onClick={() => setIsShortcutOpen(v => !v)}
                                 ref={shortcutBtnRef}
                                 className={`hidden sm:flex h-9 w-9 rounded-lg border items-center justify-center transition-all active:scale-95
                                 ${isShortcutOpen
@@ -647,8 +694,9 @@ export default function PeriodsPage() {
 
                             <PeriodsShortcutMenu
                                 isOpen={isShortcutOpen}
-                                rect={shortcutRect}
                                 onClose={() => setIsShortcutOpen(false)}
+                                onAction={handleShortcutAction}
+                                selectedCount={selectedIds.length}
                             />
 
                             {/* Privasi toggle */}
@@ -1291,20 +1339,6 @@ export default function PeriodsPage() {
                         />
                     )}
                 </React.Suspense>
-
-                <PeriodTemplateModal
-                    isOpen={isTemplateModalOpen}
-                    onClose={() => setIsTemplateModalOpen(false)}
-                    templates={templates}
-                    onSave={saveTemplate}
-                    onDelete={deleteTemplate}
-                    onApply={(tpl) => {
-                        const preview = applyTemplate(tpl, years);
-                        if (preview) {
-                            addToast(`Template "${tpl.name}" siap: ${preview.academic_year} ${preview.semester}`, "success");
-                        }
-                    }}
-                />
             </div>
         </DashboardLayout>
     );
