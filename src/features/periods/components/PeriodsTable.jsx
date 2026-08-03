@@ -60,6 +60,16 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
         );
     }
     if (key === "duration") {
+        const st = getPeriodStats?.(year.start_date, year.end_date);
+        let pct = 0;
+        let barColor = "bg-emerald-500";
+        if (year.start_date && year.end_date) {
+            const now = Date.now();
+            const s = new Date(year.start_date).getTime();
+            const e = new Date(year.end_date).getTime();
+            pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+            barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
+        }
         return (
             <td className="px-4 py-2.5">
                 <div className="flex flex-col">
@@ -71,27 +81,22 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                     <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
                         {maskValue(getDuration(year.start_date, year.end_date), "duration")}
                     </span>
-                    {!isPrivacyMode && (() => {
-                        const st = getPeriodStats?.(year.start_date, year.end_date);
-                        if (!st) return null;
-                        return (
-                            <span className="text-[8px] text-[var(--color-text-muted)] mt-0.5">
-                                {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
-                            </span>
-                        );
-                    })()}
-                    {year.start_date && year.end_date && !isPrivacyMode && (() => {
-                        const now = Date.now();
-                        const s = new Date(year.start_date).getTime();
-                        const e = new Date(year.end_date).getTime();
-                        const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
-                        const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-                        return (
+                    {isPrivacyMode ? (
+                        <span className="text-[8px] text-transparent mt-0.5 select-none">placeholder stats</span>
+                    ) : st ? (
+                        <span className="text-[8px] text-[var(--color-text-muted)] mt-0.5">
+                            {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
+                        </span>
+                    ) : null}
+                    {year.start_date && year.end_date && (
+                        isPrivacyMode ? (
+                            <div className="w-full h-1 rounded-full bg-transparent mt-1.5 overflow-hidden" />
+                        ) : (
                             <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1.5 overflow-hidden">
-                                <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+                                <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
                             </div>
-                        );
-                    })()}
+                        )
+                    )}
                 </div>
             </td>
         );
@@ -321,10 +326,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                                         {year.semester}
                                                     </span>
                                                     <span className="text-[10px] font-bold text-[var(--color-text-muted)]">
-                                                        {formatDate(year.start_date)} —{" "}
-                                                        {formatDate(year.end_date)}
+                                                        {maskValue(formatDate(year.start_date), "date")} —{" "}
+                                                        {maskValue(formatDate(year.end_date), "date")}
                                                     </span>
-                                                    {!isPrivacyMode && (() => {
+                                                    {isPrivacyMode ? (
+                                                        <span className="text-[8px] text-transparent select-none">placeholder stats</span>
+                                                    ) : (() => {
                                                         const st = getPeriodStats?.(year.start_date, year.end_date);
                                                         if (!st) return null;
                                                         return (
@@ -333,18 +340,22 @@ const PeriodsTable = memo(function PeriodsTable({
                                                             </span>
                                                         );
                                                     })()}
-                                                    {year.start_date && year.end_date && !isPrivacyMode && (() => {
-                                                        const now = Date.now();
-                                                        const s = new Date(year.start_date).getTime();
-                                                        const e = new Date(year.end_date).getTime();
-                                                        const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
-                                                        const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-                                                        return (
-                                                            <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1.5 overflow-hidden">
-                                                                <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
-                                                            </div>
-                                                        );
-                                                    })()}
+                                                    {year.start_date && year.end_date && (
+                                                        isPrivacyMode ? (
+                                                            <div className="w-full h-1 rounded-full bg-transparent mt-1.5 overflow-hidden" />
+                                                        ) : (() => {
+                                                            const now = Date.now();
+                                                            const s = new Date(year.start_date).getTime();
+                                                            const e = new Date(year.end_date).getTime();
+                                                            const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+                                                            const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
+                                                            return (
+                                                                <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1.5 overflow-hidden">
+                                                                    <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+                                                                </div>
+                                                            );
+                                                        })()
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-1">
