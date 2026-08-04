@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import { useSearchParams, useLocation, useNavigate, useParams } from "react-router-dom";
 import Skeleton from "@shared/components/Skeleton";
 import {
     Archive,
@@ -72,6 +72,9 @@ const LazyPeriodImportPanel = React.lazy(
 const LazyPeriodExportPanel = React.lazy(
     () => import("@features/periods/components/PeriodExportPanel"),
 );
+const LazyPeriodDetailPanel = React.lazy(
+    () => import("@features/periods/components/PeriodDetailPanel"),
+);
 
 function PeriodSkeletonRow() {
     return (
@@ -131,6 +134,8 @@ export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast();
     const location = useLocation();
     const navigate = useNavigate();
+    const { id: periodId } = useParams();
+    const isDetailView = !!periodId;
     const isImportView = location.pathname === '/master/periods/import';
     const isExportView = location.pathname === '/master/periods/export';
 
@@ -388,6 +393,25 @@ export default function PeriodsPage() {
     const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
     const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
     const gaps = useMemo(() => findPeriodGaps(years), [years]);
+
+    if (isDetailView) {
+        return (
+            <DashboardLayout title="Detail Periode">
+                <React.Suspense fallback={
+                    <div className="space-y-4 p-5">
+                        <div className="h-7 w-7 rounded-lg bg-[var(--color-surface-alt)] animate-pulse" />
+                        <div className="h-7 w-56 rounded-lg bg-[var(--color-surface-alt)] animate-pulse" />
+                        <div className="h-64 rounded-2xl bg-[var(--color-surface-alt)]/50 animate-pulse" />
+                    </div>
+                }>
+                    <LazyPeriodDetailPanel
+                        periodId={periodId}
+                        onBack={() => navigate('/master/periods')}
+                    />
+                </React.Suspense>
+            </DashboardLayout>
+        );
+    }
 
     if (isImportView) {
         return (

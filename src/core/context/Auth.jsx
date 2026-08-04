@@ -59,12 +59,14 @@ export function AuthProvider({ children }) {
             .select('*')
             .eq('id', userId)
             .single()
+        if (data && data.full_name && !data.name) data.name = data.full_name
         setProfile(data)
         setLoading(false)
     }
 
     /** Patch State Profil Secara Langsung Tanpa Fetch Ulang — Untuk Pembaruan Instan Di UI (Navbar, Dll) */
     function updateProfile(patch) {
+        if (patch.full_name && !patch.name) patch.name = patch.full_name
         setProfile(prev => prev ? { ...prev, ...patch } : prev)
     }
 
@@ -76,7 +78,10 @@ export function AuthProvider({ children }) {
             .select('*')
             .eq('id', user.id)
             .single()
-        if (data) setProfile(data)
+        if (data) {
+            if (data.full_name && !data.name) data.name = data.full_name
+            setProfile(data)
+        }
     }
 
     async function signIn(email, password, rememberMe = false) {

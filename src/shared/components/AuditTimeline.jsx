@@ -310,7 +310,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
             if (uids.length) {
                 const { data: pData } = await supabase
                     .from('profiles')
-                    .select('id,name')
+                    .select('id,full_name')
                     .in('id', uids)
                 if (pData) pData.forEach(p => { profileMap[p.id] = p })
             }
@@ -318,7 +318,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
             if (controller.signal.aborted) return
             setLogs((data || []).map(r => ({
                 ...r,
-                actor_name: profileMap[r.user_id]?.name || 'System',
+                actor_name: profileMap[r.user_id]?.full_name || 'System',
             })))
         } catch (e) {
             if (e.name !== 'AbortError') console.error('[AuditTimeline]', e.message)

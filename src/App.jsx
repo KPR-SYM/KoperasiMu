@@ -67,7 +67,6 @@ const StudentsPage = lazyRetry(() => import('@features/students/pages/StudentsPa
 const TeachersPage = lazyRetry(() => import('@features/teachers/pages/TeachersPage.jsx'))
 const ClassesPage = lazyRetry(() => import('@features/classes/pages/ClassesPage.jsx'))
 const PeriodsPage = lazyRetry(() => import('@features/periods/pages/PeriodsPage.jsx'))
-const PeriodDetailPage = lazyRetry(() => import('@features/periods/pages/PeriodDetailPage.jsx'))
 const EnrollmentPage = lazyRetry(() => import('@features/enrollment/pages/EnrollmentPage.jsx'))
 const PublicEnrollmentPage = lazyRetry(() => import('@features/public/pages/PublicEnrollmentPage.jsx'))
 const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/PublicStatusCheckPage.jsx'))
@@ -562,7 +561,7 @@ function AppRoutes() {
             } />
             <Route path="/master/periods/:id" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Detail Periode">
-                <PeriodDetailPage />
+                <PeriodsPage />
               </RoleFlagRoute>
             } />
             <Route path="/master/enrollment" element={

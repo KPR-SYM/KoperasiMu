@@ -295,13 +295,13 @@ function ProfileSection() {
         if (!name.trim()) { addToast('Nama tidak boleh kosong', 'warning'); return }
         setSavingProfile(true)
         try {
-            const { error } = await supabase.from('profiles').update({ name: name.trim() }).eq('id', profile.id)
+            const { error } = await supabase.from('profiles').update({ full_name: name.trim() }).eq('id', profile.id)
             if (error) throw error
-            updateProfile?.({ name: name.trim() })
+            updateProfile?.({ full_name: name.trim() })
             refreshProfile?.()
             addToast('Nama berhasil diupdate', 'success')
             setProfileDirty(false)
-            await logAudit({ action: 'UPDATE', tableName: 'profiles', recordId: profile.id, source: 'SECURITY', oldData: { name: profile.name }, newData: { name: name.trim() } })
+            await logAudit({ action: 'UPDATE', tableName: 'profiles', recordId: profile.id, source: 'SECURITY', oldData: { full_name: profile.full_name }, newData: { full_name: name.trim() } })
         } catch (err) { handleError(err, { context: 'Gagal menyimpan: ' }) }
         finally { setSavingProfile(false) }
     }

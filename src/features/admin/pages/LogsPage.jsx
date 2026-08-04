@@ -512,18 +512,18 @@ export default function LogsPage() {
             const uids = [...new Set((data || []).map(r => r.user_id).filter(id => id && uuidRegex.test(id)))]
             let profileMap = {}
             if (uids.length) {
-                const { data: pData } = await supabase.from('profiles').select('id,name,role').in('id', uids)
+                const { data: pData } = await supabase.from('profiles').select('id,full_name,role').in('id', uids)
                 if (pData) pData.forEach(p => { profileMap[p.id] = p })
             }
 
             setLogs((data || []).map(r => {
                 const p = profileMap[r.user_id]
                 // Prioritas: (1) actor_name kolom DB (snapshot saat insert), (2) JOIN ke profiles, (3) fallback
-                const resolvedName = r.actor_name || p?.name || (r.user_id ? null : 'System')
+                const resolvedName = r.actor_name || p?.full_name || (r.user_id ? null : 'System')
                 const resolvedRole = r.actor_role || p?.role || (r.user_id ? 'unknown' : 'auto')
                 return {
                     ...r,
-                    actor_name: resolvedName || (r.user_id ? p?.name || 'Pengguna Tidak Dikenal' : 'System'),
+                    actor_name: resolvedName || (r.user_id ? p?.full_name || 'Pengguna Tidak Dikenal' : 'System'),
                     actor_role: resolvedRole,
                 }
             }))

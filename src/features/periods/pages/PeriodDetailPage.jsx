@@ -87,10 +87,19 @@ export default function PeriodDetailPage() {
 
             const { data: cls } = await supabase
                 .from('classes')
-                .select('id, students(count)')
+                .select('id')
                 .eq('academic_year_id', id)
             const classCount = cls?.length || 0
-            const studentCount = cls?.reduce((sum, c) => sum + (c.students?.[0]?.count || 0), 0) || 0
+            let studentCount = 0
+            if (classCount > 0) {
+                const classIds = cls.map(c => c.id)
+                const { count } = await supabase
+                    .from('students')
+                    .select('id', { count: 'exact', head: true })
+                    .in('class_id', classIds)
+                    .is('deleted_at', null)
+                studentCount = count || 0
+            }
             setUsageStats({ classCount, studentCount })
         } catch {
             addToast('Gagal memuat data periode', 'error')

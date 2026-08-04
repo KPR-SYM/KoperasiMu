@@ -22,11 +22,11 @@ export async function logAudit({ action, tableName, source = 'SYSTEM', recordId 
         try {
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('name, role')
+                .select('full_name, role')
                 .eq('id', user.id)
                 .single()
             if (profile) {
-                actorName = profile.name || user.email || 'System'
+                actorName = profile.full_name || user.email || 'System'
                 actorRole = profile.role || 'unknown'
             }
         } catch (e) {
@@ -95,11 +95,11 @@ export async function logAuditBatch(entries) {
         try {
             const { data: profile } = await supabase
                 .from('profiles')
-                .select('name, role')
+                .select('full_name, role')
                 .eq('id', user.id)
                 .single()
             if (profile) {
-                actorName = profile.name || user.email || 'System'
+                actorName = profile.full_name || user.email || 'System'
                 actorRole = profile.role || 'unknown'
             }
         } catch (e) {

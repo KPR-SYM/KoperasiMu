@@ -1,8 +1,10 @@
-import React, { memo } from "react";
+import React, { memo, useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
     Calendar,
     ClockCounterClockwise,
     Copy,
+    DotsThree,
     Eye,
     GraduationCap,
     Lock,
@@ -159,6 +161,36 @@ const PeriodsTable = memo(function PeriodsTable({
     const orderedCols = columnOrder.filter(k => visibleCols[k] && COL_LABELS[k]);
     const colCellArgs = { isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years };
 
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
+    const menuRef = useRef(null);
+
+    const closeMenu = useCallback(() => setOpenMenuId(null), []);
+
+    const toggleMenu = useCallback((e, id) => {
+        if (openMenuId === id) {
+            closeMenu();
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const menuHeight = 200;
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const showUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+            const top = showUp ? rect.top - 4 : rect.bottom + 4;
+            setMenuPos({ top: showUp ? undefined : top, bottom: showUp ? window.innerHeight - rect.top + 4 : undefined, left: rect.right - 176 });
+            setOpenMenuId(id);
+        }
+    }, [openMenuId, closeMenu]);
+
+    useEffect(() => {
+        if (!openMenuId) return;
+        const handler = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) closeMenu();
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [openMenuId, closeMenu]);
+
     return (
         <>
             <div className="hidden md:block overflow-x-auto">
@@ -239,32 +271,52 @@ const PeriodsTable = memo(function PeriodsTable({
                                         ))}
                                         <td className="px-4 py-2.5">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button onClick={() => onTogglePin?.(year.id)} title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"} className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all text-sm ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}>
-                                                    <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} />
+                                                <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm">
+                                                    <Eye />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
                                                     <button onClick={() => handleEdit(year)} title="Edit" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm">
                                                         <Pencil />
                                                     </button>
                                                 )}
-                                                {canEdit && (
-                                                    <button onClick={() => onQuickDuplicate?.(year)} title="Duplikasi ke tahun berikutnya" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm">
-                                                        <Copy />
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={(e) => toggleMenu(e, year.id)}
+                                                        title="Lainnya"
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all text-sm"
+                                                    >
+                                                        <DotsThree weight="bold" />
                                                     </button>
-                                                )}
-                                                <button onClick={() => handleOpenHistory(year)} title="Riwayat" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-purple-500 hover:bg-purple-500/10 transition-all text-sm">
-                                                    <ClockCounterClockwise />
-                                                </button>
-                                                {canEdit && (
-                                                    <button onClick={() => handleToggleLock(year)} title={year.is_locked ? "Buka Kunci" : "Kunci"} className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all text-sm ${year.is_locked ? "text-emerald-500 hover:bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-500/10"}`}>
-                                                        {year.is_locked ? <LockOpen /> : <Lock />}
-                                                    </button>
-                                                )}
-                                                {canEdit && !year.is_locked && (
-                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); }} title="Hapus" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all text-sm">
-                                                        <Trash />
-                                                    </button>
-                                                )}
+                                                    {openMenuId === year.id && createPortal(
+                                                        <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, bottom: menuPos.bottom, left: menuPos.left, zIndex: 9999 }} className="w-44 py-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+                                                            <button onClick={() => { onTogglePin?.(year.id); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                <PushPin className="w-3.5 h-3.5" /> {pinnedIds?.includes(year.id) ? "Lepas Pin" : "Pin ke Atas"}
+                                                            </button>
+                                                            {canEdit && (
+                                                                <button onClick={() => { onQuickDuplicate?.(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                    <Copy className="w-3.5 h-3.5" /> Duplikasi
+                                                                </button>
+                                                            )}
+                                                            <button onClick={() => { handleOpenHistory(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                <ClockCounterClockwise className="w-3.5 h-3.5" /> Riwayat
+                                                            </button>
+                                                            {canEdit && (
+                                                                <button onClick={() => { handleToggleLock(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                    {year.is_locked ? <><LockOpen className="w-3.5 h-3.5" /> Buka Kunci</> : <><Lock className="w-3.5 h-3.5" /> Kunci</>}
+                                                                </button>
+                                                            )}
+                                                            {canEdit && !year.is_locked && (
+                                                                <>
+                                                                    <div className="my-1 border-t border-[var(--color-border)]" />
+                                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 text-red-500 hover:bg-red-50 transition-colors">
+                                                                        <Trash className="w-3.5 h-3.5" /> Hapus
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>,
+                                                        document.body
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>

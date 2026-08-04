@@ -679,12 +679,14 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
     const handleToggleLock = useCallback(async (item) => {
         if (isSaving) return;
+        const newStatus = !item.is_locked;
+        const updatePayload = newStatus
+            ? { is_locked: true, locked_at: new Date().toISOString(), locked_by: profile?.id ?? null }
+            : { is_locked: false, locked_at: null, locked_by: null };
+
+        setYears(prev => prev.map(y => y.id === item.id ? { ...y, ...updatePayload } : y));
         setIsSaving(true);
         try {
-            const newStatus = !item.is_locked;
-            const updatePayload = newStatus
-                ? { is_locked: true, locked_at: new Date().toISOString(), locked_by: profile?.id ?? null }
-                : { is_locked: false, locked_at: null, locked_by: null };
             const { error } = await supabase
                 .from("periods")
                 .update(updatePayload)
@@ -697,13 +699,13 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                     recordId: item.id, oldData: item, newData: { ...item, ...updatePayload },
                 });
             } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
-            fetchData();
         } catch (err) {
+            setYears(prev => prev.map(y => y.id === item.id ? { ...y, ...item } : y));
             addToast(err?.message || "Gagal mengubah status", "error");
         } finally {
             setIsSaving(false);
         }
-    }, [isSaving, profile, fetchData, addToast]);
+    }, [isSaving, profile, addToast]);
 
     const handleQuickToggleActive = useCallback(async (item) => {
         if (isSaving || !canEdit || item?.is_locked) return;
