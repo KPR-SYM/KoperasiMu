@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { supabase } from "@lib/supabase";
 import { logAudit } from "@utils/auditLogger";
@@ -36,6 +36,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const { enabled: moduleEnabled } = useFlag("module.periods");
     const { profile } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     // ── URL Sync: Initialize state from URL ──────────────────────────────────
     const initSearchQuery = searchParams.get("q") || "";
@@ -456,19 +457,8 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     }, []);
 
     const handleOpenReadOnlyDetail = useCallback(async (item) => {
-        setReadOnlyDetailItem(item);
-        setIsReadOnlyDetailOpen(true);
-        setPeriodUsageStats(null);
-        try {
-            const { data: cls } = await supabase
-                .from('classes')
-                .select('id, students(count)')
-                .eq('academic_year_id', item.id);
-            const classCount = cls?.length || 0;
-            const studentCount = cls?.reduce((sum, c) => sum + (c.students?.[0]?.count || 0), 0) || 0;
-            setPeriodUsageStats({ classCount, studentCount });
-        } catch { setPeriodUsageStats({ classCount: 0, studentCount: 0 }); }
-    }, []);
+        navigate(`/master/periods/${item.id}`);
+    }, [navigate]);
 
     const handleOpenHistory = useCallback((item) => {
         setHistoryItem(item);

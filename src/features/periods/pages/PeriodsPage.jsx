@@ -357,14 +357,9 @@ export default function PeriodsPage() {
         if (!periodId || !years.length || loading) return
         const found = years.find(y => y.id === periodId)
         if (found) {
-            setReadOnlyDetailItem(found)
-            setIsReadOnlyDetailOpen(true)
-            // Hapus param dari URL
-            const next = new URLSearchParams(searchParams)
-            next.delete("period")
-            setSearchParams(next, { replace: true })
+            navigate(`/master/periods/${periodId}`, { replace: true })
         }
-    }, [searchParams, years, loading, setSearchParams])
+    }, [searchParams, years, loading, navigate])
 
     if (!moduleEnabled) {
         return (

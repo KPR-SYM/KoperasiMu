@@ -3,6 +3,7 @@ import {
     Calendar,
     ClockCounterClockwise,
     Copy,
+    Eye,
     GraduationCap,
     Lock,
     LockOpen,
@@ -317,7 +318,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                 onClick={() => handleOpenReadOnlyDetail(year)}
                                             >
                                                 <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
-                                                    <button type="button" onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
+                                                    <button type="button" onClick={() => handleOpenReadOnlyDetail(year)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full cursor-pointer">
                                                         {year.academic_year}
                                                     </button>
                                                 </PeriodContextTooltip>
@@ -367,6 +368,13 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}
                                                 >
                                                     <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} className="text-xs" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleOpenReadOnlyDetail(year)}
+                                                    title="Lihat Detail"
+                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all"
+                                                >
+                                                    <Eye className="text-xs" />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
                                                     <button
