@@ -1787,13 +1787,13 @@ export default function PeriodImportPanel(props) {
 
                     <div className="flex items-center justify-between px-5 py-3.5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
                         <div className="flex items-center gap-3">
-                            {importStep > 1 && !importing && (
+                            {!showSidebar && (
                                 <button
-                                    onClick={() => handleGoToStep(v => v - 1)}
-                                    className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2"
+                                    onClick={() => setShowSidebar(true)}
+                                    className="h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-1.5"
                                 >
-                                    <ArrowLeft className="w-3.5 h-3.5" />
-                                    Kembali
+                                    <List className="w-3 h-3" />
+                                    Panduan
                                 </button>
                             )}
                             {importStep === 1 && (
@@ -1805,13 +1805,13 @@ export default function PeriodImportPanel(props) {
                                     Template
                                 </button>
                             )}
-                            {!showSidebar && (
+                            {importStep > 1 && !importing && (
                                 <button
-                                    onClick={() => setShowSidebar(true)}
-                                    className="h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-1.5"
+                                    onClick={() => handleGoToStep(v => v - 1)}
+                                    className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2"
                                 >
-                                    <List className="w-3 h-3" />
-                                    Langkah
+                                    <ArrowLeft className="w-3.5 h-3.5" />
+                                    Kembali
                                 </button>
                             )}
                         </div>
