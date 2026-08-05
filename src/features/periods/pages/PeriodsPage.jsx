@@ -360,9 +360,9 @@ export default function PeriodsPage() {
     useEffect(() => {
         const periodId = searchParams.get("period")
         if (!periodId || !years.length || loading) return
-        const found = years.find(y => y.id === periodId)
+        const found = years.find(y => y.id === periodId || y.uuid === periodId)
         if (found) {
-            navigate(`/master/periods/${periodId}`, { replace: true })
+            navigate(`/master/periods/${found.uuid || periodId}`, { replace: true })
         }
     }, [searchParams, years, loading, navigate])
 

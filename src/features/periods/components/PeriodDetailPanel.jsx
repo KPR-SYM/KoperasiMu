@@ -354,12 +354,14 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     const fetchPeriod = useCallback(async () => {
         setLoading(true)
         try {
-            const { data, error } = await supabase
-                .from('periods')
-                .select('*')
-                .eq('id', periodId)
-                .is('deleted_at', null)
-                .single()
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(periodId)
+            let query = supabase.from('periods').select('*').is('deleted_at', null)
+            if (isUUID) {
+                query = query.eq('uuid', periodId)
+            } else {
+                query = query.eq('id', periodId)
+            }
+            const { data, error } = await query.single()
             if (error || !data) {
                 addToastRef.current('Periode tidak ditemukan', 'error')
                 onBackRef.current()
@@ -1159,7 +1161,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 <div className="space-y-2">
                                     {neighborPeriods.prev && (
                                         <button
-                                            onClick={() => navigate(`/master/periods/${neighborPeriods.prev.id}`)}
+                                            onClick={() => navigate(`/master/periods/${neighborPeriods.prev.uuid || neighborPeriods.prev.id}`)}
                                             className="w-full p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 hover:bg-[var(--color-surface-alt)]/60 transition-colors text-left"
                                         >
                                             <div className="flex items-center gap-2 mb-1">
@@ -1176,7 +1178,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                     )}
                                     {neighborPeriods.next && (
                                         <button
-                                            onClick={() => navigate(`/master/periods/${neighborPeriods.next.id}`)}
+                                            onClick={() => navigate(`/master/periods/${neighborPeriods.next.uuid || neighborPeriods.next.id}`)}
                                             className="w-full p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 hover:bg-[var(--color-surface-alt)]/60 transition-colors text-left"
                                         >
                                             <div className="flex items-center gap-2 mb-1">

@@ -457,7 +457,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     }, []);
 
     const handleOpenReadOnlyDetail = useCallback(async (item) => {
-        navigate(`/master/periods/${item.id}`);
+        navigate(`/master/periods/${item.uuid || item.id}`);
     }, [navigate]);
 
     const handleOpenHistory = useCallback((item) => {
