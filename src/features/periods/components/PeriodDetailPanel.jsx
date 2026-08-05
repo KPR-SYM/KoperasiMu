@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     Calendar, CaretLeft, CheckCircle, ClockCounterClockwise,
@@ -528,7 +528,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
 
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-    const [recentAudit, setRecentAudit] = useState([])
     const [allPeriodsData, setAllPeriodsData] = useState([])
     const [warningsCollapsed, setWarningsCollapsed] = useState(false)
 
@@ -676,20 +675,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 }
             } catch {
                 setAllPeriodsData([])
-            }
-
-            // Fetch recent audit logs inline
-            try {
-                const { data: auditData } = await supabase
-                    .from('audit_logs')
-                    .select('id, action, created_at, old_data, new_data')
-                    .eq('table_name', 'periods')
-                    .eq('record_id', data.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5)
-                setRecentAudit(auditData || [])
-            } catch {
-                setRecentAudit([])
             }
         } catch {
             addToastRef.current('Gagal memuat data periode', 'error')
@@ -1076,18 +1061,13 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
             <div className="px-5 pb-5 print-area">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-                    {/* ── Top Row: Warnings + Health Score (same height) ── */}
-                    <div className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-                        <div className="lg:col-span-2">
+                    {/* ── Left Column (2/3) ── */}
+                    <div className="lg:col-span-2 space-y-4">
+                        {/* Top Row: 2 cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <WarningsPanel period={period} usageStats={usageStats} overlapWarning={overlapWarning} onAddNotes={() => setIsNotesEditing(true)} collapsed={warningsCollapsed} onToggleCollapse={() => setWarningsCollapsed(v => !v)} />
-                        </div>
-                        <div>
                             <HealthScore period={period} usageStats={usageStats} />
                         </div>
-                    </div>
-
-                    {/* ── Left Column ── */}
-                    <div className="lg:col-span-2 space-y-4">
 
                         {/* Main Header Card */}
                         <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden">
@@ -1428,48 +1408,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 )}
                             </div>
                         </div>
-
-                        {/* Inline Recent Activity */}
-                        {recentAudit.length > 0 && (
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                                <div className="flex items-center gap-2.5 mb-3">
-                                    <div className="w-7 h-7 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                                        <ClockCounterClockwise className="w-3.5 h-3.5 text-purple-500" />
-                                    </div>
-                                    <h3 className="text-xs font-black text-[var(--color-text)]">Aktivitas Terbaru</h3>
-                                </div>
-                                <div className="space-y-2">
-                                    {recentAudit.map((log) => {
-                                        const actionLabel = log.action === 'CREATE' ? 'Dibuat' : log.action === 'UPDATE' ? 'Diperbarui' : log.action === 'DELETE' ? 'Dihapus' : log.action
-                                        const timeDiff = (() => {
-                                            const ms = Date.now() - new Date(log.created_at).getTime()
-                                            const mins = Math.floor(ms / 60000)
-                                            if (mins < 1) return 'Baru saja'
-                                            if (mins < 60) return `${mins}m lalu`
-                                            const hrs = Math.floor(mins / 60)
-                                            if (hrs < 24) return `${hrs}j lalu`
-                                            const days = Math.floor(hrs / 24)
-                                            return `${days}h lalu`
-                                        })()
-                                        return (
-                                            <div key={log.id} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-[var(--color-surface-alt)]/30 transition-colors">
-                                                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
-                                                    log.action === 'CREATE' ? 'bg-emerald-500' :
-                                                    log.action === 'UPDATE' ? 'bg-blue-500' :
-                                                    'bg-red-500'
-                                                }`} />
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-[10px] font-bold text-[var(--color-text)]">
-                                                        {actionLabel}
-                                                    </p>
-                                                    <p className="text-[9px] text-[var(--color-text-muted)]">{timeDiff}</p>
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </div>
-                        )}
                     </div>
                     <div className="space-y-4">
 
