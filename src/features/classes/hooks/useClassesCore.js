@@ -128,7 +128,7 @@ export function useClassesCore({ addToast }) {
             const tList = tRes.data || []
             const yList = (yRes.data || []).map(y => ({ ...y, label: [y.academic_year, y.semester].filter(Boolean).join(' ') || '—' }))
             setTeachersList(tList); setAcademicYearsList(yList)
-            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.id, y.label])) }
+            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
         } catch { return { t: {}, y: {} } }
     }, [])
 
@@ -136,18 +136,18 @@ export function useClassesCore({ addToast }) {
         setLoading(true)
         try {
             const { t: tMap, y: yMap } = await loadMetadata()
-            let q = supabase.from('classes').select('id, name, grade, major, homeroom_teacher_id, academic_year_id, created_at, students(count)').order('name')
+            let q = supabase.from('classes').select('id, name, grade_level, homeroom_teacher_id, academic_year, capacity, is_active, created_at, students(count)').order('name')
             const { data, error } = await q
             if (!error && data) {
                 const mapped = data.map(row => ({
                     ...row,
                     teacherName: row.homeroom_teacher_id ? (tMap[row.homeroom_teacher_id] || '—') : '—',
-                    periodName: row.academic_year_id ? (yMap[row.academic_year_id] || '—') : '—',
+                    periodName: row.academic_year ? (yMap[row.academic_year] || '—') : '—',
                     students: row.students?.[0]?.count ?? 0,
                 }))
                 setClasses(mapped)
-                const s = { total: mapped.length, boarding: 0, reguler: 0, totalStudents: 0 }
-                mapped.forEach(c => { if (c.major?.includes('Boarding')) s.boarding++; else s.reguler++; s.totalStudents += (c.students || 0) })
+                const s = { total: mapped.length, boarding: 0, reguler: mapped.length, totalStudents: 0 }
+                mapped.forEach(c => { s.totalStudents += (c.students || 0) })
                 setStats(s)
             }
         } catch (err) { console.error(err) }
@@ -198,15 +198,15 @@ export function useClassesCore({ addToast }) {
     const filtered = useMemo(() => {
         let result = classes.filter(c => {
             const q = searchQuery.toLowerCase()
-            const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.major || '').toLowerCase().includes(q) || (c.teacherName || '').toLowerCase().includes(q)
-            const matchLevel = !filterLevel || c.grade === filterLevel
-            const matchProg = !filterProgram || (c.major || '').includes(filterProgram)
+            const matchSearch = !q || c.name.toLowerCase().includes(q) || (c.teacherName || '').toLowerCase().includes(q)
+            const matchLevel = !filterLevel || c.grade_level?.toString() === filterLevel
+            const matchProg = !filterProgram || true
             const matchNoTeacher = !filterNoTeacher || !c.homeroom_teacher_id
             const matchCrowded = !filterCrowded || c.students > 35
             return matchSearch && matchLevel && matchProg && matchNoTeacher && matchCrowded
         })
         if (sortBy === 'name') result.sort((a, b) => a.name.localeCompare(b.name))
-        else if (sortBy === 'level') result.sort((a, b) => (a.grade || '').localeCompare(b.grade || '') || a.name.localeCompare(b.name))
+        else if (sortBy === 'level') result.sort((a, b) => (a.grade_level || 0) - (b.grade_level || 0) || a.name.localeCompare(b.name))
         else if (sortBy === 'students') result.sort((a, b) => (b.students || 0) - (a.students || 0))
         return result
     }, [classes, searchQuery, filterLevel, filterProgram, filterNoTeacher, filterCrowded, sortBy])
@@ -243,7 +243,7 @@ export function useClassesCore({ addToast }) {
     const handleSubmit = async (formData) => {
         setSubmitting(true)
         const finalMajor = [formData.program, formData.gender_type].filter(Boolean).join(' ')
-        const payload = { name: formData.name, grade: formData.level, major: finalMajor, homeroom_teacher_id: formData.homeroom_teacher_id || null, academic_year_id: formData.academic_year_id || null }
+        const payload = { name: formData.name, grade_level: parseInt(formData.level) || null, homeroom_teacher_id: formData.homeroom_teacher_id || null, academic_year: formData.academic_year || null }
         try {
             if (selectedItem) { const { error } = await supabase.from('classes').update(payload).eq('id', selectedItem.id); if (error) throw error; addToast('Data kelas berhasil diupdate', 'success'); await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } }) }
             else { const { data: insData, error } = await supabase.from('classes').insert(payload).select().single(); if (error) throw error; addToast('Kelas baru berhasil ditambahkan', 'success'); await logAudit({ action: 'INSERT', source: 'SYSTEM', tableName: 'classes', recordId: insData?.id, newData: payload }) }

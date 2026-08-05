@@ -91,7 +91,7 @@ const Tooltip = memo(function Tooltip({
                 <div
                     id={tooltipId}
                     role="tooltip"
-                    className={`fixed z-[99999] px-2.5 py-1.5 rounded-lg bg-[var(--color-text)] text-white text-[10px] font-bold shadow-lg pointer-events-none animate-in fade-in zoom-in-95 ${className}`}
+                    className={`fixed z-[99999] px-2.5 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-bold shadow-lg pointer-events-none animate-in fade-in zoom-in-95 ${className}`}
                     style={{
                         top: coords.top,
                         left: coords.left,

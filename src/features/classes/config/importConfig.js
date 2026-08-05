@@ -27,7 +27,7 @@ export const classesImportConfig = {
         program: { type: 'static', options: ['Boarding', 'Reguler'].map(v => ({ id: v, name: v })) },
         gender_type: { type: 'static', options: ['Putra', 'Putri'].map(v => ({ id: v, name: v })) },
         homeroom_teacher_id: { type: 'searchable_fk', listKey: 'teachersList', labelKey: 'name' },
-        academic_year_id: { type: 'searchable_fk', listKey: 'periodsList', labelKey: 'name' },
+        academic_year: { type: 'searchable_fk', listKey: 'periodsList', labelKey: 'name' },
     },
 
     templateColumns: [

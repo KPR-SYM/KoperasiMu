@@ -51,8 +51,8 @@ export const useClassesImportExport = ({
     // ── Export Logic ──
     const ALL_EXPORT_COLUMNS = [
         { key: 'nama_kelas', label: 'Nama Kelas', fn: c => c.name || '-' },
-        { key: 'tingkat', label: 'Tingkat / Grade', fn: c => c.grade || '-' },
-        { key: 'program', label: 'Program / Major', fn: c => c.major || '-' },
+        { key: 'tingkat', label: 'Tingkat / Grade', fn: c => c.grade_level ?? '-' },
+        { key: 'program', label: 'Program / Major', fn: c => c.name || '-' },
         { key: 'wali_kelas', label: 'Wali Kelas', fn: c => c.teacherName || '-' },
         { key: 'tahun_ajaran', label: 'Tahun Ajaran', fn: c => c.periodName || '-' },
         { key: 'jumlah_siswa', label: 'Jumlah Siswa', fn: c => c.students || 0 },
@@ -67,12 +67,12 @@ export const useClassesImportExport = ({
             ])
             const tList = tRes.data || []
             const yList = (yRes.data || []).map(y => ({ ...y, label: [y.academic_year, y.semester].filter(Boolean).join(' ') || '—' }))
-            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.id, y.label])) }
+            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
         } catch { return { t: {}, y: {} } }
     }, [])
 
     const getExportData = useCallback(async () => {
-        let q = supabase.from('classes').select('name, grade, major, homeroom_teacher_id, academic_year_id, students(count)').order('name')
+        let q = supabase.from('classes').select('name, grade_level, homeroom_teacher_id, academic_year, students(count)').order('name')
         if (exportScope === 'filtered') {
             // Use current filtered data IDs
             q = q.in('id', filtered.map(c => c.id))
@@ -86,7 +86,7 @@ export const useClassesImportExport = ({
             const enriched = {
                 ...c,
                 teacherName: c.homeroom_teacher_id ? (tMap[c.homeroom_teacher_id] || '-') : '-',
-                periodName: c.academic_year_id ? (yMap[c.academic_year_id] || '-') : '-',
+                periodName: c.academic_year ? (yMap[c.academic_year] || '-') : '-',
                 students: c.students?.[0]?.count || 0
             }
             const row = {}
@@ -253,7 +253,7 @@ export const useClassesImportExport = ({
         setImportLoading(true)
         try {
             const teacherByName = Object.fromEntries((teachersList || []).map(t => [t.name.toLowerCase().trim(), t.id]))
-            const yearByLabel = Object.fromEntries((periodsList || []).map(y => [y.label.toLowerCase().trim(), y.id]))
+            const yearByLabel = Object.fromEntries((periodsList || []).map(y => [y.label.toLowerCase().trim(), y.academic_year]))
 
             const preview = raw.map((row, i) => {
                 const data = {}
@@ -268,17 +268,17 @@ export const useClassesImportExport = ({
                 let homeroom_teacher_id = null
                 if (teacher) homeroom_teacher_id = teacherByName[teacher.toLowerCase()] || null
 
-                let academic_year_id = null
-                if (year) academic_year_id = yearByLabel[year.toLowerCase()] || null
+                let academic_year = null
+                if (year) academic_year = yearByLabel[year.toLowerCase()] || null
 
                 let gType = gender_type.toUpperCase().trim()
                 if (['L', 'LAKI-LAKI', 'LAKI LAKI', 'MALE', 'PUTRA'].includes(gType)) gType = 'Putra'
                 else if (['P', 'PEREMPUAN', 'FEMALE', 'PUTRI'].includes(gType)) gType = 'Putri'
                 else gType = gender_type
 
-                const major = [program, gType].filter(Boolean).join(' ') || null
+                const major = null
 
-                return { ...data, _row: i, major, homeroom_teacher_id, academic_year_id }
+                return { ...data, _row: i, homeroom_teacher_id, academic_year }
             })
 
             const issues = []
@@ -289,7 +289,7 @@ export const useClassesImportExport = ({
                 else if (!LEVELS.includes(row.grade)) rowIssues.push(`Tingkat "${row.grade}" tidak valid. (Gunakan: ${LEVELS.join(', ')})`)
                 if (row.program && !PROGRAMS.includes(row.program)) rowIssues.push(`Program "${row.program}" tidak dikenali (Gunakan: Boarding/Reguler)`)
                 if (row.teacher && !row.homeroom_teacher_id) rowIssues.push(`Wali Kelas "${row.teacher}" tidak ditemukan, akan dikosongkan`)
-                if (row.year && !row.academic_year_id) rowIssues.push(`Tahun Ajaran "${row.year}" tidak ditemukan, akan dikosongkan`)
+                if (row.year && !row.academic_year) rowIssues.push(`Tahun Ajaran "${row.year}" tidak ditemukan, akan dikosongkan`)
 
                 if (row.name && preview.slice(0, i).some(p => p.name.toLowerCase() === row.name.toLowerCase())) {
                     rowIssues.push(`Nama Kelas "${row.name}" duplikat dalam file`)
@@ -323,7 +323,7 @@ export const useClassesImportExport = ({
                 if (['L', 'LAKI-LAKI', 'LAKI LAKI', 'MALE', 'PUTRA'].includes(gType)) gType = 'Putra'
                 else if (['P', 'PEREMPUAN', 'FEMALE', 'PUTRI'].includes(gType)) gType = 'Putri'
                 else gType = r.gender_type
-                r.major = [r.program, gType].filter(Boolean).join(' ') || null
+                r.gender_type = gType
             }
 
             r._hasError = !r.name || !r.grade || !LEVELS.includes(r.grade)
@@ -351,10 +351,9 @@ export const useClassesImportExport = ({
             for (let i = 0; i < importReadyRows.length; i += CHUNK) {
                 const chunk = importReadyRows.slice(i, i + CHUNK).map(r => ({
                     name: r.name,
-                    grade: r.grade,
-                    major: r.major || null,
+                    grade_level: parseInt(r.grade) || null,
                     homeroom_teacher_id: r.homeroom_teacher_id || null,
-                    academic_year_id: r.academic_year_id || null,
+                    academic_year: r.academic_year || null,
                 }))
                 const { error } = await supabase.from('classes').insert(chunk)
                 if (error) throw error

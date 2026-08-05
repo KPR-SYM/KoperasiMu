@@ -42,7 +42,7 @@ export const ClassRow = React.memo(({
             >
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shadow-inner shrink-0 border border-[var(--color-primary)]/20">
-                        {cls.grade}
+                        {cls.grade_level}
                     </div>
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
@@ -59,7 +59,7 @@ export const ClassRow = React.memo(({
                             )}
                         </div>
                         <span className="text-[9px] font-black text-[var(--color-text-muted)] opacity-60 uppercase tracking-widest">
-                            LVL {cls.grade} â€¢ {cls.major}
+                            LVL {cls.grade_level}
                         </span>
                     </div>
                 </div>
@@ -74,36 +74,20 @@ export const ClassRow = React.memo(({
                 </td>
             )}
 
-            {/* Program SealCheck */}
+            {/* Program */}
             {visibleCols.program && (
                 <td className="px-6 py-4 text-center">
-                    {cls.major.includes('Boarding') ? (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[9px] font-black uppercase border border-amber-500/20 tracking-widest">
-                            <Bed className="w-2 h-2" /> Boarding
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[9px] font-black uppercase border border-[var(--color-border)] tracking-widest">
-                            <Building className="w-2 h-2" /> Reguler
-                        </span>
-                    )}
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[9px] font-black uppercase border border-[var(--color-border)] tracking-widest">
+                        —
+                    </span>
                 </td>
             )}
 
-            {/* Gender Icon */}
+            {/* Gender */}
             {visibleCols.gender && (
                 <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
-                        {cls.major.includes('Putra') ? (
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs bg-blue-500/10 text-blue-500 border border-blue-500/20 shadow-inner" title="Putra">
-                                <GenderMale />
-                            </div>
-                        ) : cls.major.includes('Putri') ? (
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs bg-pink-500/10 text-pink-500 border border-pink-500/20 shadow-inner" title="Putri">
-                                <GenderFemale />
-                            </div>
-                        ) : (
-                            <span className="text-[var(--color-text-muted)] text-[10px] opacity-30">â€”</span>
-                        )}
+                        <span className="text-[var(--color-text-muted)] text-[10px] opacity-30">—</span>
                     </div>
                 </td>
             )}
@@ -210,16 +194,6 @@ export const ClassMobileCard = React.memo(({
                         <div className="min-w-0">
                             <h3 className="font-extrabold text-sm text-[var(--color-text)] truncate">{cls.name}</h3>
                             <div className="flex items-center gap-1.5 mt-1">
-                                {cls.major.includes('Boarding') ? (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 text-[8px] font-black uppercase tracking-widest border border-amber-500/10">Boarding</span>
-                                ) : (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[8px] font-black uppercase tracking-widest border border-[var(--color-border)]">Reguler</span>
-                                )}
-                                {cls.major.includes('Putra') ? (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 text-[8px] font-black uppercase tracking-widest border border-blue-500/10">Putra</span>
-                                ) : cls.major.includes('Putri') ? (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-pink-500/10 text-pink-600 text-[8px] font-black uppercase tracking-widest border border-pink-500/10">Putri</span>
-                                ) : null}
                                 {isNoTeacher && (
                                     <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-500 text-[8px] font-black uppercase tracking-widest border border-amber-500/10">Tanpa Wali</span>
                                 )}
@@ -252,7 +226,7 @@ export const ClassMobileCard = React.memo(({
                     </div>
 
                     <div className="mt-3 pt-3 border-t border-dashed border-[var(--color-border)] flex items-center justify-between text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
-                        <span>Lvl {cls.grade}</span>
+                        <span>Lvl {cls.grade_level}</span>
                         <span>{cls.periodName || 'â€”'}</span>
                     </div>
                 </div>

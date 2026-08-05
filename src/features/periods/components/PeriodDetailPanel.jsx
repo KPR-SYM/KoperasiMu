@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-    Calendar, CaretLeft, CaretRight, CheckCircle, ClockCounterClockwise,
+    Calendar, CaretLeft, CheckCircle, ClockCounterClockwise,
     Buildings, Users, Lock, LockOpen, Pencil, Archive,
     Fingerprint, Eye, EyeSlash, Copy,
     Timer, CalendarCheck, Hourglass, UserCircle, Info, TrendUp,
     ArrowLeft, ArrowRight, ArrowClockwise, Notepad, ListChecks,
-    Warning, CheckFat,
+    Warning, CheckFat, Link as LinkIcon, ArrowSquareOut,
+    Gauge, ShieldCheck, BookOpen, GraduationCap, ChalkboardTeacher,
+    Megaphone, Printer,
 } from '@phosphor-icons/react'
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { supabase } from '@lib/supabase'
 import { useFlag } from '@context/FeatureFlags'
 import { useToast } from '@context/Toast'
@@ -16,7 +17,7 @@ import { useAuth } from '@context/Auth'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import { logAudit } from '@utils/auditLogger'
 import {
-    Badge, Breadcrumb, Alert, AuditTimeline, ConfirmDialog, Skeleton, Tooltip,
+    Breadcrumb, AuditTimeline, Skeleton, Tooltip,
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
 import { ArchiveModal } from '@features/periods/components/PeriodConfirmModals'
@@ -97,15 +98,10 @@ function getGradeStyle(grade) {
     if (g === 'XII' || g === '12') return { bg: 'bg-emerald-500/10', text: 'text-emerald-600' }
     if (g === 'XI'  || g === '11') return { bg: 'bg-purple-500/10',  text: 'text-purple-600'  }
     if (g === 'X'   || g === '10') return { bg: 'bg-blue-500/10',    text: 'text-blue-600'    }
+    if (g === 'IX'  || g === '9')  return { bg: 'bg-amber-500/10',   text: 'text-amber-600'   }
+    if (g === 'VIII' || g === '8') return { bg: 'bg-orange-500/10',  text: 'text-orange-600'  }
+    if (g === 'VII' || g === '7')  return { bg: 'bg-cyan-500/10',    text: 'text-cyan-600'    }
     return { bg: 'bg-zinc-500/10', text: 'text-zinc-500' }
-}
-
-function getGradeBarColor(grade) {
-    const g = (grade || '').toString().toUpperCase().trim()
-    if (g === 'XII' || g === '12') return '#10b981'
-    if (g === 'XI'  || g === '11') return '#a855f7'
-    if (g === 'X'   || g === '10') return '#3b82f6'
-    return '#71717a'
 }
 
 const TIME_STATUS_CONFIG = {
@@ -113,6 +109,46 @@ const TIME_STATUS_CONFIG = {
     upcoming: { label: 'Akan Datang',     color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',         accent: 'from-blue-500 to-indigo-400',       dot: false },
     ended:    { label: 'Sudah Berakhir',  color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',          accent: 'from-zinc-400 to-zinc-300',          dot: false },
     unknown:  { label: 'Tidak Diketahui', color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',          accent: 'from-zinc-400 to-zinc-300',          dot: false },
+}
+
+function computeHealthScore(period, usageStats) {
+    if (!period) return { score: 0, label: '-', color: '#a1a1aa', items: [] }
+    const items = []
+    // Has start & end dates
+    if (period.start_date && period.end_date) {
+        items.push({ label: 'Tanggal ditentukan', pass: true })
+    } else {
+        items.push({ label: 'Tanggal belum lengkap', pass: false })
+    }
+    // Has classes
+    if (usageStats && usageStats.classCount > 0) {
+        items.push({ label: `${usageStats.classCount} kelas terdaftar`, pass: true })
+    } else {
+        items.push({ label: 'Belum ada kelas', pass: false })
+    }
+    // Has students
+    if (usageStats && usageStats.studentCount > 0) {
+        items.push({ label: `${usageStats.studentCount} siswa aktif`, pass: true })
+    } else {
+        items.push({ label: 'Belum ada siswa', pass: false })
+    }
+    // Not locked (editable)
+    items.push({ label: period.is_locked ? 'Terkunci' : 'Terbuka', pass: !period.is_locked })
+    // Has notes
+    items.push({ label: period.notes ? 'Ada catatan' : 'Tanpa catatan', pass: !!period.notes })
+    // Dates valid (end > start)
+    if (period.start_date && period.end_date) {
+        const valid = new Date(period.end_date) > new Date(period.start_date)
+        items.push({ label: valid ? 'Durasi valid' : 'Durasi invalid', pass: valid })
+    }
+
+    const passCount = items.filter(i => i.pass).length
+    const score = Math.round((passCount / items.length) * 100)
+    let color = '#10b981'
+    if (score < 50) color = '#ef4444'
+    else if (score < 80) color = '#f59e0b'
+    const label = score >= 80 ? 'Sangat Baik' : score >= 50 ? 'Cukup' : 'Perlu Perhatian'
+    return { score, label, color, items }
 }
 
 /* ─── Sub-components ───────────────────────────────────────────────────────── */
@@ -196,63 +232,201 @@ function LifecycleTimeline({ period }) {
     )
 }
 
-function GradeDistributionBar({ classList }) {
-    const dist = useMemo(() => {
-        const map = {}
-        classList.forEach(c => {
-            const g = (c.grade || 'Lainnya').toString().toUpperCase().trim()
-            map[g] = (map[g] || 0) + 1
-        })
-        return Object.entries(map).sort(([a], [b]) => {
-            const order = { 'XII': 0, '12': 0, 'XI': 1, '11': 1, 'X': 2, '10': 2 }
-            return (order[a] ?? 99) - (order[b] ?? 99)
-        })
-    }, [classList])
-
-    if (dist.length === 0) return null
+function HealthScore({ period, usageStats }) {
+    const { score, label, color, items } = computeHealthScore(period, usageStats)
+    const size = 48
+    const strokeWidth = 5
+    const radius = (size - strokeWidth) / 2
+    const circumference = 2 * Math.PI * radius
+    const offset = circumference - (score / 100) * circumference
+    const passCount = items.filter(i => i.pass).length
 
     return (
-        <div className="flex flex-wrap gap-2 mt-2">
-            {dist.map(([grade, count]) => (
-                <span
-                    key={grade}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
-                    style={{
-                        backgroundColor: `${getGradeBarColor(grade)}10`,
-                        color: getGradeBarColor(grade),
-                        borderColor: `${getGradeBarColor(grade)}20`,
-                    }}
-                >
-                    {grade}: {count} kelas
-                </span>
-            ))}
+        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-emerald-500/10 to-blue-500/10 flex items-center justify-center">
+                    <Gauge className="w-3.5 h-3.5 text-emerald-600" />
+                </div>
+                <h3 className="text-xs font-black text-[var(--color-text)]">Kesehatan Periode</h3>
+            </div>
+            <div className="flex items-center gap-3">
+                <div className="relative shrink-0" style={{ width: size, height: size }}>
+                    <svg width={size} height={size} className="transform -rotate-90">
+                        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke="var(--color-surface-alt)" strokeWidth={strokeWidth} />
+                        <circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth}
+                            strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
+                            className="transition-all duration-700" />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-xs font-black" style={{ color }}>{score}</span>
+                    </div>
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-1.5 mb-1">
+                        <span className="text-[11px] font-black text-[var(--color-text)]">{label}</span>
+                        <span className="text-[9px] font-semibold text-[var(--color-text-muted)]">{passCount}/{items.length}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                        {items.map((item, i) => (
+                            <div key={i} className="flex items-center gap-1">
+                                {item.pass ? (
+                                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                                ) : (
+                                    <Warning className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                                )}
+                                <span className={`text-[9px] font-medium ${item.pass ? 'text-[var(--color-text-muted)]' : 'text-amber-600'}`}>
+                                    {item.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
 
-function MiniStudentChart({ classList }) {
-    if (!classList || classList.length === 0) return null
-    const data = classList.slice(0, 10).map(c => ({
-        name: c.name?.length > 10 ? c.name.slice(0, 10) + '…' : c.name,
-        siswa: c.studentCount || 0,
-        fill: getGradeBarColor(c.grade),
-    }))
-    const maxVal = Math.max(...data.map(d => d.siswa), 1)
+function WarningsPanel({ period, usageStats, overlapWarning, onAddNotes, collapsed, onToggleCollapse }) {
+    const warnings = []
+    if (!usageStats || usageStats.classCount === 0) {
+        warnings.push({ icon: Buildings, color: 'amber', msg: 'Belum ada kelas terdaftar untuk periode ini' })
+    }
+    if (!usageStats || usageStats.studentCount === 0) {
+        warnings.push({ icon: Users, color: 'amber', msg: 'Belum ada siswa terdaftar di periode ini' })
+    }
+    if (overlapWarning && overlapWarning.length > 0) {
+        warnings.push({ icon: Warning, color: 'red', msg: `${overlapWarning.length} periode aktif lain bertumpang tindih` })
+    }
+    if (!period.notes) {
+        warnings.push({ icon: Notepad, color: 'blue', msg: 'Belum ada catatan internal', onClick: onAddNotes })
+    }
+
+    if (warnings.length === 0) return null
 
     return (
-        <div className="space-y-1.5">
-            {data.map((d, i) => (
-                <div key={i} className="flex items-center gap-2">
-                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] w-16 truncate shrink-0">{d.name}</span>
-                    <div className="flex-1 h-2.5 rounded-full bg-[var(--color-surface-alt)] overflow-hidden">
-                        <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${(d.siswa / maxVal) * 100}%`, backgroundColor: d.fill }}
-                        />
-                    </div>
-                    <span className="text-[9px] font-black text-[var(--color-text)] w-6 text-right shrink-0">{d.siswa}</span>
+        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <button
+                onClick={onToggleCollapse}
+                className="flex items-center gap-2.5 mb-0 w-full text-left"
+            >
+                <div className="w-7 h-7 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                    <Megaphone className="w-3.5 h-3.5 text-amber-600" />
                 </div>
-            ))}
+                <h3 className="text-xs font-black text-[var(--color-text)] flex-1">Peringatan & Saran</h3>
+                <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                    {warnings.length}
+                </span>
+                <CaretLeft className={`w-3.5 h-3.5 text-[var(--color-text-muted)] transition-transform ${collapsed ? '-rotate-90' : ''}`} />
+            </button>
+            {!collapsed && (
+                <div className="mt-2.5 divide-y divide-[var(--color-border)]">
+                    {warnings.map((w, i) => {
+                        const Icon = w.icon
+                        const Wrapper = w.onClick ? 'button' : 'div'
+                        return (
+                            <Wrapper
+                                key={i}
+                                onClick={w.onClick || undefined}
+                                className={`flex items-center gap-2 py-2 text-left w-full transition-colors first:pt-0 last:pb-0 ${
+                                    w.onClick ? 'hover:opacity-70 cursor-pointer' : ''
+                                }`}
+                            >
+                                <Icon className={`w-3 h-3 shrink-0 ${
+                                    w.color === 'red' ? 'text-red-500' : w.color === 'amber' ? 'text-amber-500' : 'text-blue-500'
+                                }`} />
+                                <span className={`text-[10px] font-medium ${
+                                    w.color === 'red' ? 'text-red-600' : w.color === 'amber' ? 'text-amber-600' : 'text-blue-600'
+                                }`}>
+                                    {w.msg}
+                                </span>
+                            </Wrapper>
+                        )
+                    })}
+                </div>
+            )}
+        </div>
+    )
+}
+
+function QuickLinks({ period }) {
+    const links = [
+        { label: 'Lihat Semua Kelas', sublabel: `${period.academic_year} ${period.semester}`, icon: ChalkboardTeacher, color: 'blue', href: '/master/classes' },
+        { label: 'Data Siswa', sublabel: 'Periode ini', icon: GraduationCap, color: 'emerald', href: '/master/students' },
+        { label: 'Penerimaan Baru', sublabel: 'Enrollment', icon: BookOpen, color: 'purple', href: '/enrollment' },
+    ]
+
+    return (
+        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-7 h-7 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                    <LinkIcon className="w-3.5 h-3.5 text-indigo-500" />
+                </div>
+                <h3 className="text-xs font-black text-[var(--color-text)]">Aksi Cepat</h3>
+            </div>
+            <div className="space-y-2">
+                {links.map((link, i) => {
+                    const Icon = link.icon
+                    return (
+                        <a
+                            key={i}
+                            href={link.href}
+                            className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 hover:bg-[var(--color-surface-alt)]/60 transition-colors group"
+                        >
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                                link.color === 'blue'    ? 'bg-blue-500/10 text-blue-500'    :
+                                link.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-500' :
+                                'bg-purple-500/10 text-purple-500'
+                            }`}>
+                                <Icon className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-bold text-[var(--color-text)]">{link.label}</p>
+                                <p className="text-[9px] text-[var(--color-text-muted)]">{link.sublabel}</p>
+                            </div>
+                            <ArrowSquareOut className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </a>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+function ComparisonCard({ period, usageStats, allPeriodsData }) {
+    if (!allPeriodsData || allPeriodsData.length < 2) return null
+
+    const sorted = [...allPeriodsData].sort((a, b) => (b.studentCount || 0) - (a.studentCount || 0))
+    const rank = sorted.findIndex(p => p.id === period.id) + 1
+    const avgStudentsAll = sorted.reduce((s, p) => s + (p.studentCount || 0), 0) / sorted.length
+    const avgClassesAll = sorted.reduce((s, p) => s + (p.classCount || 0), 0) / sorted.length
+    const thisAvg = usageStats?.classCount > 0 ? usageStats.studentCount / usageStats.classCount : 0
+
+    const metrics = [
+        { label: 'Peringkat Siswa', value: `#${rank}`, sub: `dari ${sorted.length} periode`, color: rank <= 3 ? 'text-emerald-600' : 'text-[var(--color-text)]' },
+        { label: 'Avg Siswa/Kelas', value: Math.round(thisAvg), sub: `rata-rata: ${Math.round(avgStudentsAll / (avgClassesAll || 1))}`, color: thisAvg >= avgStudentsAll / (avgClassesAll || 1) ? 'text-emerald-600' : 'text-amber-600' },
+        { label: 'Total Kelas', value: usageStats?.classCount || 0, sub: `rata-rata: ${Math.round(avgClassesAll)}`, color: 'text-[var(--color-text)]' },
+    ]
+
+    return (
+        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-7 h-7 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                    <TrendUp className="w-3.5 h-3.5 text-cyan-500" />
+                </div>
+                <h3 className="text-xs font-black text-[var(--color-text)]">Perbandingan</h3>
+                <span className="text-[9px] font-bold text-[var(--color-text-muted)]">{sorted.length} periode</span>
+            </div>
+            <div className="space-y-2">
+                {metrics.map((m, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
+                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{m.label}</span>
+                        <div className="text-right">
+                            <span className={`text-sm font-black ${m.color}`}>{m.value}</span>
+                            <p className="text-[8px] font-medium text-[var(--color-text-muted)]">{m.sub}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }
@@ -304,6 +478,11 @@ function DetailSkeleton() {
                         <Skeleton className="h-24 rounded-xl" />
                         <Skeleton className="h-20 rounded-xl" />
                     </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Skeleton className="h-32 rounded-2xl" />
+                        <Skeleton className="h-32 rounded-2xl" />
+                    </div>
+                    <Skeleton className="h-28 rounded-2xl" />
                     <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
                         <Skeleton className="h-4 w-32 rounded" />
                         <Skeleton className="h-24 rounded-xl" />
@@ -338,7 +517,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     const [lockedByUser, setLockedByUser] = useState(null)
     const [saving, setSaving] = useState(false)
     const [deleting, setDeleting] = useState(false)
-    const [showHistory, setShowHistory] = useState(false)
+    
     const [copiedId, setCopiedId] = useState(false)
     const [lastRefresh, setLastRefresh] = useState(null)
     const [copiedSummary, setCopiedSummary] = useState(false)
@@ -349,6 +528,9 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
 
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+    const [recentAudit, setRecentAudit] = useState([])
+    const [allPeriodsData, setAllPeriodsData] = useState([])
+    const [warningsCollapsed, setWarningsCollapsed] = useState(false)
 
     /* ── Fetch ── */
     const fetchPeriod = useCallback(async () => {
@@ -387,13 +569,13 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 setLockedByUser(null)
             }
 
-            // Fetch classes
-            const { data: cls } = await supabase
+            // Fetch classes (match by academic_year string, use grade_level instead of grade)
+            const { data: cls, error: clsErr } = await supabase
                 .from('classes')
-                .select('id, name, grade, major')
-                .eq('academic_year_id', periodId)
-                .order('grade')
+                .select('id, name, grade_level')
+                .eq('academic_year', data.academic_year)
                 .order('name')
+            if (clsErr) console.error('[PeriodDetailPanel] classes fetch error:', clsErr)
             const classCount = cls?.length || 0
 
             let studentCount = 0
@@ -422,12 +604,12 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
             try {
                 const { data: allPeriods } = await supabase
                     .from('periods')
-                    .select('id, academic_year, semester, start_date, end_date, is_active, is_locked')
+                    .select('id, uuid, academic_year, semester, start_date, end_date, is_active, is_locked')
                     .is('deleted_at', null)
                     .order('start_date', { ascending: true })
 
                 if (allPeriods && allPeriods.length > 1) {
-                    const idx = allPeriods.findIndex(p => p.id === periodId)
+                    const idx = allPeriods.findIndex(p => p.id === data.id)
                     setNeighborPeriods({
                         prev: idx > 0 ? allPeriods[idx - 1] : null,
                         next: idx < allPeriods.length - 1 ? allPeriods[idx + 1] : null,
@@ -448,7 +630,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                     .is('deleted_at', null)
 
                 if (activePeriods && activePeriods.length > 1) {
-                    const overlaps = activePeriods.filter(p => p.id !== periodId)
+                    const overlaps = activePeriods.filter(p => p.id !== data.id)
                     if (overlaps.length > 0) {
                         setOverlapWarning(overlaps)
                     } else {
@@ -459,6 +641,55 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 }
             } catch {
                 setOverlapWarning(null)
+            }
+
+            // Fetch all periods with class/student counts for comparison
+            try {
+                const { data: allP } = await supabase
+                    .from('periods')
+                    .select('id, academic_year, semester, start_date, end_date, is_active')
+                    .is('deleted_at', null)
+                    .order('start_date', { ascending: true })
+
+                if (allP && allP.length > 0) {
+                    const pIds = allP.map(p => p.id)
+                    // Get class counts per period via academic_year
+                    const enriched = await Promise.all(allP.map(async (p) => {
+                        const { data: cls } = await supabase
+                            .from('classes')
+                            .select('id')
+                            .eq('academic_year', p.academic_year)
+                        const classCount = cls?.length || 0
+                        let studentCount = 0
+                        if (classCount > 0) {
+                            const classIds = cls.map(c => c.id)
+                            const { data: st } = await supabase
+                                .from('students')
+                                .select('id', { count: 'exact', head: true })
+                                .in('class_id', classIds)
+                                .is('deleted_at', null)
+                            studentCount = st?.length || 0
+                        }
+                        return { ...p, classCount, studentCount }
+                    }))
+                    setAllPeriodsData(enriched)
+                }
+            } catch {
+                setAllPeriodsData([])
+            }
+
+            // Fetch recent audit logs inline
+            try {
+                const { data: auditData } = await supabase
+                    .from('audit_logs')
+                    .select('id, action, created_at, old_data, new_data')
+                    .eq('table_name', 'periods')
+                    .eq('record_id', data.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5)
+                setRecentAudit(auditData || [])
+            } catch {
+                setRecentAudit([])
             }
         } catch {
             addToastRef.current('Gagal memuat data periode', 'error')
@@ -630,6 +861,10 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
 
     const goBack = useCallback(() => onBack(), [onBack])
 
+    const handlePrint = useCallback(() => {
+        window.print()
+    }, [])
+
     const handleEditRef = useRef(handleEdit)
     const handleToggleLockRef = useRef(handleToggleLock)
     const goBackRef = useRef(goBack)
@@ -663,15 +898,15 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     /* ── Loading ── */
     if (loading) {
         return (
-        <div className="flex flex-col h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 overflow-hidden">
-                <div className="px-5 pt-5 pb-3 shrink-0">
+        <div className="-mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
+                <div className="px-5 pt-5 pb-3">
                     <div className="flex items-center gap-2 mb-3">
                         <Skeleton className="h-7 w-7 rounded-lg shrink-0" />
                         <Skeleton className="h-3 w-64 rounded" />
                     </div>
                     <Skeleton className="h-7 w-56 rounded-lg" />
                 </div>
-                <div className="flex-1 min-h-0 px-5 pb-5">
+                <div className="px-5 pb-5">
                     <DetailSkeleton />
                 </div>
             </div>
@@ -702,10 +937,18 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
 
     /* ── Render ── */
     return (
-            <div className="flex flex-col h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 overflow-hidden">
+            <div className="-mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
+            <style>{`
+                @media print {
+                    body * { visibility: hidden; }
+                    .print-area, .print-area * { visibility: visible; }
+                    .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+                    .no-print { display: none !important; }
+                }
+            `}</style>
 
             {/* ── Page Header ── */}
-            <div className="px-5 pt-5 pb-3 shrink-0">
+            <div className="px-5 pt-5 pb-3 no-print">
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={goBack}
@@ -721,8 +964,84 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             { label: `${period.academic_year} ${period.semester}` },
                         ]}
                     />
-                    <div className="ml-auto flex items-center gap-1.5">
-                        {/* Refresh */}
+                    {lastRefresh && (
+                        <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1">
+                            Diperbarui {(() => {
+                                const ms = Date.now() - lastRefresh.getTime()
+                                const mins = Math.floor(ms / 60000)
+                                if (mins < 1) return 'baru saja'
+                                if (mins < 60) return `${mins}m lalu`
+                                return `${Math.floor(mins / 60)}j lalu`
+                            })()}
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                    <div>
+                        <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
+                            Detail Tahun Pelajaran
+                        </h1>
+                        <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
+                            {period.academic_year} {period.semester} — informasi lengkap periode akademik.
+                        </p>
+                        {usageStats && (
+                            <div className="flex items-center gap-2 mt-1.5">
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
+                                    <Buildings className="w-3 h-3" /> {usageStats.classCount} Kelas
+                                </span>
+                                <span className="text-[var(--color-text-muted)]">·</span>
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
+                                    <Users className="w-3 h-3" /> {usageStats.studentCount} Siswa
+                                </span>
+                                <span className="text-[var(--color-text-muted)]">·</span>
+                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
+                                    Rata-rata {avgStudents}/kelas
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <Tooltip content={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'} position="bottom">
+                            <button
+                                onClick={handleEdit}
+                                disabled={!canEdit || period.is_locked}
+                                className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={period.is_locked ? 'Periode terkunci' : !canEdit ? 'Akses terbatas' : period.is_active ? 'Nonaktifkan' : 'Aktifkan'} position="bottom">
+                            <button
+                                onClick={handleToggleActive}
+                                disabled={!canEdit || period.is_locked || saving}
+                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                {period.is_active ? <EyeSlash className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka Kunci (L)' : 'Kunci (L)'} position="bottom">
+                            <button
+                                onClick={handleToggleLock}
+                                disabled={!canEdit || saving}
+                                className={`h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                    period.is_locked
+                                        ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                        : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]'
+                                }`}
+                            >
+                                {period.is_locked ? <LockOpen className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={!canEdit ? 'Akses terbatas' : 'Arsipkan periode'} position="bottom">
+                            <button
+                                onClick={() => setIsDeleteOpen(true)}
+                                disabled={!canEdit || saving}
+                                className="h-8 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 flex items-center gap-1.5 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                                <Archive className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
                         <Tooltip content="Muat ulang data" position="bottom">
                             <button
                                 onClick={handleRefresh}
@@ -731,45 +1050,41 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 <ArrowClockwise className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
-                        <button
-                            onClick={togglePrivacyMode}
-                            className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                            title={isPrivacyMode ? 'Matikan Mode Privasi' : 'Aktifkan Mode Privasi'}
-                        >
-                            {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                        </button>
-                        {canEdit && (
+                        <Tooltip content={isPrivacyMode ? 'Matikan Mode Privasi' : 'Aktifkan Mode Privasi'} position="bottom">
                             <button
-                                onClick={() => setShowHistory(v => !v)}
-                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${showHistory ? 'bg-purple-500/10 border-purple-500/30 text-purple-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
-                                title="Riwayat Perubahan"
+                                onClick={togglePrivacyMode}
+                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
                             >
-                                <ClockCounterClockwise className="w-3.5 h-3.5" />
+                                {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
-                        )}
-                            {lastRefresh && (
-                                <span className="text-[8px] font-bold text-[var(--color-text-muted)] hidden sm:inline">
-                                    {Math.round((nowMs - lastRefresh.getTime()) / 60000) || '< 1'}m lalu
-                                </span>
-                            )}
+                        </Tooltip>
+                        
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
+                        <Tooltip content="Cetak / Export PDF" position="bottom">
+                            <button
+                                onClick={handlePrint}
+                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all"
+                            >
+                                <Printer className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
                     </div>
-                </div>
-                <div>
-                    <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
-                        Detail Tahun Pelajaran
-                    </h1>
-                    <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
-                        {period.academic_year} {period.semester} — informasi lengkap periode akademik.
-                    </p>
-                    <p className="text-[var(--color-text-muted)] text-[8px] mt-0.5 font-medium opacity-60">
-                        Shortcut: E = Edit · L = Kunci · Esc = Kembali
-                    </p>
                 </div>
             </div>
 
             {/* ── Content ── */}
-            <div className="flex-1 min-h-0 px-5 pb-2 overflow-auto">
+            <div className="px-5 pb-5 print-area">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                    {/* ── Top Row: Warnings + Health Score (same height) ── */}
+                    <div className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+                        <div className="lg:col-span-2">
+                            <WarningsPanel period={period} usageStats={usageStats} overlapWarning={overlapWarning} onAddNotes={() => setIsNotesEditing(true)} collapsed={warningsCollapsed} onToggleCollapse={() => setWarningsCollapsed(v => !v)} />
+                        </div>
+                        <div>
+                            <HealthScore period={period} usageStats={usageStats} />
+                        </div>
+                    </div>
 
                     {/* ── Left Column ── */}
                     <div className="lg:col-span-2 space-y-4">
@@ -1003,46 +1318,49 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             <div className="p-4">
                                 {classList.length === 0 ? (
                                     <div className="py-10 text-center">
-                                        <div className="w-12 h-12 rounded-2xl bg-[var(--color-surface-alt)] flex items-center justify-center mx-auto mb-3">
-                                            <Buildings className="w-6 h-6 text-[var(--color-text-muted)] opacity-30" />
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+                                            <Buildings className="w-6 h-6 text-amber-500" />
                                         </div>
-                                        <p className="text-[11px] font-bold text-[var(--color-text-muted)]">Belum ada kelas</p>
-                                        <p className="text-[10px] text-[var(--color-text-muted)] opacity-60 mt-1">
-                                            Kelas akan muncul setelah ditambahkan
+                                        <p className="text-[11px] font-black text-[var(--color-text)]">Belum ada kelas</p>
+                                        <p className="text-[10px] text-[var(--color-text-muted)] mt-1 max-w-[200px] mx-auto">
+                                            Kelas perlu ditambahkan untuk mengelola siswa di periode ini
                                         </p>
+                                        <a
+                                            href="/master/classes"
+                                            className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black hover:scale-[1.02] active:scale-95 transition-all shadow-md shadow-[var(--color-primary)]/20"
+                                        >
+                                            <Buildings className="w-3.5 h-3.5" />
+                                            Tambah Kelas
+                                        </a>
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Grade distribution summary */}
-                                        <GradeDistributionBar classList={classList} />
-
-                                        <div className="space-y-2 mt-3">
+                                        <div className="space-y-2">
                                             {classList.slice(0, 10).map((cls) => {
-                                                const gs = getGradeStyle(cls.grade)
+                                                const gs = getGradeStyle(cls.grade_level)
+                                                const maxStudents = Math.max(...classList.map(c => c.studentCount || 0), 1)
+                                                const studentPct = ((cls.studentCount || 0) / maxStudents) * 100
                                                 return (
                                                     <div
                                                         key={cls.id}
-                                                        className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 hover:bg-[var(--color-surface-alt)]/60 transition-colors"
+                                                        className="flex items-center gap-3 p-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 hover:bg-[var(--color-surface-alt)]/60 transition-all group"
                                                     >
-                                                        <div className={`w-9 h-9 rounded-xl ${gs.bg} ${gs.text} flex items-center justify-center text-[10px] font-black shrink-0`}>
-                                                            {cls.grade || <Buildings className="w-4 h-4" />}
+                                                        <div className={`w-10 h-10 rounded-xl ${gs.bg} ${gs.text} flex items-center justify-center text-[11px] font-black shrink-0`}>
+                                                            {cls.grade_level || <Buildings className="w-4 h-4" />}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
                                                             <p className="text-[11px] font-bold text-[var(--color-text)] truncate">{cls.name}</p>
-                                                            {(cls.grade || cls.major) && (
-                                                                <p className="text-[9px] text-[var(--color-text-muted)] font-medium mt-0.5">
-                                                                    {[cls.grade, cls.major].filter(Boolean).join(' · ')}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                        <div className="text-right shrink-0">
-                                                            <div className="flex items-center gap-1 justify-end">
-                                                                <Users className="w-3 h-3 text-[var(--color-text-muted)]" />
-                                                                <span className="text-xs font-black text-[var(--color-text)]">
-                                                                    {maskValue(String(cls.studentCount ?? 0), 'number')}
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <div className="flex-1 h-1.5 rounded-full bg-[var(--color-surface-alt)] overflow-hidden">
+                                                                    <div
+                                                                        className="h-full rounded-full transition-all duration-500"
+                                                                        style={{ width: `${studentPct}%`, backgroundColor: `var(--color-primary)` }}
+                                                                    />
+                                                                </div>
+                                                                <span className="text-[9px] font-bold text-[var(--color-text-muted)] shrink-0">
+                                                                    {cls.studentCount || 0} siswa
                                                                 </span>
                                                             </div>
-                                                            <p className="text-[9px] text-[var(--color-text-muted)]">siswa</p>
                                                         </div>
                                                     </div>
                                                 )
@@ -1056,16 +1374,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                             )}
                                         </div>
 
-                                        {/* Mini student bar chart */}
-                                        {classList.length > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <ListChecks className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
-                                                    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Distribusi Siswa per Kelas</p>
-                                                </div>
-                                                <MiniStudentChart classList={classList} />
-                                            </div>
-                                        )}
                                     </>
                                 )}
                             </div>
@@ -1120,10 +1428,56 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 )}
                             </div>
                         </div>
-                    </div>
 
-                    {/* ── Right Sidebar ── */}
+                        {/* Inline Recent Activity */}
+                        {recentAudit.length > 0 && (
+                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+                                <div className="flex items-center gap-2.5 mb-3">
+                                    <div className="w-7 h-7 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                                        <ClockCounterClockwise className="w-3.5 h-3.5 text-purple-500" />
+                                    </div>
+                                    <h3 className="text-xs font-black text-[var(--color-text)]">Aktivitas Terbaru</h3>
+                                </div>
+                                <div className="space-y-2">
+                                    {recentAudit.map((log) => {
+                                        const actionLabel = log.action === 'CREATE' ? 'Dibuat' : log.action === 'UPDATE' ? 'Diperbarui' : log.action === 'DELETE' ? 'Dihapus' : log.action
+                                        const timeDiff = (() => {
+                                            const ms = Date.now() - new Date(log.created_at).getTime()
+                                            const mins = Math.floor(ms / 60000)
+                                            if (mins < 1) return 'Baru saja'
+                                            if (mins < 60) return `${mins}m lalu`
+                                            const hrs = Math.floor(mins / 60)
+                                            if (hrs < 24) return `${hrs}j lalu`
+                                            const days = Math.floor(hrs / 24)
+                                            return `${days}h lalu`
+                                        })()
+                                        return (
+                                            <div key={log.id} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-[var(--color-surface-alt)]/30 transition-colors">
+                                                <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                                                    log.action === 'CREATE' ? 'bg-emerald-500' :
+                                                    log.action === 'UPDATE' ? 'bg-blue-500' :
+                                                    'bg-red-500'
+                                                }`} />
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-[10px] font-bold text-[var(--color-text)]">
+                                                        {actionLabel}
+                                                    </p>
+                                                    <p className="text-[9px] text-[var(--color-text-muted)]">{timeDiff}</p>
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                     <div className="space-y-4">
+
+                        {/* Quick Links */}
+                        <QuickLinks period={period} />
+
+                        {/* Comparison Card */}
+                        <ComparisonCard period={period} usageStats={usageStats} allPeriodsData={allPeriodsData} />
 
                         {/* Overlap Warning */}
                         {overlapWarning && overlapWarning.length > 0 && (
@@ -1192,55 +1546,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                                 {formatDate(neighborPeriods.next.start_date)} – {formatDate(neighborPeriods.next.end_date)}
                                             </p>
                                         </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Usage Stats */}
-                        {usageStats && (
-                            <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                                <div className="flex items-center gap-2.5 mb-4">
-                                    <div className="w-7 h-7 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center">
-                                        <TrendUp className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-                                    </div>
-                                    <h3 className="text-xs font-black text-[var(--color-text)]">Statistik Penggunaan</h3>
-                                </div>
-                                <div className="space-y-2.5">
-                                    <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
-                                            <Buildings className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Total Kelas</p>
-                                            <p className="text-xl font-black text-[var(--color-text)]">
-                                                {maskValue(String(usageStats.classCount), 'number')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0">
-                                            <Users className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Total Siswa</p>
-                                            <p className="text-xl font-black text-[var(--color-text)]">
-                                                {maskValue(String(usageStats.studentCount), 'number')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {usageStats.classCount > 0 && (
-                                        <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-                                                <UserCircle className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Rata-rata / Kelas</p>
-                                                <p className="text-xl font-black text-[var(--color-text)]">
-                                                    {maskValue(String(avgStudents), 'number')}
-                                                </p>
-                                            </div>
-                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -1361,83 +1666,30 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         </div>
 
                         {/* History Panel */}
-                        {showHistory && (
-                            <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
-                                <div className="flex items-center gap-2">
-                                    <Fingerprint className="w-4 h-4 text-purple-500" />
-                                    <h3 className="text-xs font-black text-[var(--color-text)]">Riwayat Perubahan</h3>
-                                </div>
-                                <div className="h-[300px] overflow-auto rounded-xl border border-[var(--color-border)]">
-                                    <AuditTimeline
-                                        tableName="periods"
-                                        recordId={period.id}
-                                        limit={30}
-                                        theme="purple"
-                                        containerClassName="p-3"
-                                        showSearch
-                                        stickyHeader
-                                    />
-                                </div>
+                        <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Fingerprint className="w-4 h-4 text-purple-500" />
+                                <h3 className="text-xs font-black text-[var(--color-text)]">Riwayat Perubahan</h3>
                             </div>
-                        )}
+                            <div className="h-[300px] overflow-auto rounded-xl border border-[var(--color-border)]">
+                                <AuditTimeline
+                                    tableName="periods"
+                                    recordId={period.id}
+                                    limit={30}
+                                    theme="purple"
+                                    containerClassName="p-3"
+                                    showSearch
+                                    stickyHeader
+                                />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            {/* ── Sticky Action Bar ── */}
-            <div className="shrink-0 border-t border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-xl px-5 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                            onClick={handleEdit}
-                            disabled={!canEdit || period.is_locked}
-                            title={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'}
-                            className="h-9 px-4 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            <Pencil className="w-3.5 h-3.5" /> Edit
-                        </button>
-                        <button
-                            onClick={handleToggleActive}
-                            disabled={!canEdit || period.is_locked || saving}
-                            title={period.is_locked ? 'Periode terkunci' : !canEdit ? 'Akses terbatas' : undefined}
-                            className="h-9 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            {period.is_active ? <EyeSlash className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                            {period.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                        </button>
-                        <button
-                            onClick={handleToggleLock}
-                            disabled={!canEdit || saving}
-                            title={!canEdit ? 'Akses terbatas' : `Lock/Unlock (L)`}
-                            className={`h-9 px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-                                period.is_locked
-                                    ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
-                                    : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]'
-                            }`}
-                        >
-                            {period.is_locked ? <LockOpen className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
-                            {period.is_locked ? 'Buka Kunci' : 'Kunci'}
-                        </button>
-                        <button
-                            onClick={() => setIsDeleteOpen(true)}
-                            disabled={!canEdit || saving}
-                            title={!canEdit ? 'Akses terbatas' : undefined}
-                            className="h-9 px-4 rounded-xl border border-red-200 bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                            <Archive className="w-3.5 h-3.5" /> Arsipkan
-                        </button>
-                    </div>
-                    <button
-                        onClick={goBack}
-                        className="h-9 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:bg-[var(--color-surface-alt)]"
-                    >
-                        <CaretLeft className="w-3.5 h-3.5" /> Kembali
-                    </button>
                 </div>
             </div>
 
             {/* Modals */}
-            <PeriodFormModal
+            <div className="no-print">
+                <PeriodFormModal
                 isOpen={isFormOpen}
                 onClose={() => setIsFormOpen(false)}
                 selectedItem={period}
@@ -1453,6 +1705,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 onConfirm={handleDeleteConfirm}
                 submitting={deleting}
             />
+            </div>
         </div>
     )
 }

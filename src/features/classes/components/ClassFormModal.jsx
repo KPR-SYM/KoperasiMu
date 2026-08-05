@@ -22,7 +22,7 @@ const ClassFormModal = memo(function ClassFormModal({
         program: 'Boarding',
         gender_type: 'Putra',
         homeroom_teacher_id: '',
-        academic_year_id: periodsList[0]?.id || ''
+        academic_year: periodsList[0]?.academic_year || ''
     }
 
     const [form, setForm] = useState(INIT)
@@ -39,14 +39,14 @@ const ClassFormModal = memo(function ClassFormModal({
                 : ''
             setForm({
                 name: selectedItem.name || '',
-                level: selectedItem.grade || '7',
-                program: selectedItem.major?.includes('Reguler') ? 'Reguler' : 'Boarding',
-                gender_type: selectedItem.major?.includes('Putri') ? 'Putri' : 'Putra',
+                level: selectedItem.grade_level?.toString() || '7',
+                program: 'Reguler',
+                gender_type: 'Putra',
                 homeroom_teacher_id: validTeacherId,
-                academic_year_id: selectedItem.academic_year_id || periodsList[0]?.id || ''
+                academic_year: selectedItem.academic_year || periodsList[0]?.academic_year || ''
             })
         } else {
-            setForm({ ...INIT, academic_year_id: periodsList[0]?.id || '' })
+            setForm({ ...INIT, academic_year: periodsList[0]?.academic_year || '' })
         }
         setFormError('')
         setTouched({})
@@ -73,7 +73,7 @@ const ClassFormModal = memo(function ClassFormModal({
     }
 
     const overallProgress = (() => {
-        const fields = ['name', 'homeroom_teacher_id', 'academic_year_id']
+        const fields = ['name', 'homeroom_teacher_id', 'academic_year']
         const filled = fields.filter(f => form[f]).length
         return Math.round((filled / fields.length) * 100)
     })()
@@ -89,7 +89,7 @@ const ClassFormModal = memo(function ClassFormModal({
             ...form,
             name,
             homeroom_teacher_id: form.homeroom_teacher_id || null,
-            academic_year_id: form.academic_year_id || null,
+            academic_year: form.academic_year || null,
         }
         const result = await onSubmit(sanitized)
         if (result?.error) {
@@ -262,7 +262,7 @@ const ClassFormModal = memo(function ClassFormModal({
                                 value={form.homeroom_teacher_id || ''}
                                 onChange={val => setField('homeroom_teacher_id', val)}
                                 options={teachersList.map(t => ({ id: t.id, name: t.name }))}
-                                extraOption={{ id: '', name: '— Tanpa Wali Kelas —' }}
+                                extraOption={{ id: '', name: 'ï¿½ Tanpa Wali Kelas ï¿½' }}
                                 placeholder={hasTeachers ? 'Pilih Wali Kelas' : 'Tidak ada data guru'}
                                 icon={UserCheck}
                                 searchable
@@ -281,12 +281,12 @@ const ClassFormModal = memo(function ClassFormModal({
                         <div className="relative group">
                             <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Tahun Akademik <span className="text-rose-500">*</span></label>
                             <Select
-                                value={form.academic_year_id}
-                                onChange={val => setField('academic_year_id', val)}
-                                options={periodsList.map(y => ({ id: y.id, name: y.label }))}
+                                value={form.academic_year}
+                                onChange={val => setField('academic_year', val)}
+                                options={periodsList.map(y => ({ id: y.academic_year, name: y.label }))}
                                 placeholder="Pilih Tahun Akademik"
                                 icon={Calendar}
-                                status={getStatus('academic_year_id', true)}
+                                status={getStatus('academic_year', true)}
                             />
                         </div>
                     </div>

@@ -167,10 +167,10 @@ export default function ClassArchiveModal({
                                         <tr key={c.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
                                             <td className="px-3 py-2.5">
                                                 <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{c.name}</p>
-                                                <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Grade {c.grade || '-'}</p>
+                                                <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Grade {c.grade_level ?? '-'}</p>
                                             </td>
                                             <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                                                <span className="text-[9px] font-black bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-1.5 py-0.5 rounded-md border border-[var(--color-primary)]/20">{c.major || 'â€”'}</span>
+                                                <span className="text-[9px] font-black bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-1.5 py-0.5 rounded-md border border-[var(--color-primary)]/20">—</span>
                                             </td>
                                             <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
                                                 {formatRelativeDate(c.deleted_at)}

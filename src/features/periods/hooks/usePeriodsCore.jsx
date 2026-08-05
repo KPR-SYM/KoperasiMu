@@ -278,7 +278,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         try {
             const { data, error } = await supabase
                 .from("periods")
-                .select("id,academic_year,semester,start_date,end_date,is_active,created_at,is_locked,locked_at,locked_by,deleted_at")
+                .select("id,uuid,academic_year,semester,start_date,end_date,is_active,created_at,is_locked,locked_at,locked_by,deleted_at")
                 .is("deleted_at", null)
                 .order("academic_year", { ascending: false });
             if (error) throw error;
