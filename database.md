@@ -45,8 +45,6 @@
 | `display_name` | `varchar` |  Nullable |
 | `start_date` | `date` |  |
 | `end_date` | `date` |  |
-| `registration_start` | `date` |  Nullable |
-| `registration_end` | `date` |  Nullable |
 | `is_active` | `bool` |  |
 | `is_locked` | `bool` |  |
 | `locked_at` | `timestamptz` |  Nullable |
@@ -293,13 +291,15 @@
 |------|------|-------------|
 | `id` | `int4` | Primary Identity |
 | `full_name` | `varchar` |  |
-| `nip` | `varchar` |  Nullable |
 | `phone` | `varchar` |  Nullable |
-| `email` | `varchar` |  Nullable |
 | `is_active` | `bool` |  |
 | `created_at` | `timestamptz` |  |
 | `updated_at` | `timestamptz` |  |
 | `deleted_at` | `timestamptz` |  Nullable |
+| `gender` | `varchar` |  Nullable |
+| `subject` | `varchar` |  Nullable |
+| `is_pinned` | `bool` |  Nullable |
+| `type` | `_text` |  Nullable |
 
 ## Table `feature_flags`
 
@@ -376,4 +376,188 @@
 | `is_offline` | `bool` |  Nullable |
 | `resolved` | `bool` |  Nullable |
 | `created_at` | `timestamptz` |  |
+
+## Table `audit_logs`
+
+### Columns
+
+| Name | Type | Constraints |
+|------|------|-------------|
+| `id` | `int8` | Primary Identity |
+| `user_id` | `uuid` |  |
+| `action` | `varchar` |  |
+| `source` | `varchar` |  |
+| `table_name` | `varchar` |  |
+| `record_id` | `varchar` |  Nullable |
+| `old_data` | `jsonb` |  Nullable |
+| `new_data` | `jsonb` |  Nullable |
+| `ip_address` | `varchar` |  |
+| `user_agent` | `text` |  Nullable |
+| `url` | `text` |  Nullable |
+| `actor_name` | `varchar` |  Nullable |
+| `actor_role` | `varchar` |  Nullable |
+| `created_at` | `timestamptz` |  |
+
+## Custom Types / Enums
+
+### `user_role`
+
+`admin` | `staff` | `teacher` | `pimpinan` | `developer`
+
+## RLS Policies
+
+### `suppliers`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca suppliers` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola suppliers` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `products`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca products` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola products` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `product_stocks`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca product_stocks` | SELECT | authenticated | PERMISSIVE | `true` | — |
+
+### `stock_movements`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca stock_movements` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa catat stock_movements` | INSERT | authenticated | PERMISSIVE | — | `can_write_operational()` |
+
+### `subjects`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca subjects` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola subjects` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `profiles`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Admin/developer bisa hapus profil` | DELETE | authenticated | PERMISSIVE | `is_admin()` | — |
+| `Admin/developer bisa lihat semua profil` | SELECT | authenticated | PERMISSIVE | `is_admin()` | — |
+| `Admin/developer bisa update semua profil` | UPDATE | authenticated | PERMISSIVE | `is_admin()` | — |
+| `Staff bisa lihat profil sendiri` | SELECT | authenticated | PERMISSIVE | `(id = auth.uid())` | — |
+| `Staff bisa update profil sendiri, tidak bisa ubah role` | UPDATE | authenticated | PERMISSIVE | `(id = auth.uid())` | `((id = auth.uid()) AND (role = ( SELECT p.role    FROM profiles p   WHERE (p.id = auth.uid()))))` |
+
+### `enrollment_waves`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca enrollment_waves` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola enrollment_waves` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `education_units`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca education_units` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola education_units` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `classes`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca classes` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola classes` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `students`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca students` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola students` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `categories`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca categories` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola categories` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `books`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca books` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola books` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `book_bundles`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca book_bundles` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola book_bundles` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `book_bundle_items`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca book_bundle_items` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola book_bundle_items` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `teachers`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Allow realtime` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff can insert teachers` | INSERT | authenticated | PERMISSIVE | — | `true` |
+| `Staff can update teachers` | UPDATE | authenticated | PERMISSIVE | `true` | — |
+| `Staff can view teachers` | SELECT | authenticated | PERMISSIVE | `true` | — |
+
+### `feature_flags`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Allow all for service_role` | ALL | public | PERMISSIVE | `true` | `true` |
+| `Allow read access for authenticated users` | SELECT | authenticated | PERMISSIVE | `true` | — |
+
+### `news`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Allow authenticated delete` | DELETE | authenticated | PERMISSIVE | `true` | — |
+| `Allow authenticated read all` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Allow authenticated update` | UPDATE | authenticated | PERMISSIVE | `true` | `true` |
+| `Allow authenticated write` | INSERT | authenticated | PERMISSIVE | — | `true` |
+| `Allow public read published` | SELECT | public | PERMISSIVE | `(is_published = true)` | — |
+
+### `news_revisions`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Allow authenticated insert revisions` | INSERT | authenticated | PERMISSIVE | — | `true` |
+| `Allow authenticated read revisions` | SELECT | authenticated | PERMISSIVE | `true` | — |
+
+### `error_logs`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `anyone_can_insert_error_logs` | INSERT | anon, authenticated | PERMISSIVE | — | `true` |
+| `only_admin_dev_can_read_error_logs` | SELECT | authenticated | PERMISSIVE | `(EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['admin'::user_role, 'developer'::user_role])))))` | — |
+| `only_admin_dev_can_update_error_logs` | UPDATE | authenticated | PERMISSIVE | `(EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['admin'::user_role, 'developer'::user_role])))))` | — |
+
+### `audit_logs`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Users can insert audit logs` | INSERT | authenticated | PERMISSIVE | — | `(user_id = auth.uid())` |
+| `Users can view audit logs` | SELECT | authenticated | PERMISSIVE | `true` | — |
+
+### `periods`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca periods` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola periods` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
 
