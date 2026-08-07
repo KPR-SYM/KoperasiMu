@@ -2,15 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@context';
 import toast from 'react-hot-toast';
-import { Lock, User, ArrowRight, Spinner, Eye, EyeSlash, ShieldCheck, CreditCard, ShoppingBag } from '@phosphor-icons/react';
+import { Lock, User, ArrowRight, Spinner, Eye, EyeSlash, ShoppingBag } from '@phosphor-icons/react';
 import ThemeToggle from '../../public/components/common/ThemeToggle';
 import logoSenyum from '../../../assets/images/logos/logo-senyum.png';
-
-const HIGHLIGHTS = [
-  { icon: ShoppingBag, text: 'Kelola perlengkapan & seragam santri' },
-  { icon: CreditCard, text: 'Pantau tagihan dan cicilan secara transparan' },
-  { icon: ShieldCheck, text: 'Laporan keuangan yang amanah & terpercaya' },
-];
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -53,14 +47,14 @@ export default function LoginPage() {
       {/* PANEL KIRI — Branding */}
       <div
         className="hidden lg:flex lg:w-[44%] relative overflow-hidden
-                   bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900
+                   bg-gradient-to-br from-slate-800 via-slate-800 to-blue-600
                    dark:from-[#0c0f19] dark:via-[#111827] dark:to-[#1e293b]
                    border-r border-blue-500/10 dark:border-white/[0.06]"
       >
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
         <div className="pointer-events-none absolute -top-24 -left-24 w-[420px] h-[420px] bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[380px] h-[380px] bg-indigo-500/10 rounded-full blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[380px] h-[380px] bg-blue-500/10 rounded-full blur-3xl" />
 
         <div
           className={`relative z-10 flex flex-col justify-between p-12 w-full transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'}`}
@@ -83,7 +77,7 @@ export default function LoginPage() {
 
             <div className="mt-12 relative">
               <div
-                className={`p-5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.07] shadow-2xl transition-all duration-1000 delay-[300ms] ${mounted ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}
+                className={`p-5 rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.07] shadow-2xl transition-all duration-1000 delay-[300ms] hover:scale-[1.02] ${mounted ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'}`}
               >
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-white/40 text-[10px] font-bold uppercase tracking-wider">Laporan Keuangan</span>
@@ -107,7 +101,7 @@ export default function LoginPage() {
               <div
                 className={`absolute -bottom-8 -right-4 p-3.5 rounded-xl bg-[#1e293b]/95 backdrop-blur-md border border-white/[0.08] shadow-2xl flex items-center gap-3 transition-all duration-1000 delay-[500ms] hover:scale-102 duration-300 ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'}`}
               >
-                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0 animate-pulse">
                   <ShoppingBag className="w-4 h-4 text-amber-400" />
                 </div>
                 <div>
@@ -128,7 +122,7 @@ export default function LoginPage() {
           </div>
 
           <p className="text-white/40 text-xs">
-            &copy; 2025 Koperasi Senyum. Powered by TechSchool.
+                &copy; 2026 Koperasi Senyum. Powered by TechSchool.
           </p>
         </div>
       </div>
@@ -139,7 +133,7 @@ export default function LoginPage() {
         <div className="pointer-events-none absolute inset-0 z-0 hidden dark:block bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
 
         <div className="absolute top-0 right-0 -mr-40 -mt-40 w-[800px] h-[800px] bg-blue-50/50 dark:bg-blue-500/3 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
-        <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-slate-50/50 dark:bg-indigo-500/2 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
+        <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-slate-50/50 dark:bg-blue-500/2 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
 
         <div className="absolute top-4 right-4 z-20">
           <ThemeToggle />
@@ -172,6 +166,7 @@ export default function LoginPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="block w-full pl-10 pr-3 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -189,6 +184,7 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-10 pr-10 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
@@ -197,6 +193,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/60 transition-colors focus:outline-none"
                   >
                     {showPassword ? <EyeSlash className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -222,7 +219,7 @@ export default function LoginPage() {
 
             <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/[0.07] text-center lg:hidden">
               <p className="text-xs text-gray-400 dark:text-white/30">
-                &copy; 2025 Koperasi Senyum. Powered by TechSchool.
+&copy; 2026 Koperasi Senyum. Powered by TechSchool.
               </p>
             </div>
           </div>

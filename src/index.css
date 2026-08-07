@@ -58,6 +58,7 @@ body {
   /* IE and Edge */
   scrollbar-width: none;
   /* Firefox */
+  scroll-behavior: smooth;
 }
 
 html::-webkit-scrollbar,

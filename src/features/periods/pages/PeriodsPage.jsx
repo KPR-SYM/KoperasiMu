@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, Fragment } from "react";
 import { useSearchParams, useLocation, useNavigate, useParams } from "react-router-dom";
 import Skeleton from "@shared/components/Skeleton";
 import {
@@ -393,6 +393,38 @@ export default function PeriodsPage() {
     const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
     const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
     const gaps = useMemo(() => findPeriodGaps(years), [years]);
+
+    // ── Generate Preview ──────────────────────────────────────────────────────
+    const generatePreview = useMemo(() => {
+        if (years.length === 0 || batchCount < 1) return { items: [], conflicts: 0 };
+        const sorted = [...years].sort((a, b) => {
+            if (a.academic_year !== b.academic_year) return b.academic_year.localeCompare(a.academic_year);
+            return b.semester === "Genap" ? 1 : -1;
+        });
+        const existingYears = new Set(years.map(y => `${y.academic_year}|${y.semester}`));
+        const items = [];
+        let conflicts = 0;
+        let latest = sorted[0]?.academic_year || "";
+        for (let c = 0; c < batchCount; c++) {
+            const match = latest.match(/(\d{4})\/(\d{4})/);
+            if (!match) break;
+            const nextStart = parseInt(match[1]) + 1;
+            const nextEnd = parseInt(match[2]) + 1;
+            const nextYearStr = `${nextStart}/${nextEnd}`;
+            const sy = parseInt(nextStart);
+            const ganjilKey = `${nextYearStr}|Ganjil`;
+            const genapKey = `${nextYearStr}|Genap`;
+            const ganjilExists = existingYears.has(ganjilKey);
+            const genapExists = existingYears.has(genapKey);
+            if (ganjilExists && genapExists) { conflicts++; latest = nextYearStr; continue; }
+            if (!ganjilExists) items.push({ academic_year: nextYearStr, semester: "Ganjil", start_date: `${sy}-07-01`, end_date: `${sy}-12-31`, exists: false });
+            else items.push({ academic_year: nextYearStr, semester: "Ganjil", start_date: `${sy}-07-01`, end_date: `${sy}-12-31`, exists: true });
+            if (!genapExists) items.push({ academic_year: nextYearStr, semester: "Genap", start_date: `${sy + 1}-01-01`, end_date: `${sy + 1}-06-30`, exists: false });
+            else items.push({ academic_year: nextYearStr, semester: "Genap", start_date: `${sy + 1}-01-01`, end_date: `${sy + 1}-06-30`, exists: true });
+            latest = nextYearStr;
+        }
+        return { items, conflicts };
+    }, [years, batchCount]);
 
     if (isDetailView) {
         return (
@@ -1180,6 +1212,7 @@ export default function PeriodsPage() {
                         fetchArchivedYears={fetchArchived}
                         fetchData={fetchData}
                         addToast={addToast}
+                        addUndoToast={addUndoToast}
                     />
                 </React.Suspense>
 
@@ -1292,19 +1325,27 @@ export default function PeriodsPage() {
                     title="Generate Tahun Pelajaran Baru"
                     description={`Buat ${batchCount} tahun pelajaran ke depan secara otomatis.`}
                     icon={ArrowClockwise}
-                    iconBg="bg-indigo-500/10"
-                    iconColor="text-indigo-500"
-                    confirmText={`Generate ${batchCount > 1 ? `${batchCount} Tahun` : "Sekarang"}`}
+                    iconBg="bg-blue-500/10"
+                    iconColor="text-blue-500"
+                    confirmText={`Generate ${generatePreview.items.filter(i => !i.exists).length > 0 ? `${generatePreview.items.filter(i => !i.exists).length} Periode` : "Sekarang"}`}
                     confirmIcon={ArrowClockwise}
-                    confirmColor="indigo"
+                    confirmColor="blue"
                     submitting={isSaving}
                 >
                     <div className="space-y-4">
                         <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
                             Sistem akan membuat{" "}
-                            <span className="font-black text-[var(--color-text)]">{batchCount * 2} periode baru</span>{" "}
-                            ({batchCount} × Ganjil + Genap) berdasarkan tahun pelajaran terakhir yang ada.
+                            <span className="font-black text-[var(--color-text)]">{generatePreview.items.filter(i => !i.exists).length} periode baru</span>{" "}
+                            dari {generatePreview.items.length} yang direncanakan berdasarkan tahun pelajaran terakhir.
                         </p>
+                        {generatePreview.conflicts > 0 && (
+                            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                                <Warning className="text-amber-500 w-4 h-4 shrink-0" />
+                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                                    {generatePreview.conflicts} tahun pelajaran sudah ada dan akan dilewati.
+                                </p>
+                            </div>
+                        )}
                         <div className="flex items-center justify-between p-3 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
                             <span className="text-[10px] font-black uppercase tracking-wider text-[var(--color-text-muted)]">Jumlah Tahun</span>
                             <div className="flex items-center gap-2">
@@ -1319,14 +1360,52 @@ export default function PeriodsPage() {
                                 <span className="w-8 text-center text-sm font-black text-[var(--color-text)]">{batchCount}</span>
                                 <button
                                     type="button"
-                                    onClick={() => setBatchCount(Math.min(5, batchCount + 1))}
-                                    disabled={batchCount >= 5}
+                                    onClick={() => setBatchCount(Math.min(10, batchCount + 1))}
+                                    disabled={batchCount >= 10}
                                     className="w-8 h-8 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] font-black text-sm flex items-center justify-center hover:bg-[var(--color-surface-alt)] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                                 >
                                     +
                                 </button>
                             </div>
                         </div>
+                        {generatePreview.items.length > 0 && (
+                            <div className="border border-[var(--color-border)] rounded-xl overflow-hidden">
+                                <div className="max-h-48 overflow-y-auto">
+                                    <table className="w-full text-[10px]">
+                                        <thead className="sticky top-0 bg-[var(--color-surface-alt)]">
+                                            <tr className="text-left font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                                                <th className="px-3 py-2">Tahun</th>
+                                                <th className="px-3 py-2">Semester</th>
+                                                <th className="px-3 py-2">Rentang</th>
+                                                <th className="px-3 py-2 text-right">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {generatePreview.items.map((item, i) => (
+                                                <tr key={i} className={`border-t border-[var(--color-border)] ${item.exists ? 'opacity-50' : ''}`}>
+                                                    <td className="px-3 py-1.5 font-bold text-[var(--color-text)]">{item.academic_year}</td>
+                                                    <td className="px-3 py-1.5">
+                                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black ${item.semester === 'Ganjil' ? 'bg-blue-500/10 text-blue-600' : 'bg-purple-500/10 text-purple-600'}`}>
+                                                            {item.semester}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-3 py-1.5 text-[var(--color-text-muted)] font-mono">
+                                                        {item.start_date} → {item.end_date}
+                                                    </td>
+                                                    <td className="px-3 py-1.5 text-right">
+                                                        {item.exists ? (
+                                                            <span className="text-amber-500 font-black">ADA</span>
+                                                        ) : (
+                                                            <span className="text-emerald-500 font-black">BARU</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </ConfirmDialog>
 

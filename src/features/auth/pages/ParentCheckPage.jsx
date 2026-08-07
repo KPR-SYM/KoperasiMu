@@ -51,7 +51,6 @@ export default function ParentCheckPage() {
     const [student, setStudent] = useState(null)
     const [errorMessage, setErrorMessage] = useState('')
     const [linkCopied, setLinkCopied] = useState(false)
-    const [isShaking, setIsShaking] = useState(false)
     // Rate limiting — cooldown counter (detik tersisa)
     const [mounted, setMounted] = useState(false)
     const [loginCooldown, setLoginCooldown] = useState(0)
@@ -142,13 +141,8 @@ export default function ParentCheckPage() {
 
             toast.success('Data siswa berhasil ditemukan!')
         } catch (err) {
-            // FIX MINOR: Hanya setErrorMessage — tidak perlu addToast juga.
-            // Sebelumnya error muncul dua kali (inline form + toast pojok layar).
-            // Form login sudah punya inline error area sendiri; toast cocok untuk
-            // aksi background yang tidak punya area error di UI.
+            // Hanya setErrorMessage — form sudah punya inline error area sendiri
             setErrorMessage(err.message)
-            setIsShaking(true)
-            setTimeout(() => setIsShaking(false), 500)
         } finally {
             setLoading(false)
             setAutoChecking(false)
@@ -209,7 +203,7 @@ export default function ParentCheckPage() {
         return (
             <div className="min-h-screen bg-white dark:bg-[#0a0e1a] flex items-center justify-center p-4 transition-colors duration-300">
                 <div className="text-center p-8 rounded-3xl bg-white/80 dark:bg-white/[0.03] backdrop-blur-xl border border-white/50 dark:border-white/[0.07] shadow-xl">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-700 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/30">
                         <Spinner className="animate-spin text-2xl text-white" />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-1">
@@ -242,7 +236,7 @@ export default function ParentCheckPage() {
                         </button>
                         <div className="flex items-center gap-3">
                             <Link to="/" className="text-xs font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors uppercase tracking-wide">Beranda</Link>
-                            <button onClick={toggleTheme} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all">
+                            <button onClick={toggleTheme} aria-label={isDark ? 'Aktifkan mode terang' : 'Aktifkan mode gelap'} className="w-8 h-8 flex items-center justify-center rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-all">
                                 {isDark ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
                             </button>
                         </div>
@@ -315,7 +309,7 @@ export default function ParentCheckPage() {
                         const htPhone = toWaNumber(student.homeroomTeacher?.phone)
                         const htName = student.homeroomTeacher?.name
                         return (
-                            <div className="bg-gradient-to-r from-gray-900 to-slate-800 rounded-2xl p-5 flex items-center justify-between gap-4 mt-2 shadow-xl">
+                            <div className="bg-gradient-to-r from-slate-900 to-blue-700 rounded-2xl p-5 flex items-center justify-between gap-4 mt-2 shadow-xl">
                                 <div className="min-w-0">
                                     <p className="font-bold text-white mb-1">Perlu Bantuan?</p>
                                     <p className="text-xs text-slate-300 truncate">
@@ -360,7 +354,7 @@ export default function ParentCheckPage() {
                     })()}
 
                     <p className="text-center text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-[0.2em] pt-4 opacity-70">
-                        Koperasi Senyum &copy; 2025
+                        Koperasi Senyum &copy; 2026
                     </p>
                 </div>
             </div>
@@ -374,14 +368,14 @@ export default function ParentCheckPage() {
             {/* PANEL KIRI — Branding */}
             <div
                 className="hidden lg:flex lg:w-[44%] relative overflow-hidden
-                           bg-gradient-to-br from-blue-900 via-blue-950 to-slate-900
+                           bg-gradient-to-br from-slate-800 via-slate-800 to-blue-600
                            dark:from-[#0c0f19] dark:via-[#111827] dark:to-[#1e293b]
                            border-r border-blue-500/10 dark:border-white/[0.06]"
             >
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
 
                 <div className="pointer-events-none absolute -top-24 -left-24 w-[420px] h-[420px] bg-blue-500/10 rounded-full blur-3xl" />
-                <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[380px] h-[380px] bg-indigo-500/10 rounded-full blur-3xl" />
+                <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4 w-[380px] h-[380px] bg-blue-500/10 rounded-full blur-3xl" />
 
                 <div
                     className={`relative z-10 flex flex-col justify-between p-12 w-full transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-6'}`}
@@ -472,7 +466,7 @@ export default function ParentCheckPage() {
                     </div>
 
                     <p className="text-white/40 text-xs">
-                        &copy; 2025 Koperasi Senyum. Powered by TechSchool.
+                        &copy; 2026 Koperasi Senyum. Powered by TechSchool.
                     </p>
                 </div>
             </div>
@@ -483,7 +477,7 @@ export default function ParentCheckPage() {
                 <div className="pointer-events-none absolute inset-0 z-0 hidden dark:block bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
 
                 <div className="absolute top-0 right-0 -mr-40 -mt-40 w-[800px] h-[800px] bg-blue-50/50 dark:bg-blue-500/3 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
-                <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-slate-50/50 dark:bg-indigo-500/2 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
+                <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-slate-50/50 dark:bg-blue-500/2 rounded-full blur-3xl pointer-events-none lg:opacity-30" />
 
                 {/* fixed (bukan absolute) — biar toggle tetap nempel di pojok layar meski card lebih tinggi dari viewport / ter-scroll */}
                 <div className="fixed top-4 right-4 z-20">
@@ -516,10 +510,11 @@ export default function ParentCheckPage() {
                                     </div>
                                     <input
                                         type="text"
+                                        autoComplete="off"
                                         value={code}
                                         onChange={(e) => setCode(formatCode(e.target.value))}
                                         placeholder="REG-XXXX-XXXX"
-                                        className="block w-full pl-10 pr-3 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-black uppercase tracking-[0.2em]"
+                                        className="block w-full pl-10 pr-3 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
@@ -534,17 +529,18 @@ export default function ParentCheckPage() {
                                         type="password"
                                         inputMode="numeric"
                                         pattern="[0-9]*"
+                                        autoComplete="off"
                                         value={pin}
                                         onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                                         placeholder="••••"
                                         maxLength={4}
-                                        className="block w-full pl-10 pr-3 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-lg font-bold tracking-[0.5em]"
+                                        className="block w-full pl-10 pr-3 py-3 rounded-xl leading-5 border border-gray-200 dark:border-white/[0.1] bg-gray-50 dark:bg-white/[0.04] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:bg-white dark:focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                                     />
                                 </div>
                             </div>
 
                             {errorMessage && (
-                                <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3">
+                                <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 transition-all duration-300">
                                     <div className="w-8 h-8 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center shrink-0">!</div>
                                     <p className="text-sm font-medium text-red-500">
                                         {errorMessage}
@@ -568,12 +564,18 @@ export default function ParentCheckPage() {
                         </form>
 
                         <div className="mt-8 pt-6 border-t border-gray-100 dark:border-white/[0.07] text-center">
-                            <p className="text-xs text-gray-400 dark:text-white/30">Belum punya kode? Hubungi bagian administrasi atau bendahara pondok.</p>
+                            <p className="text-xs text-gray-400 dark:text-white/30">
+                                Belum punya kode?{' '}
+                                <a href="https://wa.me/6285183079329?text=Halo%20Koperasi%20Senyum%2C%20saya%20belum%20punya%20kode%20registrasi%20untuk%20cek%20tagihan%20anak." target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline transition-colors">
+                                    Hubungi bagian administrasi
+                                </a>{' '}
+                                atau bendahara pondok.
+                            </p>
                         </div>
 
                         <div className="mt-6 pt-6 border-t border-gray-100 dark:border-white/[0.07] text-center lg:hidden">
                             <p className="text-xs text-gray-400 dark:text-white/30">
-                                &copy; 2025 Koperasi Senyum. Powered by TechSchool.
+                                &copy; 2026 Koperasi Senyum. Powered by TechSchool.
                             </p>
                         </div>
                     </div>

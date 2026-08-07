@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Warning, Archive, CaretLeft, CaretRight, Spinner, Trash, ArrowCounterClockwise } from '@phosphor-icons/react'
+import React, { useState, useMemo } from 'react'
+import { Warning, Archive, CaretDown, Spinner, Trash, ArrowCounterClockwise, Plus } from '@phosphor-icons/react'
 
-import { Modal, EmptyState } from '@shared/components'
+import { Modal, EmptyState, Tooltip } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useErrorHandler } from '@hooks'
 
@@ -13,28 +13,75 @@ export default function PeriodArchiveModal({
     setArchivedYears,
     fetchArchivedYears,
     fetchData,
-    addToast
+    addToast,
+    addUndoToast
 }) {
     const { handleError } = useErrorHandler('PeriodArchiveModal')
-    const [archivePage, setArchivePage] = useState(1)
-    const archivePageSize = 10
+    const [showCount, setShowCount] = useState(10)
 
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [deleting, setDeleting] = useState(false)
     const [restoring, setRestoring] = useState(false)
 
+    const [selectedIds, setSelectedIds] = useState([])
+    const [bulkDeleting, setBulkDeleting] = useState(false)
+    const [bulkRestoring, setBulkRestoring] = useState(false)
+
     if (!isOpen) return null
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    }
+
+    const toggleSelectAll = () => {
+        const visible = archivedYears.slice(0, showCount).map(y => y.id)
+        setSelectedIds(prev => prev.length === visible.length ? [] : [...visible])
+    }
+
+    const allSelected = archivedYears.length > 0 && archivedYears.slice(0, showCount).every(y => selectedIds.includes(y.id))
 
     const handleRestoreYear = async (year) => {
         setRestoring(true)
         try {
             const { error } = await supabase.from('periods').update({ deleted_at: null }).eq('id', year.id)
             if (error) throw error
-            addToast(`${year.academic_year} ${year.semester} berhasil dipulihkan`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== year.id))
+            setSelectedIds(prev => prev.filter(id => id !== year.id))
             fetchData?.()
+            addUndoToast(`${year.academic_year} ${year.semester} berhasil dipulihkan`, async () => {
+                try {
+                    const { error: undoErr } = await supabase.from('periods').update({ deleted_at: new Date().toISOString() }).eq('id', year.id)
+                    if (undoErr) throw undoErr
+                    fetchData?.()
+                    fetchArchivedYears?.()
+                } catch (e) { handleError(e, { context: 'Gagal membatalkan pemulihan' }) }
+            })
         } catch (err) { handleError(err, { context: 'Gagal memulihkan tahun pelajaran' }) } finally {
             setRestoring(false)
+        }
+    }
+
+    const handleBulkRestore = async () => {
+        if (selectedIds.length === 0) return
+        setBulkRestoring(true)
+        try {
+            const toRestore = archivedYears.filter(y => selectedIds.includes(y.id))
+            const { error } = await supabase.from('periods').update({ deleted_at: null }).in('id', selectedIds)
+            if (error) throw error
+            setArchivedYears(prev => prev.filter(y => !selectedIds.includes(y.id)))
+            setSelectedIds([])
+            fetchData?.()
+            addUndoToast(`${toRestore.length} periode berhasil dipulihkan`, async () => {
+                try {
+                    const ids = toRestore.map(y => y.id)
+                    const { error: undoErr } = await supabase.from('periods').update({ deleted_at: new Date().toISOString() }).in('id', ids)
+                    if (undoErr) throw undoErr
+                    fetchData?.()
+                    fetchArchivedYears?.()
+                } catch (e) { handleError(e, { context: 'Gagal membatalkan pemulihan massal' }) }
+            })
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan massal' }) } finally {
+            setBulkRestoring(false)
         }
     }
 
@@ -44,17 +91,38 @@ export default function PeriodArchiveModal({
         try {
             const { error } = await supabase.from('periods').delete().eq('id', deleteTarget.id)
             if (error) throw error
-
             addToast(`${deleteTarget.academic_year} ${deleteTarget.semester} dihapus permanen`, 'success')
             setArchivedYears(prev => prev.filter(y => y.id !== deleteTarget.id))
+            setSelectedIds(prev => prev.filter(id => id !== deleteTarget.id))
             setDeleteTarget(null)
             fetchData?.()
         } catch (err) {
-            console.error('Backspace error:', err)
-            addToast(err.message || 'Gagal hapus permanen data', 'error')
+            handleError(err, { context: 'Gagal hapus permanen data' })
         } finally {
             setDeleting(false)
         }
+    }
+
+    const handleBulkPermanentDelete = async () => {
+        if (selectedIds.length === 0) return
+        setBulkDeleting(true)
+        try {
+            const { error } = await supabase.from('periods').delete().in('id', selectedIds)
+            if (error) throw error
+            addToast(`${selectedIds.length} periode dihapus permanen`, 'success')
+            setArchivedYears(prev => prev.filter(y => !selectedIds.includes(y.id)))
+            setSelectedIds([])
+            fetchData?.()
+        } catch (err) {
+            handleError(err, { context: 'Gagal hapus permanen massal' })
+        } finally {
+            setBulkDeleting(false)
+        }
+    }
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-'
+        return new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     }
 
     const formatRelativeDate = (dateString) => {
@@ -81,7 +149,7 @@ export default function PeriodArchiveModal({
             size="lg"
             mobileVariant="bottom-sheet"
             footer={
-                <div className="flex items-center w-full">
+                <div className="flex items-center w-full gap-3">
                     <button
                         onClick={onClose}
                         className="h-10 px-6 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition-all flex items-center justify-center"
@@ -89,6 +157,24 @@ export default function PeriodArchiveModal({
                         Tutup
                     </button>
                     <div className="flex-1" />
+                    {selectedIds.length > 0 && (
+                        <>
+                            <button
+                                onClick={handleBulkRestore}
+                                disabled={bulkRestoring}
+                                className="h-10 px-4 rounded-xl bg-emerald-500 hover:brightness-110 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {bulkRestoring ? <><Spinner className="fa-spin" /> Memulihkan...</> : <><ArrowCounterClockwise /> Pulihkan ({selectedIds.length})</>}
+                            </button>
+                            <button
+                                onClick={handleBulkPermanentDelete}
+                                disabled={bulkDeleting}
+                                className="h-10 px-4 rounded-xl bg-red-500 hover:brightness-110 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {bulkDeleting ? <><Spinner className="fa-spin" /> Menghapus...</> : <><Trash /> Hapus ({selectedIds.length})</>}
+                            </button>
+                        </>
+                    )}
                 </div>
             }
         >
@@ -140,33 +226,62 @@ export default function PeriodArchiveModal({
                         <p className="font-bold">Memuat arsip...</p>
                     </div>
                 ) : archivedYears.length === 0 ? (
-                    <EmptyState
-                        icon={Archive}
-                        title="Arsip Kosong"
-                        description="Tidak ada data tahun pelajaran yang telah dihapus sementara saat ini."
-                        variant="dashed"
-                        color="amber"
-                    />
+                    <div className="text-center py-8">
+                        <EmptyState
+                            icon={Archive}
+                            title="Arsip Kosong"
+                            description="Semua tahun pelajaran sudah aktif. Tidak ada data yang diarsipkan saat ini."
+                            variant="dashed"
+                            color="amber"
+                        />
+                        <p className="mt-3 text-[10px] text-[var(--color-text-muted)]">
+                            Gunakan tombol <b>Generate Tahun Baru</b> untuk menambah periode baru.
+                        </p>
+                    </div>
                 ) : (
                     <div className="space-y-3">
                         <div className="border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-surface)] shadow-sm">
                             <table className="w-full text-xs">
                                 <thead className="bg-[var(--color-surface-alt)] sticky top-0">
                                     <tr className="text-left text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
+                                        <th className="px-3 py-2.5 w-8">
+                                            <input
+                                                type="checkbox"
+                                                checked={allSelected}
+                                                onChange={toggleSelectAll}
+                                                className="w-3.5 h-3.5 rounded border-[var(--color-border)] accent-blue-500 cursor-pointer"
+                                            />
+                                        </th>
                                         <th className="px-3 py-2.5">Tahun Pelajaran</th>
+                                        <th className="px-3 py-2.5">Rentang Tanggal</th>
                                         <th className="px-3 py-2.5 text-center whitespace-nowrap">Diarsipkan</th>
                                         <th className="px-3 py-2.5 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {archivedYears.slice((archivePage - 1) * archivePageSize, archivePage * archivePageSize).map(y => (
-                                        <tr key={y.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
+                                    {archivedYears.slice(0, showCount).map(y => (
+                                        <tr key={y.id} className={`border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors ${selectedIds.includes(y.id) ? 'bg-blue-500/5' : ''}`}>
+                                            <td className="px-3 py-2.5">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(y.id)}
+                                                    onChange={() => toggleSelect(y.id)}
+                                                    className="w-3.5 h-3.5 rounded border-[var(--color-border)] accent-blue-500 cursor-pointer"
+                                                />
+                                            </td>
                                             <td className="px-3 py-2.5">
                                                 <p className="font-bold text-[var(--color-text)] leading-snug whitespace-nowrap">{y.academic_year}</p>
                                                 <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Semester {y.semester}</p>
                                             </td>
-                                            <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
-                                                {formatRelativeDate(y.deleted_at)}
+                                            <td className="px-3 py-2.5 text-[10px] text-[var(--color-text-muted)] font-mono whitespace-nowrap">
+                                                {y.start_date || '-'} → {y.end_date || '-'}
+                                            </td>
+                                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
+                                                <Tooltip content={y.deleted_at ? new Date(y.deleted_at).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''} position="top">
+                                                    <span className="text-[10px] font-medium text-[var(--color-text-muted)] cursor-default">
+                                                        {formatRelativeDate(y.deleted_at)}
+                                                    </span>
+                                                </Tooltip>
                                             </td>
                                             <td className="px-3 py-2.5 text-right">
                                                 <div className="flex items-center justify-end gap-1.5">
@@ -193,27 +308,15 @@ export default function PeriodArchiveModal({
                             </table>
                         </div>
 
-                        {archivedYears.length > archivePageSize && (
-                            <div className="flex items-center justify-between px-1">
-                                <p className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
-                                    Halaman {archivePage} dari {Math.ceil(archivedYears.length / archivePageSize)}
-                                </p>
-                                <div className="flex gap-1.5">
-                                    <button
-                                        disabled={archivePage === 1}
-                                        onClick={() => setArchivePage(p => p - 1)}
-                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] shadow-sm transition-colors"
-                                    >
-                                        <CaretLeft className="w-3 h-3" />
-                                    </button>
-                                    <button
-                                        disabled={archivePage >= Math.ceil(archivedYears.length / archivePageSize)}
-                                        onClick={() => setArchivePage(p => p + 1)}
-                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] shadow-sm transition-colors"
-                                    >
-                                        <CaretRight className="w-3 h-3" />
-                                    </button>
-                                </div>
+                        {archivedYears.length > showCount && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={() => setShowCount(prev => prev + 10)}
+                                    className="h-8 px-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-1.5"
+                                >
+                                    <CaretDown className="w-3 h-3" />
+                                    Tampilkan lebih banyak ({archivedYears.length - showCount} lagi)
+                                </button>
                             </div>
                         )}
                     </div>

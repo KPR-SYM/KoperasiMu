@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { checkPublicBilling } from '../../../services/studentService';
 import { Spinner, MagnifyingGlass, WarningCircle, CheckCircle, CreditCard, Calendar, Info, ShieldCheck, Eye, EyeSlash, Clock, Wallet, TrendUp, Sparkle, ChatCircle, ShoppingBag, Receipt } from '@phosphor-icons/react';
+import { supabase } from '@lib/supabase';
 import { EmptyState } from '@shared/components';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, formatDate } from '../../../utils/formatters';
@@ -47,6 +48,18 @@ export default function BillingCheckSection() {
     const [showPin, setShowPin] = useState(false);
     const [checkedAt, setCheckedAt] = useState(null);
     const [activeTab, setActiveTab] = useState('tagihan');
+    const [studentCount, setStudentCount] = useState(null);
+
+    useEffect(() => {
+        const fetchCount = async () => {
+            const { count } = await supabase
+                .from('students')
+                .select('id', { count: 'exact', head: true })
+                .is('deleted_at', null);
+            if (count != null) setStudentCount(count);
+        };
+        fetchCount();
+    }, []);
 
     const isFormValid = formData.registrationNumber.trim().length > 0 && formData.pin.length === 6;
 
@@ -150,75 +163,67 @@ export default function BillingCheckSection() {
                         {/* Dark trust / brand panel — hidden once a result is shown */}
                         {!result && (
                             <div className="relative lg:col-span-5 overflow-hidden
-                                            bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900
-                                            dark:from-[#0b1220] dark:via-blue-950/50 dark:to-[#0b1220]
+                                            bg-gradient-to-br from-slate-800 via-slate-800 to-blue-600
+                                            dark:from-slate-800 dark:via-slate-800 dark:to-blue-600
                                             lg:border-r border-blue-500/10 dark:border-blue-500/15
                                             px-6 py-6 lg:py-7 flex flex-col justify-between">
 
-                                {/* Decorative coin/orbit motif */}
-                                <svg
-                                    className="absolute -top-10 -right-14 w-56 h-56 opacity-40 pointer-events-none"
-                                    viewBox="0 0 200 200"
-                                    fill="none"
-                                >
-                                    <circle cx="100" cy="100" r="90" stroke="#3B82F6" strokeOpacity="0.25" strokeWidth="1.5" />
-                                    <circle cx="100" cy="100" r="65" stroke="#3B82F6" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="4 6" />
-                                    <circle cx="150" cy="60" r="22" fill="#3B82F6" fillOpacity="0.18" />
-                                    <circle cx="150" cy="60" r="22" stroke="#60A5FA" strokeOpacity="0.5" strokeWidth="1.5" />
-                                    <circle cx="150" cy="60" r="10" fill="#60A5FA" fillOpacity="0.3" />
-                                </svg>
-                                <svg
-                                    className="absolute -bottom-16 -left-10 w-48 h-48 opacity-30 pointer-events-none"
-                                    viewBox="0 0 200 200"
-                                    fill="none"
-                                >
-                                    <circle cx="60" cy="140" r="18" fill="#F59E0B" fillOpacity="0.2" />
-                                    <circle cx="60" cy="140" r="18" stroke="#FBBF24" strokeOpacity="0.4" strokeWidth="1.5" />
-                                    <circle cx="95" cy="110" r="10" fill="#F59E0B" fillOpacity="0.15" />
-                                </svg>
+                                {/* Subtle gradient overlay */}
+                                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.1)_0%,transparent_60%)] pointer-events-none" />
 
                                 <div className="relative z-10">
-                                    <div className="flex items-center gap-1.5 mb-4 py-1.5 px-3 rounded-lg
-                                                    bg-white/[0.06] border border-white/10 w-fit">
-                                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                                        <span className="text-[11px] font-semibold text-emerald-300">
-                                            Terenkripsi Penuh
+                                    <h3 className="text-xl lg:text-2xl font-black text-white leading-snug mb-2">
+                                        Cek tagihan santri dalam hitungan detik.
+                                    </h3>
+                                    <p className="text-sm text-white/70 leading-relaxed max-w-xs mb-5">
+                                        Masukkan No. Registrasi dan PIN untuk melihat tagihan, riwayat pembayaran, dan progres pelunasan secara langsung.
+                                    </p>
+
+                                    {/* Steps */}
+                                    <div className="space-y-3">
+                                        {[
+                                            { step: '01', text: 'Masukkan No. Registrasi' },
+                                            { step: '02', text: 'Masukkan PIN 6 digit' },
+                                            { step: '03', text: 'Lihat tagihan & riwayat' },
+                                        ].map(({ step, text }) => (
+                                            <div key={step} className="flex items-center gap-3">
+                                                <span className="w-7 h-7 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                                                    style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                                                    {step}
+                                                </span>
+                                                <span className="text-xs text-white/80">{text}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="relative z-10 mt-3 pt-4 border-t border-white/20">
+                                    {/* Social proof */}
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <div className="flex -space-x-1.5">
+                                            {[1, 2, 3].map((i) => (
+                                                <div key={i} className="w-5 h-5 rounded-full bg-white/20 border-2 border-blue-600 flex items-center justify-center">
+                                                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <span className="text-[11px] text-white/70">
+                                            {studentCount > 0 ? `${studentCount}+ wali murid` : 'Ribuan wali murid'} sudah menggunakan
                                         </span>
                                     </div>
 
-                                    <h3 className="text-xl lg:text-2xl font-black text-white leading-snug mb-2">
-                                        Transparansi penuh untuk setiap transaksi santri.
-                                    </h3>
-                                    <p className="text-sm text-white/50 leading-relaxed max-w-xs">
-                                        Masukkan No. Registrasi dan PIN untuk melihat tagihan, riwayat pembayaran, dan progres pelunasan secara langsung.
-                                    </p>
-                                </div>
-
-                                <div className="relative z-10 space-y-2.5 mt-5">
-                                    {[
-                                        { icon: Wallet, text: 'Rincian tagihan & saldo real-time' },
-                                        { icon: TrendUp, text: 'Riwayat pembayaran lengkap' },
-                                        { icon: Clock, text: 'Update otomatis setiap saat dicek' },
-                                    ].map(({ icon: Icon, text }) => (
-                                        <div key={text} className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-lg bg-white/[0.07] border border-white/10 flex items-center justify-center flex-shrink-0">
-                                                <Icon className="w-3.5 h-3.5 text-blue-400" />
-                                            </div>
-                                            <span className="text-xs text-white/60">{text}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="relative z-10 mt-5 pt-4 border-t border-white/10 flex items-center gap-2">
-                                    <ChatCircle className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
-                                    <span className="text-[11px] text-white/40">Butuh bantuan?</span>
-                                    <a href="https://wa.me/6285183079329"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 hover:underline"
-                                    >
-                                        Hubungi Admin Koperasi
-                                    </a>
+                                    {/* Help link */}
+                                    <div className="flex items-center gap-2">
+                                        <ChatCircle className="w-3.5 h-3.5 text-white/50 flex-shrink-0" />
+                                        <span className="text-[11px] text-white/50">Butuh bantuan?</span>
+                                        <a href="https://wa.me/6285183079329"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[11px] font-semibold text-white hover:text-white/80 hover:underline"
+                                        >
+                                            Hubungi Admin Koperasi
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
                         )}
