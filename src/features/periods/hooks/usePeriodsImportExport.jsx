@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useRef } from "react";
 
 import { supabase } from "@lib/supabase";
 import { logAudit } from "@utils/auditLogger";
+import { normalizeSemester } from "@features/periods/utils/periodValidation";
 
 const LS_IMPORT_MAPPING = "periods_import_mapping";
 
@@ -19,13 +20,6 @@ const DATE_FORMATS = [
     { regex: /^\d{4}\/\d{2}\/\d{2}$/, label: "YYYY/MM/DD", parts: (s) => ({ y: s.slice(0, 4), m: s.slice(5, 7), d: s.slice(8, 10) }) },
     { regex: /^\d{2}\.\d{2}\.\d{4}$/, label: "DD.MM.YYYY", parts: (s) => ({ d: s.slice(0, 2), m: s.slice(3, 5), y: s.slice(6, 10) }) },
 ];
-
-
-function normalizeSemester(value) {
-    const trimmed = String(value || "").trim();
-    const map = { ganjil: "Ganjil", genap: "Genap" };
-    return map[trimmed.toLowerCase()] || trimmed;
-}
 
 export function usePeriodsImportExport({
     years,

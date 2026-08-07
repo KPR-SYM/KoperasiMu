@@ -67,6 +67,8 @@ const StudentsPage = lazyRetry(() => import('@features/students/pages/StudentsPa
 const TeachersPage = lazyRetry(() => import('@features/teachers/pages/TeachersPage.jsx'))
 const ClassesPage = lazyRetry(() => import('@features/classes/pages/ClassesPage.jsx'))
 const PeriodsPage = lazyRetry(() => import('@features/periods/pages/PeriodsPage.jsx'))
+const PeriodImportPage = lazyRetry(() => import('@features/periods/pages/PeriodImportPage.jsx'))
+const PeriodExportPage = lazyRetry(() => import('@features/periods/pages/PeriodExportPage.jsx'))
 const EnrollmentPage = lazyRetry(() => import('@features/enrollment/pages/EnrollmentPage.jsx'))
 const PublicEnrollmentPage = lazyRetry(() => import('@features/public/pages/PublicEnrollmentPage.jsx'))
 const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/PublicStatusCheckPage.jsx'))
@@ -551,12 +553,12 @@ function AppRoutes() {
             } />
             <Route path="/master/periods/import" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Import Periode">
-                <PeriodsPage />
+                <PeriodImportPage />
               </RoleFlagRoute>
             } />
             <Route path="/master/periods/export" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.periods" label="Export Periode">
-                <PeriodsPage />
+                <PeriodExportPage />
               </RoleFlagRoute>
             } />
             <Route path="/master/periods/:id" element={

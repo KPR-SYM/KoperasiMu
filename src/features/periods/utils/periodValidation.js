@@ -83,3 +83,10 @@ export function assertEditable(period, canEdit) {
     if (period?.is_locked) return "Periode terkunci — tidak dapat diedit. Buka kunci terlebih dahulu.";
     return null;
 }
+
+export function shiftDateByYear(dateStr) {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    date.setFullYear(date.getFullYear() + 1);
+    return date.toISOString().split("T")[0];
+}

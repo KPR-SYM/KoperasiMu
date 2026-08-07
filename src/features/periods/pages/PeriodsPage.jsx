@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useSearchParams, useLocation, useNavigate, useParams } from "react-router-dom";
-import Skeleton from "@shared/components/Skeleton";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import {
     Archive,
     Calendar,
-    CaretLeft,
     CheckCircle,
     Eye,
     EyeSlash,
@@ -15,18 +13,14 @@ import {
     Plus,
     Pencil,
     SlidersHorizontal,
-    Spinner,
     MagnifyingGlass,
 } from "@phosphor-icons/react";
-import { createPortal } from "react-dom";
 
 import DashboardLayout from "@core/layouts/DashboardLayout";
 import { useToast } from "@context/Toast";
-import { findOverlappingPeriods, findPeriodGaps } from "@features/periods/utils/periodValidation";
+import { findOverlappingPeriods, findPeriodGaps, shiftDateByYear } from "@features/periods/utils/periodValidation";
 import {
     Badge,
-    Breadcrumb,
-    Checkbox,
     EmptyState,
     PageHeader,
     Pagination,
@@ -36,12 +30,13 @@ import {
     ConfirmDialog,
     Alert,
 } from "@shared/components";
+import Skeleton from "@shared/components/Skeleton";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
 import { ArchiveModal, LockModal, UnlockModal, ShiftDatesModal } from "@features/periods/components/PeriodConfirmModals";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
 import { usePeriodsKeyboard } from "@features/periods/hooks/usePeriodsKeyboard";
 import { usePeriodsModals } from "@features/periods/hooks/usePeriodsModals";
-import { usePeriodsImportExport, SYSTEM_COLS } from "@features/periods/hooks/usePeriodsImportExport";
+import { usePeriodsImportExport } from "@features/periods/hooks/usePeriodsImportExport";
 
 import PeriodsToolbar from "@features/periods/components/PeriodsToolbar";
 import PeriodsTimeline from "@features/periods/components/PeriodsTimeline";
@@ -50,6 +45,9 @@ import PeriodsTable from "@features/periods/components/PeriodsTable";
 import PeriodsHeaderMenu from "@features/periods/components/PeriodsHeaderMenu";
 import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMenu";
 import PeriodsReadOnlyDetail, { PeriodsHistoryModal } from "@features/periods/components/PeriodsReadOnlyDetail";
+import { PeriodSkeletonRow, PeriodSkeletonCard } from "@features/periods/components/PeriodSkeletons";
+import ColumnMenuPortal from "@features/periods/components/ColumnMenuPortal";
+import LazyLoad from "@features/periods/components/LazyLoad";
 import { usePeriodsNotifications } from "@features/periods/hooks/usePeriodsNotifications";
 
 const LazyPeriodComparisonModal = React.lazy(
@@ -67,78 +65,15 @@ const LazyPeriodGenerateModal = React.lazy(
 const LazyPeriodExportModal = React.lazy(
     () => import("@features/periods/components/PeriodExportModal"),
 );
-const LazyPeriodImportPanel = React.lazy(
-    () => import("@features/periods/components/PeriodImportPanel"),
-);
-const LazyPeriodExportPanel = React.lazy(
-    () => import("@features/periods/components/PeriodExportPanel"),
-);
 const LazyPeriodDetailPanel = React.lazy(
     () => import("@features/periods/components/PeriodDetailPanel"),
 );
 
-function PeriodSkeletonRow() {
-    return (
-        <tr className="animate-pulse border-b border-[var(--color-border)]/50">
-            <td className="py-2.5 px-3 w-12 text-center">
-                <div className="w-4 h-4 bg-[var(--color-surface-alt)] rounded-lg mx-auto" />
-            </td>
-            <td className="py-2.5 px-4">
-                <div className="w-28 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
-            </td>
-            <td className="py-2.5 px-4">
-                <div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-full" />
-            </td>
-            <td className="py-2.5 px-4">
-                <div className="w-20 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
-            </td>
-            <td className="py-2.5 px-4">
-                <div className="w-18 h-4 bg-[var(--color-surface-alt)] rounded-full" />
-            </td>
-            <td className="py-2.5 px-4 text-center w-32">
-                <div className="flex gap-1 justify-center">
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                </div>
-            </td>
-        </tr>
-    );
-}
-
-function PeriodSkeletonCard() {
-    return (
-        <div className="animate-pulse rounded-2xl border border-[var(--color-border)]/50 p-3 bg-[var(--color-surface)]">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--color-surface-alt)]" />
-                <div className="flex-1 space-y-1.5">
-                    <div className="w-3/4 h-3.5 bg-[var(--color-surface-alt)] rounded-md" />
-                    <div className="w-1/2 h-2.5 bg-[var(--color-surface-alt)]/60 rounded-md" />
-                </div>
-            </div>
-            <div className="flex gap-2 mb-2">
-                <div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-full" />
-                <div className="w-10 h-4 bg-[var(--color-surface-alt)] rounded-full" />
-            </div>
-            <div className="flex items-center justify-between">
-                <div className="flex gap-1">
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                    <div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" />
-                </div>
-            </div>
-        </div>
-    );
-}
-
 export default function PeriodsPage() {
     const { addToast, addUndoToast } = useToast();
-    const location = useLocation();
     const navigate = useNavigate();
     const { id: periodId } = useParams();
     const isDetailView = !!periodId;
-    const isImportView = location.pathname === '/master/periods/import';
-    const isExportView = location.pathname === '/master/periods/export';
 
     // ── Core Hook ──
     const {
@@ -158,7 +93,6 @@ export default function PeriodsPage() {
         isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
         isShortcutOpen, setIsShortcutOpen, isHeaderMenuOpen, setIsHeaderMenuOpen,
         headerMenuBtnRef, shortcutBtnRef, headerMenuRect, setHeaderMenuRect,
-        shortcutRect, setShortcutRect,
         headerMenuMounted, searchInputRef, viewMode, setViewMode,
         selectedItem, setSelectedItem, itemToDelete, setItemToDelete,
         readOnlyDetailItem, setReadOnlyDetailItem, historyItem, setHistoryItem, periodUsageStats,
@@ -177,7 +111,6 @@ export default function PeriodsPage() {
         handleQuickDuplicate, togglePin, pinnedIds,
         formatDate, getDuration, getTimeStatus, getPeriodStats,         handleError,
         columnOrder, moveColumnLeft, moveColumnRight,
-        reminderDays,
     } = usePeriodsCore({ addToast, addUndoToast });
 
     // ── Modal State ──
@@ -219,58 +152,69 @@ export default function PeriodsPage() {
         navigate('/master/periods/export');
     }, [navigate]);
 
+    // Ref for shortcut action to avoid large dependency array
+    const shortcutActionRef = useRef({});
+    shortcutActionRef.current = {
+        canEdit, isMutating, years, selectedIds,
+        handleAdd, handleOpenImport, handleOpenExport, handleEdit, handleDuplicateClick,
+        resetAllFilters, toggleSelectAll, setIsBulkDeleteOpen, handleToggleLock,
+        handleOpenHistory, togglePrivacyMode, handleUndo, handleRedo,
+        undoStack, redoStack, searchInputRef, setViewMode, setIsGenerateConfirmOpen,
+    };
+
     const handleShortcutAction = useCallback((action) => {
+        const ctx = shortcutActionRef.current;
         switch (action) {
             case "focusSearch":
-                searchInputRef.current?.focus();
+                ctx.searchInputRef.current?.focus();
                 break;
             case "toggleView":
-                setViewMode(prev => prev === "table" ? "timeline" : prev === "timeline" ? "calendar" : "table");
+                ctx.setViewMode(prev => prev === "table" ? "timeline" : prev === "timeline" ? "calendar" : "table");
                 break;
             case "add":
-                if (canEdit) handleAdd();
+                if (ctx.canEdit) ctx.handleAdd();
                 break;
             case "import":
-                if (canEdit) handleOpenImport();
+                if (ctx.canEdit) ctx.handleOpenImport();
                 break;
             case "export":
-                handleOpenExport();
+                ctx.handleOpenExport();
                 break;
             case "generate":
-                if (canEdit && !isMutating && years.length > 0) setIsGenerateConfirmOpen(true);
+                if (ctx.canEdit && !ctx.isMutating && ctx.years.length > 0) ctx.setIsGenerateConfirmOpen(true);
                 break;
             case "edit":
-                if (selectedIds.length === 1) handleEdit(years.find(y => y.id === selectedIds[0]));
+                if (ctx.selectedIds.length === 1) ctx.handleEdit(ctx.years.find(y => y.id === ctx.selectedIds[0]));
                 break;
             case "duplicate":
-                if (selectedIds.length === 1) handleDuplicateClick(years.find(y => y.id === selectedIds[0]));
+                if (ctx.selectedIds.length === 1) ctx.handleDuplicateClick(ctx.years.find(y => y.id === ctx.selectedIds[0]));
                 break;
             case "resetFilter":
-                resetAllFilters();
+                ctx.resetAllFilters();
                 break;
             case "selectAll":
-                toggleSelectAll();
+                ctx.toggleSelectAll();
                 break;
             case "bulkDelete":
-                if (selectedIds.length > 0) setIsBulkDeleteOpen(true);
+                if (ctx.selectedIds.length > 0) ctx.setIsBulkDeleteOpen(true);
                 break;
             case "toggleLock":
-                if (selectedIds.length === 1) handleToggleLock(years.find(y => y.id === selectedIds[0]));
+                if (ctx.selectedIds.length === 1) ctx.handleToggleLock(ctx.years.find(y => y.id === ctx.selectedIds[0]));
                 break;
             case "history":
-                if (selectedIds.length === 1) handleOpenHistory(years.find(y => y.id === selectedIds[0]));
+                if (ctx.selectedIds.length === 1) ctx.handleOpenHistory(ctx.years.find(y => y.id === ctx.selectedIds[0]));
                 break;
             case "privacy":
-                togglePrivacyMode();
+                ctx.togglePrivacyMode();
                 break;
             case "undo":
-                if (undoStack.length > 0) handleUndo();
+                if (ctx.undoStack.length > 0) ctx.handleUndo();
                 break;
             case "redo":
-                if (redoStack.length > 0) handleRedo();
+                if (ctx.redoStack.length > 0) ctx.handleRedo();
                 break;
         }
-    }, [canEdit, isMutating, years, selectedIds, handleAdd, handleOpenImport, handleOpenExport, handleEdit, handleDuplicateClick, resetAllFilters, toggleSelectAll, setIsBulkDeleteOpen, handleToggleLock, handleOpenHistory, togglePrivacyMode, handleUndo, handleRedo, undoStack, redoStack, searchInputRef, setViewMode]);
+    }, []);
 
     const handleDuplicateConfirm = useCallback(() => {
         if (itemToDuplicate) {
@@ -285,39 +229,16 @@ export default function PeriodsPage() {
         if (!match) return null;
         const nextStart = parseInt(match[1]) + 1;
         const nextEnd = parseInt(match[2]) + 1;
-        const shiftDate = (d) => {
-            if (!d) return null;
-            const date = new Date(d);
-            date.setFullYear(date.getFullYear() + 1);
-            return date.toISOString().split("T")[0];
-        };
         return {
             academic_year: `${nextStart}/${nextEnd}`,
-            start_date: shiftDate(itemToDuplicate.start_date),
-            end_date: shiftDate(itemToDuplicate.end_date),
+            start_date: shiftDateByYear(itemToDuplicate.start_date),
+            end_date: shiftDateByYear(itemToDuplicate.end_date),
         };
     }, [itemToDuplicate]);
 
-    // ── Import/Export Hook ──
+    // ── Import/Export Hook (only export modal state needed here) ──
     const {
-        importStep, setImportStep, importFileName, setImportFileName,
-        importRawData, importFileHeaders,
-        importColumnMapping, setImportColumnMapping, importPreview, setImportPreview,
-        importIssues, setImportIssues, importLoading, setImportLoading,
-        importValidationOpen, setImportValidationOpen, importDragOver, setImportDragOver,
-        importing, importProgress,
-        importEditCell, setImportEditCell,
-        importDiffPreview, setImportDiffPreview,
-        importConflictStrategy, setImportConflictStrategy,
-        importDetectedDateFormat,
-        importColumnAliases, setImportColumnAliases,
-        importAliasEditorOpen, setImportAliasEditorOpen,
-        lastImportedIds, setLastImportedIds,
-        handleUndoImport,
         exportScope, setExportScope, exportColumns, setExportColumns, exporting, exportError,
-        importReadyRows, hasImportBlockingErrors, importFileInputRef,
-        handleImportClick, handleFileChange, processImportFile, buildImportPreview,
-        handleImportCellEdit, handleRemoveImportRow, handleDownloadTemplate, handleCommitImport,
         handleExportCSV, handleExportExcel, handleExportPDF, handleExportICS,
         getExportData,
     } = usePeriodsImportExport({
@@ -328,7 +249,7 @@ export default function PeriodsPage() {
     });
 
     // ── Notifikasi Terjadwal ───────────────────────────────────────────
-    usePeriodsNotifications({ years, reminderDays, addToast });
+    usePeriodsNotifications({ years, addToast });
 
     // ── Keyboard Shortcuts ─────────────────────────────────────────────
     usePeriodsKeyboard({
@@ -367,6 +288,56 @@ export default function PeriodsPage() {
         }
     }, [searchParams, years, loading, navigate])
 
+    // ── Utility functions ──
+    const saveStatusStyles = {
+        saving: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+        saved: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+        error: "bg-red-500/10 text-red-600 border-red-500/20",
+    };
+
+    const getSaveStatusText = (status, lastChange) => {
+        if (status === "saving") return "Menyimpan...";
+        if (status === "saved") {
+            if (!lastChange) return "Tersimpan";
+            const fieldLabels = { semester: "Semester", start_date: "Tgl Mulai", end_date: "Tgl Selesai" };
+            return `${fieldLabels[lastChange.field] || lastChange.field} diubah`;
+        }
+        return "Gagal Simpan";
+    };
+
+    // ── Grouped Props for PeriodsTable (memoized to preserve React.memo) ──
+    const tableDisplayProps = useMemo(() => ({
+        visibleCols, columnOrder, isPrivacyMode, maskValue,
+        setVisibleCols, moveColumnLeft, moveColumnRight,
+        colMenuRef, colMenuPortalRef, isColMenuOpen, setIsColMenuOpen,
+        colMenuPos, setColMenuPos,
+    }), [visibleCols, columnOrder, isPrivacyMode, maskValue, setVisibleCols, moveColumnLeft, moveColumnRight, colMenuRef, colMenuPortalRef, isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos]);
+
+    const tableFormatters = useMemo(() => ({
+        formatDate, getDuration, getPeriodStats,
+    }), [formatDate, getDuration, getPeriodStats]);
+
+    const tableActions = useMemo(() => ({
+        handleEdit, handleOpenHistory, handleToggleLock,
+        onQuickToggleActive: handleQuickToggleActive,
+        onQuickDuplicate: handleDuplicateClick,
+        onTogglePin: togglePin, pinnedIds,
+        handleOpenReadOnlyDetail, setItemToDelete, setIsDeleteModalOpen,
+        onQuickFilterYear: handleQuickFilterYear,
+    }), [handleEdit, handleOpenHistory, handleToggleLock, handleQuickToggleActive, handleDuplicateClick, togglePin, pinnedIds, handleOpenReadOnlyDetail, setItemToDelete, setIsDeleteModalOpen, handleQuickFilterYear]);
+
+    // ── Grouped Props for PeriodsToolbar (memoized) ──
+    const toolbarSearchProps = useMemo(() => ({
+        searchQuery, setSearchQuery, searchInputRef,
+    }), [searchQuery, setSearchQuery, searchInputRef]);
+
+    const toolbarFilterProps = useMemo(() => ({
+        filterSemester, setFilterSemester, filterStatus, setFilterStatus,
+        filterLock, setFilterLock, filterTimeStatus, setFilterTimeStatus,
+        dateFrom, setDateFrom, dateTo, setDateTo,
+        isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters,
+    }), [filterSemester, setFilterSemester, filterStatus, setFilterStatus, filterLock, setFilterLock, filterTimeStatus, setFilterTimeStatus, dateFrom, setDateFrom, dateTo, setDateTo, isFilterOpen, setIsFilterOpen, activeFilterCount, resetAllFilters]);
+
     if (!moduleEnabled) {
         return (
             <DashboardLayout title="Tahun Pelajaran">
@@ -389,7 +360,7 @@ export default function PeriodsPage() {
     const selectedItemsData = useMemo(() => selectedIds.map(id => years.find(y => y.id === id)).filter(Boolean), [selectedIds, years]);
     const allLocked = useMemo(() => selectedItemsData.length > 0 && selectedItemsData.every(y => y.is_locked), [selectedItemsData]);
     const allUnlocked = useMemo(() => selectedItemsData.length > 0 && selectedItemsData.every(y => !y.is_locked), [selectedItemsData]);
-    const singleItem = useMemo(() => selectedIds.length === 1 ? years.find(y => y.id === selectedIds[0]) : null, [selectedIds, years]);
+    const singleItem = useMemo(() => selectedItemsData.length === 1 ? selectedItemsData[0] : null, [selectedItemsData]);
 
     const activePeriods = useMemo(() => years.filter((y) => y.is_active), [years]);
     const overlaps = useMemo(() => findOverlappingPeriods(activePeriods), [activePeriods]);
@@ -398,169 +369,18 @@ export default function PeriodsPage() {
     if (isDetailView) {
         return (
             <DashboardLayout title="Detail Periode">
-                <React.Suspense fallback={
+                <LazyLoad fallback={
                     <div className="space-y-4 p-5">
-                        <div className="h-7 w-7 rounded-lg bg-[var(--color-surface-alt)] animate-pulse" />
-                        <div className="h-7 w-56 rounded-lg bg-[var(--color-surface-alt)] animate-pulse" />
-                        <div className="h-64 rounded-2xl bg-[var(--color-surface-alt)]/50 animate-pulse" />
+                        <Skeleton className="h-7 w-7 rounded-lg" />
+                        <Skeleton className="h-7 w-56 rounded-lg" />
+                        <Skeleton className="h-64 rounded-2xl" />
                     </div>
                 }>
                     <LazyPeriodDetailPanel
                         periodId={periodId}
                         onBack={() => navigate('/master/periods')}
                     />
-                </React.Suspense>
-            </DashboardLayout>
-        );
-    }
-
-    if (isImportView) {
-        return (
-            <DashboardLayout title="Import Tahun Pelajaran">
-                <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 ">
-                    {/* Breadcrumb + PageHeader */}
-                    <div className="px-5 pt-5 pb-3 shrink-0">
-                        {/* Back + Breadcrumb */}
-                        <div className="flex items-center gap-2 mb-3">
-                            <button
-                                onClick={() => navigate('/master/periods')}
-                                className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                                title="Kembali ke Tahun Pelajaran"
-                            >
-                                <CaretLeft className="w-3.5 h-3.5" />
-                            </button>
-                            <Breadcrumb
-                                items={[
-                                    { label: 'Master' },
-                                    { label: 'Tahun Pelajaran', onClick: () => navigate('/master/periods') },
-                                    { label: 'Import' },
-                                ]}
-                            />
-                        </div>
-
-                        {/* Title */}
-                        <div>
-                            <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
-                                Import Tahun Pelajaran
-                            </h1>
-                            <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
-                                Unggah file Excel/CSV, petakan kolom, lalu tinjau sebelum diimport.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Split Panel */}
-                    <div className="flex-1 min-h-0 px-5">
-                        <React.Suspense fallback={
-                            <div className="grid gap-4 h-full w-full min-h-0" style={{ gridTemplateColumns: '1fr' }}>
-                                <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 space-y-3">
-                                    <Skeleton className="h-7 w-44 rounded-lg" />
-                                    <Skeleton className="h-3.5 w-28 rounded-lg" />
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {[1,2,3,4].map(i => (
-                                            <div key={i} className="p-3 rounded-xl border border-[var(--color-border)] space-y-2">
-                                                <Skeleton className="h-3 w-24 rounded" />
-                                                <Skeleton className="h-8 w-full rounded-lg" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Skeleton className="h-9 w-32 rounded-xl" />
-                                </div>
-                            </div>
-                        }>
-                            <LazyPeriodImportPanel
-                                isOpen={true}
-                                onClose={() => navigate('/master/periods')}
-                                importing={importing}
-                                importStep={importStep}
-                                setImportStep={setImportStep}
-                                importPreview={importPreview}
-                                importFileName={importFileName}
-                                importFileInputRef={importFileInputRef}
-                                importDragOver={importDragOver}
-                                setImportDragOver={setImportDragOver}
-                                processImportFile={processImportFile}
-                                handleDownloadTemplate={handleDownloadTemplate}
-                                importFileHeaders={importFileHeaders}
-                                SYSTEM_COLS={SYSTEM_COLS}
-                                importColumnMapping={importColumnMapping}
-                                setImportColumnMapping={setImportColumnMapping}
-                                importRawData={importRawData}
-                                importLoading={importLoading}
-                                setImportLoading={setImportLoading}
-                                buildImportPreview={buildImportPreview}
-                                importIssues={importIssues}
-                                importValidationOpen={importValidationOpen}
-                                setImportValidationOpen={setImportValidationOpen}
-                                importProgress={importProgress}
-                                handleCommitImport={handleCommitImport}
-                                handleImportClick={handleImportClick}
-                                hasImportBlockingErrors={hasImportBlockingErrors}
-                                importReadyRows={importReadyRows}
-                                handleImportCellEdit={handleImportCellEdit}
-                                importEditCell={importEditCell}
-                                setImportEditCell={setImportEditCell}
-                                handleRemoveImportRow={handleRemoveImportRow}
-                                importConflictStrategy={importConflictStrategy}
-                                setImportConflictStrategy={setImportConflictStrategy}
-                                importDetectedDateFormat={importDetectedDateFormat}
-                                importColumnAliases={importColumnAliases}
-                                setImportColumnAliases={setImportColumnAliases}
-                                importAliasEditorOpen={importAliasEditorOpen}
-                                setImportAliasEditorOpen={setImportAliasEditorOpen}
-                                lastImportedIds={lastImportedIds}
-                                setLastImportedIds={setLastImportedIds}
-                                handleUndoImport={handleUndoImport}
-                                importDiffPreview={importDiffPreview}
-                                setImportDiffPreview={setImportDiffPreview}
-                            />
-                        </React.Suspense>
-                    </div>
-
-                    <input
-                        type="file"
-                        ref={importFileInputRef}
-                        onChange={handleFileChange}
-                        className="hidden"
-                        accept=".csv,.xlsx"
-                    />
-                </div>
-            </DashboardLayout>
-        );
-    }
-
-    if (isExportView) {
-        return (
-            <DashboardLayout title="Export Tahun Pelajaran">
-                <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
-                    <React.Suspense fallback={
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="flex flex-col items-center gap-3">
-                                <Spinner className="w-6 h-6 text-[var(--color-primary)] animate-spin" />
-                                <span className="text-[11px] font-bold text-[var(--color-text-muted)]">Memuat panel export...</span>
-                            </div>
-                        </div>
-                    }>
-                        <LazyPeriodExportPanel
-                            isOpen={true}
-                            onClose={() => navigate('/master/periods')}
-                            years={years}
-                            selectedIds={selectedIds}
-                            exportScope={exportScope}
-                            setExportScope={setExportScope}
-                            exportColumns={exportColumns}
-                            setExportColumns={setExportColumns}
-                            exporting={exporting}
-                            exportError={exportError}
-                            handleExportCSV={handleExportCSV}
-                            handleExportExcel={handleExportExcel}
-                            handleExportPDF={handleExportPDF}
-                            handleExportICS={handleExportICS}
-                            getExportData={getExportData}
-                            addToast={addToast}
-                        />
-                    </React.Suspense>
-                </div>
+                </LazyLoad>
             </DashboardLayout>
         );
     }
@@ -688,14 +508,6 @@ export default function PeriodsPage() {
                                 onGenerate={() => setIsGenerateConfirmOpen(true)}
                                 onOpenArchived={() => setIsArchivedOpen(true)}
                                 fetchArchived={fetchArchived}
-                            />
-
-                            <input
-                                type="file"
-                                ref={importFileInputRef}
-                                onChange={handleFileChange}
-                                className="hidden"
-                                accept=".csv,.xlsx"
                             />
 
                             {/* Keyboard Shortcuts Button - hidden on mobile */}
@@ -832,39 +644,22 @@ export default function PeriodsPage() {
                 <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
                     <div className="border-b border-[var(--color-border)]">
                         <PeriodsToolbar
-                            searchQuery={searchQuery}
-                            setSearchQuery={setSearchQuery}
-                            searchInputRef={searchInputRef}
                             loading={loading}
                             totalRows={totalRows}
-                            filterSemester={filterSemester}
-                            setFilterSemester={setFilterSemester}
-                            filterStatus={filterStatus}
-                            setFilterStatus={setFilterStatus}
-                            filterLock={filterLock}
-                            setFilterLock={setFilterLock}
-                            filterTimeStatus={filterTimeStatus}
-                            setFilterTimeStatus={setFilterTimeStatus}
-                            dateFrom={dateFrom}
-                            setDateFrom={setDateFrom}
-                            dateTo={dateTo}
-                            setDateTo={setDateTo}
                             sortBy={sortBy}
                             setSortBy={setSortBy}
-                            isFilterOpen={isFilterOpen}
-                            setIsFilterOpen={setIsFilterOpen}
-                            activeFilterCount={activeFilterCount}
-                            resetAllFilters={resetAllFilters}
                             viewMode={viewMode}
                             setViewMode={setViewMode}
                             selectedIds={selectedIds}
                             toggleSelectAll={toggleSelectAll}
                             setPage={setPage}
+                            {...toolbarSearchProps}
+                            {...toolbarFilterProps}
                         />
                     </div>
                     {saveStatus !== "idle" && (
-                        <div className={`absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-sm border transition-all animate-in fade-in ${saveStatus === "saving" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : saveStatus === "saved" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"}`}>
-                            {saveStatus === "saving" ? "Menyimpan..." : saveStatus === "saved" ? (lastChange ? `${lastChange.field === "semester" ? "Semester" : lastChange.field === "start_date" ? "Tgl Mulai" : lastChange.field === "end_date" ? "Tgl Selesai" : lastChange.field} diubah` : "Tersimpan") : "Gagal Simpan"}
+                        <div className={`absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-sm border transition-all animate-in fade-in ${saveStatusStyles[saveStatus] || saveStatusStyles.error}`}>
+                            {getSaveStatusText(saveStatus, lastChange)}
                         </div>
                     )}
                     {loading ? (
@@ -880,22 +675,22 @@ export default function PeriodsPage() {
                                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                                             <th className="px-4 py-2.5 text-center w-12">
-                                                <div className="w-4 h-4 bg-[var(--color-border)] rounded-lg mx-auto animate-pulse" />
+                                                <Skeleton className="w-4 h-4 rounded-lg mx-auto" />
                                             </th>
                                             <th className="px-4 py-2.5 text-left">
-                                                <div className="w-20 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                                <Skeleton className="w-20 h-3 rounded" />
                                             </th>
                                             <th className="px-4 py-2.5 text-left">
-                                                <div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                                <Skeleton className="w-14 h-3 rounded" />
                                             </th>
                                             <th className="px-4 py-2.5 text-left">
-                                                <div className="w-18 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                                <Skeleton className="w-18 h-3 rounded" />
                                             </th>
                                             <th className="px-4 py-2.5 text-left">
-                                                <div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse" />
+                                                <Skeleton className="w-12 h-3 rounded" />
                                             </th>
                                             <th className="px-4 py-2.5 text-center w-32">
-                                                <div className="w-10 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" />
+                                                <Skeleton className="w-10 h-3 rounded mx-auto" />
                                             </th>
                                         </tr>
                                     </thead>
@@ -982,37 +777,15 @@ export default function PeriodsPage() {
                                         )
                                     }
                                     selectedIds={selectedIds}
-                                    visibleCols={visibleCols}
-                                    columnOrder={columnOrder}
-                                    isPrivacyMode={isPrivacyMode}
                                     canEdit={canEdit}
-                                    colMenuRef={colMenuRef}
-                                    colMenuPortalRef={colMenuPortalRef}
-                                    isColMenuOpen={isColMenuOpen}
-                                    setIsColMenuOpen={setIsColMenuOpen}
-                                    colMenuPos={colMenuPos}
-                                    setColMenuPos={setColMenuPos}
-                                    setVisibleCols={setVisibleCols}
                                     toggleSelect={toggleSelect}
                                     toggleSelectAll={toggleSelectAll}
-                                    maskValue={maskValue}
-                                    formatDate={formatDate}
-                                    getDuration={getDuration}
-                                    getPeriodStats={getPeriodStats}
                                     handleInlineSave={handleInlineSave}
                                     inlineEditCell={inlineEditCell}
                                     setInlineEditCell={setInlineEditCell}
-                                    handleEdit={handleEdit}
-                                    handleOpenHistory={handleOpenHistory}
-                                    handleToggleLock={handleToggleLock}
-                                    onQuickToggleActive={handleQuickToggleActive}
-                                    onQuickDuplicate={handleDuplicateClick}
-                                    onTogglePin={togglePin}
-                                    pinnedIds={pinnedIds}
-                                    handleOpenReadOnlyDetail={handleOpenReadOnlyDetail}
-                                    setItemToDelete={setItemToDelete}
-                                    setIsDeleteModalOpen={setIsDeleteModalOpen}
-                                    onQuickFilterYear={handleQuickFilterYear}
+                                    {...tableDisplayProps}
+                                    {...tableFormatters}
+                                    {...tableActions}
                                 />
                                 <Pagination
                                     totalRows={totalRows}
@@ -1029,62 +802,18 @@ export default function PeriodsPage() {
                     )}
 
                     {/* Column menu portal (desktop table only) */}
-                    {isColMenuOpen && viewMode === "table" && !loading && (
-                        createPortal(
-                            <div
-                                ref={colMenuPortalRef}
-                                className={`absolute z-[9999] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl shadow-black/10 p-2 space-y-0.5 animate-in fade-in zoom-in-95 ${colMenuPos.showUp ? "slide-in-from-bottom-2" : "slide-in-from-top-2"}`}
-                                style={{
-                                    top: colMenuPos.top,
-                                    right: colMenuPos.right,
-                                }}
-                            >
-                                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">
-                                    Atur Kolom
-                                </p>
-                                {(() => {
-                                    const colLabels = {
-                                        period: "Tahun Pelajaran",
-                                        semester: "Semester",
-                                        duration: "Pelaksanaan",
-                                        status: "Status",
-                                    };
-                                    return columnOrder.filter(k => colLabels[k]).map((key, idx) => (
-                                        <div key={key} className="flex items-center gap-1 px-1 py-1 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group">
-                                            <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); moveColumnLeft(key); }}
-                                                    disabled={idx === 0}
-                                                    className="w-3.5 h-3 flex items-center justify-center text-[6px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:opacity-20 disabled:cursor-not-allowed"
-                                                >▲</button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); moveColumnRight(key); }}
-                                                    disabled={idx === columnOrder.filter(k => colLabels[k]).length - 1}
-                                                    className="w-3.5 h-3 flex items-center justify-center text-[6px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:opacity-20 disabled:cursor-not-allowed"
-                                                >▼</button>
-                                            </div>
-                                            <label className="flex-1 flex items-center justify-between cursor-pointer py-1.5">
-                                                <span className="text-[11px] font-bold text-[var(--color-text)] transition-colors">
-                                                    {colLabels[key]}
-                                                </span>
-                                                <Checkbox
-                                                    checked={visibleCols[key]}
-                                                    onChange={() =>
-                                                        setVisibleCols((p) => ({
-                                                            ...p,
-                                                            [key]: !p[key],
-                                                        }))
-                                                    }
-                                                    small
-                                                />
-                                            </label>
-                                        </div>
-                                    ));
-                                })()}
-                            </div>,
-                            document.body,
-                        )
-                    )}
+                    <ColumnMenuPortal
+                        isOpen={isColMenuOpen}
+                        viewMode={viewMode}
+                        loading={loading}
+                        portalRef={colMenuPortalRef}
+                        colMenuPos={colMenuPos}
+                        columnOrder={columnOrder}
+                        visibleCols={visibleCols}
+                        setVisibleCols={setVisibleCols}
+                        moveColumnLeft={moveColumnLeft}
+                        moveColumnRight={moveColumnRight}
+                    />
                 </div>
 
                 {/* ── Modals ── */}
@@ -1171,7 +900,7 @@ export default function PeriodsPage() {
                     </div>
                 </ConfirmDialog>
 
-                <React.Suspense fallback={null}>
+                <LazyLoad>
                     <LazyPeriodArchiveModal
                         isOpen={isArchivedOpen}
                         onClose={() => setIsArchivedOpen(false)}
@@ -1183,12 +912,12 @@ export default function PeriodsPage() {
                         addToast={addToast}
                         addUndoToast={addUndoToast}
                     />
-                </React.Suspense>
+                </LazyLoad>
 
                 <LockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkLock} submitting={isSaving} />
                 <UnlockModal isOpen={isUnlockModalOpen} onClose={() => setIsUnlockModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkUnlock} submitting={isSaving} />
                 <ShiftDatesModal isOpen={isShiftModalOpen} onClose={() => setIsShiftModalOpen(false)} selectedCount={selectedIds.length} onConfirm={handleBulkShiftDates} submitting={isSaving} />
-                <React.Suspense fallback={null}>
+                <LazyLoad>
                     <LazyPeriodBulkEditModal
                         isOpen={isBulkEditOpen}
                         onClose={() => setIsBulkEditOpen(false)}
@@ -1196,7 +925,7 @@ export default function PeriodsPage() {
                         onConfirm={handleBulkEdit}
                         submitting={isSaving}
                     />
-                </React.Suspense>
+                </LazyLoad>
 
                 <ConfirmDialog
                     isOpen={!!itemToDuplicate}
@@ -1238,7 +967,7 @@ export default function PeriodsPage() {
                     )}
                 </ConfirmDialog>
 
-                <React.Suspense fallback={null}>
+                <LazyLoad>
                     <LazyPeriodComparisonModal
                         isOpen={isCompareOpen}
                         onClose={() => setIsCompareOpen(false)}
@@ -1248,7 +977,7 @@ export default function PeriodsPage() {
                         getDuration={getDuration}
                         getPeriodStats={getPeriodStats}
                     />
-                </React.Suspense>
+                </LazyLoad>
 
                 <ConfirmDialog
                     isOpen={isActivateConfirmOpen}
@@ -1280,7 +1009,7 @@ export default function PeriodsPage() {
                     )}
                 </ConfirmDialog>
 
-                <React.Suspense fallback={null}>
+                <LazyLoad>
                     <LazyPeriodGenerateModal
                         isOpen={isGenerateConfirmOpen}
                         onClose={() => setIsGenerateConfirmOpen(false)}
@@ -1294,9 +1023,9 @@ export default function PeriodsPage() {
                         resetBatchCount={resetBatchCount}
                         submitting={isSaving}
                     />
-                </React.Suspense>
+                </LazyLoad>
 
-                <React.Suspense fallback={null}>
+                <LazyLoad>
                     {isExportModalOpen && (
                         <LazyPeriodExportModal
                             isOpen={isExportModalOpen}
@@ -1323,7 +1052,7 @@ export default function PeriodsPage() {
                             addToast={addToast}
                         />
                     )}
-                </React.Suspense>
+                </LazyLoad>
             </div>
         </DashboardLayout>
     );

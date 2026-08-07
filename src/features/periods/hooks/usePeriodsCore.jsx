@@ -6,17 +6,11 @@ import { logAudit } from "@utils/auditLogger";
 import { useAuth } from "@context/Auth";
 import { useFlag } from "@context/FeatureFlags";
 import { useErrorHandler } from "@hooks";
-import { findOverlappingPeriod } from "@features/periods/utils/periodValidation";
+import { findOverlappingPeriod, normalizeSemester, shiftDateByYear } from "@features/periods/utils/periodValidation";
 
 const LS_COLS = "periods_columns";
 const LS_PAGE_SIZE = "periods_page_size";
 const LS_COL_ORDER = "periods_column_order";
-
-function normalizeSemester(value) {
-    const trimmed = String(value || "").trim();
-    const map = { ganjil: "Ganjil", genap: "Genap" };
-    return map[trimmed.toLowerCase()] || trimmed;
-}
 
 function generateNextAcademicYears(latestYear) {
     const match = latestYear.match(/(\d{4})\/(\d{4})/);
@@ -147,10 +141,8 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const headerMenuBtnRef = useRef(null);
     const shortcutBtnRef = useRef(null);
     const [headerMenuRect, setHeaderMenuRect] = useState(null);
-    const [shortcutRect, setShortcutRect] = useState(null);
     const [headerMenuMounted, setHeaderMenuMounted] = useState(false);
     const searchInputRef = useRef(null);
-    const tableRef = useRef(null);
 
     const [viewMode, setViewMode] = useState(() => {
         try {
@@ -180,10 +172,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     // ── AUTO-TRANSITION ─────────────────────────────────────────────────────
     const [expiredActive, setExpiredActive] = useState(null);
     const [suggestedNext, setSuggestedNext] = useState(null);
-
-    // ── REMINDER (session-only, no duplicates) ──────────────────────────────
-    const remindedPeriods = useRef(new Set());
-    const reminderDays = 7;
 
     // ── INLINE EDIT ──────────────────────────────────────────────────────────
     const [inlineEditCell, setInlineEditCell] = useState(null);
@@ -302,31 +290,8 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 setExpiredActive(null);
                 setSuggestedNext(null);
             }
-            // Reminder: check periods starting/ending within N days
-            const nowTs = Date.now();
-            const threshold = reminderDays * 24 * 60 * 60 * 1000;
-            for (const row of rows) {
-                if (remindedPeriods.current.has(row.id)) continue;
-                if (row.start_date) {
-                    const s = new Date(row.start_date).getTime();
-                    const diff = s - nowTs;
-                        if (diff > 0 && diff <= threshold) {
-                        addToast(`${row.academic_year} ${row.semester} akan dimulai ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
-                        remindedPeriods.current.add(row.id);
-                    }
-                }
-                if (row.end_date) {
-                    const e = new Date(row.end_date).getTime();
-                    const diff = e - nowTs;
-                    if (diff > 0 && diff <= threshold) {
-                        addToast(`${row.academic_year} ${row.semester} akan berakhir ${Math.ceil(diff / (24 * 60 * 60 * 1000))} hari lagi`, "info", 5000);
-                        remindedPeriods.current.add(row.id);
-                    }
-                }
-            }
         } catch (err) {
-            console.error("[PeriodsCore] fetchData error:", err);
-            addToast("Gagal memuat data tahun pelajaran", "error");
+            handleError(err, "Gagal memuat data tahun pelajaran");
         } finally {
             setLoading(false);
         }
@@ -343,8 +308,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 .order("deleted_at", { ascending: false });
             setArchivedYears(data || []);
         } catch (err) {
-            console.warn("[PeriodsCore] fetchArchived failed:", err);
-            addToast("Gagal memuat data arsip", "error");
+            handleError(err, "Gagal memuat data arsip");
         } finally {
             setLoadingArchived(false);
         }
@@ -381,12 +345,10 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
     // ── STICKY POSITIONING (portaled dropdowns) ──────────────────────────────
     useEffect(() => {
-        if (!isHeaderMenuOpen && !isShortcutOpen) return;
+        if (!isHeaderMenuOpen) return;
         const update = () => {
             if (isHeaderMenuOpen && headerMenuBtnRef.current)
                 setHeaderMenuRect(headerMenuBtnRef.current.getBoundingClientRect());
-            if (isShortcutOpen && shortcutBtnRef.current)
-                setShortcutRect(shortcutBtnRef.current.getBoundingClientRect());
         };
         update();
         window.addEventListener("scroll", update, true);
@@ -395,7 +357,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             window.removeEventListener("scroll", update, true);
             window.removeEventListener("resize", update);
         };
-    }, [isHeaderMenuOpen, isShortcutOpen]);
+    }, [isHeaderMenuOpen]);
 
     // ── CRUD HANDLERS ────────────────────────────────────────────────────────
     const handleAdd = useCallback(() => {
@@ -567,7 +529,6 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             setSelectedItem(null);
             fetchData();
         } catch (err) {
-            console.error("[PeriodsCore] handleSubmit error:", err);
             if (err?.code === "23505") {
                 addToast("Tidak bisa menyimpan: sudah ada tahun pelajaran lain yang aktif.", "error");
             } else if (err?.code === "23514") {
@@ -738,18 +699,11 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             const nextEnd = parseInt(match[2]) + 1;
             const newYear = `${nextStart}/${nextEnd}`;
 
-            const shiftDate = (d) => {
-                if (!d) return null;
-                const date = new Date(d);
-                date.setFullYear(date.getFullYear() + 1);
-                return date.toISOString().split("T")[0];
-            };
-
             const payload = {
                 academic_year: newYear,
                 semester: item.semester,
-                start_date: shiftDate(item.start_date),
-                end_date: shiftDate(item.end_date),
+                start_date: shiftDateByYear(item.start_date),
+                end_date: shiftDateByYear(item.end_date),
                 is_active: false,
             };
 
@@ -1149,7 +1103,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     return {
         // Core data
         years, archivedYears, setArchivedYears, loading, stats, fetchData, fetchArchived,
-        isSaving, isDeleting, isMutating, canEdit, moduleEnabled, profile,
+        isSaving, isDeleting, isMutating, canEdit, moduleEnabled,
 
         // Filtering
         searchQuery, setSearchQuery, filterSemester, setFilterSemester,
@@ -1159,7 +1113,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
         // Pagination
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
-        totalRows, paged, isEmpty, filtered,
+        totalRows, paged, filtered,
 
         // Selection
         selectedIds, setSelectedIds, selectedItems, toggleSelect, toggleSelectAll,
@@ -1167,14 +1121,13 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         // Columns
         visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen,
         colMenuPos, setColMenuPos, colMenuRef, colMenuPortalRef,
-        columnOrder, setColumnOrder, moveColumnLeft, moveColumnRight,
+        columnOrder, moveColumnLeft, moveColumnRight,
 
         // UI
         isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
         isShortcutOpen, setIsShortcutOpen, isHeaderMenuOpen, setIsHeaderMenuOpen,
         headerMenuBtnRef, shortcutBtnRef, headerMenuRect, setHeaderMenuRect,
-        shortcutRect, setShortcutRect,
-        headerMenuMounted, searchInputRef, tableRef, viewMode, setViewMode,
+        headerMenuMounted, searchInputRef, viewMode, setViewMode,
 
         // Action context
         selectedItem, setSelectedItem, itemToDelete, setItemToDelete,
@@ -1202,6 +1155,5 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
 
         // Helpers
         formatDate, getDuration, getTimeStatus, getPeriodStats, handleError,
-        reminderDays,
     };
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 
 const CHECK_INTERVAL = 60000;
 
-export function usePeriodsNotifications({ years, reminderDays, addToast }) {
+export function usePeriodsNotifications({ years, reminderDays = 7, addToast }) {
     const notifiedRef = useRef(new Set());
 
     const checkAndNotify = useCallback(() => {

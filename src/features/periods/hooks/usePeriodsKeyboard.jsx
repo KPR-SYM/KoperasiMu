@@ -94,24 +94,33 @@ export function usePeriodsKeyboard({
             if ((e.ctrlKey || e.metaKey) && (e.key === "d" || e.key === "D")) {
                 e.preventDefault()
                 if (selectedIds.length === 1) {
-                    const item = selectedIds[0]
-                    onQuickDuplicate?.({ id: item })
+                    const item = years.find(y => y.id === selectedIds[0])
+                    if (item) onQuickDuplicate?.(item)
                 }
                 return
             }
             if (e.key === "e" || e.key === "E") {
                 e.preventDefault()
-                if (selectedIds.length === 1) handleEdit?.({ id: selectedIds[0] })
+                if (selectedIds.length === 1) {
+                    const item = years.find(y => y.id === selectedIds[0])
+                    if (item) handleEdit?.(item)
+                }
                 return
             }
             if (e.key === "l" || e.key === "L") {
                 e.preventDefault()
-                if (selectedIds.length === 1) handleToggleLock?.({ id: selectedIds[0] })
+                if (selectedIds.length === 1) {
+                    const item = years.find(y => y.id === selectedIds[0])
+                    if (item) handleToggleLock?.(item)
+                }
                 return
             }
             if (e.key === "h" || e.key === "H") {
                 e.preventDefault()
-                if (selectedIds.length === 1) handleOpenHistory?.({ id: selectedIds[0] })
+                if (selectedIds.length === 1) {
+                    const item = years.find(y => y.id === selectedIds[0])
+                    if (item) handleOpenHistory?.(item)
+                }
                 return
             }
             if (e.key === "Delete" || e.key === "Backspace") {
