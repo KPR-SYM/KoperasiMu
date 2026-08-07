@@ -45,11 +45,6 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                                 <PrivacyValue active={isPrivacyMode}>{year.academic_year}</PrivacyValue>
                             </span>
                         </PeriodContextTooltip>
-                        <p className="text-[10px] text-[var(--color-text-muted)] font-mono opacity-60 uppercase tracking-wider mt-1">
-                            <span className={`inline-block text-[9px] font-black px-1.5 py-0.5 rounded-md ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600" : "bg-purple-500/10 text-purple-600"}`}>
-                                {maskValue(year.semester, "semester")}
-                            </span>
-                        </p>
                     </div>
                 </div>
             </td>

@@ -241,7 +241,8 @@ export default function PeriodArchiveModal({
                 ) : (
                     <div className="space-y-3">
                         <div className="border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-surface)] shadow-sm">
-                            <table className="w-full text-xs">
+                            <div className="overflow-x-auto">
+                            <table className="w-full text-xs min-w-[480px]">
                                 <thead className="bg-[var(--color-surface-alt)] sticky top-0">
                                     <tr className="text-left text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
                                         <th className="px-3 py-2.5 w-8">
@@ -252,10 +253,10 @@ export default function PeriodArchiveModal({
                                                 className="w-3.5 h-3.5 rounded border-[var(--color-border)] accent-blue-500 cursor-pointer"
                                             />
                                         </th>
-                                        <th className="px-3 py-2.5">Tahun Pelajaran</th>
-                                        <th className="px-3 py-2.5">Rentang Tanggal</th>
+                                        <th className="px-3 py-2.5 whitespace-nowrap">Tapel</th>
+                                        <th className="px-3 py-2.5 whitespace-nowrap">Rentang Tanggal</th>
                                         <th className="px-3 py-2.5 text-center whitespace-nowrap">Diarsipkan</th>
-                                        <th className="px-3 py-2.5 text-right">Aksi</th>
+                                        <th className="px-3 py-2.5 text-right whitespace-nowrap">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -274,7 +275,9 @@ export default function PeriodArchiveModal({
                                                 <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Semester {y.semester}</p>
                                             </td>
                                             <td className="px-3 py-2.5 text-[10px] text-[var(--color-text-muted)] font-mono whitespace-nowrap">
-                                                {y.start_date || '-'} → {y.end_date || '-'}
+                                                {y.start_date ? new Date(y.start_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                                {' → '}
+                                                {y.end_date ? new Date(y.end_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
                                             </td>
                                             <td className="px-3 py-2.5 text-center whitespace-nowrap">
                                                 <Tooltip content={y.deleted_at ? new Date(y.deleted_at).toLocaleString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''} position="top">
@@ -284,21 +287,23 @@ export default function PeriodArchiveModal({
                                                 </Tooltip>
                                             </td>
                                             <td className="px-3 py-2.5 text-right">
-                                                <div className="flex items-center justify-end gap-1.5">
+                                                <div className="flex items-center justify-end gap-1">
                                                     <button
                                                         onClick={() => handleRestoreYear(y)}
                                                         disabled={restoring}
-                                                        className="h-7 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1 disabled:opacity-50"
+                                                        title="Pulihkan"
+                                                        className="h-7 min-w-0 px-2 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-[9px] font-bold transition-all flex items-center gap-1 disabled:opacity-50"
                                                     >
-                                                        <ArrowCounterClockwise className="w-2 h-2" />
-                                                        Pulihkan
+                                                        <ArrowCounterClockwise className="w-3 h-3 shrink-0" />
+                                                        <span className="hidden sm:inline">Pulihkan</span>
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteTarget(y)}
-                                                        className="h-7 px-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1"
+                                                        title="Hapus permanen"
+                                                        className="h-7 min-w-0 px-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 text-[9px] font-bold transition-all flex items-center gap-1"
                                                     >
-                                                        <Trash className="w-2 h-2" />
-                                                        Hapus
+                                                        <Trash className="w-3 h-3 shrink-0" />
+                                                        <span className="hidden sm:inline">Hapus</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -306,6 +311,7 @@ export default function PeriodArchiveModal({
                                     ))}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
 
                         {archivedYears.length > showCount && (
