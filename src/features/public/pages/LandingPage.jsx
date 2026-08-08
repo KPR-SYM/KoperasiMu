@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Phone, Buildings, House, SignIn, CheckCircle, ShoppingBag, MapPin, Clock, Envelope, Calendar, Eye, Headphones, Star, ChatCircle, UserPlus, MagnifyingGlassPlus, FileText, Wallet, X, CaretUp, InstagramLogo, FacebookLogo, List, WhatsappLogo } from '@phosphor-icons/react';
+import { ShieldCheck, ArrowRight, Phone, Buildings, House, SignIn, CheckCircle, ShoppingBag, MapPin, Clock, Envelope, Calendar, Eye, Headphones, Star, ChatCircle, UserPlus, MagnifyingGlassPlus, FileText, Wallet, X, CaretUp, InstagramLogo, FacebookLogo, List, WhatsappLogo, Megaphone, Books, Question, Path, Users, BookOpen } from '@phosphor-icons/react';
 import { supabase } from '@lib/supabase';
 import ThemeToggle from '../components/common/ThemeToggle';
 import useScrollReveal from '../hooks/useScrollReveal';
@@ -269,13 +269,13 @@ function StepItem({ step, index, isLast }) {
 }
 
 const NAV_LINKS = [
-  ['#services', 'Layanan'],
-  ['#how-it-works', 'Cara Kerja'],
-  ['#check-billing', 'Cek Tagihan'],
-  ['#announcements', 'Pengumuman'],
-  ['#programs', 'Program'],
-  ['#faq', 'FAQ'],
-  ['#contact', 'Kontak'],
+  ['#services', 'Layanan', <ShoppingBag className="w-4 h-4" />],
+  ['#how-it-works', 'Cara Kerja', <Path className="w-4 h-4" />],
+  ['#check-billing', 'Cek Tagihan', <FileText className="w-4 h-4" />],
+  ['#announcements', 'Pengumuman', <Megaphone className="w-4 h-4" />],
+  ['#programs', 'Program', <Books className="w-4 h-4" />],
+  ['#faq', 'FAQ', <Question className="w-4 h-4" />],
+  ['#contact', 'Kontak', <Phone className="w-4 h-4" />],
 ];
 
 const SECTION_IDS = ['hero', 'services', 'how-it-works', 'check-billing', 'announcements', 'programs', 'faq', 'contact'];
@@ -512,11 +512,10 @@ export default function LandingPage() {
                 onMouseEnter={() => {
                   import('@features/auth/pages/LoginPage.jsx');
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/10 transition-all duration-200 hover:-translate-y-px min-h-[44px]"
+                className="hidden md:flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/10 transition-all duration-200 hover:-translate-y-px min-h-[44px]"
               >
                 <SignIn size={15} />
-                <span className="hidden md:inline">Login Staff</span>
-                <span className="md:hidden">Masuk</span>
+                <span>Login Staff</span>
               </Link>
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -548,40 +547,51 @@ export default function LandingPage() {
           ref={menuRef}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className={`absolute top-0 right-0 h-full w-72 max-w-[85vw] bg-white dark:bg-[#0f1425] border-l border-gray-200 dark:border-white/[0.08] shadow-2xl transition-transform duration-300 ease-out ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          className={`absolute top-16 right-0 h-[calc(100%-4rem)] w-72 max-w-[85vw] flex flex-col bg-white dark:bg-[#0f1425] border-l border-gray-200 dark:border-white/[0.08] shadow-2xl transition-transform duration-300 ease-out ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
           role="dialog"
           aria-modal="true"
           aria-label="Menu navigasi"
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/[0.06]">
-            <span className="text-sm font-bold text-gray-900 dark:text-white">Menu</span>
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center justify-center w-11 h-11 rounded-lg text-gray-500 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              aria-label="Tutup menu"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <nav className="px-3 py-3 space-y-0.5" aria-label="Menu mobile">
-            {NAV_LINKS.map(([href, label]) => {
+          {/* Navigation Links */}
+          <nav className="flex-1 overflow-y-auto px-2 pt-3 pb-3 divide-y divide-gray-100 dark:divide-white/[0.06]" aria-label="Menu mobile">
+            {NAV_LINKS.map(([href, label, icon], index) => {
               const isActive = activeSection === href.replace('#', '');
               return (
                 <a
                   key={href}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-3 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] flex items-center ${
+                  className={`flex items-center gap-3 px-4 py-3.5 text-sm font-medium transition-all duration-200 min-h-[44px] ${
                     isActive
-                      ? 'bg-slate-100 dark:bg-slate-500/10 text-slate-700 dark:text-slate-300'
-                      : 'text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white'
+                      ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-l-[3px] border-blue-600 dark:border-blue-400 -ml-px'
+                      : 'text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.05] hover:text-gray-900 dark:hover:text-white border-l-[3px] border-transparent -ml-px'
                   }`}
+                  style={{
+                    transitionDelay: mobileOpen ? `${index * 50}ms` : '0ms',
+                    opacity: mobileOpen ? 1 : 0,
+                    transform: mobileOpen ? 'translateX(0)' : 'translateX(10px)',
+                  }}
                 >
+                  <span className={`flex-shrink-0 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-white/40'}`}>
+                    {icon}
+                  </span>
                   {label}
                 </a>
               );
             })}
           </nav>
+
+          {/* Drawer Footer - CTA */}
+          <div className="px-4 py-4 border-t border-gray-100 dark:border-white/[0.06]">
+            <Link
+              to="/login"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 dark:shadow-blue-500/10 transition-all duration-200 min-h-[44px]"
+            >
+              <SignIn size={16} />
+              Login Staff
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -654,7 +664,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Stats Bar ── */}
-      <section id="stats" className="relative z-10 border-y border-gray-100 dark:border-white/[0.06] bg-gray-50/70 dark:bg-white/[0.02]" aria-label="Statistik utama">
+      <section id="stats" className="relative z-10 border-y border-gray-100 dark:border-white/[0.06] bg-gradient-to-b from-gray-50/80 to-white dark:from-white/[0.03] dark:to-transparent" aria-label="Statistik utama">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-gray-100 dark:divide-white/[0.06]">
             {STATS.map(({ number, label, dynamic }, index) => (
@@ -663,6 +673,13 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── Wave Divider ── */}
+      <div className="relative z-10 -mt-px" aria-hidden="true">
+        <svg className="w-full h-12 sm:h-16 text-white dark:text-[#0a0e1a]" viewBox="0 0 1440 64" fill="none" preserveAspectRatio="none">
+          <path d="M0 32C240 52 480 64 720 52C960 40 1200 12 1440 32V64H0V32Z" fill="currentColor" />
+        </svg>
+      </div>
 
       {/* ── Main Content ── */}
       <main id="main-content">
@@ -995,24 +1012,12 @@ export default function LandingPage() {
       <div className="no-print fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-gray-200 dark:border-white/[0.08] bg-white/90 dark:bg-[#0a0e1a]/90 backdrop-blur-md px-4 py-3 safe-area-pb">
         <button
           onClick={scrollToBilling}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-500/25 transition-all min-h-[44px]"
+          className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-500/25 transition-all min-h-[44px] animate-pulse-slow"
         >
           Cek Tagihan Sekarang
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>
-
-      {/* ── WhatsApp Floating Button (desktop) ── */}
-      <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=Halo%20Koperasi%20Senyum`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="no-print fixed bottom-6 right-6 z-50 hidden md:flex items-center gap-2.5 pl-4 pr-5 py-3 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg shadow-[#25D366]/25 hover:shadow-xl hover:shadow-[#25D366]/30 transition-all duration-300 hover:-translate-y-0.5 group"
-        aria-label="Chat via WhatsApp"
-      >
-        <WhatsappLogo className="w-5 h-5" weight="fill" />
-        <span className="text-sm font-semibold">Chat Kami</span>
-      </a>
 
       {/* ── Back to Top ── */}
       <button

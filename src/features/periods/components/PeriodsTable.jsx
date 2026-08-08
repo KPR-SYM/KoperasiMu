@@ -35,18 +35,18 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     if (key === "period") {
         return (
             <td className="px-4 py-2.5">
-                <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
-                        <span className="relative z-10"><Calendar className="w-4 h-4" /></span>
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
+                            <span className="relative z-10"><Calendar className="w-4 h-4" /></span>
+                        </div>
+                        <div className="flex items-center min-w-0 flex-1">
+                            <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
+                                <span onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
+                                    <PrivacyValue active={isPrivacyMode}>{year.academic_year}</PrivacyValue>
+                                </span>
+                            </PeriodContextTooltip>
+                        </div>
                     </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                        <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
-                            <span onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
-                                <PrivacyValue active={isPrivacyMode}>{year.academic_year}</PrivacyValue>
-                            </span>
-                        </PeriodContextTooltip>
-                    </div>
-                </div>
             </td>
         );
     }
@@ -343,7 +343,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                 key={year.id}
                                 className={`p-3 transition-colors group/mob ${isSelected ? "bg-[var(--color-primary)]/5" : ""}`}
                             >
-                                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                                     <div className="flex flex-col items-center gap-3 pt-1">
                                         <Checkbox
                                             checked={selectedIds.includes(year.id)}

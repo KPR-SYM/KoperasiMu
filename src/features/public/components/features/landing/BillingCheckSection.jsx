@@ -141,13 +141,13 @@ export default function BillingCheckSection() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {(
                     <div className="text-center mb-5">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-2">
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 mb-3">
                             Layanan Wali Murid
                         </p>
-                        <h2 className="text-[28px] sm:text-[36px] font-normal tracking-[-0.02em] text-gray-900 dark:text-white mb-2">
+                        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">
                             Cek Status Pembayaran
                         </h2>
-                        <p className="text-gray-500 dark:text-white/40 max-w-md mx-auto text-[15px] leading-relaxed">
+                        <p className="text-gray-500 dark:text-white/50 max-w-md mx-auto text-sm leading-relaxed">
                             Pantau tagihan dan riwayat pembayaran santri secara real-time.
                         </p>
                     </div>

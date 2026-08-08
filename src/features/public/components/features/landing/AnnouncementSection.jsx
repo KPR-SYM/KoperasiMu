@@ -83,13 +83,16 @@ export default function AnnouncementSection() {
         >
             <div className="w-[calc(100%-32px)] sm:w-4/5 mx-auto">
 
-                <div className="max-w-2xl">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 mb-3">
+                <div className="text-center max-w-2xl mx-auto mb-10">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 mb-3">
                         Informasi &amp; Pengumuman
                     </p>
-                    <h2 className="text-[36px] sm:text-[45px] lg:text-[56px] font-normal leading-[1.08] tracking-[-0.02em] text-gray-900 dark:text-white">
+                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-3">
                         Pengumuman
                     </h2>
+                    <p className="text-gray-500 dark:text-white/50 max-w-md mx-auto text-sm leading-relaxed">
+                        Informasi terbaru seputar koperasi sekolah.
+                    </p>
                 </div>
 
                 {loading && (
