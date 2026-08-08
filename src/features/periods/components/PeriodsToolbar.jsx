@@ -302,7 +302,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-3 gap-y-3 mb-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-3 gap-y-3 mb-3">
                         <div>
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
                                 Semester
