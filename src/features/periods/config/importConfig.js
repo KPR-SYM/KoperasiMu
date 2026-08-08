@@ -12,7 +12,7 @@ export const periodsImportConfig = {
     accept: ['.csv', '.xlsx'],
 
     systemCols: [
-        { key: 'academic_year', label: 'Tahun Pelajaran (e.g. 2024/2025)', synonyms: ['tahun pelajaran', 'tahun akademik', 'academic year', 'tahun', 'year'] },
+        { key: 'academic_year', label: 'Tahun Akademik (e.g. 2024/2025)', synonyms: ['tahun pelajaran', 'tahun akademik', 'academic year', 'tahun', 'year'] },
         { key: 'semester', label: 'Semester (Ganjil / Genap)', synonyms: ['semester', 'ganjil', 'genap', 'term'] },
         { key: 'start_date', label: 'Tanggal Mulai (YYYY-MM-DD)', synonyms: ['tanggal mulai', 'start date', 'mulai', 'tgl mulai'] },
         { key: 'end_date', label: 'Tanggal Selesai (YYYY-MM-DD)', synonyms: ['tanggal selesai', 'end date', 'selesai', 'tgl selesai'] },
@@ -25,15 +25,15 @@ export const periodsImportConfig = {
     },
 
     templateColumns: [
-        { l: 'A', k: 'Tahun Pelajaran', n: 'Tahun Pelajaran', w: 'w-[30%]' },
+        { l: 'A', k: 'Tahun Akademik', n: 'Tahun Akademik', w: 'w-[30%]' },
         { l: 'B', k: 'Semester', n: 'Semester', w: 'w-[15%]' },
         { l: 'C', k: 'Tanggal Mulai', n: 'Tgl Mulai', w: 'w-[20%]' },
         { l: 'D', k: 'Tanggal Selesai', n: 'Tgl Selesai', w: 'w-[20%]' },
     ],
 
     templateSampleRows: [
-        { 'Tahun Pelajaran': '2024/2025', Semester: 'Ganjil', 'Tanggal Mulai': '2024-07-01', 'Tanggal Selesai': '2024-12-31' },
-        { 'Tahun Pelajaran': '2024/2025', Semester: 'Genap', 'Tanggal Mulai': '2025-01-01', 'Tanggal Selesai': '2025-06-30' },
+        { 'Tahun Akademik': '2024/2025', Semester: 'Ganjil', 'Tanggal Mulai': '2024-07-01', 'Tanggal Selesai': '2024-12-31' },
+        { 'Tahun Akademik': '2024/2025', Semester: 'Genap', 'Tanggal Mulai': '2025-01-01', 'Tanggal Selesai': '2025-06-30' },
     ],
 
     templateFileName: 'Template Import Periode -- KoperasiMu.xlsx',
@@ -47,7 +47,7 @@ export const periodsImportConfig = {
     referenceIcon: CalendarCheck,
 
     columns: [
-        { key: 'academic_year', label: 'Tahun Pelajaran' },
+        { key: 'academic_year', label: 'Tahun Akademik' },
         { key: 'semester', label: 'Semester' },
         { key: 'start_date', label: 'Tgl Mulai' },
         { key: 'end_date', label: 'Tgl Selesai' },

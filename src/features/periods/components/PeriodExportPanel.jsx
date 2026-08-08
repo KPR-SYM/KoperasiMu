@@ -15,7 +15,7 @@ const STEPS = [
 ]
 
 const COLUMN_DEFS = [
-    { key: 'academic_year', label: 'Tahun Pelajaran', icon: Calendar, exportKey: 'Tahun Pelajaran' },
+    { key: 'academic_year', label: 'Tahun Akademik', icon: Calendar, exportKey: 'Tahun Akademik' },
     { key: 'semester', label: 'Semester', icon: TextH, exportKey: 'Semester' },
     { key: 'start_date', label: 'Mulai', icon: Calendar, exportKey: 'Mulai' },
     { key: 'end_date', label: 'Selesai', icon: Clock, exportKey: 'Selesai' },
@@ -78,7 +78,7 @@ export default function PeriodExportPanel(props) {
     } = props
 
     const [step, setStep] = useState(1)
-    const [fileName, setFileName] = useState(`Data Tahun Pelajaran ${new Date().toISOString().slice(0, 10)}`)
+    const [fileName, setFileName] = useState(`Data Tahun Akademik ${new Date().toISOString().slice(0, 10)}`)
     const [pdfOrientation, setPdfOrientation] = useState('landscape')
     const [includeHeader, setIncludeHeader] = useState(true)
     const [exportTemplate, setExportTemplate] = useState('ringkas')
@@ -527,7 +527,7 @@ export default function PeriodExportPanel(props) {
                                     </div>
                                     <div className={`bg-white rounded-xl border border-rose-200 p-4 ${pdfOrientation === 'landscape' ? 'aspect-[1.41/1]' : 'aspect-[1/1.41]'}`}>
                                         <div className="border-b-2 border-rose-200 pb-2 mb-3">
-                                            <div className="text-[12px] font-black text-rose-700">Data Tahun Pelajaran</div>
+                                            <div className="text-[12px] font-black text-rose-700">Data Tahun Akademik</div>
                                             <div className="text-[8px] text-rose-400 mt-0.5">Dicetak pada {new Date().toLocaleDateString('id-ID')}</div>
                                         </div>
                                         {exportTemplate === 'ringkas' ? (
@@ -535,7 +535,7 @@ export default function PeriodExportPanel(props) {
                                                 {exportPreviewData.rows.slice(0, 3).map((row, ri) => (
                                                     <div key={ri} className="flex items-center gap-2 text-[8px]">
                                                         <span className="font-black text-rose-600 w-4">{ri + 1}.</span>
-                                                        <span className="font-bold">{row['Tahun Pelajaran']}</span>
+                                                        <span className="font-bold">{row['Tahun Akademik']}</span>
                                                         <span className="text-rose-400">•</span>
                                                         <span>{row['Semester']}</span>
                                                         <span className="text-rose-400">•</span>
@@ -586,7 +586,7 @@ export default function PeriodExportPanel(props) {
             'BEGIN:VEVENT',
             `DTSTART;VALUE=DATE:${start}`,
             `DTEND;VALUE=DATE:${end}`,
-            `SUMMARY:${row['Tahun Pelajaran']} - ${row['Semester']}`,
+            `SUMMARY:${row['Tahun Akademik']} - ${row['Semester']}`,
             `DESCRIPTION:Status: ${row['Status Aktif']}, Kunci: ${row['Status Kunci']}`,
             'END:VEVENT',
         ].join('\n')
@@ -619,20 +619,20 @@ export default function PeriodExportPanel(props) {
                     <button
                         onClick={onClose}
                         className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                        title="Kembali ke Tahun Pelajaran"
+                        title="Kembali ke Tahun Akademik"
                     >
                         <ArrowLeft className="w-3.5 h-3.5" />
                     </button>
                     <Breadcrumb
                         items={[
                             { label: 'Master' },
-                            { label: 'Tahun Pelajaran', onClick: onClose },
+                            { label: 'Tahun Akademik', onClick: onClose },
                             { label: 'Export' },
                         ]}
                     />
                 </div>
                 <div>
-                    <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Export Tahun Pelajaran</h1>
+                    <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Export Tahun Akademik</h1>
                     <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">Cadangkan atau pindahkan data periode akademik ke format CSV, Excel, PDF, atau iCal.</p>
                 </div>
             </div>

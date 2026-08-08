@@ -744,7 +744,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
         if (!period || saving) return
         setSaving(true)
         const errors = {}
-        if (!formData.name.trim())  errors.name      = 'Nama tahun pelajaran wajib diisi'
+        if (!formData.name.trim())  errors.name      = 'Nama tahun akademik wajib diisi'
         if (!formData.startDate)    errors.startDate = 'Tanggal mulai wajib diisi'
         if (!formData.endDate)      errors.endDate   = 'Tanggal selesai wajib diisi'
         if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate)
@@ -945,7 +945,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                     <Breadcrumb
                         items={[
                             { label: 'Master' },
-                            { label: 'Tahun Pelajaran', onClick: goBack },
+                            { label: 'Tahun Akademik', onClick: goBack },
                             { label: `${period.academic_year} ${period.semester}` },
                         ]}
                     />
@@ -964,7 +964,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 <div className="flex items-center justify-between gap-3">
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
-                            Detail Tahun Pelajaran
+                            Detail Tahun Akademik
                         </h1>
                         <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
                             {period.academic_year} {period.semester} — informasi lengkap periode akademik.
@@ -1079,7 +1079,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0 flex-1">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1">
-                                            Tahun Pelajaran
+                                            Tahun Akademik
                                         </p>
                                         <h2 className="text-2xl font-black text-[var(--color-text)] leading-tight">
                                             {maskValue(period.academic_year, 'text')}

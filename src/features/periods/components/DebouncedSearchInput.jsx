@@ -33,7 +33,7 @@ const DebouncedSearchInput = memo(
                     type="text"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
-                    placeholder="Cari nama tahun pelajaran (contoh: 2024/2025)... (Ctrl+K)"
+                    placeholder="Cari nama tahun akademik (contoh: 2024/2025)... (Ctrl+K)"
                     className="input-field w-full h-9 text-xs sm:text-sm bg-[var(--color-surface-alt)]/50 border-[var(--color-border)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/10 transition-all rounded-xl font-bold placeholder:font-normal placeholder:opacity-40"
                 />
             </div>

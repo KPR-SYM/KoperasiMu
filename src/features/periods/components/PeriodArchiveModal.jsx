@@ -56,7 +56,7 @@ export default function PeriodArchiveModal({
                     fetchArchivedYears?.()
                 } catch (e) { handleError(e, { context: 'Gagal membatalkan pemulihan' }) }
             })
-        } catch (err) { handleError(err, { context: 'Gagal memulihkan tahun pelajaran' }) } finally {
+        } catch (err) { handleError(err, { context: 'Gagal memulihkan tahun akademik' }) } finally {
             setRestoring(false)
         }
     }
@@ -141,7 +141,7 @@ export default function PeriodArchiveModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Arsip Tahun Pelajaran"
+            title="Arsip Tahun Akademik"
             description="Kelola dan pulihkan periode yang telah dihapus sementara."
             icon={Archive}
             iconBg="bg-amber-500/10"
@@ -230,7 +230,7 @@ export default function PeriodArchiveModal({
                         <EmptyState
                             icon={Archive}
                             title="Arsip Kosong"
-                            description="Semua tahun pelajaran sudah aktif. Tidak ada data yang diarsipkan saat ini."
+                            description="Semua tahun akademik sudah aktif. Tidak ada data yang diarsipkan saat ini."
                             variant="dashed"
                             color="amber"
                         />

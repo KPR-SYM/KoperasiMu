@@ -21,7 +21,7 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Detail Tahun Pelajaran"
+            title="Detail Tahun Akademik"
             size="full"
             mobileVariant="bottom-sheet"
         >
@@ -32,7 +32,7 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
                             <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <p className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                                        Tahun Pelajaran
+                                        Tahun Akademik
                                     </p>
                                     <h4 className="w-5 h-5 font-black text-[var(--color-text)] leading-tight truncate">
                                         {item.academic_year}

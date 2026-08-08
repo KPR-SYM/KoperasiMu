@@ -20,7 +20,7 @@ import InlineCell from "./InlineCell";
 import PeriodContextTooltip from "./PeriodContextTooltip";
 
 const COL_LABELS = {
-    period: "Tahun Pelajaran",
+    period: "Tahun Akademik",
     semester: "Semester",
     duration: "Pelaksanaan",
     status: "Status",
@@ -244,7 +244,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                     {emptyState || (
                                         <EmptyState
                                             icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
-                                            title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
+                                            title={years.length === 0 ? "Belum Ada Tahun Akademik" : "Tidak ada data ditemukan"}
                                             description={years.length === 0 ? "Tambahkan periode akademik pertama untuk mulai menggunakan modul ini." : "Sesuaikan filter atau kata kunci pencarian Anda"}
                                             color={years.length === 0 ? "primary" : "slate"}
                                             variant="plain"
@@ -332,7 +332,7 @@ const PeriodsTable = memo(function PeriodsTable({
                         {emptyState || (
                             <EmptyState
                                 icon={years.length === 0 ? GraduationCap : MagnifyingGlass}
-                                title={years.length === 0 ? "Belum Ada Tahun Pelajaran" : "Tidak ada data ditemukan"}
+                                title={years.length === 0 ? "Belum Ada Tahun Akademik" : "Tidak ada data ditemukan"}
                                 description={years.length === 0 ? "Tambahkan periode akademik pertama." : "Sesuaikan filter atau kata kunci pencarian Anda"}
                                 color={years.length === 0 ? "primary" : "slate"}
                                 variant="plain"

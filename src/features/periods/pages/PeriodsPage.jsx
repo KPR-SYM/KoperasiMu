@@ -340,7 +340,7 @@ export default function PeriodsPage() {
 
     if (!moduleEnabled) {
         return (
-            <DashboardLayout title="Tahun Pelajaran">
+            <DashboardLayout title="Tahun Akademik">
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="text-center max-w-md p-8">
                         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-4">
@@ -386,7 +386,7 @@ export default function PeriodsPage() {
     }
 
     return (
-        <DashboardLayout title="Tahun Pelajaran">
+        <DashboardLayout title="Tahun Akademik">
             <div className="space-y-3 max-w-[1800px] mx-auto relative">
                 {selectedIds.length > 0 && (
                     <BulkActionsBar
@@ -468,13 +468,13 @@ export default function PeriodsPage() {
 
                 {!canEdit && (
                     <Alert variant="rose" size="md">
-                        Mode Read-only — Pen tahun pelajaran dinonaktifkan oleh administrator.
+                        Mode Read-only — Pen tahun akademik dinonaktifkan oleh administrator.
                     </Alert>
                 )}
 
                 {/* ── Header Row ── */}
                 <PageHeader
-                    title="Tahun Pelajaran"
+                    title="Tahun Akademik"
                     subtitle={`Kelola ${stats.total} periode akademik dalam ekosistem.`}
                     actions={
                         <>
@@ -746,7 +746,7 @@ export default function PeriodsPage() {
                                             <EmptyState
                                                 variant="plain"
                                                 icon={Calendar}
-                                                title="Belum Ada Tahun Pelajaran"
+                                                title="Belum Ada Tahun Akademik"
                                                 description="Mulai dengan menambah periode baru atau import data dari file CSV/Excel."
                                                 action={
                                                     canEdit && (
@@ -877,7 +877,7 @@ export default function PeriodsPage() {
                 >
                     <div className="space-y-2">
                         <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
-                            Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun pelajaran secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
+                            Anda akan mengarsipkan <span className="font-black text-[var(--color-text)]">{selectedIds.length}</span> tahun akademik secara bersamaan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
                         </p>
                         {selectedItemsData.length > 0 && (
                             <div className="flex flex-wrap gap-2">

@@ -50,28 +50,28 @@ export default function PeriodImportPage() {
     });
 
     return (
-        <DashboardLayout title="Import Tahun Pelajaran">
+        <DashboardLayout title="Import Tahun Akademik">
             <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6 ">
                 <div className="px-5 pt-5 pb-3 shrink-0">
                     <div className="flex items-center gap-2 mb-3">
                         <button
                             onClick={() => navigate('/master/periods')}
                             className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                            title="Kembali ke Tahun Pelajaran"
+                            title="Kembali ke Tahun Akademik"
                         >
                             <CaretLeft className="w-3.5 h-3.5" />
                         </button>
                         <Breadcrumb
                             items={[
                                 { label: 'Master' },
-                                { label: 'Tahun Pelajaran', onClick: () => navigate('/master/periods') },
+                                { label: 'Tahun Akademik', onClick: () => navigate('/master/periods') },
                                 { label: 'Import' },
                             ]}
                         />
                     </div>
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
-                            Import Tahun Pelajaran
+                            Import Tahun Akademik
                         </h1>
                         <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
                             Unggah file Excel/CSV, petakan kolom, lalu tinjau sebelum diimport.

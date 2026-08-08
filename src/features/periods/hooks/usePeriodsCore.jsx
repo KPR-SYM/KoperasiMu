@@ -291,7 +291,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
                 setSuggestedNext(null);
             }
         } catch (err) {
-            handleError(err, "Gagal memuat data tahun pelajaran");
+            handleError(err, "Gagal memuat data tahun akademik");
         } finally {
             setLoading(false);
         }
@@ -432,7 +432,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         setIsSaving(true);
 
         const errors = {};
-        if (!formData.name.trim()) errors.name = "Nama tahun pelajaran wajib diisi";
+        if (!formData.name.trim()) errors.name = "Nama tahun akademik wajib diisi";
         if (!formData.startDate) errors.startDate = "Tanggal mulai wajib diisi";
         if (!formData.endDate) errors.endDate = "Tanggal selesai wajib diisi";
         if (formData.startDate && formData.endDate && formData.endDate <= formData.startDate)
@@ -530,7 +530,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             fetchData();
         } catch (err) {
             if (err?.code === "23505") {
-                addToast("Tidak bisa menyimpan: sudah ada tahun pelajaran lain yang aktif.", "error");
+                addToast("Tidak bisa menyimpan: sudah ada tahun akademik lain yang aktif.", "error");
             } else if (err?.code === "23514") {
                 addToast(`Tidak bisa menyimpan: ${err?.message || "data melanggar aturan database"}`, "error");
             } else {
@@ -694,7 +694,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         setIsSaving(true);
         try {
             const match = item.academic_year.match(/(\d{4})\/(\d{4})/);
-            if (!match) throw new Error("Format tahun pelajaran tidak valid");
+            if (!match) throw new Error("Format tahun akademik tidak valid");
             const nextStart = parseInt(match[1]) + 1;
             const nextEnd = parseInt(match[2]) + 1;
             const newYear = `${nextStart}/${nextEnd}`;
@@ -964,7 +964,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             let totalCreated = 0;
             for (let c = 0; c < count; c++) {
                 const nextYear = generateNextAcademicYears(latest.academic_year);
-                if (!nextYear) throw new Error("Format tahun pelajaran tidak valid");
+                if (!nextYear) throw new Error("Format tahun akademik tidak valid");
 
                 const existing = years.filter((y) => y.academic_year === nextYear.ganjil.academic_year);
                 if (existing.length > 0) {
@@ -997,11 +997,11 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             }
 
             if (count > 1) {
-                addToast(`Berhasil buat ${count} tahun pelajaran baru (${totalCreated} periode)`, "success");
+                addToast(`Berhasil buat ${count} tahun akademik baru (${totalCreated} periode)`, "success");
             } else {
                 const nextYear = generateNextAcademicYears(latest.academic_year);
                 if (nextYear) {
-                    addToast(`Berhasil buat Tahun Pelajaran ${nextYear.ganjil.academic_year} (Ganjil + Genap)`, "success");
+                    addToast(`Berhasil buat Tahun Akademik ${nextYear.ganjil.academic_year} (Ganjil + Genap)`, "success");
                 }
             }
             try {

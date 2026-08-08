@@ -2,7 +2,7 @@ import { createPortal } from "react-dom";
 import { Checkbox } from "@shared/components";
 
 const COL_LABELS = {
-    period: "Tahun Pelajaran",
+    period: "Tahun Akademik",
     semester: "Semester",
     duration: "Pelaksanaan",
     status: "Status",

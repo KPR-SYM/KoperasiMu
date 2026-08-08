@@ -34,7 +34,7 @@ export default function PeriodExportPage() {
     });
 
     return (
-        <DashboardLayout title="Export Tahun Pelajaran">
+        <DashboardLayout title="Export Tahun Akademik">
             <div className="flex flex-col min-h-[calc(100vh-3.5rem)] -mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
                 <React.Suspense fallback={
                     <div className="flex-1 flex items-center justify-center">

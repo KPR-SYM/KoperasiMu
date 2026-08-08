@@ -59,7 +59,7 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
                         onSearch={setSearchQuery}
                         inputRef={searchInputRef}
                         isLoading={loading}
-                        placeholder="Cari nama tahun pelajaran (contoh: 2024/2025)... (Ctrl+K)"
+                        placeholder="Cari nama tahun akademik (contoh: 2024/2025)... (Ctrl+K)"
                     />
                 </div>
 

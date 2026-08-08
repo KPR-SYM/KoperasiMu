@@ -11,7 +11,7 @@ const STEPS = [
 ]
 
 const TEMPLATE_COLS = [
-    { l: 'A', k: 'academic_year', n: 'Tahun Pelajaran', w: 'w-[25%]' },
+    { l: 'A', k: 'academic_year', n: 'Tahun Akademik', w: 'w-[25%]' },
     { l: 'B', k: 'semester', n: 'Semester', w: 'w-[25%]' },
     { l: 'C', k: 'start_date', n: 'Tanggal Mulai', w: 'w-[25%]' },
     { l: 'D', k: 'end_date', n: 'Tanggal Selesai', w: 'w-[25%]' },
@@ -382,7 +382,7 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
                             />
                         </th>
                         <th className="px-2 py-2.5 text-center text-[9px]" scope="col">#</th>
-                        {visibleCols.academic_year && <th className="px-3 py-2.5 text-left truncate" scope="col">Tahun Pelajaran</th>}
+                        {visibleCols.academic_year && <th className="px-3 py-2.5 text-left truncate" scope="col">Tahun Akademik</th>}
                         {visibleCols.semester && <th className="px-3 py-2.5 text-center truncate" scope="col">Semester</th>}
                         {visibleCols.start_date && <th className="px-3 py-2.5 text-left truncate" scope="col">Tanggal Mulai</th>}
                         {visibleCols.end_date && <th className="px-3 py-2.5 text-left truncate" scope="col">Tanggal Selesai</th>}
@@ -910,7 +910,7 @@ export default function PeriodImportPanel(props) {
 
         if (dataToExport.length === 0) return
 
-        const headers = ['Tahun Pelajaran', 'Semester', 'Tanggal Mulai', 'Tanggal Selesai']
+        const headers = ['Tahun Akademik', 'Semester', 'Tanggal Mulai', 'Tanggal Selesai']
         const csvRows = [headers.join(',')]
         dataToExport.forEach(r => {
             csvRows.push([
@@ -1489,7 +1489,7 @@ export default function PeriodImportPanel(props) {
                                 type="text"
                                 value={searchQuery}
                                 onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
-                                placeholder="Cari tahun pelajaran atau semester..."
+                                placeholder="Cari tahun akademik atau semester..."
                                 className="w-full h-8 pl-7 pr-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
                             />
                             {searchQuery && (
@@ -1738,7 +1738,7 @@ export default function PeriodImportPanel(props) {
                                             <Check className="w-2.5 h-2.5" weight="bold" />
                                         </div>
                                         <div className="text-[11px] text-[var(--color-text-muted)] leading-snug">
-                                            Kolom wajib: <strong className="font-bold text-[var(--color-text)]">Tahun Pelajaran, Semester, Tanggal Mulai, Tanggal Selesai</strong>
+                                            Kolom wajib: <strong className="font-bold text-[var(--color-text)]">Tahun Akademik, Semester, Tanggal Mulai, Tanggal Selesai</strong>
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-2">

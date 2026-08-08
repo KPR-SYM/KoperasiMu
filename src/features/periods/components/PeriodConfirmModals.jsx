@@ -28,7 +28,7 @@ export const ArchiveModal = memo(function ArchiveModal({
             submitting={submitting}
         >
             <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
-                Tahun Pelajaran <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black mx-0.5">{selectedItem.academic_year} {selectedItem.semester}</span> akan diarsipkan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
+                Tahun Akademik <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black mx-0.5">{selectedItem.academic_year} {selectedItem.semester}</span> akan diarsipkan. Data tetap aman dan dapat dipulihkan kapan saja dari menu arsip.
             </p>
         </ConfirmDialog>
     )

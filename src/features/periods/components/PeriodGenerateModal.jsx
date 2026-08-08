@@ -63,7 +63,7 @@ export default function PeriodGenerateModal({
             isOpen={isOpen}
             onClose={handleClose}
             onConfirm={handleConfirm}
-            title="Generate Tahun Pelajaran Baru"
+            title="Generate Tahun Akademik Baru"
             description={`Buat ${batchCount * 2} periode (${batchCount} tahun × Ganjil + Genap) baru secara otomatis.`}
             icon={ArrowClockwise}
             iconBg="bg-blue-500/10"

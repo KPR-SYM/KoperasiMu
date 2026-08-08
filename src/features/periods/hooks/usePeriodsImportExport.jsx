@@ -7,7 +7,7 @@ import { normalizeSemester } from "@features/periods/utils/periodValidation";
 const LS_IMPORT_MAPPING = "periods_import_mapping";
 
 export const SYSTEM_COLS = [
-    { key: "academic_year", label: "Tahun Pelajaran (e.g. 2024/2025)" },
+    { key: "academic_year", label: "Tahun Akademik (e.g. 2024/2025)" },
     { key: "semester", label: "Semester (Ganjil / Genap)" },
     { key: "start_date", label: "Tanggal Mulai (YYYY-MM-DD)" },
     { key: "end_date", label: "Tanggal Selesai (YYYY-MM-DD)" },
@@ -138,7 +138,7 @@ export function usePeriodsImportExport({
 
             // Find actual header row — skip metadata/instruction rows
             let headerIdx = 0;
-            const KNOWN_KEYWORDS = ["tahun pelajaran", "semester", "tanggal mulai", "tanggal selesai", "academic_year", "start_date", "end_date"];
+            const KNOWN_KEYWORDS = ["tahun akademik", "semester", "tanggal mulai", "tanggal selesai", "academic_year", "start_date", "end_date"];
             for (let i = 0; i < Math.min(rawJson.length, 20); i++) {
                 const cells = (rawJson[i] || []).map(c => String(c || "").trim().toLowerCase()).filter(Boolean);
                 if (cells.length >= 2 && cells.some(c => KNOWN_KEYWORDS.some(kw => c.includes(kw)))) {
@@ -267,7 +267,7 @@ export function usePeriodsImportExport({
             const issues = [];
             const finalPreview = preview.map((row, i) => {
                 const rowIssues = [];
-                if (!row.academic_year) rowIssues.push("Tahun Pelajaran tidak boleh kosong");
+                if (!row.academic_year) rowIssues.push("Tahun Akademik tidak boleh kosong");
                 if (!row.semester) rowIssues.push("Semester tidak boleh kosong");
                 if (!row.start_date) rowIssues.push("Tanggal mulai tidak boleh kosong");
                 if (!row.end_date) rowIssues.push("Tanggal selesai tidak boleh kosong");
@@ -332,7 +332,7 @@ export function usePeriodsImportExport({
             };
 
             const rowIssues = [];
-            if (!next[rowIdx].academic_year) rowIssues.push("Tahun Pelajaran tidak boleh kosong");
+            if (!next[rowIdx].academic_year) rowIssues.push("Tahun Akademik tidak boleh kosong");
             if (!next[rowIdx].semester) rowIssues.push("Semester tidak boleh kosong");
             if (!next[rowIdx].start_date) rowIssues.push("Tanggal mulai tidak boleh kosong");
             if (!next[rowIdx].end_date) rowIssues.push("Tanggal selesai tidak boleh kosong");
@@ -368,15 +368,15 @@ export function usePeriodsImportExport({
         const XLSX = await import("xlsx");
 
         const rows = [
-            ["KoperasiMu — Template Import Tahun Pelajaran"],
+            ["KoperasiMu — Template Import Tahun Akademik"],
             [""],
             ["Petunjuk:"],
             ["1. Isi data mulai dari baris ke-10 (baris 1-9 adalah template, jangan dihapus)"],
             ["2. Format tanggal: YYYY-MM-DD (contoh: 2024-07-01)"],
             ["3. Semester hanya boleh: Ganjil atau Genap"],
-            ["4. Kolom wajib diisi: Tahun Pelajaran, Semester, Tanggal Mulai, Tanggal Selesai"],
+            ["4. Kolom wajib diisi: Tahun Akademik, Semester, Tanggal Mulai, Tanggal Selesai"],
             [""],
-            ["Tahun Pelajaran", "Semester", "Tanggal Mulai (YYYY-MM-DD)", "Tanggal Selesai (YYYY-MM-DD)"],
+            ["Tahun Akademik", "Semester", "Tanggal Mulai (YYYY-MM-DD)", "Tanggal Selesai (YYYY-MM-DD)"],
             ["2024/2025", "Ganjil", "2024-07-01", "2024-12-31"],
             ["2024/2025", "Genap", "2025-01-01", "2025-06-30"],
         ];
@@ -523,7 +523,7 @@ export function usePeriodsImportExport({
         return sourceData.map((y) => {
             const row = {};
             exportColumns.forEach((colKey) => {
-                if (colKey === "academic_year") row["Tahun Pelajaran"] = y.academic_year;
+                if (colKey === "academic_year") row["Tahun Akademik"] = y.academic_year;
                 if (colKey === "semester") row["Semester"] = y.semester;
                 if (colKey === "start_date") row["Mulai"] = y.start_date;
                 if (colKey === "end_date") row["Selesai"] = y.end_date;
@@ -652,7 +652,7 @@ export function usePeriodsImportExport({
 
             const html = buildPrintHTML({
                 docBadge: "LAPORAN",
-                title: "Data Tahun Pelajaran",
+                title: "Data Tahun Akademik",
                 subtitle: `Dicetak pada ${new Date().toLocaleDateString("id-ID", { dateStyle: "long" })} — Scope: ${scopeLabel} — Template: ${template}`,
                 totalCount: allRows.length,
                 totalLabel: "Total Periode",
@@ -673,7 +673,7 @@ export function usePeriodsImportExport({
                 showSignature: false,
                 paperSize: options.orientation === "portrait" ? "A4 portrait" : "A4 landscape",
                 footerAppTitle: "KoperasiMu",
-                footerAppSubtitle: "Data Tahun Pelajaran",
+                footerAppSubtitle: "Data Tahun Akademik",
             });
 
             const opened = openPrintWindow(html);
@@ -714,7 +714,7 @@ export function usePeriodsImportExport({
                 const ds = (row["Mulai"] || "").replace(/-/g, "");
                 const de = (row["Selesai"] || "").replace(/-/g, "");
                 if (!ds || !de) continue;
-                const yearKey = row["Tahun Pelajaran"] || "";
+                const yearKey = row["Tahun Akademik"] || "";
                 const semKey = row["Semester"] || "";
                 const uid = `period-${yearKey.replace("/", "")}-${semKey.toLowerCase()}@koperasimu`;
                 icsLines.push("BEGIN:VEVENT");

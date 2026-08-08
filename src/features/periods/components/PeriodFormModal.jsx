@@ -137,8 +137,8 @@ const PeriodFormModal = memo(function PeriodFormModal({
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title={selectedItem?.id ? 'Update Tahun Pelajaran' : 'Tahun Pelajaran Baru'}
-            description={selectedItem?.id ? 'Perbarui detail tahun pelajaran ini.' : 'Buat periode tahun pelajaran baru.'}
+            title={selectedItem?.id ? 'Update Tahun Akademik' : 'Tahun Akademik Baru'}
+            description={selectedItem?.id ? 'Perbarui detail tahun akademik ini.' : 'Buat periode tahun akademik baru.'}
             icon={selectedItem?.id ? Pencil : PlusCircle}
             iconBg={'bg-[var(--color-primary)]/10'}
             iconColor={'text-[var(--color-primary)]'}
@@ -187,7 +187,7 @@ const PeriodFormModal = memo(function PeriodFormModal({
                     <div className="grid grid-cols-12 gap-3">
                         <div className="col-span-12 sm:col-span-7">
                             <label className="block text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-[0.2em] mb-1.5 ml-1 opacity-60">
-                                Tahun Pelajaran <span className="text-red-500">*</span>
+                                Tahun Akademik <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <input

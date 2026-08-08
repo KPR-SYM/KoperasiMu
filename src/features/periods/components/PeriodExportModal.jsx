@@ -4,7 +4,7 @@ import { Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle,
 import { Modal } from '@shared/components'
 
 const COLUMN_DEFS = [
-    { key: 'academic_year', label: 'Tahun Pelajaran', icon: Calendar },
+    { key: 'academic_year', label: 'Tahun Akademik', icon: Calendar },
     { key: 'semester', label: 'Semester', icon: TextH },
     { key: 'start_date', label: 'Mulai', icon: Calendar },
     { key: 'end_date', label: 'Selesai', icon: Clock },
@@ -186,7 +186,7 @@ export default function PeriodExportModal(props) {
         getExportData,
     } = props
 
-    const [fileName, setFileName] = useState(`Data Tahun Pelajaran ${new Date().toISOString().slice(0, 10)}`)
+    const [fileName, setFileName] = useState(`Data Tahun Akademik ${new Date().toISOString().slice(0, 10)}`)
     const [pdfOrientation, setPdfOrientation] = useState('landscape')
     const [includeHeader, setIncludeHeader] = useState(true)
     const [exportTemplate, setExportTemplate] = useState('ringkas')
@@ -297,7 +297,7 @@ export default function PeriodExportModal(props) {
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Export Data Tahun Pelajaran"
+            title="Export Data Tahun Akademik"
             description="Cadangkan atau pindahkan data periode akademik ke format CSV, Excel, atau PDF."
             icon={FileArrowUp}
             iconBg="bg-amber-500/10"
