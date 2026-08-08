@@ -105,83 +105,64 @@ export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFi
         <EmptyState icon={Info} title="Tidak Ada Perubahan Terbaca" description="Tidak ada field yang berubah pada record ini." variant="plain" color="slate" />
     )
 
-    // Helper format values
-    const formatValue = (val, isOld = false) => {
-        if (val === null || val === undefined) return <span className="italic opacity-40">null</span>
-        if (typeof val === 'boolean') return <span className={val ? 'text-emerald-600' : 'text-rose-600'}>{val ? 'Aktif' : 'Nonaktif'}</span>
-        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) return <span>{fmtDateTime(val)}</span>
-        if (typeof val === 'object') return <span>{JSON.stringify(val)}</span>
-        return <span>{String(val)}</span>
+    const formatValue = (val) => {
+        if (val === null || val === undefined) return <span className="italic opacity-40">—</span>
+        if (typeof val === 'boolean') return val ? 'Aktif' : 'Nonaktif'
+        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) return fmtDateTime(val)
+        if (typeof val === 'object') return JSON.stringify(val)
+        return String(val)
+    }
+
+    const getChangeType = (oldVal, newVal) => {
+        if (oldVal === null || oldVal === undefined) return 'added'
+        if (newVal === null || newVal === undefined) return 'removed'
+        return 'modified'
     }
 
     return (
-        <div className="space-y-3">
-            {/* Summary Header */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-3 p-2.5 rounded-xl bg-purple-500/5 border border-purple-500/20">
-                <span className="text-[10px] font-black uppercase tracking-widest text-purple-500">
-                    {keys.length} field berubah
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                    {keys.slice(0, 6).map(key => (
-                        <span key={key} className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                            {key.replace(/_/g, ' ')}
-                        </span>
-                    ))}
-                    {keys.length > 6 && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                            +{keys.length - 6} lainnya
-                        </span>
-                    )}
-                </div>
-            </div>
-
-            {/* Column Headers */}
-            <div className="hidden lg:grid grid-cols-2 gap-4 mb-2">
-                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50 px-2">
-                    Data Sebelumnya
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 opacity-80 px-2 text-right">
-                    Data Terbaru
-                </p>
-            </div>
-
-            {/* Diff Rows */}
+        <div className="space-y-1">
             {keys.map(key => {
                 const isSensitive = ['password', 'secret', 'token'].includes(key.toLowerCase())
                 const valOld = diff[key].old
                 const valNew = diff[key].new
+                const changeType = getChangeType(valOld, valNew)
 
                 return (
-                    <div key={key} className="group">
-                        <div className="px-2 py-1.5 rounded-lg border border-[var(--color-border)]/20 bg-[var(--color-surface-alt)]/30 group-hover:border-purple-500/30 group-hover:bg-purple-500/5 transition-all">
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-tighter">
-                                    {key.replace(/_/g, ' ')}
-                                </span>
-                                {isSensitive && (
-                                    <span className="text-[8px] font-black text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded uppercase">
-                                        Sensitif
+                    <div key={key} className="group relative">
+                        <div className="flex items-stretch rounded-lg border border-[var(--color-border)]/40 overflow-hidden hover:border-[var(--color-primary)]/30 transition-colors">
+                            {/* Change indicator */}
+                            <div className={`w-1 shrink-0 ${changeType === 'added' ? 'bg-emerald-500' : changeType === 'removed' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+
+                            {/* Content */}
+                            <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-[var(--color-surface)]">
+                                {/* Field name */}
+                                <div className="flex items-center gap-2 min-w-0 shrink-0">
+                                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--color-text)]">
+                                        {key.replace(/_/g, ' ')}
                                     </span>
-                                )}
-                            </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                {/* Old Value */}
-                                <div className="p-2 rounded-lg bg-rose-500/5 border border-rose-500/10 min-h-[32px] flex items-center">
-                                    <code className="text-[10px] font-mono break-all text-rose-600/70 line-through">
-                                        {isSensitive
-                                            ? '••••••••'
-                                            : formatValue(valOld, true)}
+                                </div>
+
+                                {/* Separator */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]/30" />
+                                    <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/40" />
+                                    <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]/30" />
+                                </div>
+
+                                {/* Old value */}
+                                <div className="flex-1 min-w-0">
+                                    <code className={`text-[11px] font-mono truncate block ${changeType === 'removed' ? 'text-rose-500 line-through' : 'text-[var(--color-text-muted)]/60 line-through'}`}>
+                                        {isSensitive ? '••••••••' : formatValue(valOld)}
                                     </code>
                                 </div>
-                                {/* New Value */}
-                                <div className="relative p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 min-h-[32px] flex items-center">
-                                    <div className="absolute -left-2 top-1/2 -translate-y-1/2 hidden lg:flex w-4 h-4 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] items-center justify-center z-10">
-                                        <ArrowRight className="w-2 h-2 text-purple-500 opacity-50" />
-                                    </div>
-                                    <code className="text-[10px] font-mono font-black break-all text-emerald-600">
-                                        {isSensitive
-                                            ? '••••••••'
-                                            : formatValue(valNew, false)}
+
+                                {/* Arrow */}
+                                <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/30 shrink-0" />
+
+                                {/* New value */}
+                                <div className="flex-1 min-w-0">
+                                    <code className={`text-[11px] font-mono font-medium truncate block ${changeType === 'added' ? 'text-emerald-600' : 'text-emerald-600'}`}>
+                                        {isSensitive ? '••••••••' : formatValue(valNew)}
                                     </code>
                                 </div>
                             </div>
@@ -194,7 +175,7 @@ export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFi
 })
 
 /**
- * DeleteTombstone â€” Tampilkan snapshot record yang dihapus (old_data)
+ * DeleteTombstone — Tampilkan snapshot record yang dihapus (old_data)
  */
 export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
     if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
@@ -210,38 +191,34 @@ export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
     const entries = Object.entries(data).filter(([, v]) => v !== null && v !== undefined)
 
     return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-2 mb-3">
-                <div className="flex-1 h-px bg-rose-500/20" />
-                <span className="text-[8px] font-black uppercase tracking-widest text-rose-500/70 flex items-center gap-1.5">
-                    <Trash className="w-2 h-2" /> Snapshot Record Sebelum Dihapus
-                </span>
-                <div className="flex-1 h-px bg-rose-500/20" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {entries.map(([key, val]) => {
-                    const isSensitive = sensitiveKeys.some(s => key.toLowerCase().includes(s))
-                    return (
-                        <div key={key} className="p-2.5 rounded-xl bg-rose-500/5 border border-rose-500/10 group">
-                            <div className="text-[8px] font-black uppercase tracking-widest text-rose-400/70 mb-1">
+        <div className="space-y-1">
+            {entries.slice(0, 10).map(([key, val]) => {
+                const isSensitive = sensitiveKeys.some(s => key.toLowerCase().includes(s))
+                return (
+                    <div key={key} className="flex items-stretch rounded-lg border border-rose-500/20 overflow-hidden">
+                        <div className="w-1 shrink-0 bg-rose-500" />
+                        <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-[var(--color-surface)]">
+                            <span className="text-[10px] font-bold uppercase tracking-wide text-rose-500/70 shrink-0">
                                 {key.replace(/_/g, ' ')}
-                            </div>
-                            <code className="text-[10px] font-mono text-rose-600/80 break-all block">
-                                {isSensitive ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : (typeof val === 'object' ? JSON.stringify(val) : String(val))}
-                            </code>
+                            </span>
+                            <span className="text-[11px] font-mono text-rose-600/80 truncate">
+                                {isSensitive ? '••••••••' : (typeof val === 'object' ? JSON.stringify(val) : String(val))}
+                            </span>
                         </div>
-                    )
-                })}
-            </div>
-            <p className="text-[9px] text-[var(--color-text-muted)] opacity-50 text-center pt-2">
-                Record ini tidak lagi ada di database. Gunakan tombol "Pulihkan" untuk restore.
-            </p>
+                    </div>
+                )
+            })}
+            {entries.length > 10 && (
+                <div className="text-center py-1">
+                    <span className="text-[9px] font-bold text-rose-500/50">+{entries.length - 10} field lainnya</span>
+                </div>
+            )}
         </div>
     )
 })
 
 /**
- * InsertViewer â€” Tampilkan field-field record baru untuk aksi INSERT
+ * InsertViewer — Tampilkan field-field record baru untuk aksi INSERT
  */
 export const InsertViewer = memo(function InsertViewer({ data }) {
     if (!data || typeof data !== 'object') return null
@@ -250,26 +227,25 @@ export const InsertViewer = memo(function InsertViewer({ data }) {
     if (entries.length === 0) return null
 
     return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-2 mb-3">
-                <div className="flex-1 h-px bg-emerald-500/20" />
-                <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500/70 flex items-center gap-1.5">
-                    <Plus className="w-2 h-2" /> Data Record Baru
-                </span>
-                <div className="flex-1 h-px bg-emerald-500/20" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {entries.map(([key, val]) => (
-                    <div key={key} className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                        <div className="text-[8px] font-black uppercase tracking-widest text-emerald-500/70 mb-1">
+        <div className="space-y-1">
+            {entries.slice(0, 10).map(([key, val]) => (
+                <div key={key} className="flex items-stretch rounded-lg border border-emerald-500/20 overflow-hidden">
+                    <div className="w-1 shrink-0 bg-emerald-500" />
+                    <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-[var(--color-surface)]">
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-500/70 shrink-0">
                             {key.replace(/_/g, ' ')}
-                        </div>
-                        <code className="text-[10px] font-mono text-emerald-600 break-all block">
+                        </span>
+                        <span className="text-[11px] font-mono text-emerald-600 truncate">
                             {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                        </code>
+                        </span>
                     </div>
-                ))}
-            </div>
+                </div>
+            ))}
+            {entries.length > 10 && (
+                <div className="text-center py-1">
+                    <span className="text-[9px] font-bold text-emerald-500/50">+{entries.length - 10} field lainnya</span>
+                </div>
+            )}
         </div>
     )
 })
@@ -283,8 +259,16 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     const [loading, setLoading] = useState(true)
     const [expandedId, setExpandedId] = useState(null)
     const [search, setSearch] = useState('')
+    const [actionFilter, setActionFilter] = useState('ALL')
     const [restoringId, setRestoringId] = useState(null)
     const abortRef = useRef(null)
+
+    const ACTION_FILTERS = [
+        { id: 'ALL', label: 'Semua' },
+        { id: 'INSERT', label: 'Tambah' },
+        { id: 'UPDATE', label: 'Ubah' },
+        { id: 'DELETE', label: 'Hapus' },
+    ];
 
     const fetchLogs = useCallback(async () => {
         if (!tableName || !recordId) return
@@ -368,13 +352,56 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     }, [fetchLogs])
 
     const filteredLogs = useMemo(() => {
-        if (!search) return logs
-        const q = search.toLowerCase()
-        return logs.filter(l =>
-            l.action.toLowerCase().includes(q) ||
-            l.actor_name.toLowerCase().includes(q)
-        )
-    }, [logs, search])
+        let result = logs
+        if (search) {
+            const q = search.toLowerCase()
+            result = result.filter(log =>
+                log.actor_name?.toLowerCase().includes(q) ||
+                log.action?.toLowerCase().includes(q)
+            )
+        }
+        if (actionFilter !== 'ALL') {
+            result = result.filter(log => log.action === actionFilter)
+        }
+        return result
+    }, [logs, search, actionFilter])
+
+    // Group logs by relative date
+    const groupedLogs = useMemo(() => {
+        const groups = {}
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const yesterday = new Date(today - 86400000)
+        const twoDaysAgo = new Date(today - 172800000)
+
+        filteredLogs.forEach(log => {
+            const logDate = new Date(log.created_at)
+            const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate())
+            let groupKey
+
+            if (logDay.getTime() === today.getTime()) {
+                groupKey = 'Hari Ini'
+            } else if (logDay.getTime() === yesterday.getTime()) {
+                groupKey = 'Kemarin'
+            } else if (logDay.getTime() === twoDaysAgo.getTime()) {
+                groupKey = '2 hari lalu'
+            } else {
+                const daysDiff = Math.floor((today - logDay) / 86400000)
+                if (daysDiff < 7) groupKey = `${daysDiff} hari lalu`
+                else if (daysDiff < 30) groupKey = `${Math.floor(daysDiff / 7)} minggu lalu`
+                else groupKey = logDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+            }
+
+            if (!groups[groupKey]) groups[groupKey] = []
+            groups[groupKey].push(log)
+        })
+        return groups
+    }, [filteredLogs])
+
+    const getInitials = (name) => {
+        if (!name || name === 'System') return 'SY'
+        return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    }
 
     if (loading) return (
         <div className="flex flex-col items-center justify-center h-full min-h-[160px] space-y-4 p-2">
@@ -412,168 +439,164 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                             className="w-full h-10 pl-10 pr-4 rounded-xl bg-white dark:bg-white/[0.06] border border-[var(--color-border)] text-[11px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10 transition-all placeholder:text-[var(--color-text-muted)]/40"
                         />
                     </div>
+                    {/* Action Filter Chips */}
+                    <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto scrollbar-hide">
+                        {ACTION_FILTERS.map(f => (
+                            <button
+                                key={f.id}
+                                onClick={() => setActionFilter(f.id)}
+                                className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all border
+                                    ${actionFilter === f.id
+                                        ? theme === 'purple'
+                                            ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
+                                            : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30'
+                                        : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]'
+                                    }`}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 
             <div className={`relative space-y-0 ${stickyHeader ? 'pb-3' : ''}`}>
                 <div className="absolute left-[18px] top-2 bottom-2 w-px bg-[var(--color-border)] opacity-60" />
 
-                {filteredLogs.map(log => {
-                    const isExpanded = expandedId === log.id
-                    return (
-                        <div key={log.id} className="relative pl-8 pb-1 last:pb-0">
-                            <div className={`absolute left-[14px] top-[1.1rem] w-2 h-2 rounded-full border transition-all z-10
-                                ${theme === 'purple'
-                                    ? 'bg-purple-500/30 border-purple-500/40'
-                                    : log.action === 'INSERT' ? 'bg-emerald-500/30 border-emerald-500/40' :
-                                        log.action === 'UPDATE' ? 'bg-orange-500/30 border-orange-500/40' :
-                                            log.action === 'DELETE' ? 'bg-rose-500/30 border-rose-500/40' :
-                                                'bg-indigo-500/30 border-indigo-500/40'}
-                                ${isExpanded ? 'ring-4 ring-current opacity-100 scale-125' : 'opacity-60'}`}
-                                style={isExpanded ? { '--tw-ring-color': theme === 'purple' ? 'rgba(168,85,247,0.1)' : log.action === 'INSERT' ? 'rgba(16,185,129,0.1)' : log.action === 'UPDATE' ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)' } : {}}
-                            />
+                {Object.entries(groupedLogs).map(([dateLabel, groupLogs]) => (
+                    <div key={dateLabel} className="mb-3">
+                        {/* Date Group Header */}
+                        <div className="relative pl-8 mb-2">
+                            <div className="absolute left-[14px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[var(--color-surface-alt)] border-2 border-[var(--color-border)]" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">
+                                {dateLabel}
+                            </span>
+                        </div>
 
-                            <button
-                                onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                                className={`w-full text-left group transition-all rounded-2xl p-1.5 border
-                                    ${isExpanded
-                                        ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)] shadow-sm'
-                                        : 'bg-transparent border-transparent hover:bg-[var(--color-surface-alt)]/30'}`}
-                            >
-                                <div className="flex items-center justify-between mb-0.5">
-                                    <div className="flex items-center gap-2">
-                                        <ActionBadge action={log.action} theme={theme} />
-                                        <span className="text-[11px] font-black text-[var(--color-text)] tracking-tight">
-                                            {log.actor_name}
-                                        </span>
-                                    </div>
-                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] tabular-nums opacity-50">
-                                        {fmtRelative(log.created_at)}
-                                    </span>
-                                </div>
+                        {groupLogs.map(log => {
+                            const isExpanded = expandedId === log.id
+                            return (
+                                <div key={log.id} className="relative pl-8 pb-1 last:pb-0">
+                                    <div className={`absolute left-[14px] top-[1.1rem] w-2 h-2 rounded-full border transition-all z-10
+                                        ${theme === 'purple'
+                                            ? 'bg-purple-500/30 border-purple-500/40'
+                                            : log.action === 'INSERT' ? 'bg-emerald-500/30 border-emerald-500/40' :
+                                                log.action === 'UPDATE' ? 'bg-orange-500/30 border-orange-500/40' :
+                                                    log.action === 'DELETE' ? 'bg-rose-500/30 border-rose-500/40' :
+                                                        'bg-indigo-500/30 border-indigo-500/40'}
+                                        ${isExpanded ? 'ring-4 ring-current opacity-100 scale-125' : 'opacity-60'}`}
+                                        style={isExpanded ? { '--tw-ring-color': theme === 'purple' ? 'rgba(168,85,247,0.1)' : log.action === 'INSERT' ? 'rgba(16,185,129,0.1)' : log.action === 'UPDATE' ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)' } : {}}
+                                    />
 
-                                <p className="text-[9.5px] text-[var(--color-text-muted)] font-medium leading-tight opacity-60">
-                                    {log.action === 'UPDATE' ? 'Melakukan perubahan data record'
-                                        : log.action === 'INSERT' ? 'Membuat record baru di sistem'
-                                            : log.action === 'DELETE' ? 'Menghapus record dari sistem'
-                                                : 'Aktivitas sistem'}
-                                    <span className="mx-1.5 opacity-30">Â·</span>
-                                    {fmtDateTime(log.created_at)}
-                                </p>
-
-                                {isExpanded && (
-                                    <div className="mt-2 pt-2.5 border-t border-[var(--color-border)] space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                                        <div className="p-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]/50 space-y-2.5">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-3 h-3 text-indigo-500" />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                                                        Forensic Diff
-                                                    </span>
+                                    <button
+                                        onClick={() => setExpandedId(isExpanded ? null : log.id)}
+                                        className={`w-full text-left group transition-all rounded-2xl p-1.5 border
+                                            ${isExpanded
+                                                ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)] shadow-sm'
+                                                : 'bg-transparent border-transparent hover:bg-[var(--color-surface-alt)]/30'}`}
+                                    >
+                                        <div className="flex items-center justify-between mb-0.5">
+                                            <div className="flex items-center gap-2">
+                                                <ActionBadge action={log.action} theme={theme} />
+                                                {/* User Avatar */}
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-black shrink-0
+                                                    ${theme === 'purple'
+                                                        ? 'bg-purple-500/10 text-purple-600'
+                                                        : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                                                    }`}>
+                                                    {getInitials(log.actor_name)}
                                                 </div>
-                                                <div className="text-[8px] font-mono text-[var(--color-text-muted)] opacity-50">
-                                                    IP: {log.ip_address || '?.?.?.?'}
-                                                </div>
+                                                <span className="text-[11px] font-black text-[var(--color-text)] tracking-tight">
+                                                    {log.actor_name}
+                                                </span>
                                             </div>
+                                            <span className="text-[9px] font-bold text-[var(--color-text-muted)] tabular-nums opacity-50">
+                                                {fmtRelative(log.created_at)}
+                                            </span>
+                                        </div>
 
-                                            {log.action === 'UPDATE' && (
-                                                <DiffViewer
-                                                    oldData={log.old_data}
-                                                    newData={log.new_data}
-                                                    changedFields={log.changed_fields}
-                                                />
-                                            )}
-                                            {log.action === 'DELETE' && (
-                                                <DeleteTombstone data={log.old_data} />
-                                            )}
-                                            {log.action === 'INSERT' && (
-                                                <InsertViewer data={log.new_data} />
-                                            )}
-                                            {!['UPDATE', 'DELETE', 'INSERT'].includes(log.action) && (
-                                                <DiffViewer oldData={log.old_data} newData={log.new_data} />
-                                            )}
+                                        <p className="text-[9.5px] text-[var(--color-text-muted)] font-medium leading-tight opacity-60">
+                                            {log.action === 'UPDATE' ? 'Melakukan perubahan data record'
+                                                : log.action === 'INSERT' ? 'Membuat record baru di sistem'
+                                                    : log.action === 'DELETE' ? 'Menghapus record dari sistem'
+                                                        : 'Aktivitas sistem'}
+                                            <span className="mx-1.5 opacity-30">·</span>
+                                            {fmtDateTime(log.created_at)}
+                                        </p>
 
-                                            <div className="pt-3 border-t border-[var(--color-border)]/50 flex items-center justify-between gap-6">
-                                                <div className="flex-1 flex flex-wrap items-center gap-4">
-                                                    {log.severity && (() => {
-                                                        const sev = SEVERITY_STYLES[log.severity] || SEVERITY_STYLES.LOW
-                                                        return (
-                                                            <div className="flex items-center gap-2 pr-4 border-r border-[var(--color-border)] last:border-0 border-opacity-30">
-                                                                <div className={`w-6 h-6 rounded-lg ${sev.color.split(' ')[0]} flex items-center justify-center`}>
-                                                                    <Warning className="w-3 h-3" />
-                                                                </div>
-                                                                <div className="flex flex-col">
-                                                                    <span className="text-[8px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50">Severity</span>
-                                                                    <span className={`text-[9.5px] font-black uppercase ${sev.color.split(' ')[1]}`}>
-                                                                        {sev.label}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    })()}
+                                        {isExpanded && (
+                                            <div className="mt-2 pt-2.5 border-t border-[var(--color-border)] space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                {/* Diff Content */}
+                                                {log.action === 'UPDATE' && (
+                                                    <DiffViewer
+                                                        oldData={log.old_data}
+                                                        newData={log.new_data}
+                                                        changedFields={log.changed_fields}
+                                                    />
+                                                )}
+                                                {log.action === 'DELETE' && (
+                                                    <DeleteTombstone data={log.old_data} />
+                                                )}
+                                                {log.action === 'INSERT' && (
+                                                    <InsertViewer data={log.new_data} />
+                                                )}
+                                                {!['UPDATE', 'DELETE', 'INSERT'].includes(log.action) && (
+                                                    <DiffViewer oldData={log.old_data} newData={log.new_data} />
+                                                )}
 
-                                                    {log.duration_ms != null && (
-                                                        <div className="flex items-center gap-2 pr-4 border-r border-[var(--color-border)] last:border-0 border-opacity-30">
-                                                            <div className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] flex items-center justify-center text-[var(--color-text-muted)]">
-                                                                <Timer className="w-3 h-3" />
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50">Durasi</span>
-                                                                <span className={`text-[9px] font-mono font-bold ${log.duration_ms > 2000 ? 'text-rose-500' : log.duration_ms > 500 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                                                                    {log.duration_ms}ms
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                {/* Footer: Metadata + Action */}
+                                                <div className="flex items-center justify-between gap-4 pt-2 border-t border-[var(--color-border)]/40">
+                                                    {/* Metadata inline */}
+                                                    <div className="flex items-center gap-3 text-[9px] font-mono text-[var(--color-text-muted)]/60">
+                                                        <span className="flex items-center gap-1">
+                                                            <div className="w-1 h-1 rounded-full bg-emerald-500/60" />
+                                                            {log.ip_address || '?.?.?.?'}
+                                                        </span>
+                                                        {log.duration_ms != null && (
+                                                            <span className={`flex items-center gap-1 ${log.duration_ms > 2000 ? 'text-rose-500' : log.duration_ms > 500 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                <Timer className="w-2.5 h-2.5" />
+                                                                {log.duration_ms}ms
+                                                            </span>
+                                                        )}
+                                                        {log.severity && (
+                                                            <span className="flex items-center gap-1 text-amber-500/70">
+                                                                <Warning className="w-2.5 h-2.5" />
+                                                                {log.severity}
+                                                            </span>
+                                                        )}
+                                                    </div>
 
-                                                    {log.session_id && (
-                                                        <div className="flex items-center gap-2 group cursor-help" title={log.session_id}>
-                                                            <div className="w-6 h-6 rounded-lg bg-[var(--color-surface-alt)] flex items-center justify-center text-[var(--color-text-muted)] group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors">
-                                                                <Fingerprint className="w-3 h-3" />
-                                                            </div>
-                                                            <div className="flex flex-col min-w-0">
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-50">Session</span>
-                                                                <span className="text-[9px] font-mono font-bold text-[var(--color-text)] truncate max-w-[100px] block">
-                                                                    {log.session_id.slice(0, 12)}...
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {(log.action === 'DELETE' || log.action === 'UPDATE') && (
-                                                    <div className="shrink-0">
+                                                    {/* Action Button */}
+                                                    {(log.action === 'DELETE' || log.action === 'UPDATE') && (
                                                         <button
                                                             onClick={e => { e.stopPropagation(); handleRestore(log) }}
                                                             disabled={restoringId === log.id}
-                                                            className={`h-7 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                                                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border
                                                                 ${restoringId === log.id
-                                                                    ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] animate-pulse'
-                                                                    : 'bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/20 active:scale-95'}`}
+                                                                    ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] animate-pulse'
+                                                                    : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 active:scale-[0.97]'}`}
                                                         >
-                                                            <ClockCounterClockwise className={restoringId === log.id ? 'animate-spin' : ''} />
-                                                            {restoringId === log.id
-                                                                ? 'Memulihkan...'
-                                                                : log.action === 'DELETE' ? 'Pulihkan Record' : 'Revert ke State ini'}
+                                                            <ClockCounterClockwise className={`w-3 h-3 ${restoringId === log.id ? 'animate-spin' : ''}`} />
+                                                            {restoringId === log.id ? '...' : 'Revert'}
                                                         </button>
-                                                    </div>
-                                                )}
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                )}
+                                        )}
 
-                                {!isExpanded && (
-                                    <div className="flex items-center justify-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
-                                            <CaretDown className="w-3 h-3" />
-                                        </span>
-                                    </div>
-                                )}
-                            </button>
-                        </div>
-                    )
-                })}
+                                        {!isExpanded && (
+                                            <div className="flex items-center justify-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
+                                                    <CaretDown className="w-3 h-3" />
+                                                </span>
+                                            </div>
+                                        )}
+                                    </button>
+                                </div>
+                            )
+                        })}
+                    </div>
+                ))}
             </div>
         </div>
     )

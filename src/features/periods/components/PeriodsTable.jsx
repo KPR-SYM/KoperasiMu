@@ -31,13 +31,16 @@ function renderColHeader(key) {
     return <th className="px-4 py-2.5 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
 }
 
-function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years }) {
+function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years, pinnedIds }) {
     if (key === "period") {
+        const isPinned = pinnedIds?.includes(year.id);
         return (
             <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
-                            <span className="relative z-10"><Calendar className="w-4 h-4" /></span>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${isPinned ? "bg-amber-500/10 text-amber-600" : year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
+                            <span className="relative z-10">
+                                {isPinned ? <PushPin weight="fill" className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
+                            </span>
                         </div>
                         <div className="flex items-center min-w-0 flex-1">
                             <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
@@ -154,7 +157,7 @@ const PeriodsTable = memo(function PeriodsTable({
     onQuickFilterYear,
 }) {
     const orderedCols = columnOrder.filter(k => visibleCols[k] && COL_LABELS[k]);
-    const colCellArgs = { isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years };
+    const colCellArgs = { isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years, pinnedIds };
 
     const [openMenuId, setOpenMenuId] = useState(null);
     const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
@@ -252,11 +255,12 @@ const PeriodsTable = memo(function PeriodsTable({
                         ) : (
                             paged.map((year) => {
                                 const isSelected = selectedIds.includes(year.id);
+                                const isPinned = pinnedIds?.includes(year.id);
                                 return (
                                     <tr
                                         key={year.id}
                                         data-row-id={year.id}
-                                        className={`border-t border-[var(--color-border)] transition-colors group/row ${isSelected ? "bg-[var(--color-primary)]/5" : "hover:bg-[var(--color-surface-alt)]/40"}`}
+                                        className={`border-t border-[var(--color-border)] transition-colors group/row ${isPinned ? "bg-amber-500/[0.03] border-l-2 border-l-amber-500/40" : ""} ${isSelected ? "bg-[var(--color-primary)]/5" : "hover:bg-[var(--color-surface-alt)]/40"}`}
                                     >
                                         <td className="px-4 py-2.5">
                                             <Checkbox checked={isSelected} onChange={() => toggleSelect(year.id)} />
