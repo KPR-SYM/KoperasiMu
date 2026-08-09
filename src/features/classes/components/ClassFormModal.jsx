@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, memo, useMemo, useCallback } from 'react'
-import { Warning, Bed, Buildings, Calendar, CheckCircle, CaretDown, CaretRight, Spinner, GenderMale, Pencil, Plus, UserCheck, GenderFemale, Building, ChalkboardTeacher, Hash, ArrowsClockwise, Trash } from '@phosphor-icons/react'
+import { Warning, Bed, Buildings, Calendar, CheckCircle, CaretDown, CaretRight, Spinner, GenderMale, Pencil, Plus, UserCheck, GenderFemale, Building, ChalkboardTeacher, Hash, ArrowsClockwise, Trash, Users } from '@phosphor-icons/react'
 
 import { Modal, Select, ConfirmDialog } from '@shared/components'
 import { useClassForm } from '../hooks/useClassForm'
@@ -124,7 +124,7 @@ const ClassFormModal = memo(function ClassFormModal({
             <button
                 type="submit"
                 form="class-form-modal"
-                disabled={submitting || !hasTeachers || saveState === 'saved'}
+                disabled={submitting || saveState === 'saved'}
                 className="h-10 px-6 sm:px-8 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed border border-white/10 shrink-0"
             >
                 {submitting || saveState === 'saving' ? (
@@ -328,6 +328,35 @@ const ClassFormModal = memo(function ClassFormModal({
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Kapasitas */}
+                            <div className="relative group">
+                                <label
+                                    htmlFor="class-capacity"
+                                    className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50"
+                                >
+                                    Kapasitas Siswa
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                        <Users className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-50" />
+                                    </div>
+                                    <input
+                                        id="class-capacity"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={form.capacity}
+                                        onChange={e => setField('capacity', e.target.value)}
+                                        onBlur={() => setFieldTouched('capacity')}
+                                        placeholder="Kosong = tanpa batas"
+                                        className={`${inputCls('capacity')} pl-9`}
+                                    />
+                                </div>
+                                <p className="mt-1 ml-1 text-[10px] font-bold text-[var(--color-text-muted)] opacity-60">
+                                    Jumlah maksimal siswa per kelas
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -374,7 +403,7 @@ const ClassFormModal = memo(function ClassFormModal({
                                     id="class-teacher"
                                     value={form.homeroom_teacher_id || ''}
                                     onChange={val => setField('homeroom_teacher_id', val)}
-                                    options={teachersList.map(t => ({ id: t.id, name: t.name }))}
+                                    options={teachersList.map(t => ({ id: t.id, name: t.full_name }))}
                                     extraOption={{ id: '', name: 'Tanpa Wali Kelas' }}
                                     placeholder={hasTeachers ? 'Pilih Wali Kelas' : 'Tidak ada data guru'}
                                     icon={UserCheck}
@@ -405,7 +434,16 @@ const ClassFormModal = memo(function ClassFormModal({
                                     id="class-year"
                                     value={form.academic_year}
                                     onChange={val => setField('academic_year', val)}
-                                    options={periodsList.map(y => ({ id: y.academic_year, name: y.label }))}
+                                    options={(() => {
+                                        const seen = new Set()
+                                        return periodsList.reduce((acc, y) => {
+                                            if (!seen.has(y.academic_year)) {
+                                                seen.add(y.academic_year)
+                                                acc.push({ id: y.academic_year, name: y.academic_year })
+                                            }
+                                            return acc
+                                        }, [])
+                                    })()}
                                     placeholder="Pilih Tahun Akademik"
                                     icon={Calendar}
                                     status={getFieldStatus('academic_year', true)}

@@ -2,12 +2,13 @@ import React, { memo } from 'react'
 import { Buildings, MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { ClassRow, ClassMobileCard } from '@features/classes/components/ClassRow'
 import { EmptyState } from '@shared/components/DataDisplay'
+import Checkbox from '@shared/components/Checkbox'
 import Pagination from '@shared/components/Pagination'
 
 const ClassesTable = memo(function ClassesTable({
     paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols,
     allSelected, someSelected, toggleSelectAll,
-    handleEdit, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
+    handleEdit, handleView, handleDuplicate, handleArchive, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
     canEdit, loading, searchQuery, filterLevel, filterProgram,
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
@@ -71,7 +72,7 @@ const ClassesTable = memo(function ClassesTable({
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10 border-b border-[var(--color-border)]">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                             <th className="px-6 py-4 w-12 text-center">
-                                <input type="checkbox" checked={allSelected} ref={el => { if (el) el.indeterminate = someSelected }} onChange={toggleSelectAll} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
+                                <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={toggleSelectAll} />
                             </th>
                             <th className="px-6 py-4">Identitas Kelas</th>
                             {visibleCols.level && <th className="px-6 py-4 text-center">Level</th>}
@@ -99,7 +100,7 @@ const ClassesTable = memo(function ClassesTable({
                                 </td>
                             </tr>
                         ) : paged.map(cls => (
-                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
+                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
                         ))}
                     </tbody>
                 </table>
@@ -116,7 +117,7 @@ const ClassesTable = memo(function ClassesTable({
                         variant="plain"
                     />
                 ) : paged.map(cls => (
-                    <ClassMobileCard key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} handleEdit={canEdit ? handleEdit : null} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} />
+                    <ClassMobileCard key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} />
                 ))}
             </div>
             <Pagination

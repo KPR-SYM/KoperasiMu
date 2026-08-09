@@ -1,5 +1,7 @@
-﻿import React from 'react'
-import { Bed, Buildings, Calendar, CaretRight, Eye, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, GenderFemale, Building } from '@phosphor-icons/react'
+﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
+import { Bed, Buildings, Calendar, CaretRight, DotsThree, Eye, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
+import Checkbox from '@shared/components/Checkbox'
 
 
 export const ClassRow = React.memo(({
@@ -8,6 +10,9 @@ export const ClassRow = React.memo(({
     toggleSelect,
     visibleCols,
     handleEdit,
+    handleView,
+    handleDuplicate,
+    handleArchive,
     setItemToDelete,
     setIsDeleteModalOpen,
     isPrivacyMode,
@@ -16,8 +21,30 @@ export const ClassRow = React.memo(({
 }) => {
     const isSelected = selectedIds.includes(cls.id)
     const isPinned = pinnedIds?.includes(cls.id)
-    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€”'
+    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€"'
     const isCrowded = (cls.students || 0) > 35
+
+    const [menuOpen, setMenuOpen] = useState(false)
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+    const menuRef = useRef(null)
+    const btnRef = useRef(null)
+
+    const toggleMenu = useCallback((e) => {
+        e.stopPropagation()
+        if (menuOpen) { setMenuOpen(false); return }
+        const rect = btnRef.current?.getBoundingClientRect()
+        if (rect) {
+            setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+        }
+        setMenuOpen(true)
+    }, [menuOpen])
+
+    useEffect(() => {
+        if (!menuOpen) return
+        const handleClickOutside = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false) }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [menuOpen])
 
     const maskInfo = (str, visibleLen = 3) => {
         if (!str) return '---'
@@ -25,15 +52,21 @@ export const ClassRow = React.memo(({
         return str.substring(0, visibleLen) + '***'
     }
 
+    const menuItems = [
+        ...(togglePin ? [{ icon: PushPin, label: isPinned ? 'Lepas Pin' : 'Pin ke atas', onClick: () => { togglePin(cls.id); setMenuOpen(false) }, danger: false, weight: isPinned ? 'fill' : 'regular' }] : []),
+        ...(handleDuplicate ? [{ icon: Copy, label: 'Duplikat', onClick: () => { handleDuplicate(cls); setMenuOpen(false) } }] : []),
+        { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { setMenuOpen(false) }, disabled: true },
+        ...(handleArchive ? [{ icon: Lock, label: 'Arsipkan', onClick: () => { handleArchive(cls); setMenuOpen(false) } }] : []),
+        ...(setItemToDelete && setIsDeleteModalOpen ? [{ divider: true }, { icon: Trash, label: 'Hapus', onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); setMenuOpen(false) }, danger: true }] : []),
+    ]
+
     return (
         <tr className={`border-t border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors group/row ${isPinned ? 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40' : ''} ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : ''}`}>
             <td className="px-6 py-4 text-center">
-                <input
-                    type="checkbox"
+                <Checkbox
                     checked={isSelected}
                     onChange={() => toggleSelect(cls.id)}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                 />
             </td>
 
@@ -44,8 +77,13 @@ export const ClassRow = React.memo(({
                 title={handleEdit ? `Pen ${cls.name}` : undefined}
             >
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shadow-inner shrink-0 border border-[var(--color-primary)]/20">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shadow-inner shrink-0 border border-[var(--color-primary)]/20 relative">
                         {cls.grade_level}
+                        {isPinned && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shadow-sm">
+                                <PushPin className="w-2 h-2 text-white" weight="fill" />
+                            </div>
+                        )}
                     </div>
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
@@ -61,9 +99,6 @@ export const ClassRow = React.memo(({
                                 </span>
                             )}
                         </div>
-                        <span className="text-[9px] font-black text-[var(--color-text-muted)] opacity-60 uppercase tracking-widest">
-                            LVL {cls.grade_level}
-                        </span>
                     </div>
                 </div>
             </td>
@@ -83,11 +118,13 @@ export const ClassRow = React.memo(({
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
                         cls.name?.toLowerCase().includes('boarding')
                             ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-                            : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)]'
+                            : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
                     }`}>
                         {cls.name?.toLowerCase().includes('boarding') ? (
                             <><Bed className="w-2.5 h-2.5" /> Boarding</>
-                        ) : 'Reguler'}
+                        ) : (
+                            <><Buildings className="w-2.5 h-2.5" /> Reguler</>
+                        )}
                     </span>
                 </td>
             )}
@@ -155,36 +192,64 @@ export const ClassRow = React.memo(({
             {/* Actions */}
             <td className="px-6 py-4 text-center">
                 <div className="flex items-center justify-center gap-1 transition-opacity">
-                    {togglePin && (
+                    {handleView && (
                         <button
-                            onClick={() => togglePin(cls.id)}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all text-sm ${isPinned ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-500/10' : 'text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10'}`}
-                            title={isPinned ? "Lepas Pin" : "Pin ke atas"}
-                            aria-label={isPinned ? `Lepas pin kelas ${cls.name}` : `Pin kelas ${cls.name}`}
+                            onClick={() => handleView(cls)}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm"
+                            title="Lihat Detail"
+                            aria-label={`Lihat detail kelas ${cls.name}`}
                         >
-                            <PushPin weight={isPinned ? "fill" : "regular"} />
+                            <Eye />
                         </button>
                     )}
                     {handleEdit && (
                         <button
                             onClick={() => handleEdit(cls)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm"
-                            title="Pen"
-                            aria-label={`Pen kelas ${cls.name}`}
+                            title="Edit"
+                            aria-label={`Edit kelas ${cls.name}`}
                         >
                             <Pencil />
                         </button>
                     )}
-                    {setItemToDelete && setIsDeleteModalOpen && (
+                    <div className="relative">
                         <button
-                            onClick={() => { setItemToDelete(cls); setIsDeleteModalOpen(true) }}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all text-sm"
-                            title="Hapus"
-                            aria-label={`Hapus kelas ${cls.name}`}
+                            ref={btnRef}
+                            onClick={toggleMenu}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all text-sm ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'}`}
+                            title="Lainnya"
+                            aria-label={`Menu lainnya untuk kelas ${cls.name}`}
+                            aria-expanded={menuOpen}
                         >
-                            <Trash />
+                            <DotsThree weight="bold" />
                         </button>
-                    )}
+                        {menuOpen && createPortal(
+                            <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }} className="w-48 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-xl shadow-black/10 py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                {menuItems.map((item, i) => (
+                                    item.divider ? (
+                                        <div key={i} className="my-1.5 border-t border-[var(--color-border)]" />
+                                    ) : (
+                                        <button
+                                            key={i}
+                                            onClick={item.onClick}
+                                            disabled={item.disabled}
+                                            className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold transition-colors text-left ${
+                                                item.danger
+                                                    ? 'text-red-500 hover:bg-red-500/10'
+                                                    : item.disabled
+                                                    ? 'text-[var(--color-text-muted)] opacity-40 cursor-not-allowed'
+                                                    : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'
+                                            }`}
+                                        >
+                                            <item.icon weight={item.weight || 'regular'} className="w-4 h-4 shrink-0" />
+                                            {item.label}
+                                        </button>
+                                    )
+                                ))}
+                            </div>,
+                            document.body
+                        )}
+                    </div>
                 </div>
             </td>
         </tr>
@@ -196,26 +261,30 @@ export const ClassMobileCard = React.memo(({
     selectedIds,
     toggleSelect,
     handleEdit,
+    handleView,
+    handleDuplicate,
+    handleArchive,
     setItemToDelete,
     setIsDeleteModalOpen
 }) => {
     const isSelected = selectedIds.includes(cls.id)
-    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€”'
+    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€"'
     const isCrowded = (cls.students || 0) > 35
     return (
         <div className={`p-4 transition-all duration-300 border-l-4 ${isSelected ? 'bg-[var(--color-primary)]/[0.03] border-[var(--color-primary)]' : 'bg-[var(--color-surface)] border-transparent active:bg-[var(--color-surface-alt)]/30'}`}>
             <div className="flex items-start gap-3">
-                <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelect(cls.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-4 h-4 mt-1 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer shrink-0"
-                />
+                <div className="mt-1 shrink-0">
+                    <Checkbox
+                        checked={isSelected}
+                        onChange={() => toggleSelect(cls.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        small
+                    />
+                </div>
 
                 {/* Identity */}
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shrink-0 border border-[var(--color-primary)]/20 shadow-inner">
-                    {cls.grade}
+                    {cls.grade_level}
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -232,8 +301,9 @@ export const ClassMobileCard = React.memo(({
                             </div>
                         </div>
                         <div className="flex gap-1 shrink-0">
-                            {handleEdit && <button onClick={() => handleEdit(cls)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/50 text-xs transition-all"><Pencil /></button>}
-                            {setItemToDelete && setIsDeleteModalOpen && <button onClick={() => { setItemToDelete(cls); setIsDeleteModalOpen(true) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-red-500 bg-[var(--color-surface-alt)]/50 text-xs transition-all"><Trash /></button>}
+                            {handleView && <button onClick={() => handleView(cls)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Lihat Detail"><Eye /></button>}
+                            {handleEdit && <button onClick={() => handleEdit(cls)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Edit"><Pencil /></button>}
+                            {setItemToDelete && setIsDeleteModalOpen && <button onClick={() => { setItemToDelete(cls); setIsDeleteModalOpen(true) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-red-500 bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Hapus"><Trash /></button>}
                         </div>
                     </div>
 

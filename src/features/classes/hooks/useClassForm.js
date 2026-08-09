@@ -20,6 +20,13 @@ const INITIAL_FORM = {
     gender_type: 'Putra',
     homeroom_teacher_id: '',
     academic_year: '',
+    capacity: '',
+}
+
+function getDefaultPeriod(periodsList) {
+    if (!periodsList?.length) return ''
+    const active = periodsList.find(p => p.is_active)
+    return active?.academic_year || periodsList[0]?.academic_year || ''
 }
 
 function buildForm(selectedItem, periodsList, teachersList) {
@@ -34,20 +41,22 @@ function buildForm(selectedItem, periodsList, teachersList) {
             program: 'Reguler',
             gender_type: 'Putra',
             homeroom_teacher_id: validTeacherId,
-            academic_year: selectedItem.academic_year || periodsList[0]?.academic_year || '',
+            academic_year: selectedItem.academic_year || getDefaultPeriod(periodsList),
+            capacity: selectedItem.capacity?.toString() || '',
         }
     }
-    return { ...INITIAL_FORM, academic_year: periodsList[0]?.academic_year || '' }
+    return { ...INITIAL_FORM, academic_year: getDefaultPeriod(periodsList) }
 }
 
 async function fetchTeachersLazy() {
     try {
         const { data, error } = await supabase
             .from('teachers')
-            .select('id, name')
-            .order('name')
+            .select('id, full_name')
+            .eq('is_active', true)
+            .order('full_name')
         if (error) throw error
-        return data || []
+        return (data || []).map(t => ({ id: t.id, name: t.full_name }))
     } catch {
         return []
     }
@@ -57,7 +66,7 @@ async function fetchPeriodsLazy() {
     try {
         const { data, error } = await supabase
             .from('periods')
-            .select('id, academic_year, semester')
+            .select('id, academic_year, semester, is_active')
             .order('academic_year', { ascending: false })
         if (error) throw error
         return (data || []).map(y => ({
@@ -129,13 +138,19 @@ export function useClassForm({ isOpen, selectedItem, onSubmit, teachersList: pro
         const fetchNames = async () => {
             try {
                 const { data } = await supabase.from('classes').select('name')
-                setExistingNames((data || []).map(d => d.name))
+                const names = (data || []).map(d => d.name)
+                // Exclude current class name when editing
+                if (selectedItem?.name) {
+                    setExistingNames(names.filter(n => n !== selectedItem.name))
+                } else {
+                    setExistingNames(names)
+                }
             } catch {
                 setExistingNames([])
             }
         }
         fetchNames()
-    }, [isOpen])
+    }, [isOpen, selectedItem])
 
     // Real-time name validation
     const validateName = useCallback((name, names) => {
@@ -188,6 +203,7 @@ export function useClassForm({ isOpen, selectedItem, onSubmit, teachersList: pro
             gender_type: 'Putra',
             homeroom_teacher_id: selectedItem.homeroom_teacher_id || '',
             academic_year: selectedItem.academic_year || '',
+            capacity: selectedItem.capacity?.toString() || '',
         })
     }, [form, selectedItem, isDirty])
 

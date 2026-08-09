@@ -231,13 +231,13 @@ export function useClassesCore({ addToast }) {
         if (!supabase) return { t: {}, y: {} }
         try {
             const [tRes, yRes] = await Promise.all([
-                supabase.from('teachers').select('id, name').order('name'),
-                supabase.from('periods').select('id, academic_year, semester').order('academic_year', { ascending: false })
+                supabase.from('teachers').select('id, full_name').eq('is_active', true).order('full_name'),
+                supabase.from('periods').select('id, academic_year, semester, is_active').order('academic_year', { ascending: false })
             ])
             const tList = tRes.data || []
             const yList = (yRes.data || []).map(y => ({ ...y, label: [y.academic_year, y.semester].filter(Boolean).join(' ') || '—' }))
             setTeachersList(tList); setAcademicYearsList(yList)
-            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
+            return { t: Object.fromEntries(tList.map(t => [t.id, t.full_name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
         } catch { return { t: {}, y: {} } }
     }, [])
 
@@ -245,7 +245,7 @@ export function useClassesCore({ addToast }) {
         setLoading(true)
         try {
             const { t: tMap, y: yMap } = await loadMetadata()
-            let q = supabase.from('classes').select('id, name, grade_level, homeroom_teacher_id, academic_year, capacity, is_active, created_at, students(count)').order('name')
+            let q = supabase.from('classes').select('id, uuid, name, grade_level, homeroom_teacher_id, academic_year, capacity, is_active, created_at, students(count)').order('name')
             const { data, error } = await q
             if (!error && data) {
                 const mapped = data.map(row => ({
@@ -266,7 +266,7 @@ export function useClassesCore({ addToast }) {
     const fetchArchived = useCallback(async () => {
         setLoadingArchived(true)
         try {
-            const { data, error } = await supabase.from('classes').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+            const { data, error } = await supabase.from('classes').select('id, uuid, name, grade_level, academic_year, homeroom_teacher_id, capacity, is_active, created_at, deleted_at').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
             if (error) throw error
             setArchivedClasses(data || [])
         } catch {
@@ -361,7 +361,7 @@ export function useClassesCore({ addToast }) {
     const handleSubmit = async (formData) => {
         setSubmitting(true)
         const finalMajor = [formData.program, formData.gender_type].filter(Boolean).join(' ')
-        const payload = { name: formData.name, grade_level: parseInt(formData.level) || null, homeroom_teacher_id: formData.homeroom_teacher_id || null, academic_year: formData.academic_year || null }
+        const payload = { name: formData.name, grade_level: parseInt(formData.level) || null, homeroom_teacher_id: formData.homeroom_teacher_id || null, academic_year: formData.academic_year || null, capacity: formData.capacity ? parseInt(formData.capacity) : null }
         try {
             if (selectedItem) { const { error } = await supabase.from('classes').update(payload).eq('id', selectedItem.id); if (error) throw error; addToast('Data kelas berhasil diupdate', 'success'); await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: selectedItem.id, oldData: selectedItem, newData: { ...selectedItem, ...payload } }) }
             else { const { data: insData, error } = await supabase.from('classes').insert(payload).select().single(); if (error) throw error; addToast('Kelas baru berhasil ditambahkan', 'success'); await logAudit({ action: 'INSERT', source: 'SYSTEM', tableName: 'classes', recordId: insData?.id, newData: payload }) }
@@ -421,6 +421,42 @@ export function useClassesCore({ addToast }) {
 
     const selectedItems = useMemo(() => selectedIds.map(id => classes.find(c => c.id === id)).filter(Boolean), [selectedIds, classes])
 
+    // ── Duplicate ──
+    const handleDuplicate = async (cls) => {
+        if (!cls || !canEdit) return
+        setSubmitting(true)
+        try {
+            const { data, error } = await supabase.from('classes').insert({
+                education_unit_id: cls.education_unit_id,
+                academic_year: cls.academic_year,
+                name: cls.name + ' (Salinan)',
+                grade_level: cls.grade_level,
+                homeroom_teacher_id: cls.homeroom_teacher_id,
+                capacity: cls.capacity,
+                is_active: cls.is_active,
+            }).select().single()
+            if (error) throw error
+            addToast(`Kelas "${cls.name}" berhasil diduplikat`, 'success')
+            await logAudit({ action: 'CREATE', source: 'SYSTEM', tableName: 'classes', recordId: data.id, oldData: null, newData: data })
+            fetchData()
+        } catch (err) { handleError(err, { context: 'Gagal menduplikat kelas' }) }
+        finally { setSubmitting(false) }
+    }
+
+    // ── Archive (soft delete) ──
+    const handleArchive = async (cls) => {
+        if (!cls || !canEdit) return
+        setSubmitting(true)
+        try {
+            const { error } = await supabase.from('classes').update({ deleted_at: new Date().toISOString() }).eq('id', cls.id)
+            if (error) throw error
+            addToast(`Kelas "${cls.name}" berhasil diarsipkan`, 'success')
+            await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, deleted_at: new Date().toISOString() } })
+            fetchData()
+        } catch (err) { handleError(err, { context: 'Gagal mengarsipkan kelas' }) }
+        finally { setSubmitting(false) }
+    }
+
     // ── Modal Visibility ──
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -479,7 +515,7 @@ export function useClassesCore({ addToast }) {
 
         // Handlers
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
-        handleBulkLock, handleBulkUnlock,
+        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive,
 
         // Insights
         insights,

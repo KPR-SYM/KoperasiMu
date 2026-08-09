@@ -42,7 +42,6 @@ export const validateForm = (form, hasTeachers, existingNames = []) => {
     const nameValidation = validateClassName(form.name, existingNames)
     if (!nameValidation.valid) errors.name = nameValidation.error
     if (!form.academic_year) errors.academic_year = 'Tahun akademik wajib dipilih'
-    if (hasTeachers && !form.homeroom_teacher_id) errors.homeroom_teacher_id = 'Pilih wali kelas'
     return {
         valid: Object.keys(errors).length === 0,
         errors,
@@ -50,7 +49,7 @@ export const validateForm = (form, hasTeachers, existingNames = []) => {
 }
 
 export const calculateProgress = (form) => {
-    const fields = ['name', 'homeroom_teacher_id', 'academic_year']
+    const fields = ['name', 'academic_year']
     const filled = fields.filter(f => form[f] && String(form[f]).trim()).length
     return Math.round((filled / fields.length) * 100)
 }

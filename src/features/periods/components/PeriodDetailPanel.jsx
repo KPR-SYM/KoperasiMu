@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
     Calendar, CaretLeft, CheckCircle, ClockCounterClockwise,
     Buildings, Users, Lock, LockOpen, Pencil, Archive,
-    Fingerprint, Eye, EyeSlash, Copy,
+    Fingerprint, Eye, EyeSlash, Copy, Prohibit,
     Timer, CalendarCheck, Hourglass, UserCircle, Info, TrendUp,
     ArrowLeft, ArrowRight, ArrowClockwise, Notepad, ListChecks,
     Warning, CheckFat, Link as LinkIcon, ArrowSquareOut,
@@ -105,7 +105,7 @@ function getGradeStyle(grade) {
 }
 
 const TIME_STATUS_CONFIG = {
-    running:  { label: 'Sedang Berjalan', color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20', accent: 'from-emerald-500 to-teal-400',    dot: true  },
+    running:  { label: 'Sedang Berjalan', color: 'bg-sky-500/10 text-sky-600 border-sky-500/20',            accent: 'from-sky-500 to-blue-400',           dot: true  },
     upcoming: { label: 'Akan Datang',     color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',         accent: 'from-blue-500 to-indigo-400',       dot: false },
     ended:    { label: 'Sudah Berakhir',  color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',          accent: 'from-zinc-400 to-zinc-300',          dot: false },
     unknown:  { label: 'Tidak Diketahui', color: 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20',          accent: 'from-zinc-400 to-zinc-300',          dot: false },
@@ -1001,7 +1001,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 disabled={!canEdit || period.is_locked || saving}
                                 className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed"
                             >
-                                {period.is_active ? <EyeSlash className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                                {period.is_active ? <Prohibit className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
                         <Tooltip content={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka Kunci (L)' : 'Kunci (L)'} position="bottom">
@@ -1189,9 +1189,9 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                                     <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                                                         Progress Periode
                                                     </span>
-                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${getProgressBadgeClass(progressPct)}`}>
-                                                        {Math.round(progressPct)}%
-                                                    </span>
+<span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${getProgressBadgeClass(progressPct)}`}>
+                                                         {Math.round(progressPct)}%
+                                                     </span>
                                                 </div>
                                                 <div className="h-2.5 rounded-full bg-[var(--color-surface-alt)] overflow-hidden">
                                                     <div
@@ -1402,9 +1402,12 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className={`text-[11px] leading-relaxed ${notes ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] italic'}`}>
-                                        {notes || 'Belum ada catatan.'}
-                                    </p>
+<div className="flex items-start gap-2">
+                                         {!notes && <Notepad className="w-4 h-4 text-[var(--color-text-muted)] opacity-30 mt-0.5 shrink-0" />}
+                                         <p className={`text-[11px] leading-relaxed ${notes ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] italic'}`}>
+                                             {notes || 'Belum ada catatan.'}
+                                         </p>
+                                     </div>
                                 )}
                             </div>
                         </div>

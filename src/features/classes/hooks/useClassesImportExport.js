@@ -3,7 +3,7 @@ import Papa from 'papaparse'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 
-const SYSTEM_COLS = [
+export const SYSTEM_COLS = [
     { key: 'name', label: 'Nama Kelas', synonyms: ['nama kelas', 'kelas', 'name', 'nama', 'class'] },
     { key: 'grade', label: 'Tingkat', synonyms: ['tingkat', 'grade', 'level'] },
     { key: 'program', label: 'Program', synonyms: ['program', 'major', 'boarding', 'reguler'] },
@@ -62,12 +62,12 @@ export const useClassesImportExport = ({
         if (!supabase) return { t: {}, y: {} }
         try {
             const [tRes, yRes] = await Promise.all([
-                supabase.from('teachers').select('id, name').order('name'),
+                supabase.from('teachers').select('id, full_name').eq('is_active', true).order('full_name'),
                 supabase.from('periods').select('id, academic_year, semester').order('academic_year', { ascending: false })
             ])
             const tList = tRes.data || []
             const yList = (yRes.data || []).map(y => ({ ...y, label: [y.academic_year, y.semester].filter(Boolean).join(' ') || '—' }))
-            return { t: Object.fromEntries(tList.map(t => [t.id, t.name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
+            return { t: Object.fromEntries(tList.map(t => [t.id, t.full_name || '—'])), y: Object.fromEntries(yList.map(y => [y.academic_year, y.label])) }
         } catch { return { t: {}, y: {} } }
     }, [])
 

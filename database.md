@@ -76,6 +76,7 @@
 | Name | Type | Constraints |
 |------|------|-------------|
 | `id` | `int4` | Primary Identity |
+| `uuid` | `uuid` | Not Null, Unique, Default gen_random_uuid() |
 | `education_unit_id` | `int4` |  |
 | `academic_year` | `varchar` |  |
 | `name` | `varchar` |  |

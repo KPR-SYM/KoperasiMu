@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Bed, Buildings, Eye, EyeSlash, Keyboard, Lock, LockOpen, Plus, SlidersHorizontal, Trash, Users } from '@phosphor-icons/react'
+import { useNavigate, useParams } from 'react-router-dom'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
@@ -15,6 +16,7 @@ import ClassFormModal from '@features/classes/components/ClassFormModal'
 import ClassExportModal from '@features/classes/components/ClassExportModal'
 import ClassArchiveModal from '@features/classes/components/ClassArchiveModal'
 import ClassImportModal from '@features/classes/components/ClassImportModal'
+import ClassDetailPanel from '@features/classes/components/ClassDetailPanel'
 import { ClassBulkDeleteModal, ClassBulkLockModal, ClassBulkUnlockModal } from '@features/classes/components/ClassConfirmModals'
 import {
     BulkActionsBar,
@@ -29,6 +31,9 @@ import {
 
 export default function ClassesPage() {
     const { addToast } = useToast()
+    const navigate = useNavigate()
+    const { id: classId } = useParams()
+    const isDetailView = !!classId
 
     // ── Core Hook ──
     const {
@@ -55,12 +60,21 @@ export default function ClassesPage() {
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
         isBulkDeleteOpen, setIsBulkDeleteOpen,
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
-        handleBulkLock, handleBulkUnlock,
+        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive,
         LEVELS, PROGRAMS,
         handleError,
         viewMode, setViewMode,
         undoStack, redoStack, handleUndo, handleRedo,
     } = useClassesCore({ addToast })
+
+    // ── Detail View State ──
+    const handleViewClass = useCallback((cls) => {
+        navigate(`/master/classes/${cls.uuid || cls.id}`)
+    }, [navigate])
+    const handleBackToList = useCallback(() => {
+        navigate('/master/classes')
+        fetchData()
+    }, [navigate, fetchData])
 
     // ── Modal State ──
     const {
@@ -111,8 +125,8 @@ export default function ClassesPage() {
         setIsShortcutOpen,
         searchQuery, setSearchQuery,
         hasActiveFilters, resetAllFilters,
-        setIsExportModalOpen,
-        setIsImportModalOpen,
+        setIsExportModalOpen: () => navigate('/master/classes/export'),
+        setIsImportModalOpen: () => navigate('/master/classes/import'),
         handleBulkLock,
         handleBulkUnlock,
         isMutating,
@@ -129,16 +143,6 @@ export default function ClassesPage() {
 
     const isAnyModalOpen = isModalOpen || isDeleteModalOpen || isBulkDeleteOpen || isExportModalOpen || isImportModalOpen || isArchivedModalOpen || isLockModalOpen || isUnlockModalOpen
 
-    // Hide nav/sidebar when any modal is open
-    useEffect(() => {
-        if (isAnyModalOpen) {
-            document.body.classList.add('modal-open')
-        } else {
-            document.body.classList.remove('modal-open')
-        }
-        return () => document.body.classList.remove('modal-open')
-    }, [isAnyModalOpen])
-
     const statsContent = useMemo(() => (
         <StatsCarousel count={4} cols={4}>
             <StatCard icon={Buildings} label="Total Kelas" value={stats.total} color="primary" />
@@ -149,9 +153,19 @@ export default function ClassesPage() {
     ), [stats])
 
     return (
-        <DashboardLayout title="Data Kelas" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
+        <DashboardLayout title="Data Kelas">
             <div className="space-y-3 max-w-[1800px] mx-auto relative">
 
+                {/* ── Detail View ── */}
+                {isDetailView ? (
+                    <ClassDetailPanel
+                        classId={classId}
+                        onBack={handleBackToList}
+                        teachersList={teachersList}
+                        periodsList={periodsList}
+                    />
+                ) : (
+                    <>
                 {/* Bulk Action Bar */}
                 {selectedIds.length > 0 && (
                     <BulkActionsBar
@@ -213,9 +227,11 @@ export default function ClassesPage() {
                                 canEdit={canEdit}
                                 isMutating={isMutating}
                                 onClose={() => setIsHeaderMenuOpen(false)}
-                                onImportClick={() => { setImportStep(1); setImportPreview([]); setImportFileName(''); setIsImportModalOpen(true) }}
-                                onExportClick={() => setIsExportModalOpen(true)}
-                                onArchivedClick={() => { fetchArchived(); setIsArchivedModalOpen(true) }}
+                                onImportClick={() => navigate('/master/classes/import')}
+                                onExportClick={() => navigate('/master/classes/export')}
+                                onArchivedClick={() => setIsArchivedModalOpen(true)}
+                                archivedCount={archivedClasses.length}
+                                fetchArchived={fetchArchived}
                             />
 
                             <input
@@ -252,8 +268,8 @@ export default function ClassesPage() {
                                     if (action === 'focusSearch') { searchInputRef.current?.focus(); searchInputRef.current?.select() }
                                     else if (action === 'toggleView') { setViewMode(prev => prev === 'table' ? 'timeline' : 'table') }
                                     else if (action === 'add') { handleAdd() }
-                                    else if (action === 'import') { setImportStep(1); setImportPreview([]); setImportFileName(''); setIsImportModalOpen(true) }
-                                    else if (action === 'export') { setIsExportModalOpen(true) }
+                                    else if (action === 'import') { navigate('/master/classes/import') }
+                                    else if (action === 'export') { navigate('/master/classes/export') }
                                     else if (action === 'edit' && selectedIds.length === 1) { const item = classes.find(c => c.id === selectedIds[0]); if (item) handleEdit(item) }
                                     else if (action === 'resetFilter') { resetAllFilters() }
                                     else if (action === 'selectAll') { toggleSelectAll() }
@@ -267,11 +283,10 @@ export default function ClassesPage() {
 
                             <button
                                 onClick={togglePrivacyMode}
-                                className={`h-9 w-9 sm:w-auto sm:px-3 rounded-lg border flex items-center justify-center sm:justify-start gap-2 transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
+                                className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
                                 title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}
                             >
                                 {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Privasi</span>
                             </button>
 
                             {canEdit && (
@@ -327,6 +342,9 @@ export default function ClassesPage() {
                         someSelected={someSelected}
                         toggleSelectAll={toggleSelectAll}
                         handleEdit={handleEdit}
+                        handleView={handleViewClass}
+                        handleDuplicate={canEdit ? handleDuplicate : null}
+                        handleArchive={canEdit ? handleArchive : null}
                         setItemToDelete={setItemToDelete}
                         setIsDeleteModalOpen={setIsDeleteModalOpen}
                         isPrivacyMode={isPrivacyMode}
@@ -480,6 +498,8 @@ export default function ClassesPage() {
                     count={selectedIds.length}
                 />
 
+                    </>
+                )}
             </div>
         </DashboardLayout>
     )
