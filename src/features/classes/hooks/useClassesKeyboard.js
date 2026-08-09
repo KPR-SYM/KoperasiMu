@@ -26,6 +26,7 @@ export function useClassesKeyboard({
     isMutating,
     classes,
     handleEdit,
+    toggleSelectAll,
 } = {}) {
     const actionRef = useRef({})
     useEffect(() => {
@@ -35,6 +36,7 @@ export function useClassesKeyboard({
             hasActiveFilters, resetAllFilters, setIsExportModalOpen, setIsImportModalOpen,
             setViewMode, viewMode, handleUndo, handleRedo, undoStack, redoStack,
             handleBulkLock, handleBulkUnlock, isMutating, classes, handleEdit,
+            toggleSelectAll,
         }
     })
 
@@ -55,11 +57,14 @@ export function useClassesKeyboard({
             if (ctrl && e.key === 'i' && !isTyping) { e.preventDefault(); if (ctx.setIsImportModalOpen) ctx.setIsImportModalOpen(true); return }
             if (e.key === 'n' && !isTyping) { e.preventDefault(); ctx.handleAdd(); return }
             if (e.key === 'p' && !isTyping) { e.preventDefault(); setIsPrivacyMode(v => !v); return }
+            if (ctrl && e.key === 'p' && !isTyping) { e.preventDefault(); setIsPrivacyMode(v => !v); return }
             if (e.key === 'v' && !isTyping) { e.preventDefault(); ctx.setViewMode?.(prev => prev === 'table' ? 'timeline' : prev === 'timeline' ? 'table' : 'table'); return }
             if (e.key === 'x' && !isTyping) { e.preventDefault(); ctx.resetAllFilters(); return }
             if (e.key === '?' && !isTyping) { ctx.setIsShortcutOpen?.(v => !v); return }
             if (e.key === 'e' && !isTyping && ctx.selectedIds.length === 1) { e.preventDefault(); const item = ctx.classes?.find(c => c.id === ctx.selectedIds[0]); if (item) ctx.handleEdit?.(item); return }
             if (e.key === 'l' && !isTyping && ctx.selectedIds.length > 0 && ctx.canEdit && !ctx.isMutating) { e.preventDefault(); ctx.handleBulkLock?.(); return }
+            if (ctrl && e.key === 'a' && !isTyping) { e.preventDefault(); ctx.toggleSelectAll?.(); return }
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !isTyping && ctx.selectedIds.length > 0) { e.preventDefault(); ctx.setIsBulkDeleteOpen?.(true); return }
             if (ctrl && e.key === 'z' && !isTyping) { e.preventDefault(); if (ctx.undoStack?.length > 0) ctx.handleUndo?.(); return }
             if (ctrl && e.key === 'y' && !isTyping) { e.preventDefault(); if (ctx.redoStack?.length > 0) ctx.handleRedo?.(); return }
         }

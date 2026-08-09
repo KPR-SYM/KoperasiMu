@@ -58,6 +58,8 @@ export default function ClassesPage() {
         handleBulkLock, handleBulkUnlock,
         LEVELS, PROGRAMS,
         handleError,
+        viewMode, setViewMode,
+        undoStack, redoStack, handleUndo, handleRedo,
     } = useClassesCore({ addToast })
 
     // ── Modal State ──
@@ -116,6 +118,13 @@ export default function ClassesPage() {
         isMutating,
         classes,
         handleEdit,
+        setViewMode,
+        viewMode,
+        handleUndo,
+        handleRedo,
+        undoStack,
+        redoStack,
+        toggleSelectAll,
     })
 
     const isAnyModalOpen = isModalOpen || isDeleteModalOpen || isBulkDeleteOpen || isExportModalOpen || isImportModalOpen || isArchivedModalOpen || isLockModalOpen || isUnlockModalOpen
@@ -238,6 +247,22 @@ export default function ClassesPage() {
                                 isOpen={isShortcutOpen}
                                 rect={shortcutRect}
                                 onClose={() => setIsShortcutOpen(false)}
+                                selectedCount={selectedIds.length}
+                                onAction={(action) => {
+                                    if (action === 'focusSearch') { searchInputRef.current?.focus(); searchInputRef.current?.select() }
+                                    else if (action === 'toggleView') { setViewMode(prev => prev === 'table' ? 'timeline' : 'table') }
+                                    else if (action === 'add') { handleAdd() }
+                                    else if (action === 'import') { setImportStep(1); setImportPreview([]); setImportFileName(''); setIsImportModalOpen(true) }
+                                    else if (action === 'export') { setIsExportModalOpen(true) }
+                                    else if (action === 'edit' && selectedIds.length === 1) { const item = classes.find(c => c.id === selectedIds[0]); if (item) handleEdit(item) }
+                                    else if (action === 'resetFilter') { resetAllFilters() }
+                                    else if (action === 'selectAll') { toggleSelectAll() }
+                                    else if (action === 'bulkDelete') { setIsBulkDeleteOpen(true) }
+                                    else if (action === 'privacy') { togglePrivacyMode() }
+                                    else if (action === 'undo') { handleUndo() }
+                                    else if (action === 'redo') { handleRedo() }
+                                    setIsShortcutOpen(false)
+                                }}
                             />
 
                             <button

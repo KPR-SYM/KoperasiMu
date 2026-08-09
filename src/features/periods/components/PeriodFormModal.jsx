@@ -1,7 +1,7 @@
-import React, { useState, useEffect, memo } from 'react'
-import { Warning, Calendar, CheckCircle, Spinner, Pencil, PlusCircle } from '@phosphor-icons/react'
+import React, { useState, useEffect, useRef, useMemo, memo } from 'react'
+import { Warning, Calendar, CheckCircle, Spinner, Pencil, PlusCircle, Trash, ArrowsClockwise } from '@phosphor-icons/react'
 
-import { Modal, DatePicker } from '@shared/components'
+import { Modal, DatePicker, ConfirmDialog } from '@shared/components'
 import { findOverlappingPeriod } from '@features/periods/utils/periodValidation'
 
 const PeriodFormModal = memo(function PeriodFormModal({
@@ -22,29 +22,64 @@ const PeriodFormModal = memo(function PeriodFormModal({
     const [formErrors, setFormErrors] = useState({})
     const [isDuplicateName, setIsDuplicateName] = useState(false)
     const [isOverlapping, setIsOverlapping] = useState(null)
+    const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+    const initialDataRef = useRef(null)
+
+    const hasChanges = useMemo(() => {
+        if (!initialDataRef.current) return false
+        const init = initialDataRef.current
+        return (
+            formData.name !== init.name ||
+            formData.semester !== init.semester ||
+            formData.startDate !== init.startDate ||
+            formData.endDate !== init.endDate ||
+            formData.makeActive !== init.makeActive
+        )
+    }, [formData])
+
+    const progress = useMemo(() => {
+        const fields = [formData.name, formData.startDate, formData.endDate]
+        const filled = fields.filter(Boolean).length
+        return Math.round((filled / fields.length) * 100)
+    }, [formData.name, formData.startDate, formData.endDate])
+
+    const descriptionContent = (
+        <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+                <div className="w-20 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
+                    <div
+                        className="h-full bg-gradient-to-r from-[var(--color-primary)] to-emerald-500 transition-all duration-500 ease-out rounded-full"
+                        style={{ width: `${progress}%` }}
+                    />
+                </div>
+                <span className="text-[10px] font-black text-[var(--color-primary)] whitespace-nowrap">{progress}% Lengkap</span>
+            </div>
+            {hasChanges && (
+                <span className="text-[9px] font-bold text-amber-500 flex items-center gap-1">
+                    <ArrowsClockwise className="w-3 h-3" />
+                    Belum disimpan
+                </span>
+            )}
+        </div>
+    )
 
     useEffect(() => {
         if (isOpen) {
-            if (selectedItem) {
-                setFormData({
+            const init = selectedItem
+                ? {
                     name: selectedItem.academic_year || '',
                     semester: selectedItem.semester || 'Ganjil',
                     startDate: selectedItem.start_date || '',
                     endDate: selectedItem.end_date || '',
                     makeActive: selectedItem.is_active || false
-                })
-            } else {
-                setFormData({
-                    name: '',
-                    semester: 'Ganjil',
-                    startDate: '',
-                    endDate: '',
-                    makeActive: false
-                })
-            }
+                }
+                : { name: '', semester: 'Ganjil', startDate: '', endDate: '', makeActive: false }
+            setFormData(init)
+            initialDataRef.current = { ...init }
             setFormErrors({})
             setIsDuplicateName(false)
             setIsOverlapping(null)
+            setShowDiscardConfirm(false)
         }
     }, [isOpen, selectedItem])
 
@@ -128,17 +163,33 @@ const PeriodFormModal = memo(function PeriodFormModal({
     }
 
     const handleClose = () => {
+        if (hasChanges) {
+            setShowDiscardConfirm(true)
+            return
+        }
         setFormErrors({})
         setIsDuplicateName(false)
         onClose()
     }
 
+    const handleDiscardConfirm = () => {
+        setShowDiscardConfirm(false)
+        setFormErrors({})
+        setIsDuplicateName(false)
+        onClose()
+    }
+
+    const handleDiscardCancel = () => {
+        setShowDiscardConfirm(false)
+    }
+
     return (
+    <>
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
             title={selectedItem?.id ? 'Update Tahun Akademik' : 'Tahun Akademik Baru'}
-            description={selectedItem?.id ? 'Perbarui detail tahun akademik ini.' : 'Buat periode tahun akademik baru.'}
+            description={descriptionContent}
             icon={selectedItem?.id ? Pencil : PlusCircle}
             iconBg={'bg-[var(--color-primary)]/10'}
             iconColor={'text-[var(--color-primary)]'}
@@ -317,6 +368,26 @@ const PeriodFormModal = memo(function PeriodFormModal({
                 </div>
             </div>
         </Modal>
+
+        <ConfirmDialog
+            isOpen={showDiscardConfirm}
+            onClose={handleDiscardCancel}
+            onConfirm={handleDiscardConfirm}
+            title="Buang Perubahan?"
+            description="Tindakan ini tidak dapat dibatalkan."
+            icon={Warning}
+            iconBg="bg-amber-500/10"
+            iconColor="text-amber-500"
+            confirmText="Buang & Tutup"
+            confirmIcon={Trash}
+            confirmColor="amber"
+            size="sm"
+        >
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                Semua perubahan yang belum tersimpan pada data tahun akademik akan hilang sepenuhnya dan tidak dapat dikembalikan.
+            </p>
+        </ConfirmDialog>
+    </>
     )
 })
 

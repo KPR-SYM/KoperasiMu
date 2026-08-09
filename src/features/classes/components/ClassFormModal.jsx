@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, memo, useMemo, useCallback } from 'react'
-import { Warning, Bed, Buildings, Calendar, CheckCircle, CaretDown, CaretRight, Spinner, GenderMale, Pencil, Plus, UserCheck, GenderFemale, Building, ChalkboardTeacher, Hash, ArrowsClockwise } from '@phosphor-icons/react'
+import { Warning, Bed, Buildings, Calendar, CheckCircle, CaretDown, CaretRight, Spinner, GenderMale, Pencil, Plus, UserCheck, GenderFemale, Building, ChalkboardTeacher, Hash, ArrowsClockwise, Trash } from '@phosphor-icons/react'
 
 import { Modal, Select, ConfirmDialog } from '@shared/components'
 import { useClassForm } from '../hooks/useClassForm'
@@ -116,7 +116,7 @@ const ClassFormModal = memo(function ClassFormModal({
 
             {saveState === 'saved' && (
                 <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 animate-in fade-in slide-in-from-right-2">
-                    <CheckCircle className="w-4 h-4" weight="fill" />
+                    <CheckCircle className="w-4 h-4" />
                     <span className="text-[10px] font-bold">Tersimpan!</span>
                 </div>
             )}
@@ -143,28 +143,14 @@ const ClassFormModal = memo(function ClassFormModal({
         </div>
     )
 
-    const titleContent = (
-        <div className="flex items-center gap-3">
-            {selectedItem ? (
-                <div className="flex items-center gap-2">
-                    <Pencil className="w-4 h-4 text-[var(--color-primary)]" />
-                    <span>Pen Data Kelas</span>
-                </div>
-            ) : (
-                <div className="flex items-center gap-2">
-                    <Plus className="w-4 h-4 text-[var(--color-primary)]" />
-                    <span>Tambah Kelas Baru</span>
-                </div>
-            )}
-        </div>
-    )
+    const titleContent = selectedItem ? 'Edit Data Kelas' : 'Tambah Kelas Baru'
 
     const descriptionContent = (
         <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="h-1.5 flex-1 max-w-[120px] bg-[var(--color-border)] rounded-full overflow-hidden shrink-0">
+            <div className="flex items-center gap-2">
+                <div className="w-20 h-2 bg-[var(--color-border)] rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-[var(--color-primary)] to-emerald-500 transition-all duration-500 ease-out"
+                        className="h-full bg-gradient-to-r from-[var(--color-primary)] to-emerald-500 transition-all duration-500 ease-out rounded-full"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -249,7 +235,7 @@ const ClassFormModal = memo(function ClassFormModal({
                                             value={form.name}
                                             onChange={e => setField('name', e.target.value)}
                                             onBlur={() => setFieldTouched('name')}
-                                            placeholder="e.g. 7A, 10 MIPA 1"
+                                            placeholder="e.g. 7A, 8B, 9C"
                                             className={nameInputCls}
                                             aria-invalid={getFieldStatus('name', true) === 'error'}
                                             aria-describedby={fieldErrors.name ? 'name-error' : undefined}
@@ -262,19 +248,19 @@ const ClassFormModal = memo(function ClassFormModal({
                                         )}
                                         {nameStatus === 'valid' && form.name && (
                                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                <CheckCircle className="w-3.5 h-3.5 text-emerald-500" weight="fill" />
+                                                <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                                             </div>
                                         )}
                                     </div>
                                 </div>
                                 {fieldErrors.name ? (
                                     <p id="name-error" className="mt-1 ml-14 text-[10px] font-bold text-rose-500 flex items-center gap-1" role="alert">
-                                        <Warning className="w-3 h-3" weight="fill" />
+                                        <Warning className="w-3 h-3" />
                                         {fieldErrors.name}
                                     </p>
                                 ) : (
                                     <p className="mt-1 ml-14 text-[10px] font-bold text-[var(--color-text-muted)] opacity-60">
-                                        Format singkat: 7A, 10 MIPA 1
+                                        Format singkat: 7A, 8B, 9C
                                     </p>
                                 )}
                             </div>
@@ -398,10 +384,10 @@ const ClassFormModal = memo(function ClassFormModal({
                                     aria-invalid={getFieldStatus('homeroom_teacher_id') === 'error'}
                                 />
                                 {!hasTeachers && (
-                                    <div className="mt-2 ml-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2" role="alert">
-                                        <Warning className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" weight="fill" />
-                                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 leading-relaxed">
-                                            Tambah Data Guru terlebih dahulu di <span className="font-black">Master Data → Guru</span>
+                                    <div className="mt-2 ml-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2" role="alert">
+                                        <Warning className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                                            Tambah Guru di <span className="font-black">Master Data → Guru</span>
                                         </span>
                                     </div>
                                 )}
@@ -427,7 +413,7 @@ const ClassFormModal = memo(function ClassFormModal({
                                 />
                                 {fieldErrors.academic_year && (
                                     <p className="mt-1 ml-1 text-[10px] font-bold text-rose-500 flex items-center gap-1" role="alert">
-                                        <Warning className="w-3 h-3" weight="fill" />
+                                        <Warning className="w-3 h-3" />
                                         {fieldErrors.academic_year}
                                     </p>
                                 )}
@@ -439,7 +425,7 @@ const ClassFormModal = memo(function ClassFormModal({
                 {/* ── Form Error ── */}
                 {formError && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 animate-in fade-in" role="alert" aria-live="assertive">
-                        <Warning className="w-4 h-4 text-red-500 shrink-0" weight="fill" />
+                        <Warning className="w-4 h-4 text-red-500 shrink-0" />
                         <p className="text-sm font-medium text-red-600 dark:text-red-400">{formError}</p>
                     </div>
                 )}
@@ -451,16 +437,17 @@ const ClassFormModal = memo(function ClassFormModal({
             onClose={handleDiscardCancel}
             onConfirm={handleDiscardConfirm}
             title="Buang Perubahan?"
-            description="Semua perubahan yang belum tersimpan akan hilang."
+            description="Tindakan ini tidak dapat dibatalkan."
             icon={Warning}
             iconBg="bg-amber-500/10"
             iconColor="text-amber-500"
             confirmText="Buang & Tutup"
+            confirmIcon={Trash}
             confirmColor="amber"
             size="sm"
         >
-            <p className="text-[12px] text-[var(--color-text)] text-center py-2">
-                Ada perubahan yang belum disimpan. Yakin ingin menutup?
+            <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                Semua perubahan yang belum tersimpan pada data kelas akan hilang sepenuhnya dan tidak dapat dikembalikan.
             </p>
         </ConfirmDialog>
     </>
