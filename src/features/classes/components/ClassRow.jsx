@@ -1,5 +1,5 @@
 ﻿import React from 'react'
-import { Bed, Buildings, Calendar, CaretRight, Eye, EyeSlash, GenderMale, Pencil, Trash, Users, GenderFemale, Building } from '@phosphor-icons/react'
+import { Bed, Buildings, Calendar, CaretRight, Eye, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, GenderFemale, Building } from '@phosphor-icons/react'
 
 
 export const ClassRow = React.memo(({
@@ -10,9 +10,12 @@ export const ClassRow = React.memo(({
     handleEdit,
     setItemToDelete,
     setIsDeleteModalOpen,
-    isPrivacyMode
+    isPrivacyMode,
+    pinnedIds,
+    togglePin,
 }) => {
     const isSelected = selectedIds.includes(cls.id)
+    const isPinned = pinnedIds?.includes(cls.id)
     const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€”'
     const isCrowded = (cls.students || 0) > 35
 
@@ -23,7 +26,7 @@ export const ClassRow = React.memo(({
     }
 
     return (
-        <tr className={`border-t border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors group/row ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : ''}`}>
+        <tr className={`border-t border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors group/row ${isPinned ? 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40' : ''} ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : ''}`}>
             <td className="px-6 py-4 text-center">
                 <input
                     type="checkbox"
@@ -65,11 +68,11 @@ export const ClassRow = React.memo(({
                 </div>
             </td>
 
-            {/* Level SealCheck */}
+            {/* Level */}
             {visibleCols.level && (
                 <td className="px-6 py-4 text-center">
                     <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-black uppercase tracking-widest border border-[var(--color-primary)]/20">
-                        Lvl {cls.grade}
+                        Lvl {cls.grade_level || '—'}
                     </span>
                 </td>
             )}
@@ -77,8 +80,14 @@ export const ClassRow = React.memo(({
             {/* Program */}
             {visibleCols.program && (
                 <td className="px-6 py-4 text-center">
-                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[9px] font-black uppercase border border-[var(--color-border)] tracking-widest">
-                        —
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
+                        cls.name?.toLowerCase().includes('boarding')
+                            ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                            : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)]'
+                    }`}>
+                        {cls.name?.toLowerCase().includes('boarding') ? (
+                            <><Bed className="w-2.5 h-2.5" /> Boarding</>
+                        ) : 'Reguler'}
                     </span>
                 </td>
             )}
@@ -86,9 +95,19 @@ export const ClassRow = React.memo(({
             {/* Gender */}
             {visibleCols.gender && (
                 <td className="px-6 py-4 text-center">
-                    <div className="flex justify-center">
-                        <span className="text-[var(--color-text-muted)] text-[10px] opacity-30">—</span>
-                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
+                        cls.name?.toLowerCase().includes('putra')
+                            ? 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                            : cls.name?.toLowerCase().includes('putri')
+                            ? 'bg-pink-500/10 text-pink-600 border-pink-500/20'
+                            : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)]'
+                    }`}>
+                        {cls.name?.toLowerCase().includes('putra') ? (
+                            <><GenderMale className="w-2.5 h-2.5" /> Putra</>
+                        ) : cls.name?.toLowerCase().includes('putri') ? (
+                            <><GenderFemale className="w-2.5 h-2.5" /> Putri</>
+                        ) : '—'}
+                    </span>
                 </td>
             )}
 
@@ -136,6 +155,16 @@ export const ClassRow = React.memo(({
             {/* Actions */}
             <td className="px-6 py-4 text-center">
                 <div className="flex items-center justify-center gap-1 transition-opacity">
+                    {togglePin && (
+                        <button
+                            onClick={() => togglePin(cls.id)}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all text-sm ${isPinned ? 'text-amber-500 hover:text-amber-600 hover:bg-amber-500/10' : 'text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10'}`}
+                            title={isPinned ? "Lepas Pin" : "Pin ke atas"}
+                            aria-label={isPinned ? `Lepas pin kelas ${cls.name}` : `Pin kelas ${cls.name}`}
+                        >
+                            <PushPin weight={isPinned ? "fill" : "regular"} />
+                        </button>
+                    )}
                     {handleEdit && (
                         <button
                             onClick={() => handleEdit(cls)}

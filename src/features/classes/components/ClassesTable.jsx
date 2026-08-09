@@ -11,6 +11,7 @@ const ClassesTable = memo(function ClassesTable({
     canEdit, loading, searchQuery, filterLevel, filterProgram,
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
+    pinnedIds, togglePin,
 }) {
     if (loading) {
         return (
@@ -98,7 +99,7 @@ const ClassesTable = memo(function ClassesTable({
                                 </td>
                             </tr>
                         ) : paged.map(cls => (
-                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} />
+                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
                         ))}
                     </tbody>
                 </table>

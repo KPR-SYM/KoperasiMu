@@ -10,6 +10,8 @@ const PROGRAMS = ['Boarding', 'Reguler']
 const LS_FILTERS = 'classes_filters'
 const LS_COLS = 'classes_columns'
 const LS_PAGE_SIZE = 'classes_page_size'
+const LS_PINNED = 'classes_pinned'
+const LS_VIEW_MODE = 'classes_view_mode'
 
 export function useClassesCore({ addToast }) {
     const { handleError } = useErrorHandler('ClassesPage')
@@ -30,11 +32,21 @@ export function useClassesCore({ addToast }) {
 
     // ── Filtering & Search ──
     const [searchQuery, setSearchQuery] = useState('')
-    const [filterLevel, setFilterLevel] = useState('')
-    const [filterProgram, setFilterProgram] = useState('')
-    const [sortBy, setSortBy] = useState('name')
-    const [filterNoTeacher, setFilterNoTeacher] = useState(false)
-    const [filterCrowded, setFilterCrowded] = useState(false)
+    const [filterLevel, setFilterLevel] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}').filterLevel || '' } catch { return '' }
+    })
+    const [filterProgram, setFilterProgram] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}').filterProgram || '' } catch { return '' }
+    })
+    const [sortBy, setSortBy] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}').sortBy || 'name' } catch { return 'name' }
+    })
+    const [filterNoTeacher, setFilterNoTeacher] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}').filterNoTeacher ?? false } catch { return false }
+    })
+    const [filterCrowded, setFilterCrowded] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}').filterCrowded ?? false } catch { return false }
+    })
     const [isFilterOpen, setIsFilterOpen] = useState(false)
 
     // ── Pagination ──
@@ -47,6 +59,25 @@ export function useClassesCore({ addToast }) {
     // ── Selection ──
     const [selectedIds, setSelectedIds] = useState([])
 
+    // ── View Mode ──
+    const [viewMode, setViewMode] = useState(() => {
+        try { return localStorage.getItem(LS_VIEW_MODE) || 'table' } catch { return 'table' }
+    })
+
+    // ── Pinned ──
+    const [pinnedIds, setPinnedIds] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(LS_PINNED) || '[]') } catch { return [] }
+    })
+
+    // ── Undo/Redo ──
+    const [undoStack, setUndoStack] = useState([])
+    const [redoStack, setRedoStack] = useState([])
+
+    // ── Inline Edit ──
+    const [inlineEditCell, setInlineEditCell] = useState(null)
+    const [saveStatus, setSaveStatus] = useState('idle')
+    const [lastChange, setLastChange] = useState(null)
+
     // ── UI ──
     const [isPrivacyMode, setIsPrivacyMode] = useState(false)
     const [isShortcutOpen, setIsShortcutOpen] = useState(false)
@@ -58,10 +89,16 @@ export function useClassesCore({ addToast }) {
     const [shortcutRect, setShortcutRect] = useState(null)
     const [headerMenuMounted, setHeaderMenuMounted] = useState(false)
 
+    // ── Column Menu ──
+    const [isColMenuOpen, setIsColMenuOpen] = useState(false)
+    const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
+    const colMenuRef = useRef(null)
+    const colMenuPortalRef = useRef(null)
+
     // ── Columns ──
     const defaultCols = { level: true, program: true, gender: true, teacher: true, students: true, year: true }
     const [visibleCols, setVisibleCols] = useState(() => {
-        try { return JSON.parse(localStorage.getItem(LS_COLS)) || defaultCols }
+        try { const c = JSON.parse(localStorage.getItem(LS_COLS) || '{}'); return Object.keys(c).length ? c : defaultCols }
         catch { return defaultCols }
     })
 
@@ -70,16 +107,20 @@ export function useClassesCore({ addToast }) {
     const [itemToDelete, setItemToDelete] = useState(null)
 
     // ── Persist ──
-    useEffect(() => {
-        try { const f = JSON.parse(localStorage.getItem(LS_FILTERS) || '{}'); if (f.filterLevel) setFilterLevel(f.filterLevel); if (f.filterProgram) setFilterProgram(f.filterProgram); if (f.sortBy) setSortBy(f.sortBy); if (f.filterNoTeacher !== undefined) setFilterNoTeacher(f.filterNoTeacher); if (f.filterCrowded !== undefined) setFilterCrowded(f.filterCrowded) } catch { }
-        try { const c = JSON.parse(localStorage.getItem(LS_COLS) || '{}'); if (Object.keys(c).length) setVisibleCols(c) } catch { }
-    }, [])
-    useEffect(() => { try { localStorage.setItem(LS_FILTERS, JSON.stringify({ filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded })) } catch { } }, [filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded])
-    useEffect(() => { try { localStorage.setItem(LS_COLS, JSON.stringify(visibleCols)) } catch { } }, [visibleCols])
-    useEffect(() => { try { localStorage.setItem(LS_PAGE_SIZE, pageSize) } catch { } }, [pageSize])
+    useEffect(() => { try { localStorage.setItem(LS_FILTERS, JSON.stringify({ filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded })) } catch { /* noop */ } }, [filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded])
+    useEffect(() => { try { localStorage.setItem(LS_COLS, JSON.stringify(visibleCols)) } catch { /* noop */ } }, [visibleCols])
+    useEffect(() => { try { localStorage.setItem(LS_PAGE_SIZE, String(pageSize)) } catch { /* noop */ } }, [pageSize])
+    useEffect(() => { try { localStorage.setItem(LS_VIEW_MODE, viewMode) } catch { /* noop */ } }, [viewMode])
+    useEffect(() => { try { localStorage.setItem(LS_PINNED, JSON.stringify(pinnedIds)) } catch { /* noop */ } }, [pinnedIds])
 
     // Reset page on search/filter change
-    useEffect(() => { setPage(1) }, [searchQuery, filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded])
+    const prevFiltersRef = useRef({ searchQuery, filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded })
+    useEffect(() => {
+        const prev = prevFiltersRef.current
+        const changed = searchQuery !== prev.searchQuery || filterLevel !== prev.filterLevel || filterProgram !== prev.filterProgram || sortBy !== prev.sortBy || filterNoTeacher !== prev.filterNoTeacher || filterCrowded !== prev.filterCrowded
+        if (changed) setPage(1)
+        prevFiltersRef.current = { searchQuery, filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded }
+    }, [searchQuery, filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded])
 
     // ── Outside Click ──
     useEffect(() => {
@@ -104,6 +145,18 @@ export function useClassesCore({ addToast }) {
         return () => { window.removeEventListener('scroll', update, true); window.removeEventListener('resize', update) }
     }, [isHeaderMenuOpen, isShortcutOpen])
 
+    // Column menu outside click
+    useEffect(() => {
+        if (!isColMenuOpen) return
+        const handler = (e) => {
+            if (colMenuRef.current && !colMenuRef.current.contains(e.target) && colMenuPortalRef.current && !colMenuPortalRef.current.contains(e.target)) {
+                setIsColMenuOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [isColMenuOpen])
+
     // ── Computed ──
     const activeFilterCount = (filterLevel ? 1 : 0) + (filterProgram ? 1 : 0) + (filterNoTeacher ? 1 : 0) + (filterCrowded ? 1 : 0)
     const hasActiveFilters = !!(searchQuery || activeFilterCount)
@@ -116,6 +169,62 @@ export function useClassesCore({ addToast }) {
         if (str.length <= vis) return str[0] + '*'.repeat(str.length - 1)
         return str.substring(0, vis) + '***'
     }, [])
+
+    // ── Pinned ──
+    const togglePin = useCallback((id) => {
+        setPinnedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
+    }, [])
+
+    // ── Column reorder (stub — classes has fixed order for now) ──
+    const moveColumnLeft = useCallback(() => {}, [])
+    const moveColumnRight = useCallback(() => {}, [])
+
+    // ── Undo/Redo (snapshot-based) ──
+    const pushUndo = useCallback((snapshot) => {
+        setUndoStack(prev => [...prev.slice(-20), snapshot])
+        setRedoStack([])
+    }, [])
+
+    const handleUndo = useCallback(() => {
+        setUndoStack(prev => {
+            if (prev.length === 0) return prev
+            const snapshot = prev[prev.length - 1]
+            setRedoStack(r => [...r, { classes: snapshot.classes, stats: snapshot.stats }])
+            setClasses(snapshot.classes)
+            setStats(snapshot.stats)
+            return prev.slice(0, -1)
+        })
+    }, [])
+
+    const handleRedo = useCallback(() => {
+        setRedoStack(prev => {
+            if (prev.length === 0) return prev
+            const snapshot = prev[prev.length - 1]
+            setUndoStack(u => [...u, { classes: snapshot.classes, stats: snapshot.stats }])
+            setClasses(snapshot.classes)
+            setStats(snapshot.stats)
+            return prev.slice(0, -1)
+        })
+    }, [])
+
+    // ── Inline Save ──
+    const handleInlineSave = useCallback(async (id, field, value) => {
+        setSaveStatus('saving')
+        try {
+            const oldItem = classes.find(c => c.id === id)
+            const { error } = await supabase.from('classes').update({ [field]: value }).eq('id', id)
+            if (error) throw error
+            setClasses(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
+            setSaveStatus('saved')
+            setLastChange({ field })
+            if (oldItem) pushUndo({ classes, stats })
+            setTimeout(() => setSaveStatus('idle'), 2000)
+        } catch (err) {
+            setSaveStatus('error')
+            handleError(err, { context: 'Gagal menyimpan' })
+            setTimeout(() => setSaveStatus('idle'), 3000)
+        }
+    }, [classes, stats, pushUndo, handleError])
 
     // ── Data Fetching ──
     const loadMetadata = useCallback(async () => {
@@ -212,7 +321,16 @@ export function useClassesCore({ addToast }) {
     }, [classes, searchQuery, filterLevel, filterProgram, filterNoTeacher, filterCrowded, sortBy])
 
     const totalRows = filtered.length
-    const paged = filtered.slice((page - 1) * pageSize, page * pageSize)
+
+    // Sort pinned to top
+    const sortedFiltered = useMemo(() => {
+        if (pinnedIds.length === 0) return filtered
+        const pinned = filtered.filter(c => pinnedIds.includes(c.id))
+        const unpinned = filtered.filter(c => !pinnedIds.includes(c.id))
+        return [...pinned, ...unpinned]
+    }, [filtered, pinnedIds])
+
+    const paged = sortedFiltered.slice((page - 1) * pageSize, page * pageSize)
 
     // ── Insights ──
     const insights = useMemo(() => {
@@ -272,6 +390,27 @@ export function useClassesCore({ addToast }) {
         finally { setSubmitting(false) }
     }
 
+    // ── Bulk Lock/Unlock ──
+    const handleBulkLock = async () => {
+        setSubmitting(true)
+        try {
+            const { error } = await supabase.from('classes').update({ is_locked: true }).in('id', selectedIds)
+            if (error) throw error
+            addToast(`${selectedIds.length} kelas dikunci`, 'success'); setSelectedIds([]); fetchData()
+        } catch (err) { handleError(err, { context: 'Gagal mengunci kelas' }) }
+        finally { setSubmitting(false) }
+    }
+
+    const handleBulkUnlock = async () => {
+        setSubmitting(true)
+        try {
+            const { error } = await supabase.from('classes').update({ is_locked: false }).in('id', selectedIds)
+            if (error) throw error
+            addToast(`${selectedIds.length} kelas dibuka kuncinya`, 'success'); setSelectedIds([]); fetchData()
+        } catch (err) { handleError(err, { context: 'Gagal membuka kunci kelas' }) }
+        finally { setSubmitting(false) }
+    }
+
     const toggleSelect = id => setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
     const toggleSelectAll = () => {
         const ids = paged.map(c => c.id)
@@ -282,7 +421,7 @@ export function useClassesCore({ addToast }) {
 
     const selectedItems = useMemo(() => selectedIds.map(id => classes.find(c => c.id === id)).filter(Boolean), [selectedIds, classes])
 
-    // ── Modal Visibility (forwarded from useClassesModals) ──
+    // ── Modal Visibility ──
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
     const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false)
@@ -303,14 +442,27 @@ export function useClassesCore({ addToast }) {
 
         // Pagination
         page, setPage, jumpPage, setJumpPage, pageSize, setPageSize,
-        totalRows, paged, filtered,
+        totalRows, paged, filtered, sortedFiltered,
 
         // Selection
         selectedIds, setSelectedIds, selectedItems, toggleSelect, toggleSelectAll,
         allSelected, someSelected,
 
+        // View Mode
+        viewMode, setViewMode,
+
+        // Pinned
+        pinnedIds, togglePin,
+
+        // Inline Edit
+        inlineEditCell, setInlineEditCell, handleInlineSave, saveStatus, lastChange,
+
+        // Undo/Redo
+        undoStack, redoStack, handleUndo, handleRedo, pushUndo,
+
         // Columns
-        visibleCols, setVisibleCols,
+        visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos,
+        colMenuRef, colMenuPortalRef, moveColumnLeft, moveColumnRight,
 
         // UI
         isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
@@ -321,12 +473,13 @@ export function useClassesCore({ addToast }) {
         // Action context
         selectedItem, setSelectedItem, itemToDelete, setItemToDelete,
 
-        // Modal visibility (managed here, forwarded)
+        // Modal visibility
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
         isBulkDeleteOpen, setIsBulkDeleteOpen,
 
         // Handlers
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
+        handleBulkLock, handleBulkUnlock,
 
         // Insights
         insights,

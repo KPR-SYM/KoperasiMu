@@ -848,3 +848,14 @@ input[type=number] {
 .container-boxed {
   --container-max-width: 1280px;
 }
+
+/* ─── Modal Open State ─────────────────────────────────────────────────── */
+body.modal-open .top-nav,
+body.modal-open .sidebar,
+body.modal-open .floating-dock {
+  display: none !important;
+}
+
+body.modal-open main {
+  padding-top: 0 !important;
+}

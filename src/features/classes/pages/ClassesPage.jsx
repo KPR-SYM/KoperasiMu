@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react'
-import { Archive, Bed, Buildings, Calendar, CaretLeft, CheckCircle, Eye, EyeSlash, Keyboard, List, MagnifyingGlass, Plus, SlidersHorizontal, Spinner, Trash, Users, X } from '@phosphor-icons/react'
+import { Bed, Buildings, Eye, EyeSlash, Keyboard, Lock, LockOpen, Plus, SlidersHorizontal, Trash, Users } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
@@ -15,6 +15,7 @@ import ClassFormModal from '@features/classes/components/ClassFormModal'
 import ClassExportModal from '@features/classes/components/ClassExportModal'
 import ClassArchiveModal from '@features/classes/components/ClassArchiveModal'
 import ClassImportModal from '@features/classes/components/ClassImportModal'
+import { ClassBulkDeleteModal, ClassBulkLockModal, ClassBulkUnlockModal } from '@features/classes/components/ClassConfirmModals'
 import {
     BulkActionsBar,
     ConfirmDialog,
@@ -31,11 +32,11 @@ export default function ClassesPage() {
 
     // ── Core Hook ──
     const {
-        classes, archivedClasses, setArchivedClasses, loading, loadingArchived, stats,
+        classes, archivedClasses, loading, stats,
         fetchData, fetchArchived, handleRestore, handlePermanentDelete,
         teachersList, periodsList,
-        submitting, isSaving, isDeleting, isMutating,
-        canEdit, profile,
+        submitting, isDeleting, isMutating,
+        canEdit,
         searchQuery, setSearchQuery, filterLevel, setFilterLevel,
         filterProgram, setFilterProgram, sortBy, setSortBy,
         filterNoTeacher, setFilterNoTeacher, filterCrowded, setFilterCrowded,
@@ -44,8 +45,9 @@ export default function ClassesPage() {
         totalRows, paged, filtered,
         selectedIds, setSelectedIds, selectedItems, toggleSelect, toggleSelectAll,
         allSelected, someSelected,
-        visibleCols, setVisibleCols,
-        isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
+        visibleCols,
+        pinnedIds, togglePin,
+        isPrivacyMode, setIsPrivacyMode, togglePrivacyMode,
         isShortcutOpen, setIsShortcutOpen, isHeaderMenuOpen, setIsHeaderMenuOpen,
         headerMenuBtnRef, shortcutBtnRef, headerMenuRect, setHeaderMenuRect,
         shortcutRect, setShortcutRect, headerMenuMounted, searchInputRef,
@@ -53,7 +55,7 @@ export default function ClassesPage() {
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
         isBulkDeleteOpen, setIsBulkDeleteOpen,
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
-        insights,
+        handleBulkLock, handleBulkUnlock,
         LEVELS, PROGRAMS,
         handleError,
     } = useClassesCore({ addToast })
@@ -63,16 +65,18 @@ export default function ClassesPage() {
         isExportModalOpen, setIsExportModalOpen,
         isImportModalOpen, setIsImportModalOpen,
         isArchivedModalOpen, setIsArchivedModalOpen,
+        isLockModalOpen, setIsLockModalOpen,
+        isUnlockModalOpen, setIsUnlockModalOpen,
     } = useClassesModals()
 
     // ── Import/Export Hook ──
     const {
         importStep, setImportStep, importFileName, setImportFileName,
-        importRawData, setImportRawData,
-        importFileHeaders, setImportFileHeaders,
+        importRawData,
+        importFileHeaders,
         importColumnMapping, setImportColumnMapping,
         importPreview, setImportPreview,
-        importIssues, setImportIssues,
+        importIssues,
         importLoading, setImportLoading,
         importValidationOpen, setImportValidationOpen,
         importDragOver, setImportDragOver,
@@ -85,7 +89,7 @@ export default function ClassesPage() {
         handleImportClick, processImportFile,
         buildImportPreview, handleImportCellEdit, handleRemoveImportRow,
         handleDownloadTemplate, handleCommitImport,
-        getExportData, handleExportCSV, handleExportExcel, handleExportPDF,
+        handleExportCSV, handleExportExcel, handleExportPDF,
         SYSTEM_COLS,
     } = useClassesImportExport({
         classes, filtered, selectedIds, canEdit, fetchData,
@@ -106,13 +110,37 @@ export default function ClassesPage() {
         searchQuery, setSearchQuery,
         hasActiveFilters, resetAllFilters,
         setIsExportModalOpen,
+        setIsImportModalOpen,
+        handleBulkLock,
+        handleBulkUnlock,
+        isMutating,
+        classes,
+        handleEdit,
     })
 
-    const isAnyModalOpen = isModalOpen || isDeleteModalOpen || isBulkDeleteOpen || isExportModalOpen || isImportModalOpen || isArchivedModalOpen
+    const isAnyModalOpen = isModalOpen || isDeleteModalOpen || isBulkDeleteOpen || isExportModalOpen || isImportModalOpen || isArchivedModalOpen || isLockModalOpen || isUnlockModalOpen
+
+    // Hide nav/sidebar when any modal is open
+    useEffect(() => {
+        if (isAnyModalOpen) {
+            document.body.classList.add('modal-open')
+        } else {
+            document.body.classList.remove('modal-open')
+        }
+        return () => document.body.classList.remove('modal-open')
+    }, [isAnyModalOpen])
+
+    const statsContent = useMemo(() => (
+        <StatsCarousel count={4} cols={4}>
+            <StatCard icon={Buildings} label="Total Kelas" value={stats.total} color="primary" />
+            <StatCard icon={Bed} label="Boarding" value={stats.boarding} color="primary" />
+            <StatCard icon={Buildings} label="Reguler" value={stats.reguler} color="primary" />
+            <StatCard icon={Users} label="Total Siswa" value={stats.totalStudents} color="primary" />
+        </StatsCarousel>
+    ), [stats])
 
     return (
         <DashboardLayout title="Data Kelas" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
-            <style>{isAnyModalOpen ? ` .top-nav, .sidebar, .floating-dock { display: none !important; } main { padding-top: 0 !important; } ` : ''}</style>
             <div className="space-y-3 max-w-[1800px] mx-auto relative">
 
                 {/* Bulk Action Bar */}
@@ -131,6 +159,20 @@ export default function ClassesPage() {
                             onClick: () => setIsBulkDeleteOpen(true),
                             disabled: !canEdit || isMutating,
                         }}
+                        secondaryActions={[
+                            {
+                                label: "Kunci",
+                                icon: <Lock className="w-3.5 h-3.5" />,
+                                onClick: () => setIsLockModalOpen(true),
+                                disabled: !canEdit || isMutating,
+                            },
+                            {
+                                label: "Buka Kunci",
+                                icon: <LockOpen className="w-3.5 h-3.5" />,
+                                onClick: () => setIsUnlockModalOpen(true),
+                                disabled: !canEdit || isMutating,
+                            },
+                        ]}
                     />
                 )}
 
@@ -218,32 +260,7 @@ export default function ClassesPage() {
                 />
 
                 {/* ── Stats ── */}
-                <StatsCarousel count={4} cols={4}>
-                    <StatCard
-                        icon={Buildings}
-                        label="Total Kelas"
-                        value={stats.total}
-                        color="primary"
-                    />
-                    <StatCard
-                        icon={Bed}
-                        label="Boarding"
-                        value={stats.boarding}
-                        color="primary"
-                    />
-                    <StatCard
-                        icon={Buildings}
-                        label="Reguler"
-                        value={stats.reguler}
-                        color="primary"
-                    />
-                    <StatCard
-                        icon={Users}
-                        label="Total Siswa"
-                        value={stats.totalStudents}
-                        color="primary"
-                    />
-                </StatsCarousel>
+                {statsContent}
 
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
@@ -303,6 +320,8 @@ export default function ClassesPage() {
                         setPageSize={setPageSize}
                         jumpPage={jumpPage}
                         setJumpPage={setJumpPage}
+                        pinnedIds={pinnedIds}
+                        togglePin={canEdit ? togglePin : null}
                     />
                 </div>
 
@@ -418,6 +437,22 @@ export default function ClassesPage() {
                     handleRemoveImportRow={handleRemoveImportRow}
                     importSkipDupes={importSkipDupes}
                     setImportSkipDupes={setImportSkipDupes}
+                />
+
+                <ClassBulkLockModal
+                    isOpen={isLockModalOpen}
+                    onClose={() => setIsLockModalOpen(false)}
+                    onConfirm={() => { handleBulkLock(); setIsLockModalOpen(false) }}
+                    loading={isMutating}
+                    count={selectedIds.length}
+                />
+
+                <ClassBulkUnlockModal
+                    isOpen={isUnlockModalOpen}
+                    onClose={() => setIsUnlockModalOpen(false)}
+                    onConfirm={() => { handleBulkUnlock(); setIsUnlockModalOpen(false) }}
+                    loading={isMutating}
+                    count={selectedIds.length}
                 />
 
             </div>
