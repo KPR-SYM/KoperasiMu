@@ -17,6 +17,7 @@ import ClassExportModal from '@features/classes/components/ClassExportModal'
 import ClassArchiveModal from '@features/classes/components/ClassArchiveModal'
 import ClassImportModal from '@features/classes/components/ClassImportModal'
 import ClassDetailPanel from '@features/classes/components/ClassDetailPanel'
+import ClassesHistoryModal from '@features/classes/components/ClassesHistoryModal'
 import { ClassBulkDeleteModal, ClassBulkLockModal, ClassBulkUnlockModal } from '@features/classes/components/ClassConfirmModals'
 import {
     BulkActionsBar,
@@ -37,7 +38,7 @@ export default function ClassesPage() {
 
     // ── Core Hook ──
     const {
-        classes, archivedClasses, loading, stats,
+        classes, archivedClasses, setArchivedClasses, loading, loadingArchived, stats,
         fetchData, fetchArchived, handleRestore, handlePermanentDelete,
         teachersList, periodsList,
         submitting, isDeleting, isMutating,
@@ -84,6 +85,13 @@ export default function ClassesPage() {
         isLockModalOpen, setIsLockModalOpen,
         isUnlockModalOpen, setIsUnlockModalOpen,
     } = useClassesModals()
+
+    // ── History State ──
+    const [historyItem, setHistoryItem] = useState(null)
+    const isHistoryOpen = !!historyItem
+    const handleOpenHistory = useCallback((cls) => {
+        setHistoryItem(cls)
+    }, [])
 
     // ── Import/Export Hook ──
     const {
@@ -139,6 +147,7 @@ export default function ClassesPage() {
         undoStack,
         redoStack,
         toggleSelectAll,
+        handleOpenHistory,
     })
 
     const isAnyModalOpen = isModalOpen || isDeleteModalOpen || isBulkDeleteOpen || isExportModalOpen || isImportModalOpen || isArchivedModalOpen || isLockModalOpen || isUnlockModalOpen
@@ -345,6 +354,7 @@ export default function ClassesPage() {
                         handleView={handleViewClass}
                         handleDuplicate={canEdit ? handleDuplicate : null}
                         handleArchive={canEdit ? handleArchive : null}
+                        onHistory={handleOpenHistory}
                         setItemToDelete={setItemToDelete}
                         setIsDeleteModalOpen={setIsDeleteModalOpen}
                         isPrivacyMode={isPrivacyMode}
@@ -440,8 +450,17 @@ export default function ClassesPage() {
                     isOpen={isArchivedModalOpen}
                     onClose={() => setIsArchivedModalOpen(false)}
                     archivedClasses={archivedClasses}
-                    handleRestore={handleRestore}
-                    handlePermanentDelete={handlePermanentDelete}
+                    loadingArchived={loadingArchived}
+                    setArchivedClasses={setArchivedClasses}
+                    fetchArchived={fetchArchived}
+                    fetchData={fetchData}
+                    addToast={addToast}
+                />
+
+                <ClassesHistoryModal
+                    isOpen={isHistoryOpen}
+                    onClose={() => setHistoryItem(null)}
+                    item={historyItem}
                 />
 
                 <ClassImportModal

@@ -27,6 +27,7 @@ export function useClassesKeyboard({
     classes,
     handleEdit,
     toggleSelectAll,
+    handleOpenHistory,
 } = {}) {
     const actionRef = useRef({})
     useEffect(() => {
@@ -36,7 +37,7 @@ export function useClassesKeyboard({
             hasActiveFilters, resetAllFilters, setIsExportModalOpen, setIsImportModalOpen,
             setViewMode, viewMode, handleUndo, handleRedo, undoStack, redoStack,
             handleBulkLock, handleBulkUnlock, isMutating, classes, handleEdit,
-            toggleSelectAll,
+            toggleSelectAll, handleOpenHistory,
         }
     })
 
@@ -62,6 +63,7 @@ export function useClassesKeyboard({
             if (e.key === 'x' && !isTyping) { e.preventDefault(); ctx.resetAllFilters(); return }
             if (e.key === '?' && !isTyping) { ctx.setIsShortcutOpen?.(v => !v); return }
             if (e.key === 'e' && !isTyping && ctx.selectedIds.length === 1) { e.preventDefault(); const item = ctx.classes?.find(c => c.id === ctx.selectedIds[0]); if (item) ctx.handleEdit?.(item); return }
+            if (e.key === 'h' && !isTyping && ctx.selectedIds.length === 1) { e.preventDefault(); const item = ctx.classes?.find(c => c.id === ctx.selectedIds[0]); if (item) ctx.handleOpenHistory?.(item); return }
             if (e.key === 'l' && !isTyping && ctx.selectedIds.length > 0 && ctx.canEdit && !ctx.isMutating) { e.preventDefault(); ctx.handleBulkLock?.(); return }
             if (ctrl && e.key === 'a' && !isTyping) { e.preventDefault(); ctx.toggleSelectAll?.(); return }
             if ((e.key === 'Delete' || e.key === 'Backspace') && !isTyping && ctx.selectedIds.length > 0) { e.preventDefault(); ctx.setIsBulkDeleteOpen?.(true); return }

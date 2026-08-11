@@ -460,6 +460,9 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 </div>
             )}
 
+            {filteredLogs.length === 0 ? (
+                    <EmptyState icon={MagnifyingGlass} title="Tidak Ada Hasil" description="Tidak ada riwayat yang cocok dengan filter atau pencarian saat ini." variant="plain" color="slate" className="py-2" />
+            ) : (
             <div className={`relative space-y-0 ${stickyHeader ? 'pb-3' : ''}`}>
                 <div className="absolute left-[18px] top-2 bottom-2 w-px bg-[var(--color-border)] opacity-60" />
 
@@ -598,6 +601,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                     </div>
                 ))}
             </div>
+            )}
         </div>
     )
 }

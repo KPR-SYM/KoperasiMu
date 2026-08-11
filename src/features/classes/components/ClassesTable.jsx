@@ -8,7 +8,7 @@ import Pagination from '@shared/components/Pagination'
 const ClassesTable = memo(function ClassesTable({
     paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols,
     allSelected, someSelected, toggleSelectAll,
-    handleEdit, handleView, handleDuplicate, handleArchive, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
+    handleEdit, handleView, handleDuplicate, handleArchive, onHistory, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
     canEdit, loading, searchQuery, filterLevel, filterProgram,
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
@@ -100,7 +100,7 @@ const ClassesTable = memo(function ClassesTable({
                                 </td>
                             </tr>
                         ) : paged.map(cls => (
-                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
+                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} onHistory={onHistory} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
                         ))}
                     </tbody>
                 </table>

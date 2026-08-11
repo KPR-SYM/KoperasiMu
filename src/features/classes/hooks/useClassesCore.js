@@ -245,7 +245,7 @@ export function useClassesCore({ addToast }) {
         setLoading(true)
         try {
             const { t: tMap, y: yMap } = await loadMetadata()
-            let q = supabase.from('classes').select('id, uuid, name, grade_level, homeroom_teacher_id, academic_year, capacity, is_active, created_at, students(count)').order('name')
+            let q = supabase.from('classes').select('id, uuid, name, grade_level, homeroom_teacher_id, academic_year, capacity, is_active, created_at, students(count)').is('deleted_at', null).order('name')
             const { data, error } = await q
             if (!error && data) {
                 const mapped = data.map(row => ({
@@ -266,9 +266,16 @@ export function useClassesCore({ addToast }) {
     const fetchArchived = useCallback(async () => {
         setLoadingArchived(true)
         try {
-            const { data, error } = await supabase.from('classes').select('id, uuid, name, grade_level, academic_year, homeroom_teacher_id, capacity, is_active, created_at, deleted_at').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+            const { data, error } = await supabase.from('classes').select('id, uuid, name, grade_level, academic_year, homeroom_teacher_id, capacity, is_active, created_at, deleted_at, deleted_by').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
             if (error) throw error
-            setArchivedClasses(data || [])
+            const archiverIds = [...new Set((data || []).map(c => c.deleted_by).filter(Boolean))]
+            let archiverMap = {}
+            if (archiverIds.length > 0) {
+                const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', archiverIds)
+                archiverMap = Object.fromEntries((profiles || []).map(p => [p.id, p.full_name]))
+            }
+            const enriched = (data || []).map(c => ({ ...c, archivedByName: c.deleted_by ? (archiverMap[c.deleted_by] || '—') : '—' }))
+            setArchivedClasses(enriched)
         } catch {
             setArchivedClasses([])
         } finally {
@@ -278,7 +285,7 @@ export function useClassesCore({ addToast }) {
 
     const handleRestore = async (id) => {
         try {
-            const { error } = await supabase.from('classes').update({ deleted_at: null }).eq('id', id)
+            const { error } = await supabase.from('classes').update({ deleted_at: null, deleted_by: null }).eq('id', id)
             if (error) throw error
             addToast('Kelas berhasil dipulihkan', 'success'); await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: id, oldData: { id, restored: false }, newData: { deleted_at: null, restored: true } }); fetchArchived(); fetchData()
         } catch (err) { handleError(err, { context: 'Gagal memulihkan kelas' }) }
@@ -448,10 +455,12 @@ export function useClassesCore({ addToast }) {
         if (!cls || !canEdit) return
         setSubmitting(true)
         try {
-            const { error } = await supabase.from('classes').update({ deleted_at: new Date().toISOString() }).eq('id', cls.id)
+            const deletedAt = new Date().toISOString()
+            const { error } = await supabase.from('classes').update({ deleted_at: deletedAt, deleted_by: profile?.id || null }).eq('id', cls.id)
             if (error) throw error
+            setClasses(prev => prev.filter(c => c.id !== cls.id))
             addToast(`Kelas "${cls.name}" berhasil diarsipkan`, 'success')
-            await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, deleted_at: new Date().toISOString() } })
+            await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, deleted_at: deletedAt, deleted_by: profile?.id } })
             fetchData()
         } catch (err) { handleError(err, { context: 'Gagal mengarsipkan kelas' }) }
         finally { setSubmitting(false) }

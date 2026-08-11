@@ -13,6 +13,7 @@ export const ClassRow = React.memo(({
     handleView,
     handleDuplicate,
     handleArchive,
+    onHistory,
     setItemToDelete,
     setIsDeleteModalOpen,
     isPrivacyMode,
@@ -55,7 +56,7 @@ export const ClassRow = React.memo(({
     const menuItems = [
         ...(togglePin ? [{ icon: PushPin, label: isPinned ? 'Lepas Pin' : 'Pin ke atas', onClick: () => { togglePin(cls.id); setMenuOpen(false) }, danger: false, weight: isPinned ? 'fill' : 'regular' }] : []),
         ...(handleDuplicate ? [{ icon: Copy, label: 'Duplikat', onClick: () => { handleDuplicate(cls); setMenuOpen(false) } }] : []),
-        { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { setMenuOpen(false) }, disabled: true },
+        ...(onHistory ? [{ icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(cls); setMenuOpen(false) } }] : []),
         ...(handleArchive ? [{ icon: Lock, label: 'Arsipkan', onClick: () => { handleArchive(cls); setMenuOpen(false) } }] : []),
         ...(setItemToDelete && setIsDeleteModalOpen ? [{ divider: true }, { icon: Trash, label: 'Hapus', onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); setMenuOpen(false) }, danger: true }] : []),
     ]

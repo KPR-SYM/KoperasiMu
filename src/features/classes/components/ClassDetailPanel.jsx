@@ -680,10 +680,11 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
         if (!cls || deleting) return
         setDeleting(true)
         try {
-            const { error } = await supabase.from('classes').update({ deleted_at: new Date().toISOString() }).eq('id', cls.id)
+            const deletedAt = new Date().toISOString()
+            const { error } = await supabase.from('classes').update({ deleted_at: deletedAt, deleted_by: profile?.id || null }).eq('id', cls.id)
             if (error) throw error
             addToast('Kelas berhasil diarsipkan', 'success')
-            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, deleted_at: new Date().toISOString() } }) } catch { /* skip */ }
+            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, deleted_at: deletedAt, deleted_by: profile?.id } }) } catch { /* skip */ }
             onBack()
         } catch (err) {
             addToast(err?.message || 'Gagal mengarsipkan', 'error')
@@ -691,7 +692,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
             setDeleting(false)
             setIsDeleteOpen(false)
         }
-    }, [cls, deleting, addToast, onBack])
+    }, [cls, deleting, addToast, onBack, profile])
 
     const handleToggleLock = useCallback(async () => {
         if (!cls || saving) return

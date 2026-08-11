@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Warning, Archive, CaretLeft, CaretRight, Spinner, Buildings, Trash, ArrowCounterClockwise } from '@phosphor-icons/react'
+import { Warning, Archive, CaretLeft, CaretRight, Spinner, Trash, ArrowCounterClockwise } from '@phosphor-icons/react'
 
 import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
@@ -11,7 +11,7 @@ export default function ClassArchiveModal({
     archivedClasses,
     loadingArchived,
     setArchivedClasses,
-    fetchArchivedClasses,
+    fetchArchived,
     fetchData,
     addToast
 }) {
@@ -28,12 +28,12 @@ export default function ClassArchiveModal({
     const handleRestoreClass = async (cls) => {
         setRestoring(true)
         try {
-            const { error } = await supabase.from('classes').update({ deleted_at: null }).eq('id', cls.id)
+            const { error } = await supabase.from('classes').update({ deleted_at: null, deleted_by: null }).eq('id', cls.id)
             if (error) throw error
             addToast(`${cls.name} berhasil dipulihkan`, 'success')
             setArchivedClasses(prev => prev.filter(c => c.id !== cls.id))
             fetchData?.()
-            fetchStats?.()
+            fetchArchived?.()
         } catch (err) { handleError(err, { context: 'Gagal memulihkan kelas' }) } finally {
             setRestoring(false)
         }
@@ -44,17 +44,13 @@ export default function ClassArchiveModal({
         setDeleting(true)
         try {
             const { error } = await supabase.from('classes').delete().eq('id', deleteTarget.id)
-
             if (error) throw error
-
             addToast(`${deleteTarget.name} dihapus permanen`, 'success')
             setArchivedClasses(prev => prev.filter(c => c.id !== deleteTarget.id))
             setDeleteTarget(null)
             fetchData?.()
-            fetchStats?.()
         } catch (err) {
-            console.error('Backspace error:', err)
-            addToast(err.message || 'Gagal hapus permanen data', 'error')
+            handleError(err, { context: 'Gagal hapus permanen' })
         } finally {
             setDeleting(false)
         }
@@ -71,6 +67,9 @@ export default function ClassArchiveModal({
         if (days < 30) return `${Math.floor(days / 7)} minggu lalu`
         return `${Math.floor(days / 30)} bulan lalu`
     }
+
+    const paged = archivedClasses.slice((archivePage - 1) * archivePageSize, archivePage * archivePageSize)
+    const totalPages = Math.ceil(archivedClasses.length / archivePageSize)
 
     return (
         <Modal
@@ -105,7 +104,7 @@ export default function ClassArchiveModal({
                         <Warning className="text-red-500 text-2xl" />
                     </div>
                     <div className="text-center max-w-xs">
-                        <p className="w-4 h-4 font-black text-[var(--color-text)] mb-1">Hapus Permanen?</p>
+                        <p className="text-sm font-black text-[var(--color-text)] mb-1">Hapus Permanen?</p>
                         <p className="text-[11px] font-medium text-[var(--color-text-muted)] leading-relaxed">
                             Data kelas <b className="text-red-500">{deleteTarget?.name}</b> akan dihapus secara permanen. Tindakan ini <b>tidak dapat dibatalkan</b>.
                         </p>
@@ -121,16 +120,18 @@ export default function ClassArchiveModal({
                         <button
                             onClick={confirmPermanentDelete}
                             disabled={deleting}
-                            className="h-9 px-5 rounded-xl bg-red-50 hover:brightness-110 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center gap-2"
+                            className="h-9 px-5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-red-500/20 disabled:opacity-50 flex items-center gap-2"
                         >
-                            {deleting ? <><Spinner className="fa-spin" /> Menghapus...</> : <><Trash /> Hapus Permanen</>}
+                            {deleting ? <><Spinner className="animate-spin" /> Menghapus...</> : <><Trash /> Hapus Permanen</>}
                         </button>
                     </div>
                 </div>
 
                 {/* ====== MAIN CONTENT ====== */}
-                <div className="p-2.5 bg-amber-500/10 rounded-xl border border-amber-500/20 flex items-center gap-3">
-                    <Archive className="text-amber-600 w-5 h-5 shrink-0" />
+                <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                        <Archive className="text-amber-600 w-4 h-4" />
+                    </div>
                     <div>
                         <p className="text-[11px] font-black text-amber-700 dark:text-amber-400">{archivedClasses.length} kelas di arsip</p>
                         <p className="text-[10px] text-[var(--color-text-muted)] font-medium">Pulihkan untuk mengembalikan ke daftar aktif, atau hapus permanen.</p>
@@ -138,9 +139,9 @@ export default function ClassArchiveModal({
                 </div>
 
                 {loadingArchived ? (
-                    <div className="text-center py-12 text-[var(--color-text-muted)]">
-                        <Spinner className="fa-spin mb-3 text-xl" />
-                        <p className="w-3 h-3 font-bold">Memuat arsip...</p>
+                    <div className="flex flex-col items-center justify-center py-12 gap-3">
+                        <Spinner className="animate-spin text-xl text-[var(--color-text-muted)]" />
+                        <p className="text-xs font-bold text-[var(--color-text-muted)]">Memuat arsip...</p>
                     </div>
                 ) : archivedClasses.length === 0 ? (
                     <EmptyState
@@ -153,43 +154,47 @@ export default function ClassArchiveModal({
                 ) : (
                     <div className="space-y-3">
                         <div className="border border-[var(--color-border)] rounded-xl overflow-hidden bg-[var(--color-surface)] shadow-sm">
-                            <table className="w-full text-xs">
-                                <thead className="bg-[var(--color-surface-alt)] sticky top-0">
-                                    <tr className="text-left text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
-                                        <th className="px-3 py-2.5">Kelas</th>
-                                        <th className="px-3 py-2.5 text-center whitespace-nowrap">Program / Major</th>
-                                        <th className="px-3 py-2.5 text-center whitespace-nowrap">Diarsipkan</th>
-                                        <th className="px-3 py-2.5 text-right">Aksi</th>
+                            <table className="w-full">
+                                <thead className="bg-[var(--color-surface-alt)]">
+                                    <tr className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] border-b border-[var(--color-border)]">
+                                        <th className="px-4 py-3 text-left w-2/5">Kelas</th>
+                                        <th className="px-4 py-3 text-center">Diarsipkan</th>
+                                        <th className="px-4 py-3 text-center">Oleh</th>
+                                        <th className="px-4 py-3 text-right">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {archivedClasses.slice((archivePage - 1) * archivePageSize, archivePage * archivePageSize).map(c => (
+                                    {paged.map(c => (
                                         <tr key={c.id} className="border-b last:border-0 border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors">
-                                            <td className="px-3 py-2.5">
-                                                <p className="font-bold text-[var(--color-text)] w-3 h-3 leading-snug whitespace-nowrap">{c.name}</p>
-                                                <p className="text-[9px] font-mono text-[var(--color-text-muted)]">Grade {c.grade_level ?? '-'}</p>
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 flex items-center justify-center text-[var(--color-primary)] text-xs font-black shrink-0 border border-[var(--color-primary)]/20">
+                                                        {c.grade_level}
+                                                    </div>
+                                                    <span className="text-xs font-bold text-[var(--color-text)] whitespace-nowrap">{c.name}</span>
+                                                </div>
                                             </td>
-                                            <td className="px-3 py-2.5 text-center whitespace-nowrap">
-                                                <span className="text-[9px] font-black bg-[var(--color-primary)]/10 text-[var(--color-primary)] px-1.5 py-0.5 rounded-md border border-[var(--color-primary)]/20">—</span>
-                                            </td>
-                                            <td className="px-3 py-2.5 text-center text-[10px] font-medium text-[var(--color-text-muted)] whitespace-nowrap">
+                                            <td className="px-4 py-3 text-center text-[10px] font-medium text-[var(--color-text-muted)]">
                                                 {formatRelativeDate(c.deleted_at)}
                                             </td>
-                                            <td className="px-3 py-2.5 text-right">
+                                            <td className="px-4 py-3 text-center text-[10px] font-medium text-[var(--color-text-muted)]">
+                                                {c.archivedByName || '—'}
+                                            </td>
+                                            <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
                                                         onClick={() => handleRestoreClass(c)}
                                                         disabled={restoring}
-                                                        className="h-7 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                                                        className="h-7 px-2.5 rounded-lg bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1 disabled:opacity-50"
                                                     >
-                                                        <ArrowCounterClockwise className="w-2 h-2" />
+                                                        <ArrowCounterClockwise className="w-2.5 h-2.5" />
                                                         Pulihkan
                                                     </button>
                                                     <button
                                                         onClick={() => setDeleteTarget(c)}
-                                                        className="h-7 px-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1 cursor-pointer"
+                                                        className="h-7 px-2.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1"
                                                     >
-                                                        <Trash className="w-2 h-2" />
+                                                        <Trash className="w-2.5 h-2.5" />
                                                         Hapus
                                                     </button>
                                                 </div>
@@ -200,24 +205,24 @@ export default function ClassArchiveModal({
                             </table>
                         </div>
 
-                        {/* Pagination Arsip */}
-                        {archivedClasses.length > archivePageSize && (
+                        {/* Pagination */}
+                        {totalPages > 1 && (
                             <div className="flex items-center justify-between px-1">
                                 <p className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
-                                    Halaman {archivePage} dari {Math.ceil(archivedClasses.length / archivePageSize)}
+                                    Halaman {archivePage} dari {totalPages}
                                 </p>
                                 <div className="flex gap-1.5">
                                     <button
                                         disabled={archivePage === 1}
                                         onClick={() => setArchivePage(p => p - 1)}
-                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] shadow-sm transition-colors cursor-pointer"
+                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] transition-colors"
                                     >
                                         <CaretLeft className="w-3 h-3" />
                                     </button>
                                     <button
-                                        disabled={archivePage >= Math.ceil(archivedClasses.length / archivePageSize)}
+                                        disabled={archivePage >= totalPages}
                                         onClick={() => setArchivePage(p => p + 1)}
-                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] shadow-sm transition-colors cursor-pointer"
+                                        className="w-7 h-7 rounded-lg border border-[var(--color-border)] flex items-center justify-center disabled:opacity-30 hover:bg-[var(--color-surface-alt)] transition-colors"
                                     >
                                         <CaretRight className="w-3 h-3" />
                                     </button>
