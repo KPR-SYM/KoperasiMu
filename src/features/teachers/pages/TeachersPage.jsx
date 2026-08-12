@@ -147,7 +147,15 @@ export default function TeachersPage() {
                         onClear={() => setSelectedIds([])}
                         title="Data Terpilih"
                         subtitle="Aksi Massal"
-                        selectedItems={selectedIds.map(id => teachers.find(t => t.id === id)).filter(Boolean)}
+                        selectedItems={selectedIds.map(id => {
+                            const t = teachers.find(x => x.id === id)
+                            if (!t) return null
+                            return {
+                                id: t.id,
+                                label: t.name || t.full_name,
+                                meta: `${t.subject || '—'} · ${t.phone || '—'}`
+                            }
+                        }).filter(Boolean)}
                         onRemoveItem={(id) => setSelectedIds((prev) => prev.filter((x) => x !== id))}
                         primaryAction={{
                             label: "Arsip",

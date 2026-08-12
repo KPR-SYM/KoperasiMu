@@ -18,19 +18,17 @@ const ClassesHistoryModal = memo(function ClassesHistoryModal({
             iconColor="text-blue-500"
             size="md"
             mobileVariant="bottom-sheet"
+            noPadding
         >
             {item && (
-                <div className="h-[45vh] min-h-[240px] overflow-auto rounded-xl border border-[var(--color-border)] scrollbar-hide">
-                    <AuditTimeline
-                        tableName="classes"
-                        recordId={item.id}
-                        limit={30}
-                        theme="blue"
-                        containerClassName="p-3"
-                        showSearch
-                        stickyHeader
-                    />
-                </div>
+                <AuditTimeline
+                    tableName="classes"
+                    recordId={item.id}
+                    limit={30}
+                    theme="blue"
+                    showSearch
+                    stickyHeader
+                />
             )}
         </Modal>
     )

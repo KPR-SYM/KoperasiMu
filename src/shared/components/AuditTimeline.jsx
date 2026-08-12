@@ -13,9 +13,47 @@ const SEVERITY_STYLES = {
 }
 
 /**
+ * Helper formatting audit data secara user-friendly
+ */
+const formatAuditValue = (val, profiles = {}) => {
+    if (val === null || val === undefined) {
+        return <span className="italic opacity-40">—</span>
+    }
+    if (typeof val === 'boolean') {
+        return val ? 'Aktif' : 'Nonaktif'
+    }
+    if (typeof val === 'string') {
+        // Date / Timestamp ISO
+        if (/^\d{4}-\d{2}-\d{2}T/.test(val)) {
+            return fmtDateTime(val)
+        }
+        // UUID (resolve to user profile full_name if exists)
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+            if (profiles[val]) {
+                const name = profiles[val].full_name || 'User'
+                return (
+                    <span title={val} className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {name}
+                    </span>
+                )
+            }
+            return (
+                <span title={val} className="cursor-help underline decoration-dotted decoration-[var(--color-text-muted)]/30">
+                    {val.slice(0, 8)}…
+                </span>
+            )
+        }
+    }
+    if (typeof val === 'object') {
+        return JSON.stringify(val)
+    }
+    return String(val)
+}
+
+/**
  * ActionBadge — Chip kecil penanda tipe aksi (INSERT, UPDATE, DELETE, dst)
  * @param {string} action — Tipe aksi dari kolom `action` di audit_logs
- * @param {string} theme — Tema warna: 'default' | 'purple'
+ * @param {string} theme — Tema warna: 'default' | 'purple' | 'blue'
  */
 export const ActionBadge = memo(function ActionBadge({ action, theme = 'default' }) {
     const purpleConfig = {
@@ -27,6 +65,15 @@ export const ActionBadge = memo(function ActionBadge({ action, theme = 'default'
         LOGIN: { label: 'MASUK', color: 'bg-purple-500/10 text-purple-500', icon: ClockCounterClockwise },
         REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
     }
+    const blueConfig = {
+        INSERT: { label: 'TAMBAH', color: 'bg-emerald-500/10 text-emerald-500', icon: Plus },
+        UPDATE: { label: 'UBAH', color: 'bg-blue-500/10 text-blue-500', icon: Pen },
+        DELETE: { label: 'HAPUS', color: 'bg-rose-500/10 text-rose-500', icon: Trash },
+        RESTORE: { label: 'PULIH', color: 'bg-indigo-500/10 text-indigo-500', icon: ClockCounterClockwise },
+        EXECUTE: { label: 'JALAN', color: 'bg-sky-500/10 text-sky-500', icon: ArrowClockwise },
+        LOGIN: { label: 'MASUK', color: 'bg-emerald-500/10 text-emerald-500', icon: ClockCounterClockwise },
+        REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
+    }
     const defaultConfig = {
         INSERT: { label: 'TAMBAH', color: 'bg-emerald-500/10 text-emerald-500', icon: Plus },
         UPDATE: { label: 'UBAH', color: 'bg-amber-500/10 text-amber-500', icon: Pen },
@@ -36,7 +83,7 @@ export const ActionBadge = memo(function ActionBadge({ action, theme = 'default'
         LOGIN: { label: 'MASUK', color: 'bg-emerald-500/10 text-emerald-500', icon: ClockCounterClockwise },
         REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
     }
-    const config = theme === 'purple' ? purpleConfig : defaultConfig
+    const config = theme === 'purple' ? purpleConfig : theme === 'blue' ? blueConfig : defaultConfig
     const c = config[action] || { label: action, color: 'bg-gray-500/10 text-gray-500', icon: ClockCounterClockwise }
     const IconComp = c.icon
 
@@ -49,8 +96,7 @@ export const ActionBadge = memo(function ActionBadge({ action, theme = 'default'
 })
 
 /**
- * JsonVisualizer â€” Tampilkan objek JSON dalam format key:value berwarna
- * @param {object} data â€” Objek JSON yang akan ditampilkan
+ * JsonVisualizer — Tampilkan objek JSON dalam format key:value berwarna
  */
 export const JsonVisualizer = memo(function JsonVisualizer({ data }) {
     if (!data || typeof data !== 'object') {
@@ -77,7 +123,7 @@ export const JsonVisualizer = memo(function JsonVisualizer({ data }) {
     )
 })
 
-// Helper internal â€” hitung diff antara dua objek
+// Helper internal — hitung diff antara dua objek
 const _getDiff = (oldObj, newObj, changedFields = null) => {
     const changes = {}
     const allKeys = new Set([...Object.keys(oldObj || {}), ...Object.keys(newObj || {})])
@@ -95,23 +141,15 @@ const _getDiff = (oldObj, newObj, changedFields = null) => {
 }
 
 /**
- * DiffViewer — Side-by-side diff antara old_data and new_data dari audit log
+ * DiffViewer — Split/Inline diff viewer dengan visualisasi top-tier mirip git
  */
-export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFields }) {
+export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFields, profiles = {} }) {
     const diff = _getDiff(oldData, newData, changedFields || null)
     const keys = Object.keys(diff)
 
     if (keys.length === 0) return (
         <EmptyState icon={Info} title="Tidak Ada Perubahan Terbaca" description="Tidak ada field yang berubah pada record ini." variant="plain" color="slate" />
     )
-
-    const formatValue = (val) => {
-        if (val === null || val === undefined) return <span className="italic opacity-40">—</span>
-        if (typeof val === 'boolean') return val ? 'Aktif' : 'Nonaktif'
-        if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(val)) return fmtDateTime(val)
-        if (typeof val === 'object') return JSON.stringify(val)
-        return String(val)
-    }
 
     const getChangeType = (oldVal, newVal) => {
         if (oldVal === null || oldVal === undefined) return 'added'
@@ -120,52 +158,82 @@ export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFi
     }
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-2">
             {keys.map(key => {
                 const isSensitive = ['password', 'secret', 'token'].includes(key.toLowerCase())
                 const valOld = diff[key].old
                 const valNew = diff[key].new
                 const changeType = getChangeType(valOld, valNew)
 
+                // Render value placeholders or resolved text
+                const formattedOld = isSensitive ? '••••••••' : formatAuditValue(valOld, profiles)
+                const formattedNew = isSensitive ? '••••••••' : formatAuditValue(valNew, profiles)
+
+                // Simplify length comparison for layout decisions
+                const strOld = isSensitive ? '••••••••' : String(valOld || '')
+                const strNew = isSensitive ? '••••••••' : String(valNew || '')
+                const isShort = strOld.length + strNew.length < 32
+
                 return (
-                    <div key={key} className="group relative">
-                        <div className="flex items-stretch rounded-lg border border-[var(--color-border)]/40 overflow-hidden hover:border-[var(--color-primary)]/30 transition-colors">
-                            {/* Change indicator */}
-                            <div className={`w-1 shrink-0 ${changeType === 'added' ? 'bg-emerald-500' : changeType === 'removed' ? 'bg-rose-500' : 'bg-amber-500'}`} />
+                    <div key={key} className="rounded-xl border border-[var(--color-border)]/45 bg-[var(--color-surface)] overflow-hidden shadow-sm">
+                        {/* Header field */}
+                        <div className="flex items-center justify-between px-3 py-1.5 bg-[var(--color-surface-alt)]/65 border-b border-[var(--color-border)]/30">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                                {key.replace(/_/g, ' ')}
+                            </span>
+                            <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${changeType === 'added' ? 'bg-emerald-500/10 text-emerald-600'
+                                    : changeType === 'removed' ? 'bg-rose-500/10 text-rose-600'
+                                        : 'bg-amber-500/10 text-amber-600'
+                                }`}>
+                                {changeType === 'added' ? 'Baru' : changeType === 'removed' ? 'Dikosongkan' : 'Diubah'}
+                            </span>
+                        </div>
 
-                            {/* Content */}
-                            <div className="flex-1 flex items-center gap-3 px-3 py-2 bg-[var(--color-surface)]">
-                                {/* Field name */}
-                                <div className="flex items-center gap-2 min-w-0 shrink-0">
-                                    <span className="text-[10px] font-bold uppercase tracking-wide text-[var(--color-text)]">
-                                        {key.replace(/_/g, ' ')}
-                                    </span>
+                        {/* Detail area */}
+                        <div className="p-2.5">
+                            {isShort ? (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {changeType !== 'added' && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 line-through font-mono text-[10.5px]">
+                                            {formattedOld}
+                                        </span>
+                                    )}
+                                    {changeType === 'modified' && (
+                                        <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/30 shrink-0" />
+                                    )}
+                                    {changeType !== 'removed' && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold font-mono text-[10.5px]">
+                                            {formattedNew}
+                                        </span>
+                                    )}
                                 </div>
-
-                                {/* Separator */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                    <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]/30" />
-                                    <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/40" />
-                                    <div className="w-1 h-1 rounded-full bg-[var(--color-text-muted)]/30" />
+                            ) : (
+                                <div className="space-y-2">
+                                    {changeType !== 'added' && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-rose-500/50 bg-rose-500/5 px-1 py-0.5 rounded mt-0.5 shrink-0">Lama</span>
+                                            <div className="flex-1 font-mono text-[10.5px] text-[var(--color-text-muted)]/60 line-through break-all bg-rose-500/[0.02] p-2 rounded-lg border border-rose-500/5">
+                                                {formattedOld}
+                                            </div>
+                                        </div>
+                                    )}
+                                    {changeType === 'modified' && (
+                                        <div className="flex items-center gap-2 pl-9 pr-2">
+                                            <div className="h-px flex-1 bg-[var(--color-border)]/40" />
+                                            <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/30 rotate-90 shrink-0" />
+                                            <div className="h-px flex-1 bg-[var(--color-border)]/40" />
+                                        </div>
+                                    )}
+                                    {changeType !== 'removed' && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500/60 bg-emerald-500/5 px-1 py-0.5 rounded mt-0.5 shrink-0">Baru</span>
+                                            <div className="flex-1 font-mono text-[10.5px] text-emerald-600 dark:text-emerald-400 font-semibold break-all bg-emerald-500/[0.02] p-2 rounded-lg border border-emerald-500/5">
+                                                {formattedNew}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
-
-                                {/* Old value */}
-                                <div className="flex-1 min-w-0">
-                                    <code className={`text-[11px] font-mono truncate block ${changeType === 'removed' ? 'text-rose-500 line-through' : 'text-[var(--color-text-muted)]/60 line-through'}`}>
-                                        {isSensitive ? '••••••••' : formatValue(valOld)}
-                                    </code>
-                                </div>
-
-                                {/* Arrow */}
-                                <ArrowRight className="w-3 h-3 text-[var(--color-text-muted)]/30 shrink-0" />
-
-                                {/* New value */}
-                                <div className="flex-1 min-w-0">
-                                    <code className={`text-[11px] font-mono font-medium truncate block ${changeType === 'added' ? 'text-emerald-600' : 'text-emerald-600'}`}>
-                                        {isSensitive ? '••••••••' : formatValue(valNew)}
-                                    </code>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )
@@ -177,7 +245,7 @@ export const DiffViewer = memo(function DiffViewer({ oldData, newData, changedFi
 /**
  * DeleteTombstone — Tampilkan snapshot record yang dihapus (old_data)
  */
-export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
+export const DeleteTombstone = memo(function DeleteTombstone({ data, profiles = {} }) {
     if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-6 opacity-40">
@@ -201,8 +269,8 @@ export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
                             <span className="text-[10px] font-bold uppercase tracking-wide text-rose-500/70 shrink-0">
                                 {key.replace(/_/g, ' ')}
                             </span>
-                            <span className="text-[11px] font-mono text-rose-600/80 truncate">
-                                {isSensitive ? '••••••••' : (typeof val === 'object' ? JSON.stringify(val) : String(val))}
+                            <span className="text-[11px] font-mono text-rose-600/80 truncate flex-1">
+                                {isSensitive ? '••••••••' : formatAuditValue(val, profiles)}
                             </span>
                         </div>
                     </div>
@@ -220,7 +288,7 @@ export const DeleteTombstone = memo(function DeleteTombstone({ data }) {
 /**
  * InsertViewer — Tampilkan field-field record baru untuk aksi INSERT
  */
-export const InsertViewer = memo(function InsertViewer({ data }) {
+export const InsertViewer = memo(function InsertViewer({ data, profiles = {} }) {
     if (!data || typeof data !== 'object') return null
 
     const entries = Object.entries(data).filter(([, v]) => v !== null && v !== undefined)
@@ -235,8 +303,8 @@ export const InsertViewer = memo(function InsertViewer({ data }) {
                         <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-500/70 shrink-0">
                             {key.replace(/_/g, ' ')}
                         </span>
-                        <span className="text-[11px] font-mono text-emerald-600 truncate">
-                            {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                        <span className="text-[11px] font-mono text-emerald-600 truncate flex-1">
+                            {formatAuditValue(val, profiles)}
                         </span>
                     </div>
                 </div>
@@ -251,11 +319,12 @@ export const InsertViewer = memo(function InsertViewer({ data }) {
 })
 
 /**
- * AuditTimeline — ClockClockwise vertikal audit log untuk satu record spesifik.
- * @param {string} theme — Tema warna: 'default' | 'purple'
+ * AuditTimeline — Timeline vertikal audit log untuk satu record spesifik.
+ * @param {string} theme — Tema warna: 'default' | 'purple' | 'blue'
  */
 export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = false, stickyHeader = false, containerClassName = "", theme = "default" }) {
     const [logs, setLogs] = useState([])
+    const [profiles, setProfiles] = useState({})
     const [loading, setLoading] = useState(true)
     const [expandedId, setExpandedId] = useState(null)
     const [search, setSearch] = useState('')
@@ -268,7 +337,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
         { id: 'INSERT', label: 'Tambah' },
         { id: 'UPDATE', label: 'Ubah' },
         { id: 'DELETE', label: 'Hapus' },
-    ];
+    ]
 
     const fetchLogs = useCallback(async () => {
         if (!tableName || !recordId) return
@@ -289,7 +358,24 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
             if (controller.signal.aborted) return
             if (error) throw error
 
-            const uids = [...new Set((data || []).map(r => r.user_id).filter(Boolean))]
+            // Scan all possible UUIDs from user_id, old_data, and new_data to map profiles
+            const potentialIds = new Set()
+                ; (data || []).forEach(r => {
+                    if (r.user_id) potentialIds.add(r.user_id)
+
+                    const scanForUUIDs = (obj) => {
+                        if (!obj || typeof obj !== 'object') return
+                        Object.values(obj).forEach(val => {
+                            if (typeof val === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val)) {
+                                potentialIds.add(val)
+                            }
+                        })
+                    }
+                    scanForUUIDs(r.old_data)
+                    scanForUUIDs(r.new_data)
+                })
+
+            const uids = [...potentialIds]
             let profileMap = {}
             if (uids.length) {
                 const { data: pData } = await supabase
@@ -300,6 +386,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
             }
 
             if (controller.signal.aborted) return
+            setProfiles(profileMap)
             setLogs((data || []).map(r => ({
                 ...r,
                 actor_name: profileMap[r.user_id]?.full_name || 'System',
@@ -403,8 +490,15 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
         return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
     }
 
+    // Active-filter accent class based on theme
+    const activeFilterClass = theme === 'purple'
+        ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
+        : theme === 'blue'
+            ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
+            : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30'
+
     if (loading) return (
-        <div className="flex flex-col items-center justify-center h-full min-h-[160px] space-y-4 p-2">
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] p-6 space-y-4">
             <div className="space-y-4 w-full max-w-xs">
                 {[1, 2, 3].map(i => (
                     <div key={i} className="flex gap-4 animate-pulse">
@@ -420,37 +514,39 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     )
 
     if (logs.length === 0) return (
-        <div className="flex items-center justify-center h-full min-h-[160px]">
+        <div className="flex items-center justify-center h-full min-h-[200px]">
             <EmptyState icon={ClockCounterClockwise} title="Belum Ada Jejak Audit" description="Aktivitas forensik untuk data ini tidak ditemukan." variant="plain" color="slate" />
         </div>
     )
 
     return (
-        <div className={`space-y-1 ${containerClassName} ${stickyHeader ? 'pt-0' : ''}`} style={{ scrollbarWidth: 'thin' }}>
+        <div className={`flex flex-col min-h-0 h-full ${containerClassName}`}>
+            {/* Sticky search + filter header */}
             {showSearch && (
-                <div className={`relative ${stickyHeader ? 'sticky top-0 z-[30] bg-[var(--color-surface)] backdrop-blur-md py-3 px-3 transition-shadow' : 'mb-3'}`}>
+                <div className={`shrink-0 px-4 pt-3 pb-2.5 ${stickyHeader
+                    ? 'sticky top-0 z-[30] bg-[var(--color-surface)] border-b border-[var(--color-border)]/50'
+                    : ''
+                    }`}>
+                    {/* Search Input */}
                     <div className="relative">
-                        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] w-4 h-4" />
+                        <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] w-3.5 h-3.5 pointer-events-none" />
                         <input
                             type="text"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
                             placeholder="Cari dalam riwayat..."
-                            className="w-full h-10 pl-10 pr-4 rounded-xl bg-white dark:bg-white/[0.06] border border-[var(--color-border)] text-[11px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10 transition-all placeholder:text-[var(--color-text-muted)]/40"
+                            className="w-full h-9 pl-9 pr-3 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] text-[11px] font-semibold text-[var(--color-text)] outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10 transition-all placeholder:text-[var(--color-text-muted)]/40"
                         />
                     </div>
-                    {/* Action Filter Chips */}
-                    <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto scrollbar-hide">
+                    {/* Action Filter Pills */}
+                    <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide">
                         {ACTION_FILTERS.map(f => (
                             <button
                                 key={f.id}
                                 onClick={() => setActionFilter(f.id)}
-                                className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all border
-                                    ${actionFilter === f.id
-                                        ? theme === 'purple'
-                                            ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
-                                            : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border-[var(--color-primary)]/30'
-                                        : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]'
+                                className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${actionFilter === f.id
+                                    ? activeFilterClass
+                                    : 'bg-transparent text-[var(--color-text-muted)] border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]'
                                     }`}
                             >
                                 {f.label}
@@ -460,148 +556,165 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 </div>
             )}
 
-            {filteredLogs.length === 0 ? (
-                    <EmptyState icon={MagnifyingGlass} title="Tidak Ada Hasil" description="Tidak ada riwayat yang cocok dengan filter atau pencarian saat ini." variant="plain" color="slate" className="py-2" />
-            ) : (
-            <div className={`relative space-y-0 ${stickyHeader ? 'pb-3' : ''}`}>
-                <div className="absolute left-[18px] top-2 bottom-2 w-px bg-[var(--color-border)] opacity-60" />
+            {/* Scrollable timeline body */}
+            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3" style={{ scrollbarWidth: 'thin' }}>
+                {filteredLogs.length === 0 ? (
+                    <div className="flex items-center justify-center min-h-[140px]">
+                        <EmptyState
+                            icon={MagnifyingGlass}
+                            title="Tidak Ada Hasil"
+                            description="Tidak ada riwayat yang cocok dengan filter atau pencarian saat ini."
+                            variant="plain"
+                            color="slate"
+                        />
+                    </div>
+                ) : (
+                    <div className="relative">
+                        {/* Vertical timeline line */}
+                        <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[var(--color-border)] opacity-50" />
 
-                {Object.entries(groupedLogs).map(([dateLabel, groupLogs]) => (
-                    <div key={dateLabel} className="mb-3">
-                        {/* Date Group Header */}
-                        <div className="relative pl-8 mb-2">
-                            <div className="absolute left-[14px] top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-[var(--color-surface-alt)] border-2 border-[var(--color-border)]" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] opacity-60">
-                                {dateLabel}
-                            </span>
-                        </div>
+                        {Object.entries(groupedLogs).map(([dateLabel, groupLogs]) => (
+                            <div key={dateLabel} className="mb-3 last:mb-0">
+                                {/* Date Group Label */}
+                                <div className="relative flex items-center gap-3 pl-8 mb-1.5">
+                                    <div className="absolute left-[11px] w-2.5 h-2.5 rounded-full bg-[var(--color-surface)] border-2 border-[var(--color-border)]" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]/50">
+                                        {dateLabel}
+                                    </span>
+                                </div>
 
-                        {groupLogs.map(log => {
-                            const isExpanded = expandedId === log.id
-                            return (
-                                <div key={log.id} className="relative pl-8 pb-1 last:pb-0">
-                                    <div className={`absolute left-[14px] top-[1.1rem] w-2 h-2 rounded-full border transition-all z-10
-                                        ${theme === 'purple'
-                                            ? 'bg-purple-500/30 border-purple-500/40'
-                                            : log.action === 'INSERT' ? 'bg-emerald-500/30 border-emerald-500/40' :
-                                                log.action === 'UPDATE' ? 'bg-orange-500/30 border-orange-500/40' :
-                                                    log.action === 'DELETE' ? 'bg-rose-500/30 border-rose-500/40' :
-                                                        'bg-indigo-500/30 border-indigo-500/40'}
-                                        ${isExpanded ? 'ring-4 ring-current opacity-100 scale-125' : 'opacity-60'}`}
-                                        style={isExpanded ? { '--tw-ring-color': theme === 'purple' ? 'rgba(168,85,247,0.1)' : log.action === 'INSERT' ? 'rgba(16,185,129,0.1)' : log.action === 'UPDATE' ? 'rgba(245,158,11,0.1)' : 'rgba(244,63,94,0.1)' } : {}}
-                                    />
+                                {/* Log items */}
+                                <div className="space-y-1">
+                                    {groupLogs.map(log => {
+                                        const isExpanded = expandedId === log.id
 
-                                    <button
-                                        onClick={() => setExpandedId(isExpanded ? null : log.id)}
-                                        className={`w-full text-left group transition-all rounded-2xl p-1.5 border
-                                            ${isExpanded
-                                                ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)] shadow-sm'
-                                                : 'bg-transparent border-transparent hover:bg-[var(--color-surface-alt)]/30'}`}
-                                    >
-                                        <div className="flex items-center justify-between mb-0.5">
-                                            <div className="flex items-center gap-2">
-                                                <ActionBadge action={log.action} theme={theme} />
-                                                {/* User Avatar */}
-                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-black shrink-0
-                                                    ${theme === 'purple'
-                                                        ? 'bg-purple-500/10 text-purple-600'
-                                                        : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                                                    }`}>
-                                                    {getInitials(log.actor_name)}
-                                                </div>
-                                                <span className="text-[11px] font-black text-[var(--color-text)] tracking-tight">
-                                                    {log.actor_name}
-                                                </span>
-                                            </div>
-                                            <span className="text-[9px] font-bold text-[var(--color-text-muted)] tabular-nums opacity-50">
-                                                {fmtRelative(log.created_at)}
-                                            </span>
-                                        </div>
+                                        // Dot color per action/theme
+                                        const dotColor = theme === 'purple'
+                                            ? 'bg-purple-400/60 border-purple-500/50'
+                                            : theme === 'blue'
+                                                ? log.action === 'INSERT' ? 'bg-emerald-400/60 border-emerald-500/50'
+                                                    : log.action === 'DELETE' ? 'bg-rose-400/60 border-rose-500/50'
+                                                        : 'bg-blue-400/60 border-blue-500/50'
+                                                : log.action === 'INSERT' ? 'bg-emerald-400/60 border-emerald-500/50'
+                                                    : log.action === 'UPDATE' ? 'bg-amber-400/60 border-amber-500/50'
+                                                        : log.action === 'DELETE' ? 'bg-rose-400/60 border-rose-500/50'
+                                                            : 'bg-indigo-400/60 border-indigo-500/50'
 
-                                        <p className="text-[9.5px] text-[var(--color-text-muted)] font-medium leading-tight opacity-60">
-                                            {log.action === 'UPDATE' ? 'Melakukan perubahan data record'
-                                                : log.action === 'INSERT' ? 'Membuat record baru di sistem'
-                                                    : log.action === 'DELETE' ? 'Menghapus record dari sistem'
-                                                        : 'Aktivitas sistem'}
-                                            <span className="mx-1.5 opacity-30">·</span>
-                                            {fmtDateTime(log.created_at)}
-                                        </p>
+                                        return (
+                                            <div key={log.id} className="relative pl-8">
+                                                {/* Timeline dot */}
+                                                <div className={`absolute left-[11px] top-3.5 w-2.5 h-2.5 rounded-full border-2 transition-transform z-10 ${dotColor} ${isExpanded ? 'scale-125' : ''}`} />
 
-                                        {isExpanded && (
-                                            <div className="mt-2 pt-2.5 border-t border-[var(--color-border)] space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                                                {/* Diff Content */}
-                                                {log.action === 'UPDATE' && (
-                                                    <DiffViewer
-                                                        oldData={log.old_data}
-                                                        newData={log.new_data}
-                                                        changedFields={log.changed_fields}
-                                                    />
-                                                )}
-                                                {log.action === 'DELETE' && (
-                                                    <DeleteTombstone data={log.old_data} />
-                                                )}
-                                                {log.action === 'INSERT' && (
-                                                    <InsertViewer data={log.new_data} />
-                                                )}
-                                                {!['UPDATE', 'DELETE', 'INSERT'].includes(log.action) && (
-                                                    <DiffViewer oldData={log.old_data} newData={log.new_data} />
-                                                )}
-
-                                                {/* Footer: Metadata + Action */}
-                                                <div className="flex items-center justify-between gap-4 pt-2 border-t border-[var(--color-border)]/40">
-                                                    {/* Metadata inline */}
-                                                    <div className="flex items-center gap-3 text-[9px] font-mono text-[var(--color-text-muted)]/60">
-                                                        <span className="flex items-center gap-1">
-                                                            <div className="w-1 h-1 rounded-full bg-emerald-500/60" />
-                                                            {log.ip_address || '?.?.?.?'}
+                                                <button
+                                                    onClick={() => setExpandedId(isExpanded ? null : log.id)}
+                                                    className={`w-full text-left group transition-all rounded-xl px-3 py-2.5 border ${isExpanded
+                                                        ? 'bg-[var(--color-surface-alt)] border-[var(--color-border)]'
+                                                        : 'bg-transparent border-transparent hover:bg-[var(--color-surface-alt)]/60'
+                                                        }`}
+                                                >
+                                                    {/* Row 1: Badge + Avatar + Name | Relative time */}
+                                                    <div className="flex items-center gap-2 justify-between">
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            <ActionBadge action={log.action} theme={theme} />
+                                                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[7px] font-black shrink-0 ${theme === 'purple' ? 'bg-purple-500/10 text-purple-600'
+                                                                : theme === 'blue' ? 'bg-blue-500/10 text-blue-600'
+                                                                    : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                                                                }`}>
+                                                                {getInitials(log.actor_name)}
+                                                            </div>
+                                                            <span className="text-[11px] font-bold text-[var(--color-text)] truncate">
+                                                                {log.actor_name}
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-[9px] font-semibold text-[var(--color-text-muted)]/50 tabular-nums shrink-0">
+                                                            {fmtRelative(log.created_at)}
                                                         </span>
-                                                        {log.duration_ms != null && (
-                                                            <span className={`flex items-center gap-1 ${log.duration_ms > 2000 ? 'text-rose-500' : log.duration_ms > 500 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                                                                <Timer className="w-2.5 h-2.5" />
-                                                                {log.duration_ms}ms
-                                                            </span>
-                                                        )}
-                                                        {log.severity && (
-                                                            <span className="flex items-center gap-1 text-amber-500/70">
-                                                                <Warning className="w-2.5 h-2.5" />
-                                                                {log.severity}
-                                                            </span>
-                                                        )}
                                                     </div>
 
-                                                    {/* Action Button */}
-                                                    {(log.action === 'DELETE' || log.action === 'UPDATE') && (
-                                                        <button
-                                                            onClick={e => { e.stopPropagation(); handleRestore(log) }}
-                                                            disabled={restoringId === log.id}
-                                                            className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border
-                                                                ${restoringId === log.id
-                                                                    ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] animate-pulse'
-                                                                    : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 active:scale-[0.97]'}`}
-                                                        >
-                                                            <ClockCounterClockwise className={`w-3 h-3 ${restoringId === log.id ? 'animate-spin' : ''}`} />
-                                                            {restoringId === log.id ? '...' : 'Revert'}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
+                                                    {/* Row 2: Description + datetime */}
+                                                    <p className="mt-0.5 text-[10px] text-[var(--color-text-muted)]/60 font-medium leading-snug">
+                                                        {log.action === 'UPDATE' ? 'Melakukan perubahan data record'
+                                                            : log.action === 'INSERT' ? 'Membuat record baru di sistem'
+                                                                : log.action === 'DELETE' ? 'Menghapus record dari sistem'
+                                                                    : 'Aktivitas sistem'}
+                                                        <span className="mx-1 opacity-30">·</span>
+                                                        <span className="tabular-nums">{fmtDateTime(log.created_at)}</span>
+                                                    </p>
 
-                                        {!isExpanded && (
-                                            <div className="flex items-center justify-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <span className="flex items-center gap-1 text-[var(--color-text-muted)]">
-                                                    <CaretDown className="w-3 h-3" />
-                                                </span>
+                                                    {/* Expanded detail */}
+                                                    {isExpanded && (
+                                                        <div className="mt-3 pt-2.5 border-t border-[var(--color-border)]/60 space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                                                            {log.action === 'UPDATE' && (
+                                                                <DiffViewer
+                                                                    oldData={log.old_data}
+                                                                    newData={log.new_data}
+                                                                    changedFields={log.changed_fields}
+                                                                    profiles={profiles}
+                                                                />
+                                                            )}
+                                                            {log.action === 'DELETE' && (
+                                                                <DeleteTombstone data={log.old_data} profiles={profiles} />
+                                                            )}
+                                                            {log.action === 'INSERT' && (
+                                                                <InsertViewer data={log.new_data} profiles={profiles} />
+                                                            )}
+                                                            {!['UPDATE', 'DELETE', 'INSERT'].includes(log.action) && (
+                                                                <DiffViewer oldData={log.old_data} newData={log.new_data} profiles={profiles} />
+                                                            )}
+
+                                                            {/* Footer: metadata + revert */}
+                                                            <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--color-border)]/40">
+                                                                <div className="flex items-center gap-3 text-[9px] font-mono text-[var(--color-text-muted)]/60">
+                                                                    <span className="flex items-center gap-1">
+                                                                        <div className="w-1 h-1 rounded-full bg-emerald-500/60" />
+                                                                        {log.ip_address || '?.?.?.?'}
+                                                                    </span>
+                                                                    {log.duration_ms != null && (
+                                                                        <span className={`flex items-center gap-1 ${log.duration_ms > 2000 ? 'text-rose-500' : log.duration_ms > 500 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                            <Timer className="w-2.5 h-2.5" />
+                                                                            {log.duration_ms}ms
+                                                                        </span>
+                                                                    )}
+                                                                    {log.severity && (
+                                                                        <span className="flex items-center gap-1 text-amber-500/70">
+                                                                            <Warning className="w-2.5 h-2.5" />
+                                                                            {log.severity}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {(log.action === 'DELETE' || log.action === 'UPDATE') && (
+                                                                    <button
+                                                                        onClick={e => { e.stopPropagation(); handleRestore(log) }}
+                                                                        disabled={restoringId === log.id}
+                                                                        className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border ${restoringId === log.id
+                                                                            ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] animate-pulse'
+                                                                            : 'bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 active:scale-[0.97]'
+                                                                            }`}
+                                                                    >
+                                                                        <ClockCounterClockwise className={`w-3 h-3 ${restoringId === log.id ? 'animate-spin' : ''}`} />
+                                                                        {restoringId === log.id ? '...' : 'Revert'}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Expand hint on hover */}
+                                                    {!isExpanded && (
+                                                        <div className="flex justify-center mt-1 opacity-0 group-hover:opacity-50 transition-opacity">
+                                                            <CaretDown className="w-3 h-3 text-[var(--color-text-muted)]" />
+                                                        </div>
+                                                    )}
+                                                </button>
                                             </div>
-                                        )}
-                                    </button>
+                                        )
+                                    })}
                                 </div>
-                            )
-                        })}
+                            </div>
+                        ))}
                     </div>
-                ))}
+                )}
             </div>
-            )}
         </div>
     )
 }

@@ -176,8 +176,8 @@ export function useClassesCore({ addToast }) {
     }, [])
 
     // ── Column reorder (stub — classes has fixed order for now) ──
-    const moveColumnLeft = useCallback(() => {}, [])
-    const moveColumnRight = useCallback(() => {}, [])
+    const moveColumnLeft = useCallback(() => { }, [])
+    const moveColumnRight = useCallback(() => { }, [])
 
     // ── Undo/Redo (snapshot-based) ──
     const pushUndo = useCallback((snapshot) => {
@@ -426,7 +426,20 @@ export function useClassesCore({ addToast }) {
     const allSelected = paged.length > 0 && paged.every(c => selectedIds.includes(c.id))
     const someSelected = paged.length > 0 && paged.some(c => selectedIds.includes(c.id)) && !allSelected
 
-    const selectedItems = useMemo(() => selectedIds.map(id => classes.find(c => c.id === id)).filter(Boolean), [selectedIds, classes])
+    const selectedItems = useMemo(() =>
+        selectedIds
+            .map(id => {
+                const item = classes.find(c => c.id === id)
+                if (!item) return null
+                return {
+                    id: item.id,
+                    label: item.name,
+                    meta: `Lvl ${item.grade_level || '—'} · ${item.students || 0}/${item.capacity || '—'} Siswa`
+                }
+            })
+            .filter(Boolean),
+        [selectedIds, classes]
+    )
 
     // ── Duplicate ──
     const handleDuplicate = async (cls) => {
