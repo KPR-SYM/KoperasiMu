@@ -2,11 +2,10 @@ import { memo } from "react";
 import {
     Calendar,
     ClockCounterClockwise,
-    Fingerprint,
     Users,
     Buildings,
 } from "@phosphor-icons/react";
-import { Modal, AuditTimeline } from "@shared/components";
+import { Modal } from "@shared/components";
 
 const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
     isOpen,
@@ -118,39 +117,4 @@ const PeriodsReadOnlyDetail = memo(function PeriodsReadOnlyDetail({
     );
 });
 
-const PeriodsHistoryModal = memo(function PeriodsHistoryModal({
-    isOpen,
-    onClose,
-    item,
-}) {
-    return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={`Riwayat · ${item?.academic_year || ""}`}
-            description="Audit log untuk rekaman ini."
-            icon={Fingerprint}
-            iconBg="bg-purple-500/10"
-            iconColor="text-purple-500"
-            size="md"
-            mobileVariant="bottom-sheet"
-        >
-            {item && (
-                <div className="h-[45vh] min-h-[240px] overflow-auto rounded-xl border border-[var(--color-border)] scrollbar-hide">
-                    <AuditTimeline
-                        tableName="periods"
-                        recordId={item.id}
-                        limit={30}
-                        theme="purple"
-                        containerClassName="p-3"
-                        showSearch
-                        stickyHeader
-                    />
-                </div>
-            )}
-        </Modal>
-    );
-});
-
 export default PeriodsReadOnlyDetail;
-export { PeriodsHistoryModal };

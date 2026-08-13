@@ -2,7 +2,7 @@ import { memo } from "react"
 import { Fingerprint } from "@phosphor-icons/react"
 import { Modal, AuditTimeline } from "@shared/components"
 
-const ClassesHistoryModal = memo(function ClassesHistoryModal({
+const PeriodsHistoryModal = memo(function PeriodsHistoryModal({
     isOpen,
     onClose,
     item,
@@ -11,7 +11,7 @@ const ClassesHistoryModal = memo(function ClassesHistoryModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Riwayat · ${item?.name || ""}`}
+            title={`Riwayat · ${item?.academic_year || ""}`}
             description="Audit log untuk rekaman ini."
             icon={Fingerprint}
             iconBg="bg-purple-500/10"
@@ -22,7 +22,7 @@ const ClassesHistoryModal = memo(function ClassesHistoryModal({
         >
             {item && (
                 <AuditTimeline
-                    tableName="classes"
+                    tableName="periods"
                     recordId={item.id}
                     limit={30}
                     theme="purple"
@@ -34,4 +34,4 @@ const ClassesHistoryModal = memo(function ClassesHistoryModal({
     )
 })
 
-export default ClassesHistoryModal
+export default PeriodsHistoryModal

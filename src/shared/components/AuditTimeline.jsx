@@ -1,16 +1,10 @@
 import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
-import { Warning, CaretDown, Clock, Database, Fingerprint, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, ShieldCheck, Timer, Trash, Wrench } from '@phosphor-icons/react'
+import { Warning, CaretDown, Database, ClockCounterClockwise, Info, Pen, Plus, ArrowClockwise, ArrowRight, MagnifyingGlass, Timer, Trash, Wrench } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
-
+import { useToast } from '@context/Toast'
 import { fmtDateTime, fmtRelative } from '@utils/formatters'
 import { EmptyState } from './DataDisplay'
-
-const SEVERITY_STYLES = {
-    LOW: { label: 'Low', color: 'bg-slate-500/10 text-slate-500 border-slate-500/20', icon: Info },
-    MEDIUM: { label: 'Medium', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', icon: Warning },
-    HIGH: { label: 'High', color: 'bg-orange-500/10 text-orange-500 border-orange-500/20', icon: Warning },
-    CRITICAL: { label: 'Critical', color: 'bg-rose-500/10 text-rose-500 border-rose-500/20', icon: ShieldCheck },
-}
+import ConfirmDialog from './ConfirmDialog'
 
 /**
  * Helper formatting audit data secara user-friendly
@@ -50,47 +44,61 @@ const formatAuditValue = (val, profiles = {}) => {
     return String(val)
 }
 
+const ACTION_META = {
+    INSERT: { label: 'TAMBAH', icon: Plus },
+    UPDATE: { label: 'UBAH', icon: Pen },
+    DELETE: { label: 'HAPUS', icon: Trash },
+    RESTORE: { label: 'PULIH', icon: ClockCounterClockwise },
+    EXECUTE: { label: 'JALAN', icon: ArrowClockwise },
+    LOGIN: { label: 'MASUK', icon: ClockCounterClockwise },
+    REPAIR: { label: 'PERBAIKAN', icon: Wrench },
+}
+
+const ACTION_THEME_COLORS = {
+    default: {
+        INSERT: 'bg-emerald-500/10 text-emerald-500',
+        UPDATE: 'bg-amber-500/10 text-amber-500',
+        DELETE: 'bg-rose-500/10 text-rose-500',
+        RESTORE: 'bg-indigo-500/10 text-indigo-500',
+        EXECUTE: 'bg-sky-500/10 text-sky-500',
+        LOGIN: 'bg-emerald-500/10 text-emerald-500',
+        REPAIR: 'bg-purple-500/10 text-purple-500',
+    },
+    purple: {
+        INSERT: 'bg-purple-500/10 text-purple-500',
+        UPDATE: 'bg-purple-500/10 text-purple-500',
+        DELETE: 'bg-purple-500/10 text-purple-500',
+        RESTORE: 'bg-purple-500/10 text-purple-500',
+        EXECUTE: 'bg-purple-500/10 text-purple-500',
+        LOGIN: 'bg-purple-500/10 text-purple-500',
+        REPAIR: 'bg-purple-500/10 text-purple-500',
+    },
+    blue: {
+        INSERT: 'bg-emerald-500/10 text-emerald-500',
+        UPDATE: 'bg-blue-500/10 text-blue-500',
+        DELETE: 'bg-rose-500/10 text-rose-500',
+        RESTORE: 'bg-indigo-500/10 text-indigo-500',
+        EXECUTE: 'bg-sky-500/10 text-sky-500',
+        LOGIN: 'bg-emerald-500/10 text-emerald-500',
+        REPAIR: 'bg-purple-500/10 text-purple-500',
+    },
+}
+
 /**
  * ActionBadge — Chip kecil penanda tipe aksi (INSERT, UPDATE, DELETE, dst)
  * @param {string} action — Tipe aksi dari kolom `action` di audit_logs
  * @param {string} theme — Tema warna: 'default' | 'purple' | 'blue'
  */
 export const ActionBadge = memo(function ActionBadge({ action, theme = 'default' }) {
-    const purpleConfig = {
-        INSERT: { label: 'TAMBAH', color: 'bg-purple-500/10 text-purple-500', icon: Plus },
-        UPDATE: { label: 'UBAH', color: 'bg-purple-500/10 text-purple-500', icon: Pen },
-        DELETE: { label: 'HAPUS', color: 'bg-purple-500/10 text-purple-500', icon: Trash },
-        RESTORE: { label: 'PULIH', color: 'bg-purple-500/10 text-purple-500', icon: ClockCounterClockwise },
-        EXECUTE: { label: 'JALAN', color: 'bg-purple-500/10 text-purple-500', icon: ArrowClockwise },
-        LOGIN: { label: 'MASUK', color: 'bg-purple-500/10 text-purple-500', icon: ClockCounterClockwise },
-        REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
-    }
-    const blueConfig = {
-        INSERT: { label: 'TAMBAH', color: 'bg-emerald-500/10 text-emerald-500', icon: Plus },
-        UPDATE: { label: 'UBAH', color: 'bg-blue-500/10 text-blue-500', icon: Pen },
-        DELETE: { label: 'HAPUS', color: 'bg-rose-500/10 text-rose-500', icon: Trash },
-        RESTORE: { label: 'PULIH', color: 'bg-indigo-500/10 text-indigo-500', icon: ClockCounterClockwise },
-        EXECUTE: { label: 'JALAN', color: 'bg-sky-500/10 text-sky-500', icon: ArrowClockwise },
-        LOGIN: { label: 'MASUK', color: 'bg-emerald-500/10 text-emerald-500', icon: ClockCounterClockwise },
-        REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
-    }
-    const defaultConfig = {
-        INSERT: { label: 'TAMBAH', color: 'bg-emerald-500/10 text-emerald-500', icon: Plus },
-        UPDATE: { label: 'UBAH', color: 'bg-amber-500/10 text-amber-500', icon: Pen },
-        DELETE: { label: 'HAPUS', color: 'bg-rose-500/10 text-rose-500', icon: Trash },
-        RESTORE: { label: 'PULIH', color: 'bg-indigo-500/10 text-indigo-500', icon: ClockCounterClockwise },
-        EXECUTE: { label: 'JALAN', color: 'bg-sky-500/10 text-sky-500', icon: ArrowClockwise },
-        LOGIN: { label: 'MASUK', color: 'bg-emerald-500/10 text-emerald-500', icon: ClockCounterClockwise },
-        REPAIR: { label: 'PERBAIKAN', color: 'bg-purple-500/10 text-purple-500', icon: Wrench },
-    }
-    const config = theme === 'purple' ? purpleConfig : theme === 'blue' ? blueConfig : defaultConfig
-    const c = config[action] || { label: action, color: 'bg-gray-500/10 text-gray-500', icon: ClockCounterClockwise }
-    const IconComp = c.icon
+    const base = ACTION_META[action] || { label: action, icon: ClockCounterClockwise }
+    const colors = ACTION_THEME_COLORS[theme] || ACTION_THEME_COLORS.default
+    const color = colors[action] || 'bg-gray-500/10 text-gray-500'
+    const IconComp = base.icon
 
     return (
-        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest flex items-center gap-1 w-fit ${c.color}`}>
+        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest flex items-center gap-1 w-fit ${color}`}>
             <IconComp className="w-2 h-2" />
-            {c.label}
+            {base.label}
         </span>
     )
 })
@@ -323,6 +331,7 @@ export const InsertViewer = memo(function InsertViewer({ data, profiles = {} }) 
  * @param {string} theme — Tema warna: 'default' | 'purple' | 'blue'
  */
 export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = false, stickyHeader = false, containerClassName = "", theme = "default" }) {
+    const { addToast } = useToast()
     const [logs, setLogs] = useState([])
     const [profiles, setProfiles] = useState({})
     const [loading, setLoading] = useState(true)
@@ -330,6 +339,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     const [search, setSearch] = useState('')
     const [actionFilter, setActionFilter] = useState('ALL')
     const [restoringId, setRestoringId] = useState(null)
+    const [confirmRestoreLog, setConfirmRestoreLog] = useState(null)
     const abortRef = useRef(null)
 
     const ACTION_FILTERS = [
@@ -401,7 +411,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
     }, [tableName, recordId, limit])
 
     const handleRestore = async (log) => {
-        if (!confirm('Pulihkan data ini? Aksi ini akan menulis ulang state record saat ini.')) return
+        setConfirmRestoreLog(null)
         setRestoringId(log.id)
         try {
             const targetData = log.old_data
@@ -423,9 +433,11 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                 new_data: { restored_from: log.id, action: log.action },
                 url: window.location.href,
             })
+            addToast('Data berhasil dipulihkan', 'success')
             fetchLogs()
         } catch (e) {
             console.error('[AuditTimeline] Restore failed:', e.message)
+            addToast('Gagal memulihkan data: ' + e.message, 'error')
         } finally {
             setRestoringId(null)
         }
@@ -684,7 +696,7 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                                                                 </div>
                                                                 {(log.action === 'DELETE' || log.action === 'UPDATE') && (
                                                                     <button
-                                                                        onClick={e => { e.stopPropagation(); handleRestore(log) }}
+                                                                        onClick={e => { e.stopPropagation(); setConfirmRestoreLog(log) }}
                                                                         disabled={restoringId === log.id}
                                                                         className={`flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-[8px] font-bold uppercase tracking-wider transition-all border ${restoringId === log.id
                                                                             ? 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)] animate-pulse'
@@ -715,6 +727,21 @@ export function AuditTimeline({ tableName, recordId, limit = 20, showSearch = fa
                     </div>
                 )}
             </div>
+
+            <ConfirmDialog
+                isOpen={!!confirmRestoreLog}
+                onClose={() => setConfirmRestoreLog(null)}
+                onConfirm={() => confirmRestoreLog && handleRestore(confirmRestoreLog)}
+                title="Pulihkan Data"
+                description="Aksi ini akan menulis ulang state record saat ini dengan data dari riwayat ini."
+                icon={ClockCounterClockwise}
+                iconBg="bg-amber-500/10"
+                iconColor="text-amber-500"
+                confirmText="Pulihkan"
+                confirmIcon={ClockCounterClockwise}
+                confirmColor="amber"
+                submitting={restoringId === confirmRestoreLog?.id}
+            />
         </div>
     )
 }

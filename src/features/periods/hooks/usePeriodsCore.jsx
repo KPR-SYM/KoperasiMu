@@ -79,8 +79,9 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         semester: true,
         duration: true,
         status: true,
+        created_at: true,
     };
-    const VALID_COL_KEYS = ["period", "semester", "duration", "status"];
+    const VALID_COL_KEYS = ["period", "semester", "duration", "status", "created_at"];
     const [visibleCols, setVisibleCols] = useState(() => {
         try {
             const saved = JSON.parse(localStorage.getItem(LS_COLS));
@@ -94,7 +95,7 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
             return defaultCols;
         }
     });
-    const defaultColOrder = ["period", "semester", "duration", "status"];
+    const defaultColOrder = ["period", "semester", "duration", "status", "created_at"];
     const [columnOrder, setColumnOrder] = useState(() => {
         try {
             const saved = JSON.parse(localStorage.getItem(LS_COL_ORDER));

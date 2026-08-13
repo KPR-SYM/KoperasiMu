@@ -226,7 +226,7 @@ export default function PeriodArchiveModal({
                         <p className="font-bold">Memuat arsip...</p>
                     </div>
                 ) : archivedYears.length === 0 ? (
-                    <div className="text-center py-8">
+                    <div className="text-center py-4">
                         <EmptyState
                             icon={Archive}
                             title="Arsip Kosong"
@@ -234,9 +234,6 @@ export default function PeriodArchiveModal({
                             variant="dashed"
                             color="amber"
                         />
-                        <p className="mt-3 text-[10px] text-[var(--color-text-muted)]">
-                            Gunakan tombol <b>Generate Tahun Baru</b> untuk menambah periode baru.
-                        </p>
                     </div>
                 ) : (
                     <div className="space-y-3">

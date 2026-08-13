@@ -2,6 +2,7 @@ import React, { memo, useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
     Calendar,
+    Clock,
     ClockCounterClockwise,
     Copy,
     DotsThree,
@@ -24,6 +25,7 @@ const COL_LABELS = {
     semester: "Semester",
     duration: "Pelaksanaan",
     status: "Status",
+    created_at: "Dibuat",
 };
 
 function renderColHeader(key) {
@@ -116,6 +118,18 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                     ) : (
                         <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] flex items-center gap-1">Bisa Diedit</span>
                     )}
+                </div>
+            </td>
+        );
+    }
+    if (key === "created_at") {
+        return (
+            <td className="px-4 py-2.5">
+                <div className="flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
+                    <span className="text-[10px] font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
+                        {maskValue(formatDate(year.created_at), "date")}
+                    </span>
                 </div>
             </td>
         );
@@ -473,6 +487,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                                 Riwayat
                                             </button>
                                         </div>
+                                        {year.created_at && (
+                                            <div className="mt-2 pt-2 border-t border-[var(--color-border)]/40 flex items-center gap-1.5">
+                                                <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
+                                                <span className="text-[9px] text-[var(--color-text-muted)] whitespace-nowrap">{maskValue(formatDate(year.created_at), "date")}</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
