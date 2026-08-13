@@ -10,6 +10,7 @@ import { useClassesModals } from '@features/classes/hooks/useClassesModals'
 import { useClassesImportExport } from '@features/classes/hooks/useClassesImportExport'
 import ClassesToolbar from '@features/classes/components/ClassesToolbar'
 import ClassesTable from '@features/classes/components/ClassesTable'
+import ClassesColumnMenuPortal from '@features/classes/components/ClassesColumnMenuPortal'
 import ClassesHeaderMenu from '@features/classes/components/ClassesHeaderMenu'
 import ClassesShortcutMenu from '@features/classes/components/ClassesShortcutMenu'
 import ClassFormModal from '@features/classes/components/ClassFormModal'
@@ -380,9 +381,15 @@ export default function ClassesPage() {
                                 colMenuRef={colMenuRef}
                                 isColMenuOpen={isColMenuOpen}
                                 setIsColMenuOpen={setIsColMenuOpen}
-                                colMenuPos={colMenuPos}
                                 setColMenuPos={setColMenuPos}
-                                colMenuPortalRef={colMenuPortalRef}
+                            />
+
+                            <ClassesColumnMenuPortal
+                                isOpen={isColMenuOpen}
+                                loading={loading}
+                                portalRef={colMenuPortalRef}
+                                colMenuPos={colMenuPos}
+                                visibleCols={visibleCols}
                                 setVisibleCols={setVisibleCols}
                             />
                         </div>
@@ -529,6 +536,6 @@ export default function ClassesPage() {
                     </>
                 )}
             </div>
-        </DashboardLayout>
+        </DashboardLayout >
     )
 }

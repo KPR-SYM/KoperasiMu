@@ -1,19 +1,9 @@
 import React, { memo } from 'react'
-import { createPortal } from 'react-dom'
 import { Buildings, MagnifyingGlass, Plus } from '@phosphor-icons/react'
 import { ClassRow, ClassMobileCard } from '@features/classes/components/ClassRow'
 import { EmptyState } from '@shared/components/DataDisplay'
 import Checkbox from '@shared/components/Checkbox'
 import Pagination from '@shared/components/Pagination'
-
-const COL_LABELS = {
-    level: 'Level',
-    program: 'Program',
-    gender: 'Gender',
-    teacher: 'Wali Kelas',
-    students: 'Siswa',
-    year: 'Akademik',
-}
 
 const ClassesTable = memo(function ClassesTable({
     paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols,
@@ -23,8 +13,8 @@ const ClassesTable = memo(function ClassesTable({
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
     pinnedIds, togglePin,
-    // Column menu props
-    colMenuRef, isColMenuOpen, setIsColMenuOpen, setColMenuPos, colMenuPortalRef, colMenuPos, setVisibleCols,
+    // Column menu props (menu itself now rendered by ClassesColumnMenuPortal in ClassesPage)
+    colMenuRef, isColMenuOpen, setIsColMenuOpen, setColMenuPos,
 }) {
     if (loading) {
         return (
@@ -91,11 +81,6 @@ const ClassesTable = memo(function ClassesTable({
         setIsColMenuOpen(p => !p)
     }
 
-    const toggleCol = (key) => {
-        if (!setVisibleCols) return
-        setVisibleCols(prev => ({ ...prev, [key]: !prev[key] }))
-    }
-
     return (
         <>
             <div className="overflow-x-auto whitespace-nowrap hidden md:block">
@@ -159,46 +144,6 @@ const ClassesTable = memo(function ClassesTable({
                     </tbody>
                 </table>
             </div>
-
-            {/* Column Toggle Dropdown Portal */}
-            {isColMenuOpen && setVisibleCols && colMenuPos && createPortal(
-                <div
-                    ref={colMenuPortalRef || undefined}
-                    style={{
-                        position: 'absolute',
-                        top: colMenuPos.top,
-                        right: colMenuPos.right,
-                        zIndex: 9999,
-                    }}
-                    className="w-52 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden"
-                >
-                    <div className="px-3.5 py-2.5 border-b border-[var(--color-border)]/60">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Atur Kolom</p>
-                    </div>
-                    <div className="py-1.5">
-                        {Object.entries(COL_LABELS).map(([key, label]) => (
-                            <button
-                                key={key}
-                                onClick={() => toggleCol(key)}
-                                className="w-full flex items-center justify-between px-3.5 py-2 text-[11px] font-semibold text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-colors"
-                            >
-                                <span>{label}</span>
-                                <span className={`w-4.5 h-4.5 w-[18px] h-[18px] rounded-md flex items-center justify-center transition-all ${visibleCols[key]
-                                    ? 'bg-[var(--color-primary)] text-white'
-                                    : 'bg-[var(--color-surface-alt)] border border-[var(--color-border)]'
-                                    }`}>
-                                    {visibleCols[key] && (
-                                        <svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <polyline points="1.5,5 4,7.5 8.5,2" />
-                                        </svg>
-                                    )}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>,
-                document.body
-            )}
 
             <div className="md:hidden divide-y divide-[var(--color-border)]">
                 {isEmpty ? (
