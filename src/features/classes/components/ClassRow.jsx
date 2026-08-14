@@ -3,12 +3,103 @@ import { createPortal } from 'react-dom'
 import { Bed, Buildings, Calendar, CaretRight, DotsThree, Eye, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
 import Checkbox from '@shared/components/Checkbox'
 
+function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo }) {
+    if (!visibleCols[key]) return null
+    if (key === 'level') {
+        return (
+            <td key={key} className="px-6 py-4 text-center">
+                <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-black uppercase tracking-widest border border-[var(--color-primary)]/20">
+                    Lvl {cls.grade_level || '\u2014'}
+                </span>
+            </td>
+        )
+    }
+    if (key === 'program') {
+        return (
+            <td key={key} className="px-6 py-4 text-center">
+                <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
+                    cls.name?.toLowerCase().includes('boarding')
+                        ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+                        : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                }`}>
+                    {cls.name?.toLowerCase().includes('boarding') ? (
+                        <><Bed className="w-2.5 h-2.5" /> Boarding</>
+                    ) : (
+                        <><Buildings className="w-2.5 h-2.5" /> Reguler</>
+                    )}
+                </span>
+            </td>
+        )
+    }
+    if (key === 'gender') {
+        return (
+            <td key={key} className="px-6 py-4 text-center">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
+                    cls.name?.toLowerCase().includes('putra')
+                        ? 'bg-sky-500/10 text-sky-600 border-sky-500/20'
+                        : cls.name?.toLowerCase().includes('putri')
+                        ? 'bg-pink-500/10 text-pink-600 border-pink-500/20'
+                        : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)]'
+                }`}>
+                    {cls.name?.toLowerCase().includes('putra') ? (
+                        <><GenderMale className="w-2.5 h-2.5" /> Putra</>
+                    ) : cls.name?.toLowerCase().includes('putri') ? (
+                        <><GenderFemale className="w-2.5 h-2.5" /> Putri</>
+                    ) : '\u2014'}
+                </span>
+            </td>
+        )
+    }
+    if (key === 'teacher') {
+        return (
+            <td key={key} className="px-6 py-4">
+                <div className="flex flex-col">
+                    <span className="font-bold text-xs text-[var(--color-text)] truncate max-w-[150px]">
+                        {isPrivacyMode ? (
+                            <span className="inline-flex items-center gap-2">
+                                <EyeSlash className="w-3 h-3 opacity-50" />
+                                {maskInfo(cls.teacherName, 4)}
+                            </span>
+                        ) : (cls.teacherName || '\u2014')}
+                    </span>
+                    <span className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-50">Wali Kelas</span>
+                </div>
+            </td>
+        )
+    }
+    if (key === 'students') {
+        return (
+            <td key={key} className="px-6 py-4 text-center">
+                <div className="inline-flex items-center gap-2 bg-[var(--color-surface-alt)]/50 px-2.5 py-1 rounded-md text-[10px] font-black text-[var(--color-text)] border border-[var(--color-border)]">
+                    <Users className="text-[var(--color-primary)] w-3 h-3" />
+                    {cls.students || 0}
+                </div>
+                {isCrowded && (
+                    <div className="mt-1 text-[8px] font-black uppercase tracking-widest text-rose-600 opacity-80">
+                        Padat &gt; 35
+                    </div>
+                )}
+            </td>
+        )
+    }
+    if (key === 'year') {
+        return (
+            <td key={key} className="px-6 py-4 text-center">
+                <span className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-70">
+                    {cls.periodName || '\u2014'}
+                </span>
+            </td>
+        )
+    }
+    return null
+}
 
 export const ClassRow = React.memo(({
     cls,
     selectedIds,
     toggleSelect,
     visibleCols,
+    columnOrder,
     handleEdit,
     handleView,
     handleDuplicate,
@@ -22,7 +113,7 @@ export const ClassRow = React.memo(({
 }) => {
     const isSelected = selectedIds.includes(cls.id)
     const isPinned = pinnedIds?.includes(cls.id)
-    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€"'
+    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === '\u2014'
     const isCrowded = (cls.students || 0) > 35
 
     const [menuOpen, setMenuOpen] = useState(false)
@@ -60,6 +151,9 @@ export const ClassRow = React.memo(({
         ...(handleArchive ? [{ icon: Lock, label: 'Arsipkan', onClick: () => { handleArchive(cls); setMenuOpen(false) } }] : []),
         ...(setItemToDelete && setIsDeleteModalOpen ? [{ divider: true }, { icon: Trash, label: 'Hapus', onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); setMenuOpen(false) }, danger: true }] : []),
     ]
+
+    const orderedCols = (columnOrder || ['level', 'program', 'gender', 'teacher', 'students', 'year'])
+    const colCellArgs = { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo }
 
     return (
         <tr className={`border-t border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors group/row ${isPinned ? 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40' : ''} ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : ''}`}>
@@ -104,91 +198,8 @@ export const ClassRow = React.memo(({
                 </div>
             </td>
 
-            {/* Level */}
-            {visibleCols.level && (
-                <td className="px-6 py-4 text-center">
-                    <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-black uppercase tracking-widest border border-[var(--color-primary)]/20">
-                        Lvl {cls.grade_level || '—'}
-                    </span>
-                </td>
-            )}
-
-            {/* Program */}
-            {visibleCols.program && (
-                <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
-                        cls.name?.toLowerCase().includes('boarding')
-                            ? 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-                            : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                    }`}>
-                        {cls.name?.toLowerCase().includes('boarding') ? (
-                            <><Bed className="w-2.5 h-2.5" /> Boarding</>
-                        ) : (
-                            <><Buildings className="w-2.5 h-2.5" /> Reguler</>
-                        )}
-                    </span>
-                </td>
-            )}
-
-            {/* Gender */}
-            {visibleCols.gender && (
-                <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border tracking-widest ${
-                        cls.name?.toLowerCase().includes('putra')
-                            ? 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                            : cls.name?.toLowerCase().includes('putri')
-                            ? 'bg-pink-500/10 text-pink-600 border-pink-500/20'
-                            : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border-[var(--color-border)]'
-                    }`}>
-                        {cls.name?.toLowerCase().includes('putra') ? (
-                            <><GenderMale className="w-2.5 h-2.5" /> Putra</>
-                        ) : cls.name?.toLowerCase().includes('putri') ? (
-                            <><GenderFemale className="w-2.5 h-2.5" /> Putri</>
-                        ) : '—'}
-                    </span>
-                </td>
-            )}
-
-            {/* Teacher */}
-            {visibleCols.teacher && (
-                <td className="px-6 py-4">
-                    <div className="flex flex-col">
-                        <span className="font-bold text-xs text-[var(--color-text)] truncate max-w-[150px]">
-                            {isPrivacyMode ? (
-                                <span className="inline-flex items-center gap-2">
-                                    <EyeSlash className="w-3 h-3 opacity-50" />
-                                    {maskInfo(cls.teacherName, 4)}
-                                </span>
-                            ) : (cls.teacherName || 'â€”')}
-                        </span>
-                        <span className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-50">Wali Kelas</span>
-                    </div>
-                </td>
-            )}
-
-            {/* Students Count */}
-            {visibleCols.students && (
-                <td className="px-6 py-4 text-center">
-                    <div className="inline-flex items-center gap-2 bg-[var(--color-surface-alt)]/50 px-2.5 py-1 rounded-md text-[10px] font-black text-[var(--color-text)] border border-[var(--color-border)]">
-                        <Users className="text-[var(--color-primary)] w-3 h-3" />
-                        {cls.students || 0}
-                    </div>
-                    {isCrowded && (
-                        <div className="mt-1 text-[8px] font-black uppercase tracking-widest text-rose-600 opacity-80">
-                            Padat &gt; 35
-                        </div>
-                    )}
-                </td>
-            )}
-
-            {/* Academic Year */}
-            {visibleCols.year && (
-                <td className="px-6 py-4 text-center">
-                    <span className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-70">
-                        {cls.periodName || 'â€”'}
-                    </span>
-                </td>
-            )}
+            {/* Dynamic columns based on columnOrder */}
+            {orderedCols.map(key => renderColCell(key, colCellArgs))}
 
             {/* Actions */}
             <td className="px-6 py-4 text-center">
@@ -269,7 +280,7 @@ export const ClassMobileCard = React.memo(({
     setIsDeleteModalOpen
 }) => {
     const isSelected = selectedIds.includes(cls.id)
-    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === 'â€"'
+    const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === '\u2014'
     const isCrowded = (cls.students || 0) > 35
     return (
         <div className={`p-4 transition-all duration-300 border-l-4 ${isSelected ? 'bg-[var(--color-primary)]/[0.03] border-[var(--color-primary)]' : 'bg-[var(--color-surface)] border-transparent active:bg-[var(--color-surface-alt)]/30'}`}>
@@ -311,7 +322,7 @@ export const ClassMobileCard = React.memo(({
                     <div className="mt-4 grid grid-cols-2 gap-4">
                         <div className="space-y-0.5">
                             <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-60">Wali Kelas</p>
-                            <p className="font-bold text-[11px] text-[var(--color-text)] truncate">{cls.teacherName || 'â€”'}</p>
+                            <p className="font-bold text-[11px] text-[var(--color-text)] truncate">{cls.teacherName || '\u2014'}</p>
                         </div>
                         <div className="space-y-0.5 text-right">
                             <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-60">Siswa</p>
@@ -327,7 +338,7 @@ export const ClassMobileCard = React.memo(({
 
                     <div className="mt-3 pt-3 border-t border-dashed border-[var(--color-border)] flex items-center justify-between text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
                         <span>Lvl {cls.grade_level}</span>
-                        <span>{cls.periodName || 'â€”'}</span>
+                        <span>{cls.periodName || '\u2014'}</span>
                     </div>
                 </div>
             </div>

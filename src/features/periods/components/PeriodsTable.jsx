@@ -30,15 +30,15 @@ const COL_LABELS = {
 
 function renderColHeader(key) {
     if (!COL_LABELS[key]) return null;
-    return <th className="px-4 py-2.5 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
+    return <th className="px-3 py-2 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
 }
 
 function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years, pinnedIds }) {
     if (key === "period") {
         const isPinned = pinnedIds?.includes(year.id);
         return (
-            <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-3">
+            <td className="px-3 py-2">
+                <div className="flex items-center gap-2.5">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${isPinned ? "bg-amber-500/10 text-amber-600" : year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
                             <span className="relative z-10">
                                 {isPinned ? <PushPin weight="fill" className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
@@ -57,7 +57,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     }
     if (key === "semester") {
         return (
-            <td className="px-4 py-2.5">
+            <td className="px-3 py-2">
                 <InlineCell id={year.id} field="semester" value={year.semester} displayValue={year.semester} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
             </td>
         );
@@ -74,7 +74,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
             barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
         }
         return (
-            <td className="px-4 py-2.5">
+            <td className="px-3 py-2">
                 <div className="flex flex-col">
                     <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
                         <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={maskValue(formatDate(year.start_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
@@ -124,7 +124,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     }
     if (key === "created_at") {
         return (
-            <td className="px-4 py-2.5">
+            <td className="px-3 py-2">
                 <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
                     <span className="text-[10px] font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
@@ -209,7 +209,7 @@ const PeriodsTable = memo(function PeriodsTable({
                 <table className="w-full text-sm" style={{ tableLayout: "auto" }}>
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                            <th className="px-4 py-2.5 text-center w-12">
+                            <th className="px-3 py-2 text-center w-12">
                                 <Checkbox
                                     checked={selectedIds.length === paged.length && paged.length > 0}
                                     onChange={toggleSelectAll}
@@ -218,7 +218,7 @@ const PeriodsTable = memo(function PeriodsTable({
                             {orderedCols.map(key => (
                                 <React.Fragment key={key}>{renderColHeader(key)}</React.Fragment>
                             ))}
-                            <th className="px-4 py-2.5 relative">
+                            <th className="px-3 py-2 relative">
                                 <div className="flex items-center justify-center">
                                     <span>Aksi</span>
                                 </div>
@@ -276,19 +276,19 @@ const PeriodsTable = memo(function PeriodsTable({
                                         data-row-id={year.id}
                                         className={`border-t border-[var(--color-border)] transition-colors group/row ${isPinned ? "bg-amber-500/[0.03] border-l-2 border-l-amber-500/40" : ""} ${isSelected ? "bg-[var(--color-primary)]/5" : "hover:bg-[var(--color-surface-alt)]/40"}`}
                                     >
-                                        <td className="px-4 py-2.5">
+                                        <td className="px-3 py-2">
                                             <Checkbox checked={isSelected} onChange={() => toggleSelect(year.id)} />
                                         </td>
                                         {orderedCols.map(key => (
                                             <React.Fragment key={key}>{renderColCell(key, { year, ...colCellArgs })}</React.Fragment>
                                         ))}
-                                        <td className="px-4 py-2.5">
+                                        <td className="px-3 py-2">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm">
+                                                <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-xs">
                                                     <Eye />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
-                                                    <button onClick={() => handleEdit(year)} title="Edit" className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm">
+                                                    <button onClick={() => handleEdit(year)} title="Edit" className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-xs">
                                                         <Pencil />
                                                     </button>
                                                 )}
@@ -296,7 +296,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     <button
                                                         onClick={(e) => toggleMenu(e, year.id)}
                                                         title="Lainnya"
-                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all text-sm"
+                                                        className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all text-xs"
                                                     >
                                                         <DotsThree weight="bold" />
                                                     </button>
@@ -359,10 +359,10 @@ const PeriodsTable = memo(function PeriodsTable({
                         return (
                             <div
                                 key={year.id}
-                                className={`p-3 transition-colors group/mob ${isSelected ? "bg-[var(--color-primary)]/5" : ""}`}
+                                className={`p-2.5 transition-colors group/mob ${isSelected ? "bg-[var(--color-primary)]/5" : ""}`}
                             >
                 <div className="flex items-center gap-3">
-                                    <div className="flex flex-col items-center gap-3 pt-1">
+                                    <div className="flex flex-col items-center gap-2.5 pt-1">
                                         <Checkbox
                                             checked={selectedIds.includes(year.id)}
                                             onChange={() => toggleSelect(year.id)}
@@ -430,21 +430,21 @@ const PeriodsTable = memo(function PeriodsTable({
                                                 <button
                                                     onClick={() => onTogglePin?.(year.id)}
                                                     title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"}
-                                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}
+                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}
                                                 >
                                                     <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} className="text-xs" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleOpenReadOnlyDetail(year)}
                                                     title="Lihat Detail"
-                                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all"
+                                                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all"
                                                 >
                                                     <Eye className="text-xs" />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
                                                     <button
                                                         onClick={() => handleEdit(year)}
-                                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"
                                                     >
                                                         <Pencil className="text-xs" />
                                                     </button>
@@ -453,7 +453,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     <button
                                                         onClick={() => onQuickDuplicate?.(year)}
                                                         title="Duplikasi"
-                                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all"
+                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all"
                                                     >
                                                         <Copy className="text-xs" />
                                                     </button>
@@ -462,26 +462,26 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     <button
                                                         onClick={() => handleToggleLock(year)}
                                                         title={year.is_locked ? "Buka Kunci" : "Kunci"}
-                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${year.is_locked ? "text-emerald-500 hover:bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-500/10"}`}
+                                                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${year.is_locked ? "text-emerald-500 hover:bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-500/10"}`}
                                                     >
                                                         {year.is_locked ? <LockOpen className="text-xs" /> : <Lock className="text-xs" />}
                                                     </button>
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="mt-3 flex items-center gap-2">
+                                        <div className="mt-2.5 flex items-center gap-2">
                                             {year.is_active ? (
-                                                <span className="flex-1 h-9 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                                <span className="flex-1 h-8 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
                                                     Aktif
                                                 </span>
                                             ) : (
-                                                <span className="flex-1 h-9 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border border-[var(--color-border)]">
+                                                <span className="flex-1 h-8 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border border-[var(--color-border)]">
                                                     Tidak Aktif
                                                 </span>
                                             )}
                                             <button
                                                 onClick={() => handleOpenHistory(year)}
-                                                className="flex-1 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                                                className="flex-1 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
                                             >
                                                 <ClockCounterClockwise className="text-xs" />{" "}
                                                 Riwayat

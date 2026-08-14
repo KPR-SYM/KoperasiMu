@@ -47,7 +47,7 @@ import PeriodsShortcutMenu from "@features/periods/components/PeriodsShortcutMen
 import PeriodsReadOnlyDetail from "@features/periods/components/PeriodsReadOnlyDetail";
 import PeriodsHistoryModal from "@features/periods/components/PeriodsHistoryModal";
 import { PeriodSkeletonRow, PeriodSkeletonCard } from "@features/periods/components/PeriodSkeletons";
-import ColumnMenuPortal from "@features/periods/components/ColumnMenuPortal";
+import { ColumnMenuPortal } from "@shared/components";
 import LazyLoad from "@features/periods/components/LazyLoad";
 import { usePeriodsNotifications } from "@features/periods/hooks/usePeriodsNotifications";
 
@@ -810,6 +810,7 @@ export default function PeriodsPage() {
                         portalRef={colMenuPortalRef}
                         colMenuPos={colMenuPos}
                         columnOrder={columnOrder}
+                        colLabels={{ period: "Tahun Akademik", semester: "Semester", duration: "Pelaksanaan", status: "Status" }}
                         visibleCols={visibleCols}
                         setVisibleCols={setVisibleCols}
                         moveColumnLeft={moveColumnLeft}
