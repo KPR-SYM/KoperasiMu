@@ -12,6 +12,9 @@ const LS_COLS = 'classes_columns'
 const LS_PAGE_SIZE = 'classes_page_size'
 const LS_PINNED = 'classes_pinned'
 const LS_VIEW_MODE = 'classes_view_mode'
+const LS_COL_ORDER = 'classes_col_order'
+const VALID_COL_KEYS = ['level', 'program', 'gender', 'teacher', 'students', 'year']
+const DEFAULT_COL_ORDER = ['level', 'program', 'gender', 'teacher', 'students', 'year']
 
 export function useClassesCore({ addToast }) {
     const { handleError } = useErrorHandler('ClassesPage')
@@ -101,6 +104,16 @@ export function useClassesCore({ addToast }) {
         try { const c = JSON.parse(localStorage.getItem(LS_COLS) || '{}'); return Object.keys(c).length ? c : defaultCols }
         catch { return defaultCols }
     })
+    const [columnOrder, setColumnOrder] = useState(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(LS_COL_ORDER))
+            if (saved) {
+                const cleaned = saved.filter(k => VALID_COL_KEYS.includes(k))
+                return cleaned.length === VALID_COL_KEYS.length ? cleaned : DEFAULT_COL_ORDER
+            }
+            return DEFAULT_COL_ORDER
+        } catch { return DEFAULT_COL_ORDER }
+    })
 
     // ── Action Context ──
     const [selectedItem, setSelectedItem] = useState(null)
@@ -109,6 +122,7 @@ export function useClassesCore({ addToast }) {
     // ── Persist ──
     useEffect(() => { try { localStorage.setItem(LS_FILTERS, JSON.stringify({ filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded })) } catch { /* noop */ } }, [filterLevel, filterProgram, sortBy, filterNoTeacher, filterCrowded])
     useEffect(() => { try { localStorage.setItem(LS_COLS, JSON.stringify(visibleCols)) } catch { /* noop */ } }, [visibleCols])
+    useEffect(() => { try { localStorage.setItem(LS_COL_ORDER, JSON.stringify(columnOrder)) } catch { /* noop */ } }, [columnOrder])
     useEffect(() => { try { localStorage.setItem(LS_PAGE_SIZE, String(pageSize)) } catch { /* noop */ } }, [pageSize])
     useEffect(() => { try { localStorage.setItem(LS_VIEW_MODE, viewMode) } catch { /* noop */ } }, [viewMode])
     useEffect(() => { try { localStorage.setItem(LS_PINNED, JSON.stringify(pinnedIds)) } catch { /* noop */ } }, [pinnedIds])
@@ -175,9 +189,25 @@ export function useClassesCore({ addToast }) {
         setPinnedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id])
     }, [])
 
-    // ── Column reorder (stub — classes has fixed order for now) ──
-    const moveColumnLeft = useCallback(() => { }, [])
-    const moveColumnRight = useCallback(() => { }, [])
+    // ── Column reorder ──
+    const moveColumnLeft = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key)
+            if (idx <= 0) return prev
+            const next = [...prev]
+            ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+            return next
+        })
+    }, [])
+    const moveColumnRight = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key)
+            if (idx === -1 || idx >= prev.length - 1) return prev
+            const next = [...prev]
+            ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+            return next
+        })
+    }, [])
 
     // ── Undo/Redo (snapshot-based) ──
     const pushUndo = useCallback((snapshot) => {
@@ -519,7 +549,7 @@ export function useClassesCore({ addToast }) {
         undoStack, redoStack, handleUndo, handleRedo, pushUndo,
 
         // Columns
-        visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos,
+        visibleCols, setVisibleCols, columnOrder, setColumnOrder, isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos,
         colMenuRef, colMenuPortalRef, moveColumnLeft, moveColumnRight,
 
         // UI

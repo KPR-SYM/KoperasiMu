@@ -5,15 +5,24 @@ import { EmptyState } from '@shared/components/DataDisplay'
 import Checkbox from '@shared/components/Checkbox'
 import Pagination from '@shared/components/Pagination'
 
+const COL_LABELS = {
+    level: "Level",
+    program: "Program",
+    gender: "Gender",
+    teacher: "Wali Kelas",
+    students: "Siswa",
+    year: "Akademik",
+}
+
 const ClassesTable = memo(function ClassesTable({
-    paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols,
+    paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols, columnOrder,
     allSelected, someSelected, toggleSelectAll,
     handleEdit, handleView, handleDuplicate, handleArchive, onHistory, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
     canEdit, loading, searchQuery, filterLevel, filterProgram,
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
     pinnedIds, togglePin,
-    // Column menu props (menu itself now rendered by ClassesColumnMenuPortal in ClassesPage)
+    // Column menu props (menu itself now rendered by shared ColumnMenuPortal in ClassesPage)
     colMenuRef, isColMenuOpen, setIsColMenuOpen, setColMenuPos,
 }) {
     if (loading) {
@@ -91,12 +100,9 @@ const ClassesTable = memo(function ClassesTable({
                                 <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={toggleSelectAll} />
                             </th>
                             <th className="px-6 py-4">Identitas Kelas</th>
-                            {visibleCols.level && <th className="px-6 py-4 text-center">Level</th>}
-                            {visibleCols.program && <th className="px-6 py-4 text-center">Program</th>}
-                            {visibleCols.gender && <th className="px-6 py-4 text-center">Gender</th>}
-                            {visibleCols.teacher && <th className="px-6 py-4">Wali Kelas</th>}
-                            {visibleCols.students && <th className="px-6 py-4 text-center">Siswa</th>}
-                            {visibleCols.year && <th className="px-6 py-4 text-center">Akademik</th>}
+                            {(columnOrder || Object.keys(COL_LABELS)).filter(k => visibleCols[k] && COL_LABELS[k]).map(key => (
+                                <th key={key} className={`px-6 py-4 ${key === 'teacher' ? '' : 'text-center'}`}>{COL_LABELS[key]}</th>
+                            ))}
                             {/* Aksi header with column menu toggle */}
                             <th className="px-6 py-4 text-center pr-6 w-32 relative">
                                 <span>Aksi</span>
@@ -139,7 +145,7 @@ const ClassesTable = memo(function ClassesTable({
                                 </td>
                             </tr>
                         ) : paged.map(cls => (
-                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} onHistory={onHistory} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
+                            <ClassRow key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} visibleCols={visibleCols} columnOrder={columnOrder} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} onHistory={onHistory} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} pinnedIds={pinnedIds} togglePin={togglePin} />
                         ))}
                     </tbody>
                 </table>

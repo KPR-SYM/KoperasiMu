@@ -10,7 +10,7 @@ import { useClassesModals } from '@features/classes/hooks/useClassesModals'
 import { useClassesImportExport } from '@features/classes/hooks/useClassesImportExport'
 import ClassesToolbar from '@features/classes/components/ClassesToolbar'
 import ClassesTable from '@features/classes/components/ClassesTable'
-import ClassesColumnMenuPortal from '@features/classes/components/ClassesColumnMenuPortal'
+import { ColumnMenuPortal } from '@shared/components'
 import ClassesHeaderMenu from '@features/classes/components/ClassesHeaderMenu'
 import ClassesShortcutMenu from '@features/classes/components/ClassesShortcutMenu'
 import ClassFormModal from '@features/classes/components/ClassFormModal'
@@ -52,7 +52,7 @@ export default function ClassesPage() {
         totalRows, paged, filtered,
         selectedIds, setSelectedIds, selectedItems, toggleSelect, toggleSelectAll,
         allSelected, someSelected,
-        visibleCols, setVisibleCols,
+        visibleCols, setVisibleCols, columnOrder, moveColumnLeft, moveColumnRight,
         isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos,
         colMenuRef, colMenuPortalRef,
         pinnedIds, togglePin,
@@ -350,6 +350,7 @@ export default function ClassesPage() {
                                 selectedIds={selectedIds}
                                 toggleSelect={toggleSelect}
                                 visibleCols={visibleCols}
+                                columnOrder={columnOrder}
                                 allSelected={allSelected}
                                 someSelected={someSelected}
                                 toggleSelectAll={toggleSelectAll}
@@ -384,13 +385,17 @@ export default function ClassesPage() {
                                 setColMenuPos={setColMenuPos}
                             />
 
-                            <ClassesColumnMenuPortal
+                            <ColumnMenuPortal
                                 isOpen={isColMenuOpen}
                                 loading={loading}
                                 portalRef={colMenuPortalRef}
                                 colMenuPos={colMenuPos}
+                                columnOrder={columnOrder}
+                                colLabels={{ level: "Level", program: "Program", gender: "Gender", teacher: "Wali Kelas", students: "Siswa", year: "Akademik" }}
                                 visibleCols={visibleCols}
                                 setVisibleCols={setVisibleCols}
+                                moveColumnLeft={moveColumnLeft}
+                                moveColumnRight={moveColumnRight}
                             />
                         </div>
 
