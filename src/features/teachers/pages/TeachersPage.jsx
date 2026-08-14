@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react'
-import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, MagnifyingGlass, Plus, SlidersHorizontal, Suitcase, ChatCircle, Trash, X } from '@phosphor-icons/react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { Archive, ArrowCounterClockwise, CheckCircle, Eye, EyeSlash, Keyboard, Plus, SlidersHorizontal, Suitcase, ChatCircle, Trash } from '@phosphor-icons/react'
 
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import { useToast } from '@context/Toast'
@@ -22,9 +22,7 @@ import {
     BulkActionsBar,
     ConfirmDialog,
     Alert,
-    EmptyState,
     PageHeader,
-    Pagination,
     StatCard,
     StatsCarousel,
     Modal,
@@ -129,15 +127,57 @@ export default function TeachersPage() {
         fetchData,
     })
 
-    const isAnyModalOpen = isModalOpen || isArchiveModalOpen || isArchivedOpen || isProfileOpen || isImportModalOpen || isExportModalOpen || isBulkModalOpen || isBulkWAOpen
-
-    const disp = val => isPrivacyMode ? (val ? val.substring(0, 4) + '***' : '—') : (val || '—')
-
     const importFileRef = React.useRef(null)
 
+    const disp = useCallback(val => isPrivacyMode ? (val ? val.substring(0, 4) + '***' : '—') : (val || '—'), [isPrivacyMode])
+
+    const statsContent = useMemo(() => (
+        <StatsCarousel count={4} cols={4}>
+            <StatCard
+                icon={ArrowCounterClockwise}
+                label="Total"
+                value={stats.total}
+                color="primary"
+                onClick={() => { setFilterType(''); setPage(1) }}
+            />
+            <StatCard
+                icon={CheckCircle}
+                label="Aktif"
+                value={stats.active}
+                color="primary"
+                onClick={() => { setFilterStatus('active'); setPage(1) }}
+            />
+            <StatCard
+                icon={ArrowCounterClockwise}
+                label="Guru"
+                value={stats.guru}
+                color="primary"
+                onClick={() => { setFilterType('guru'); setPage(1) }}
+            />
+            <StatCard
+                icon={Suitcase}
+                label="Karyawan"
+                value={stats.karyawan}
+                color="primary"
+                onClick={() => { setFilterType('karyawan'); setPage(1) }}
+            />
+        </StatsCarousel>
+    ), [stats, setFilterType, setFilterStatus, setPage])
+
+    const selectedItems = useMemo(() => {
+        return selectedIds.map(id => {
+            const t = teachers.find(x => x.id === id)
+            if (!t) return null
+            return {
+                id: t.id,
+                label: t.name || t.full_name,
+                meta: `${t.subject || '—'} · ${t.phone || '—'}`
+            }
+        }).filter(Boolean)
+    }, [selectedIds, teachers])
+
     return (
-        <DashboardLayout title="Data Guru" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
-            <style>{isAnyModalOpen ? ` .top-nav, .sidebar, .floating-dock { display: none !important; } main { padding-top: 0 !important; } ` : ''}</style>
+        <DashboardLayout title="Data Guru">
             <div className="space-y-3 max-w-[1800px] mx-auto relative">
 
                 {/* Bulk Action Bar */}
@@ -147,15 +187,7 @@ export default function TeachersPage() {
                         onClear={() => setSelectedIds([])}
                         title="Data Terpilih"
                         subtitle="Aksi Massal"
-                        selectedItems={selectedIds.map(id => {
-                            const t = teachers.find(x => x.id === id)
-                            if (!t) return null
-                            return {
-                                id: t.id,
-                                label: t.name || t.full_name,
-                                meta: `${t.subject || '—'} · ${t.phone || '—'}`
-                            }
-                        }).filter(Boolean)}
+                        selectedItems={selectedItems}
                         onRemoveItem={(id) => setSelectedIds((prev) => prev.filter((x) => x !== id))}
                         primaryAction={{
                             label: "Arsip",
@@ -258,36 +290,7 @@ export default function TeachersPage() {
                 />
 
                 {/* ── Stats ── */}
-                <StatsCarousel count={4} cols={4}>
-                    <StatCard
-                        icon={ArrowCounterClockwise}
-                        label="Total"
-                        value={stats.total}
-                        color="primary"
-                        onClick={() => { setFilterType(''); setPage(1) }}
-                    />
-                    <StatCard
-                        icon={CheckCircle}
-                        label="Aktif"
-                        value={stats.active}
-                        color="primary"
-                        onClick={() => { setFilterStatus('active'); setPage(1) }}
-                    />
-                    <StatCard
-                        icon={ArrowCounterClockwise}
-                        label="Guru"
-                        value={stats.guru}
-                        color="primary"
-                        onClick={() => { setFilterType('guru'); setPage(1) }}
-                    />
-                    <StatCard
-                        icon={Suitcase}
-                        label="Karyawan"
-                        value={stats.karyawan}
-                        color="primary"
-                        onClick={() => { setFilterType('karyawan'); setPage(1) }}
-                    />
-                </StatsCarousel>
+                {statsContent}
 
                 {/* ── Main Data View ── */}
                 <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
@@ -354,110 +357,100 @@ export default function TeachersPage() {
                     />
                 </div>
 
-                {/* ── Modals (lazy render) ── */}
-                {isModalOpen && (
-                    <TeacherFormModal
-                        isOpen={isModalOpen}
-                        onClose={() => { setIsModalOpen(false); setSelectedItem(null) }}
-                        selectedItem={selectedItem}
-                        classesList={classesList}
-                        subjectsList={subjectsList}
-                        onSubmit={handleSubmit}
-                        submitting={submitting}
-                        onPhotoUpload={handlePhotoUpload}
-                        uploadingPhoto={uploadingPhoto}
-                    />
-                )}
+                {/* ── Modals ── */}
+                <TeacherFormModal
+                    isOpen={isModalOpen}
+                    onClose={() => { setIsModalOpen(false); setSelectedItem(null) }}
+                    selectedItem={selectedItem}
+                    classesList={classesList}
+                    subjectsList={subjectsList}
+                    onSubmit={handleSubmit}
+                    submitting={submitting}
+                    onPhotoUpload={handlePhotoUpload}
+                    uploadingPhoto={uploadingPhoto}
+                />
 
-                {isProfileOpen && (
-                    <TeacherProfileModal
-                        isOpen={isProfileOpen}
-                        onClose={() => setIsProfileOpen(false)}
-                        selectedTeacher={profileTeacher}
-                        loadingProfile={loadingProfile}
-                        profileTab={profileTab}
-                        setProfileTab={setProfileTab}
-                        canEdit={canEdit}
-                        handleEdit={handleEdit}
-                        addToast={addToast}
-                        fetchData={fetchData}
-                        userRole={profile?.role}
-                    />
-                )}
+                <TeacherProfileModal
+                    isOpen={isProfileOpen}
+                    onClose={() => setIsProfileOpen(false)}
+                    selectedTeacher={profileTeacher}
+                    loadingProfile={loadingProfile}
+                    profileTab={profileTab}
+                    setProfileTab={setProfileTab}
+                    canEdit={canEdit}
+                    handleEdit={handleEdit}
+                    addToast={addToast}
+                    fetchData={fetchData}
+                    userRole={profile?.role}
+                />
 
-                {isImportModalOpen && (
-                    <TeacherImportModal
-                        isOpen={isImportModalOpen}
-                        onClose={() => { if (importing) return; setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1) }}
-                        importing={importing}
-                        importStep={importStep}
-                        setImportStep={setImportStep}
-                        importPreview={importPreview}
-                        importFileName={importFileName}
-                        importFileInputRef={importFileRef}
-                        importDragOver={importDrag}
-                        setImportDragOver={setImportDrag}
-                        processImportFile={processImportFile}
-                        subjectsList={subjectsList}
-                        handleDownloadTemplate={handleDownloadTemplate}
-                        importFileHeaders={importFileHeaders}
-                        SYSTEM_COLS={SYSTEM_COLS}
-                        importColumnMapping={importColumnMapping}
-                        setImportColumnMapping={setImportColumnMapping}
-                        importRawData={importRawData}
-                        importLoading={importLoading}
-                        setImportLoading={setImportLoading}
-                        buildImportPreview={buildImportPreview}
-                        importIssues={importIssues}
-                        importValidationOpen={importValidationOpen}
-                        setImportValidationOpen={setImportValidationOpen}
-                        importProgress={importProgress}
-                        handleCommitImport={handleCommitImport}
-                        handleImportClick={() => importFileRef.current?.click()}
-                        hasImportBlockingErrors={hasImportBlockingErrors}
-                        importReadyRows={importReadyRows}
-                        handleImportCellEdit={handleImportCellEdit}
-                        importEditCell={importEditCell}
-                        setImportEditCell={setImportEditCell}
-                        handleRemoveImportRow={handleRemoveImportRow}
-                        importSkipDupes={importSkipDupes}
-                        setImportSkipDupes={setImportSkipDupes}
-                        handleBulkFix={handleBulkFix}
-                        STATUS_CONFIG={STATUS_CONFIG}
-                    />
-                )}
+                <TeacherImportModal
+                    isOpen={isImportModalOpen}
+                    onClose={() => { if (importing) return; setIsImportModalOpen(false); setImportPreview([]); setImportIssues([]); setImportFileName(''); setImportStep(1) }}
+                    importing={importing}
+                    importStep={importStep}
+                    setImportStep={setImportStep}
+                    importPreview={importPreview}
+                    importFileName={importFileName}
+                    importFileInputRef={importFileRef}
+                    importDragOver={importDrag}
+                    setImportDragOver={setImportDrag}
+                    processImportFile={processImportFile}
+                    subjectsList={subjectsList}
+                    handleDownloadTemplate={handleDownloadTemplate}
+                    importFileHeaders={importFileHeaders}
+                    SYSTEM_COLS={SYSTEM_COLS}
+                    importColumnMapping={importColumnMapping}
+                    setImportColumnMapping={setImportColumnMapping}
+                    importRawData={importRawData}
+                    importLoading={importLoading}
+                    setImportLoading={setImportLoading}
+                    buildImportPreview={buildImportPreview}
+                    importIssues={importIssues}
+                    importValidationOpen={importValidationOpen}
+                    setImportValidationOpen={setImportValidationOpen}
+                    importProgress={importProgress}
+                    handleCommitImport={handleCommitImport}
+                    handleImportClick={() => importFileRef.current?.click()}
+                    hasImportBlockingErrors={hasImportBlockingErrors}
+                    importReadyRows={importReadyRows}
+                    handleImportCellEdit={handleImportCellEdit}
+                    importEditCell={importEditCell}
+                    setImportEditCell={setImportEditCell}
+                    handleRemoveImportRow={handleRemoveImportRow}
+                    importSkipDupes={importSkipDupes}
+                    setImportSkipDupes={setImportSkipDupes}
+                    handleBulkFix={handleBulkFix}
+                    STATUS_CONFIG={STATUS_CONFIG}
+                />
 
-                {isExportModalOpen && (
-                    <TeacherExportModal
-                        isOpen={isExportModalOpen}
-                        onClose={() => setIsExportModalOpen(false)}
-                        teachers={teachers}
-                        selectedTeacherIds={selectedIds}
-                        exportScope={exportScope}
-                        setExportScope={setExportScope}
-                        exportColumns={exportColumns}
-                        setExportColumns={setExportColumns}
-                        exporting={exporting}
-                        handleExportCSV={handleExportCSV}
-                        handleExportExcel={handleExportExcel}
-                        handleExportPDF={handleExportPDF}
-                        addToast={addToast}
-                    />
-                )}
+                <TeacherExportModal
+                    isOpen={isExportModalOpen}
+                    onClose={() => setIsExportModalOpen(false)}
+                    teachers={teachers}
+                    selectedTeacherIds={selectedIds}
+                    exportScope={exportScope}
+                    setExportScope={setExportScope}
+                    exportColumns={exportColumns}
+                    setExportColumns={setExportColumns}
+                    exporting={exporting}
+                    handleExportCSV={handleExportCSV}
+                    handleExportExcel={handleExportExcel}
+                    handleExportPDF={handleExportPDF}
+                    addToast={addToast}
+                />
 
-                {isArchivedOpen && (
-                    <TeacherArchiveModal
-                        isOpen={isArchivedOpen}
-                        onClose={() => setIsArchivedOpen(false)}
-                        archivedTeachers={archivedTeachers}
-                        loadingArchived={loadingArchived}
-                        setArchivedTeachers={setArchivedTeachers}
-                        fetchArchivedTeachers={fetchArchived}
-                        fetchData={fetchData}
-                        fetchStats={fetchStats}
-                        addToast={addToast}
-                    />
-                )}
+                <TeacherArchiveModal
+                    isOpen={isArchivedOpen}
+                    onClose={() => setIsArchivedOpen(false)}
+                    archivedTeachers={archivedTeachers}
+                    loadingArchived={loadingArchived}
+                    setArchivedTeachers={setArchivedTeachers}
+                    fetchArchivedTeachers={fetchArchived}
+                    fetchData={fetchData}
+                    fetchStats={fetchStats}
+                    addToast={addToast}
+                />
 
                 <ConfirmDialog
                     isOpen={isArchiveModalOpen}

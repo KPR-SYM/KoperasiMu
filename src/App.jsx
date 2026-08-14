@@ -1,6 +1,6 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState, useMemo } from 'react'
 import { Toaster } from 'react-hot-toast'
-import { Warning, CaretLeft, Question, DoorOpen, Spinner, Lock, Wrench } from '@phosphor-icons/react'
+import { Warning, CaretLeft, Question, DoorOpen, Spinner, Lock, Wrench, MagnifyingGlass, LinkBreak, SquaresFour } from '@phosphor-icons/react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   AuthProvider, useAuth,
@@ -15,6 +15,7 @@ import DashboardLayout from '@core/layouts/DashboardLayout'
 import { GlobalErrorBoundary } from '@shared/components'
 import { logErrorToSupabase } from '@shared/utils/errorLogger'
 import { Component } from 'react'
+import { getAccessibleNavItems } from '@core/layouts/navItems'
 
 // ─── Lazy Loading Guard ───────────────────────────────────────────────────────
 
@@ -401,29 +402,141 @@ function MaintenanceGuard({ children }) {
   return children
 }
 
+// ─── 404 Not Found Page ─────────────────────────────────────────────────────
 function NotFoundPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const currentUrl = location.pathname
+
+  // ── Dynamic nav items dari navItems.js (single source of truth) ──
+  const { profile } = useAuth()
+  const { flags } = useFeatureFlags()
+  const role = profile?.role?.toLowerCase() ?? ''
+
+  // Semua halaman yang boleh diakses role ini (dashboard + task-center + semua NAV_GROUPS,
+  // sudah difilter role & feature flag, sudah dedup). Sama persis dengan yang muncul di Sidebar.
+  const allEligibleItems = useMemo(
+    () =>
+      getAccessibleNavItems(role, flags).map(item => ({
+        label: item.label,
+        path: item.to,
+        Icon: item.icon,
+      })),
+    [role, flags]
+  )
+
+  const query = searchQuery.trim().toLowerCase()
+  const isSearching = query.length > 0
+
+  // Kalau lagi search → cari dari SEMUA item eligible (finance, master, admin, dsb).
+  // Kalau kosong → tampilkan 6 quick links default.
+  const results = isSearching
+    ? allEligibleItems.filter(l => l.label.toLowerCase().includes(query))
+    : allEligibleItems.slice(0, 9)
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)] px-4">
-      <div className="text-center max-w-sm">
-        <div className="text-[80px] font-black font-heading leading-none gradient-text mb-2 select-none">
-          404
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-surface)] px-6 py-10 relative overflow-hidden">
+      {/* Ambient glow */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-[var(--color-primary)]/5 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-32 -left-32 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[140px]" />
+      </div>
+
+      {/* ── Two-column card ── */}
+      <div className="relative z-10 w-full max-w-3xl min-h-[420px] flex flex-col md:flex-row items-stretch gap-0 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] shadow-2xl shadow-black/5 overflow-hidden">
+
+        {/* ── LEFT: Visual ── */}
+        <div className="flex flex-col items-center justify-center text-center px-10 py-14 md:w-[45%] min-h-[380px] border-b md:border-b-0 md:border-r border-[var(--color-border)] bg-[var(--color-surface)]">
+
+          {/* Icon illustration */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 bg-[var(--color-primary)]/10 rounded-3xl blur-2xl" />
+            <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-[var(--color-primary)]/10 to-purple-500/10 border border-[var(--color-border)] flex items-center justify-center">
+              <LinkBreak weight="duotone" className="text-5xl text-[var(--color-primary)]" />
+            </div>
+          </div>
+
+          {/* 404 */}
+          <div className="text-[80px] font-black font-heading leading-none gradient-text select-none tracking-tight">
+            404
+          </div>
+          <h2 className="text-[15px] font-black text-[var(--color-text)] mt-1 mb-2">
+            Halaman Tidak Ditemukan
+          </h2>
+          <p className="text-[12px] leading-relaxed mb-5" style={{ color: 'oklch(0.55 0 0)' }}>
+            URL yang kamu akses tidak tersedia
+            atau sudah dipindahkan.
+          </p>
+
+          {/* URL badge */}
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] max-w-full overflow-hidden">
+            <span className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest shrink-0">URL</span>
+            <span className="text-[11px] font-mono text-red-500 truncate">{currentUrl}</span>
+          </div>
         </div>
-        <h2 className="text-xl font-black text-[var(--color-text)] mb-2">
-          Halaman Tidak Ditemukan
-        </h2>
-        <p className="text-sm text-[var(--color-text-muted)] mb-8 leading-relaxed">
-          URL yang kamu akses tidak tersedia atau sudah dipindahkan.
-        </p>
-        <div className="flex items-center justify-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="h-10 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-sm font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
-            ← Kembali
-          </button>
-          <a href="/dashboard" className="btn btn-primary h-10 px-5 text-sm">
-            Ke Dashboard
-          </a>
+
+        {/* ── RIGHT: Navigation ── */}
+        <div className="flex flex-col justify-between px-8 py-10 md:flex-1">
+
+          {/* Top block: label + search + quick links */}
+          <div>
+            <p className="text-[11px] font-black text-[var(--color-text-muted)] uppercase tracking-widest mb-3">Navigasi Cepat</p>
+
+            {/* Search */}
+            <div className="relative mb-4">
+              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] text-base pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Cari halaman..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 pr-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[13px] text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/25 focus:border-[var(--color-primary)]/40 transition-all"
+              />
+            </div>
+
+            {/* Quick links / hasil search — scrollable kalau lagi search & hasilnya banyak */}
+            <div className={`flex-1 flex flex-col justify-center ${isSearching ? 'max-h-[220px] overflow-y-auto pr-1' : ''}`}>
+              <div className="grid grid-cols-3 gap-2">
+                {results.length > 0 ? results.map(({ label, path, Icon }) => (
+                  <button
+                    key={path}
+                    onClick={() => navigate(path)}
+                    className="flex flex-col items-center gap-1.5 py-2.5 px-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-primary)]/40 hover:bg-[var(--color-primary)]/5 transition-all group"
+                  >
+                    <Icon weight="duotone" className="text-lg text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] transition-colors shrink-0" />
+                    <span className="w-full truncate text-[10px] font-black text-[var(--color-text-muted)] group-hover:text-[var(--color-text)] transition-colors text-center leading-tight">
+                      {label}
+                    </span>
+                  </button>
+                )) : (
+                  <div className="col-span-3 text-[11px] text-[var(--color-text-muted)] py-3 text-center">
+                    Tidak ada halaman yang cocok.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom block: divider + action buttons */}
+          <div>
+            <div className="mb-5 border-t border-[var(--color-border)]" />
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 h-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[11px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-primary)]/30 transition-all flex items-center justify-center gap-1.5">
+                <CaretLeft className="text-sm" />
+                Kembali
+              </button>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex-1 h-10 rounded-xl bg-[var(--color-primary)] text-white text-[11px] font-black hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--color-primary)]/20 flex items-center justify-center gap-1.5">
+                <SquaresFour className="text-sm" />
+                Ke Dashboard
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

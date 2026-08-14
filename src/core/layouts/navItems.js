@@ -1,7 +1,7 @@
 /**
  * ─── Shared NavigationArrow Items ──────────────────────────────────────────────────
  * Single source of truth for all navigation data.
- * Used by: Sidebar, SlimTopBar (search), BottomNav/MasterSheet (mobile).
+ * Used by: Sidebar, SlimTopBar (search), BottomNav/MasterSheet (mobile), NotFoundPage.
  */
 import { House, CreditCard, PiggyBank, Clipboard, Users, GraduationCap, Buildings, CalendarDots, UserPlus, SquaresFour, NewspaperClipping, Robot, ClockCounterClockwise, UserGear, Database, FolderOpen, HardDrives, GearSix, Palette, WarningCircle, Warning, Info, CheckCircle, Stack, ClipboardText } from '@phosphor-icons/react'
 
@@ -17,6 +17,10 @@ export const TASK_CENTER_ITEM = {
     desc: "Daftar tugas harian dan persetujuan staf",
     color: "bg-amber-500/10 text-amber-600",
 }
+
+// Semua item standalone (di luar NAV_GROUPS) dikumpulkan di sini.
+// Kalau nanti nambah item standalone baru, tinggal deklarasi di atas lalu push ke array ini.
+export const STANDALONE_ITEMS = [DASHBOARD_ITEM, TASK_CENTER_ITEM]
 
 // ─── Keuangan & SPP ───────────────────────────────────────────────────────────
 export const FINANCE_ITEMS = [
@@ -110,6 +114,46 @@ export function filterNavItems(items, flags = {}, role = '') {
     return items.filter(item => {
         const flagKey = ROUTE_FLAG_MAP[item.to]
         if (flagKey && flags[flagKey] === false) return false
+        return true
+    })
+}
+
+/**
+ * Cek apakah sebuah grup NAV_GROUPS boleh dilihat oleh role tertentu.
+ * @param {Object} group - Salah satu entry dari NAV_GROUPS
+ * @param {string} role - User role (lowercase)
+ * @returns {boolean}
+ */
+function isGroupVisibleForRole(group, role) {
+    if (group.requireRoles && !group.requireRoles.includes(role)) return false
+    if (group.hideForRoles && group.hideForRoles.includes(role)) return false
+    return true
+}
+
+/**
+ * Single source of truth untuk "semua halaman yang boleh diakses user ini".
+ * Menggabungkan STANDALONE_ITEMS + semua item dari NAV_GROUPS yang eligible
+ * berdasarkan role, lalu difilter lagi berdasarkan feature flags, lalu dedup by path.
+ *
+ * Pakai fungsi ini di Sidebar, SlimTopBar search, BottomNav, dan NotFoundPage
+ * biar rule role/flag gak pernah divergen antar komponen.
+ *
+ * @param {string} role - User role (lowercase), mis. 'admin', 'developer', 'staff'
+ * @param {Object} flags - Feature flags map dari useFeatureFlags()
+ * @returns {Array<{to, label, icon, desc, color}>}
+ */
+export function getAccessibleNavItems(role = '', flags = {}) {
+    const groupedItems = NAV_GROUPS
+        .filter(group => isGroupVisibleForRole(group, role))
+        .flatMap(group => group.items)
+
+    const allItems = [...STANDALONE_ITEMS, ...groupedItems]
+    const flagFiltered = filterNavItems(allItems, flags, role)
+
+    const seen = new Set()
+    return flagFiltered.filter(item => {
+        if (seen.has(item.to)) return false
+        seen.add(item.to)
         return true
     })
 }
