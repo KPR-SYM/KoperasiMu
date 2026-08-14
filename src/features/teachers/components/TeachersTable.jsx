@@ -1,19 +1,31 @@
 import React, { memo } from 'react'
 import { MagnifyingGlass, Plus, User } from '@phosphor-icons/react'
-import { Pagination, EmptyState } from '@shared/components'
+import { EmptyState } from '@shared/components/DataDisplay'
+import Checkbox from '@shared/components/Checkbox'
+import Pagination from '@shared/components/Pagination'
 import { TeacherRow, TeacherMobileCard } from '@features/teachers/components/TeacherRow'
 
+const COL_LABELS = {
+    subject: "Mata Pelajaran",
+    gender: "Gender",
+    contact: "Kontak",
+    status: "Status",
+    join: "Bergabung",
+}
+
 const TeachersTable = memo(function TeachersTable({
-    teachers, totalRows, selectedIds, toggleSelect, visibleCols,
+    teachers, totalRows, selectedIds, toggleSelect, visibleCols, columnOrder,
     allSelected, someSelected, toggleSelectAll,
-    canEdit, handleEdit, handleTogglePin, handleQuickStatus,
+    canEdit, handleEdit, handleView, handleTogglePin, handleQuickStatus,
     setTeacherToAction, setIsArchiveModalOpen,
     quickStatusId, setQuickStatusId, quickStatusRef,
-    isPrivacyMode, disp, openProfile,
+    disp,
     loading, searchQuery, filterGender, filterSubject, filterType, filterMissing, filterStatus,
     resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize,
     jumpPage, setJumpPage,
+    // Column menu props (menu itself rendered by shared ColumnMenuPortal in TeachersPage)
+    colMenuRef, isColMenuOpen, setIsColMenuOpen, setColMenuPos,
 }) {
     if (loading) {
         return (
@@ -66,6 +78,20 @@ const TeachersTable = memo(function TeachersTable({
         </button>
     ) : null
 
+    const handleColMenuToggle = (e) => {
+        if (!setIsColMenuOpen || !setColMenuPos) return
+        const rect = e.currentTarget.getBoundingClientRect()
+        const menuHeight = 240
+        const spaceBelow = window.innerHeight - rect.bottom
+        const showUp = spaceBelow < menuHeight && rect.top > menuHeight
+        setColMenuPos({
+            top: showUp ? rect.top + window.scrollY - menuHeight - 8 : rect.bottom + window.scrollY + 8,
+            right: window.innerWidth - rect.right - window.scrollX,
+            showUp,
+        })
+        setIsColMenuOpen(p => !p)
+    }
+
     return (
         <>
             {/* Desktop */}
@@ -74,15 +100,36 @@ const TeachersTable = memo(function TeachersTable({
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10 border-b border-[var(--color-border)]">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
                             <th className="px-6 py-4 w-12 text-center">
-                                <input type="checkbox" checked={allSelected} ref={el => { if (el) el.indeterminate = someSelected }} onChange={toggleSelectAll} className="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer" />
+                                <Checkbox checked={allSelected} indeterminate={someSelected && !allSelected} onChange={toggleSelectAll} />
                             </th>
                             <th className="px-6 py-4">Guru</th>
-                            {visibleCols.subject && <th className="px-6 py-4">Mata Pelajaran</th>}
-                            {visibleCols.gender && <th className="px-6 py-4 text-center">Gender</th>}
-                            {visibleCols.contact && <th className="px-6 py-4">Kontak</th>}
-                            {visibleCols.status && <th className="px-6 py-4">Status</th>}
-                            {visibleCols.join && <th className="px-6 py-4">Bergabung</th>}
-                            <th className="px-6 py-4 text-center pr-6 w-32">Aksi</th>
+                            {(columnOrder || Object.keys(COL_LABELS)).filter(k => visibleCols[k] && COL_LABELS[k]).map(key => (
+                                <th key={key} className={`px-6 py-4 ${key === 'subject' || key === 'contact' || key === 'status' || key === 'join' ? '' : 'text-center'}`}>{COL_LABELS[key]}</th>
+                            ))}
+                            {/* Aksi header with column menu toggle */}
+                            <th className="px-6 py-4 text-center pr-6 w-32 relative">
+                                <span>Aksi</span>
+                                {setIsColMenuOpen && (
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        <button
+                                            ref={colMenuRef}
+                                            onClick={handleColMenuToggle}
+                                            title="Atur tampilan kolom"
+                                            className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${isColMenuOpen
+                                                ? 'bg-[var(--color-primary)] text-white'
+                                                : 'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'
+                                                }`}
+                                        >
+                                            <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor">
+                                                <rect x="0" y="0" width="5" height="5" rx="1" />
+                                                <rect x="7" y="0" width="5" height="5" rx="1" />
+                                                <rect x="0" y="7" width="5" height="5" rx="1" />
+                                                <rect x="7" y="7" width="5" height="5" rx="1" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                )}
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -107,13 +154,13 @@ const TeachersTable = memo(function TeachersTable({
                                 selectedIds={selectedIds}
                                 toggleSelect={toggleSelect}
                                 visibleCols={visibleCols}
-                                isPrivacyMode={isPrivacyMode}
+                                columnOrder={columnOrder}
                                 disp={disp}
-                                openProfile={openProfile}
+                                handleView={handleView}
                                 handleEdit={canEdit ? handleEdit : null}
                                 handleTogglePin={handleTogglePin}
                                 handleQuickStatus={handleQuickStatus}
-                                setTeacherToAction={setTeacherToAction}
+                                setTeacherToAction={canEdit ? setTeacherToAction : null}
                                 setIsArchiveModalOpen={canEdit ? setIsArchiveModalOpen : null}
                                 quickStatusId={quickStatusId}
                                 setQuickStatusId={setQuickStatusId}
@@ -142,12 +189,10 @@ const TeachersTable = memo(function TeachersTable({
                         teacher={teacher}
                         selectedIds={selectedIds}
                         toggleSelect={toggleSelect}
-                        isPrivacyMode={isPrivacyMode}
-                        disp={disp}
-                        openProfile={openProfile}
+                        handleView={handleView}
                         handleEdit={canEdit ? handleEdit : null}
                         handleTogglePin={handleTogglePin}
-                        setTeacherToAction={setTeacherToAction}
+                        setTeacherToAction={canEdit ? setTeacherToAction : null}
                         setIsArchiveModalOpen={canEdit ? setIsArchiveModalOpen : null}
                     />
                 ))}

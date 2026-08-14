@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 import { Archive, FileArrowDown, FileArrowUp } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
@@ -23,12 +23,12 @@ const TeachersHeaderMenu = memo(function TeachersHeaderMenu({
 }) {
     const [activeIdx, setActiveIdx] = useState(-1)
 
-    const items = [
+    const items = useMemo(() => [
         { id: 'import', label: 'Import CSV / Excel', desc: 'Unggah data guru masal dari file Excel/CSV', icon: FileArrowDown, color: 'emerald', shortcut: `${MOD}+I`, onClick: onImportClick },
         { id: 'export', label: 'Export Data', desc: 'Cadangkan seluruh database ke format Excel', icon: FileArrowUp, color: 'amber', shortcut: `${MOD}+E`, onClick: onExportClick },
         null,
         { id: 'archived', label: 'Arsip Guru', desc: 'Lihat & pulihkan data guru tidak aktif', icon: Archive, color: 'orange', badge: archivedCount, onClick: onArchivedClick },
-    ]
+    ], [onImportClick, onExportClick, onArchivedClick, archivedCount])
 
     const colorMap = {
         emerald: 'bg-emerald-500/10 text-emerald-500',
@@ -55,7 +55,7 @@ const TeachersHeaderMenu = memo(function TeachersHeaderMenu({
         }
         window.addEventListener('keydown', handler)
         return () => window.removeEventListener('keydown', handler)
-    }, [isOpen, onClose, activeIdx])
+    }, [isOpen, onClose, activeIdx, items])
 
     useEffect(() => {
         if (isOpen) setActiveIdx(-1)

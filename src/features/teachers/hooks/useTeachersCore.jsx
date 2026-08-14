@@ -8,7 +8,11 @@ import { useErrorHandler } from '@hooks'
 
 const LS_FILTERS = 'teachers_filters'
 const LS_COLS = 'teachers_columns'
+const LS_COL_ORDER = 'teachers_column_order'
 const LS_PAGE_SIZE = 'teachers_page_size'
+
+const VALID_COL_KEYS = ['subject', 'gender', 'contact', 'status', 'join']
+const DEFAULT_COL_ORDER = ['subject', 'gender', 'contact', 'status', 'join']
 
 const DEFAULT_SUBJECTS = [
     'Matematika', 'Bahasa Indonesia', 'Bahasa Inggris', 'Fisika', 'Kimia',
@@ -16,6 +20,14 @@ const DEFAULT_SUBJECTS = [
     'Pendidikan Agama Islam', 'Pendidikan Agama Kristen', 'Pendidikan Kewarganegaraan',
     'Informatika', 'Seni Budaya', 'Penjaskes', 'Prakarya', 'Bahasa Arab',
 ]
+
+const getSavedFilters = () => {
+    try { return JSON.parse(localStorage.getItem(LS_FILTERS) || '{}') } catch { return {} }
+}
+const getSavedCols = () => {
+    try { return JSON.parse(localStorage.getItem(LS_COLS) || '{}') } catch { return {} }
+}
+const DEFAULT_VISIBLE_COLS = { subject: true, gender: true, contact: true, status: true, join: true }
 
 const mapTeacher = (row) => ({
     ...row,
@@ -42,13 +54,18 @@ export function useTeachersCore({ addToast }) {
     // filters
     const [searchQuery, setSearchQuery] = useState('')
     const debouncedSearch = useDebounce(searchQuery, 350)
-    const [filterSubject, setFilterSubject] = useState('')
-    const [filterGender, setFilterGender] = useState('')
-    const [filterStatus, setFilterStatus] = useState('active')
-    const [filterType, setFilterType] = useState('') // '' | 'guru' | 'karyawan'
+    const [filterSubject, setFilterSubject] = useState(() => getSavedFilters().filterSubject || '')
+    const [filterGender, setFilterGender] = useState(() => getSavedFilters().filterGender || '')
+    const [filterStatus, setFilterStatus] = useState(() => getSavedFilters().filterStatus !== undefined ? getSavedFilters().filterStatus : 'active')
+    const [filterType, setFilterType] = useState(() => getSavedFilters().filterType || '') // '' | 'guru' | 'karyawan'
     const [filterMissing, setFilterMissing] = useState('')
-    const [sortBy, setSortBy] = useState('name_asc')
+    const [sortBy, setSortBy] = useState(() => getSavedFilters().sortBy || 'name_asc')
     const [page, setPage] = useState(1)
+    const [prevSearch, setPrevSearch] = useState(debouncedSearch)
+    if (prevSearch !== debouncedSearch) {
+        setPrevSearch(debouncedSearch)
+        setPage(1)
+    }
     const [jumpPage, setJumpPage] = useState('')
     const [showAdvFilter, setShowAdvFilter] = useState(false)
     const [pageSize, setPageSize] = useState(() => {
@@ -56,10 +73,24 @@ export function useTeachersCore({ addToast }) {
     })
 
     // columns
-    const [visibleCols, setVisibleCols] = useState({ subject: true, gender: true, contact: true, status: true, join: true })
+    const [visibleCols, setVisibleCols] = useState(() => {
+        const c = getSavedCols()
+        return Object.keys(c).length ? c : DEFAULT_VISIBLE_COLS
+    })
     const [isColMenuOpen, setIsColMenuOpen] = useState(false)
-    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+    const [colMenuPos, setColMenuPos] = useState({ top: 0, right: 0, showUp: false })
     const colMenuRef = useRef(null)
+    const colMenuPortalRef = useRef(null)
+    const [columnOrder, setColumnOrder] = useState(() => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(LS_COL_ORDER))
+            if (saved) {
+                const cleaned = saved.filter(k => VALID_COL_KEYS.includes(k))
+                return cleaned.length === VALID_COL_KEYS.length ? cleaned : DEFAULT_COL_ORDER
+            }
+            return DEFAULT_COL_ORDER
+        } catch { return DEFAULT_COL_ORDER }
+    })
 
     // ui
     const [isPrivacyMode, setIsPrivacyMode] = useState(false)
@@ -117,48 +148,33 @@ export function useTeachersCore({ addToast }) {
     // ── persist ──────────────────────────────────────────────────────────────
     useEffect(() => {
         try {
-            const f = JSON.parse(localStorage.getItem(LS_FILTERS) || '{}')
-            if (f.filterGender) setFilterGender(f.filterGender)
-            if (f.filterStatus !== undefined) setFilterStatus(f.filterStatus)
-            if (f.filterSubject) setFilterSubject(f.filterSubject)
-            if (f.filterType) setFilterType(f.filterType)
-            if (f.sortBy) setSortBy(f.sortBy)
-        } catch { }
-        try {
-            const c = JSON.parse(localStorage.getItem(LS_COLS) || '{}')
-            if (Object.keys(c).length) setVisibleCols(c)
-        } catch { }
-    }, [])
-
-    useEffect(() => {
-        try {
             localStorage.setItem(LS_FILTERS, JSON.stringify({ filterGender, filterStatus, filterSubject, filterType, sortBy }))
-        } catch { }
+        } catch { /* localStorage may be unavailable (private mode / quota) */ }
     }, [filterGender, filterStatus, filterSubject, filterType, sortBy])
 
     useEffect(() => {
         try {
             localStorage.setItem(LS_COLS, JSON.stringify(visibleCols))
-        } catch { }
+        } catch { /* localStorage may be unavailable (private mode / quota) */ }
     }, [visibleCols])
 
     useEffect(() => {
         try {
+            localStorage.setItem(LS_COL_ORDER, JSON.stringify(columnOrder))
+        } catch { /* localStorage may be unavailable (private mode / quota) */ }
+    }, [columnOrder])
+
+    useEffect(() => {
+        try {
             localStorage.setItem(LS_PAGE_SIZE, pageSize)
-        } catch { }
+        } catch { /* localStorage may be unavailable (private mode / quota) */ }
     }, [pageSize])
 
-    // debounce handled by useDebounce hook — reset page on search change
-    useEffect(() => { setPage(1) }, [debouncedSearch])
-
-    // Deferred unmount effect for header menu
+    // Deferred unmount: keeps portal in DOM for 200ms after close so exit animation can play
     useEffect(() => {
-        if (isHeaderMenuOpen) {
-            setHeaderMenuMounted(true)
-        } else {
-            const t = setTimeout(() => setHeaderMenuMounted(false), 200)
-            return () => clearTimeout(t)
-        }
+        if (isHeaderMenuOpen) return
+        const t = setTimeout(() => setHeaderMenuMounted(false), 200)
+        return () => clearTimeout(t)
     }, [isHeaderMenuOpen])
 
     // Sticky positioning - keep portaled dropdowns anchored on scroll/resize
@@ -176,7 +192,7 @@ export function useTeachersCore({ addToast }) {
 
     useEffect(() => {
         const h = e => {
-            if (colMenuRef.current && !colMenuRef.current.contains(e.target)) setIsColMenuOpen(false)
+            if (colMenuRef.current && !colMenuRef.current.contains(e.target) && colMenuPortalRef.current && !colMenuPortalRef.current.contains(e.target)) setIsColMenuOpen(false)
             if (quickStatusRef.current && !quickStatusRef.current.contains(e.target)) setQuickStatusId(null)
         }
         document.addEventListener('mousedown', h)
@@ -210,7 +226,7 @@ export function useTeachersCore({ addToast }) {
             setTotalRows(count ?? 0)
         } catch (err) { handleError(err, { context: 'Gagal memuat data guru' }) }
         finally { if (showLoading) setLoading(false) }
-    }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, addToast])
+    }, [page, pageSize, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch, handleError])
 
     const fetchData = useCallback(() => _fetchData(true), [_fetchData])
     const fetchDataSilent = useCallback(() => _fetchData(false), [_fetchData])
@@ -220,7 +236,7 @@ export function useTeachersCore({ addToast }) {
             const { data: allSubj } = await supabase.from('teachers').select('subject').is('deleted_at', null).not('subject', 'is', null)
             const dbSubjects = allSubj ? allSubj.map(r => r.subject).filter(Boolean) : []
             setSubjectsList([...new Set([...DEFAULT_SUBJECTS, ...dbSubjects])].sort())
-        } catch { }
+        } catch { /* best-effort: subject list is non-critical */ }
     }, [])
 
     const fetchStats = useCallback(async () => {
@@ -242,7 +258,7 @@ export function useTeachersCore({ addToast }) {
                     karyawan,
                 })
             }
-        } catch { }
+        } catch { /* best-effort: stats are non-critical */ }
     }, [])
 
     const fetchDataRef = useRef(fetchData); const fetchStatsRef = useRef(fetchStats); const fetchSubjectsRef = useRef(fetchSubjects); const fetchDataSilentRef = useRef(fetchDataSilent)
@@ -264,8 +280,28 @@ export function useTeachersCore({ addToast }) {
         return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch) }
     }, [])
 
-    useEffect(() => { fetchStats(); fetchSubjects() }, [])
-    useEffect(() => { fetchData() }, [page, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch])
+    useEffect(() => { fetchStatsRef.current(); fetchSubjectsRef.current() }, [])
+    useEffect(() => { fetchDataRef.current() }, [page, sortBy, filterStatus, filterGender, filterSubject, filterType, filterMissing, debouncedSearch])
+
+    // ── column reorder ────────────────────────────────────────────────────────
+    const moveColumnLeft = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key)
+            if (idx <= 0) return prev
+            const next = [...prev]
+            ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+            return next
+        })
+    }, [])
+    const moveColumnRight = useCallback((key) => {
+        setColumnOrder(prev => {
+            const idx = prev.indexOf(key)
+            if (idx === -1 || idx >= prev.length - 1) return prev
+            const next = [...prev]
+            ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+            return next
+        })
+    }, [])
 
     // ── crud ──────────────────────────────────────────────────────────────────
     const handleAdd = useCallback(() => { setSelectedItem(null); setIsModalOpen(true) }, [])
@@ -318,7 +354,7 @@ export function useTeachersCore({ addToast }) {
         } catch (err) { handleError(err, { context: 'Gagal mengarsipkan' }) } finally {
             setSubmitting(false)
         }
-    }, [teacherToAction, addToast])
+    }, [teacherToAction, addToast, handleError])
 
     const handleRestore = useCallback(async teacher => {
         try {
@@ -328,7 +364,7 @@ export function useTeachersCore({ addToast }) {
             await logAudit({ action: 'RESTORE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, deleted_at: null } })
             setArchivedTeachers(prev => prev.filter(t => t.id !== teacher.id))
         } catch (err) { handleError(err, { context: 'Gagal memulihkan' }) }
-    }, [addToast])
+    }, [addToast, handleError])
 
     const fetchArchived = useCallback(async () => {
         setLoadingArchived(true)
@@ -339,7 +375,7 @@ export function useTeachersCore({ addToast }) {
         } catch (err) { handleError(err, { context: 'Gagal memuat arsip' }) } finally {
             setLoadingArchived(false)
         }
-    }, [addToast])
+    }, [handleError])
 
     // ── pin ───────────────────────────────────────────────────────────────────
     const handleTogglePin = useCallback(async teacher => {
@@ -399,15 +435,13 @@ export function useTeachersCore({ addToast }) {
             await logAudit({ action: 'UPDATE', source: 'OPERATIONAL', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, is_active: isActive } })
             setQuickStatusId(null)
         } catch (err) { handleError(err, { context: 'Gagal update status' }) }
-    }, [addToast])
+    }, [addToast, handleError])
 
     // ── profile ───────────────────────────────────────────────────────────────
-    const openProfile = useCallback(async (teacher, tab = 'info') => {
+    const openProfile = useCallback((teacher, tab = 'info') => {
         setProfileTeacher(teacher)
         setProfileTab(tab)
-        setLoadingProfile(true)
         setIsProfileOpen(true)
-        try { } catch { } finally { setLoadingProfile(false) }
     }, [])
 
     // ── bulk ──────────────────────────────────────────────────────────────────
@@ -430,7 +464,7 @@ export function useTeachersCore({ addToast }) {
         } catch (err) { handleError(err, { context: 'Gagal arsip massal' }) } finally {
             setSubmitting(false)
         }
-    }, [selectedIds, fetchData, fetchStats, addToast])
+    }, [selectedIds, addToast, handleError])
 
     const bulkWATeachers = useMemo(() => teachers.filter(t => selectedIds.includes(t.id) && t.phone), [teachers, selectedIds])
     
@@ -471,7 +505,9 @@ export function useTeachersCore({ addToast }) {
         searchQuery, setSearchQuery, debouncedSearch, filterSubject, setFilterSubject, filterGender, setFilterGender,
         filterStatus, setFilterStatus, filterType, setFilterType, filterMissing, setFilterMissing, sortBy, setSortBy,
         page, setPage, jumpPage, setJumpPage, showAdvFilter, setShowAdvFilter, pageSize, setPageSize,
-        visibleCols, setVisibleCols, isColMenuOpen, setIsColMenuOpen, menuPos, setMenuPos, colMenuRef,
+        visibleCols, setVisibleCols, columnOrder, setColumnOrder,
+        isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos, colMenuRef, colMenuPortalRef,
+        moveColumnLeft, moveColumnRight,
         isPrivacyMode, setIsPrivacyMode, isShortcutOpen, setIsShortcutOpen, isHeaderMenuOpen, setIsHeaderMenuOpen,
         isModalOpen, setIsModalOpen, isArchiveModalOpen, setIsArchiveModalOpen, isArchivedOpen, setIsArchivedOpen,
         isProfileOpen, setIsProfileOpen, isImportModalOpen, setIsImportModalOpen, isExportModalOpen, setIsExportModalOpen,

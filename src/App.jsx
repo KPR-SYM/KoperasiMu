@@ -66,6 +66,8 @@ const AdminDashboardPage = lazyRetry(() => import('@features/admin/pages/AdminDa
 // Master Data
 const StudentsPage = lazyRetry(() => import('@features/students/pages/StudentsPage.jsx'))
 const TeachersPage = lazyRetry(() => import('@features/teachers/pages/TeachersPage.jsx'))
+const TeacherImportPage = lazyRetry(() => import('@features/teachers/pages/TeacherImportPage.jsx'))
+const TeacherExportPage = lazyRetry(() => import('@features/teachers/pages/TeacherExportPage.jsx'))
 const ClassesPage = lazyRetry(() => import('@features/classes/pages/ClassesPage.jsx'))
 const ClassImportPage = lazyRetry(() => import('@features/classes/pages/ClassImportPage.jsx'))
 const ClassExportPage = lazyRetry(() => import('@features/classes/pages/ClassExportPage.jsx'))
@@ -654,6 +656,21 @@ function AppRoutes() {
             <Route path="/master/teachers" element={
               <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.teachers" label="Data Guru">
                 <TeachersPage />
+              </RoleFlagRoute>
+            } />
+            <Route path="/master/teachers/:id" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.teachers" label="Detail Guru">
+                <TeachersPage />
+              </RoleFlagRoute>
+            } />
+            <Route path="/master/teachers/import" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.teachers" label="Import Guru">
+                <TeacherImportPage />
+              </RoleFlagRoute>
+            } />
+            <Route path="/master/teachers/export" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.teachers" label="Export Guru">
+                <TeacherExportPage />
               </RoleFlagRoute>
             } />
             <Route path="/master/classes" element={

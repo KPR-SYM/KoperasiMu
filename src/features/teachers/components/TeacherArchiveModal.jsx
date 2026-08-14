@@ -4,6 +4,7 @@ import { Warning, Archive, CaretLeft, CaretRight, Spinner, Trash, ArrowCounterCl
 import { Modal, EmptyState } from '@shared/components'
 import { supabase } from '@lib/supabase'
 import { useErrorHandler } from '@hooks'
+import { TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
 
 export default function TeacherArchiveModal({
     isOpen,
@@ -11,7 +12,6 @@ export default function TeacherArchiveModal({
     archivedTeachers,
     loadingArchived,
     setArchivedTeachers,
-    fetchArchivedTeachers,
     fetchData,
     fetchStats,
     addToast

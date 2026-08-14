@@ -1,10 +1,22 @@
 import React, { memo } from 'react'
-import { ArrowCounterClockwise, ChatCircle, Archive, X, SlidersHorizontal } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, Archive, ChatCircle, CheckCircle, CheckSquare, Checks, Hourglass, MagnifyingGlass, SlidersHorizontal, Suitcase, Users, X, XCircle, ChalkboardTeacher } from '@phosphor-icons/react'
 import { DebouncedSearchInput, Select } from '@shared/components'
 
+const STATUS_CHIPS = [
+    { id: '', label: 'Semua', icon: Users },
+    { id: 'active', label: 'Aktif', icon: CheckCircle },
+    { id: 'inactive', label: 'Nonaktif', icon: XCircle },
+    { id: 'cuti', label: 'Cuti', icon: Hourglass },
+]
+
+const TYPE_CHIPS = [
+    { id: 'guru', label: 'Guru', icon: ChalkboardTeacher },
+    { id: 'karyawan', label: 'Karyawan', icon: Suitcase },
+]
+
 const TeachersToolbar = memo(function TeachersToolbar({
-    searchQuery, setSearchQuery, searchInputRef, loading,
-    showAdvFilter, setShowAdvFilter,
+    searchQuery, setSearchQuery, searchInputRef, loading, totalRows,
+    isFilterOpen, setIsFilterOpen,
     activeFilterCount, resetAllFilters,
     filterStatus, setFilterStatus,
     filterGender, setFilterGender,
@@ -13,13 +25,14 @@ const TeachersToolbar = memo(function TeachersToolbar({
     filterMissing, setFilterMissing,
     sortBy, setSortBy,
     subjectsList,
+    selectedIds, toggleSelectAll,
     setPage,
 }) {
     return (
-        <div className="border-b border-[var(--color-border)]">
+        <div>
             {/* Main Search Bar */}
-            <div className="flex items-center gap-2 p-2.5 lg:p-3">
-                <div className="flex-initial w-full lg:w-[232px] xl:w-[352px] min-w-[120px] transition-all duration-300">
+            <div className="flex items-center gap-2 p-2 lg:p-2.5">
+                <div className="flex-1 min-w-[120px] transition-all duration-300">
                     <DebouncedSearchInput
                         searchQuery={searchQuery}
                         onSearch={setSearchQuery}
@@ -29,16 +42,74 @@ const TeachersToolbar = memo(function TeachersToolbar({
                     />
                 </div>
 
-                <div className="hidden lg:block flex-1" />
+                {totalRows >= 5 && (
+                    <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
+                        <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {STATUS_CHIPS.map((s) => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => { setFilterStatus(s.id); setPage(1) }}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
+                                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                                        : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]'
+                                        }`}
+                                >
+                                    <s.icon className={`w-3 h-3 ${filterStatus === s.id ? 'opacity-100' : 'opacity-30'}`} />
+                                    {s.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {TYPE_CHIPS.map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => { setFilterType(filterType === t.id ? '' : t.id); setPage(1) }}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterType === t.id
+                                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white'
+                                        : 'bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]'
+                                        }`}
+                                >
+                                    <t.icon className={`w-3 h-3 ${filterType === t.id ? 'opacity-100' : 'opacity-30'}`} />
+                                    {t.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
 
-                <div className="flex items-center justify-end gap-2 shrink-0">
+                <div className="flex items-center justify-end gap-2 shrink-0 lg:ml-auto">
                     <button
-                        onClick={() => setShowAdvFilter(!showAdvFilter)}
-                        className={`h-9 px-3 sm:px-4 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${showAdvFilter || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
+                        onClick={toggleSelectAll}
+                        className={`h-8 px-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 ${selectedIds.length > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
+                        title="Pilih Semua / Batal"
                     >
-                        <SlidersHorizontal />
-                        {activeFilterCount > 0 && <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">{activeFilterCount}</span>}
+                        {selectedIds.length > 0 ? <Checks className="w-3 h-3" /> : <CheckSquare className="w-3 h-3" />}
+                        <span className="hidden xs:inline">{selectedIds.length > 0 ? 'Terpilih' : 'Pilih'}</span>
+                        {selectedIds.length > 0 && (
+                            <span className="w-4 h-4 rounded-full bg-white/20 text-white text-[9px] font-black flex items-center justify-center">
+                                {selectedIds.length}
+                            </span>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setIsFilterOpen(!isFilterOpen)}
+                        className={`h-8 px-2.5 sm:px-3 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 ${isFilterOpen || activeFilterCount > 0 ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30' : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'} `}
+                    >
+                        <SlidersHorizontal className="w-3 h-3" />
+                        <span className="hidden xs:inline">Lainnya</span>
+                        {activeFilterCount > 0 && (
+                            <span className="w-4 h-4 rounded-full bg-white/30 text-white text-[9px] font-black flex items-center justify-center">
+                                {activeFilterCount}
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>
@@ -50,6 +121,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                         {searchQuery && (
                             <button type="button" onClick={() => setSearchQuery('')}
                                 className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/40 text-[10px] font-black text-[var(--color-text)]">
+                                <MagnifyingGlass className="w-3 h-3 opacity-60" />
                                 <span className="max-w-[180px] truncate">"{searchQuery}"</span>
                                 <span className="w-5 h-5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] group-hover:text-red-500 transition-colors">
                                     <X className="w-3 h-3" />
@@ -111,7 +183,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
             )}
 
             {/* Advanced Filter Panel */}
-            {showAdvFilter && (
+            {isFilterOpen && (
                 <div className="border-t border-[var(--color-border)] p-3.5 bg-[var(--color-surface-alt)]/60 backdrop-blur-md animate-in fade-in slide-in-from-top-2">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
@@ -212,7 +284,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                     <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
                         <div className="flex gap-1.5 overflow-x-auto pb-1">
                             {[
-                                { label: 'Semua', icon: X, active: !filterMissing && filterStatus === 'active', onClick: () => { setFilterMissing(''); setFilterStatus('active'); setSortBy('name_asc') } },
+                                { label: 'Semua', icon: Users, active: !filterMissing && filterStatus === 'active', onClick: () => { setFilterMissing(''); setFilterStatus('active'); setSortBy('name_asc') } },
                                 { label: 'Tanpa WA', icon: ChatCircle, active: filterMissing === 'wa', onClick: () => { setFilterMissing('wa'); setPage(1) } },
                                 { label: 'Nonaktif', icon: Archive, active: filterStatus === 'inactive', onClick: () => { setFilterStatus('inactive'); setPage(1) } },
                                 { label: 'Cuti', icon: Archive, active: filterStatus === 'cuti', onClick: () => { setFilterStatus('cuti'); setPage(1) } },

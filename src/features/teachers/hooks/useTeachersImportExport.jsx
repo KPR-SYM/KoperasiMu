@@ -1,8 +1,8 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import Papa from 'papaparse'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
-import { STATUS_CONFIG } from '@features/teachers/components/TeacherRow'
+import { STATUS_CONFIG, TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
 import { useErrorHandler } from '@hooks'
 
 const SYSTEM_COLS = [
@@ -45,7 +45,6 @@ const SYSTEM_COLS = [
 ]
 
 export function useTeachersImportExport({
-    teachers,
     selectedIds,
     filterStatus,
     filterGender,
@@ -58,6 +57,7 @@ export function useTeachersImportExport({
     setIsExportModalOpen
 }) {
     const { handleError } = useErrorHandler('TeachersImportExport')
+    const importFileInputRef = useRef(null)
     // import
     const [importStep, setImportStep] = useState(1)
     const [importFileName, setImportFileName] = useState('')
@@ -68,7 +68,7 @@ export function useTeachersImportExport({
     const [importIssues, setImportIssues] = useState([])
     const [importLoading, setImportLoading] = useState(false)
     const [importValidationOpen, setImportValidationOpen] = useState(true)
-    const [importDrag, setImportDrag] = useState(false)
+    const [importDragOver, setImportDragOver] = useState(false)
     const [importing, setImporting] = useState(false)
     const [importProgress, setImportProgress] = useState({ done: 0, total: 0 })
     const [importEditCell, setImportEditCell] = useState(null)
@@ -80,6 +80,8 @@ export function useTeachersImportExport({
     const [exporting, setExporting] = useState(false)
 
     // ── import processing ─────────────────────────────────────────────────────
+    const handleImportClick = useCallback(() => importFileInputRef.current?.click(), [])
+
     const processImportFile = useCallback(async file => {
         if (!file) return
         const ext = file.name.toLowerCase()
@@ -122,7 +124,7 @@ export function useTeachersImportExport({
             setImportStep(2)
         } catch (err) { handleError(err, { context: 'Gagal membaca file import' }) }
         finally { setImportLoading(false) }
-    }, [addToast])
+    }, [addToast, handleError])
 
     const buildImportPreview = useCallback(async (raw, mapping) => {
         setImportLoading(true)
@@ -321,7 +323,7 @@ export function useTeachersImportExport({
             fetchStats()
         } catch (err) { handleError(err, { context: 'Gagal import (cek constraint DB / duplikat)' }) }
         finally { setImporting(false) }
-    }, [importPreview, hasImportBlockingErrors, fetchData, fetchStats, addToast, setIsImportModalOpen])
+    }, [importPreview, hasImportBlockingErrors, fetchData, fetchStats, addToast, setIsImportModalOpen, handleError])
 
     // ── export data ───────────────────────────────────────────────────────────
     const getExportData = useCallback(async () => {
@@ -387,7 +389,7 @@ export function useTeachersImportExport({
             setIsExportModalOpen(false)
         } catch (err) { handleError(err, { context: 'Gagal export CSV' }) }
         finally { setExporting(false) }
-    }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen])
+    }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen, handleError])
 
     const handleExportExcel = useCallback(async (filename) => {
         setExporting(true)
@@ -417,7 +419,7 @@ export function useTeachersImportExport({
             setIsExportModalOpen(false)
         } catch (err) { handleError(err, { context: 'Gagal export Excel' }) }
         finally { setExporting(false) }
-    }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen])
+    }, [getExportData, exportScope, exportColumns, addToast, setIsExportModalOpen, handleError])
 
     const handleExportPDF = useCallback(async (filename, options = {}) => {
         setExporting(true)
@@ -501,10 +503,11 @@ export function useTeachersImportExport({
         importStep, setImportStep, importFileName, setImportFileName, importRawData, setImportRawData,
         importFileHeaders, setImportFileHeaders, importColumnMapping, setImportColumnMapping,
         importPreview, setImportPreview, importIssues, setImportIssues, importLoading, setImportLoading,
-        importValidationOpen, setImportValidationOpen, importDrag, setImportDrag, importing, setImporting,
+        importValidationOpen, setImportValidationOpen, importDragOver, setImportDragOver, importing, setImporting,
         importProgress, setImportProgress, importEditCell, setImportEditCell, importSkipDupes, setImportSkipDupes,
         exportScope, setExportScope, exportColumns, setExportColumns, exporting, setExporting,
         importReadyRows, hasImportBlockingErrors, SYSTEM_COLS, ALL_EXPORT_COLUMNS,
+        importFileInputRef, handleImportClick,
         processImportFile, buildImportPreview, handleImportCellEdit, handleRemoveImportRow,
         handleBulkFix, handleDownloadTemplate, handleCommitImport, getExportData,
         handleExportCSV, handleExportExcel, handleExportPDF
