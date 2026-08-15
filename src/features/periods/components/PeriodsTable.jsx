@@ -30,16 +30,16 @@ const COL_LABELS = {
 
 function renderColHeader(key) {
     if (!COL_LABELS[key]) return null;
-    return <th className="px-3 py-2 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
+    return <th className="px-6 py-4 text-left whitespace-nowrap">{COL_LABELS[key]}</th>;
 }
 
 function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDuration, getPeriodStats, inlineEditCell, setInlineEditCell, handleInlineSave, onQuickFilterYear, years, pinnedIds }) {
     if (key === "period") {
         const isPinned = pinnedIds?.includes(year.id);
         return (
-            <td className="px-3 py-2">
+            <td className="px-6 py-4">
                 <div className="flex items-center gap-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${isPinned ? "bg-amber-500/10 text-amber-600" : year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-black shadow-sm relative transition-transform hover:scale-110 shrink-0 ${isPinned ? "bg-amber-500/10 text-amber-600" : year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}>
                             <span className="relative z-10">
                                 {isPinned ? <PushPin weight="fill" className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
                             </span>
@@ -57,7 +57,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     }
     if (key === "semester") {
         return (
-            <td className="px-3 py-2">
+            <td className="px-6 py-4">
                 <InlineCell id={year.id} field="semester" value={year.semester} displayValue={year.semester} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
             </td>
         );
@@ -73,29 +73,24 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
             pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
             barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
         }
+        const durationText = maskValue(getDuration(year.start_date, year.end_date), "duration");
+        const statsText = st ? `${st.elapsed}/${st.totalDays} hari · ${st.remaining} hari lagi` : null;
         return (
-            <td className="px-3 py-2">
-                <div className="flex flex-col">
+            <td className="px-6 py-4">
+                <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
                         <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={maskValue(formatDate(year.start_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                         {" — "}
                         <InlineCell id={year.id} field="end_date" value={year.end_date} displayValue={maskValue(formatDate(year.end_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                     </span>
-                    <span className="text-[10px] text-[var(--color-text-muted)] mt-0.5">
-                        {maskValue(getDuration(year.start_date, year.end_date), "duration")}
+                    <span className="text-[9px] text-[var(--color-text-muted)]">
+                        {durationText}{statsText ? ` · ${statsText}` : ""}
                     </span>
-                    {isPrivacyMode ? (
-                        <span className="text-[8px] text-transparent mt-0.5 select-none">placeholder stats</span>
-                    ) : st ? (
-                        <span className="text-[8px] text-[var(--color-text-muted)] mt-0.5">
-                            {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
-                        </span>
-                    ) : null}
                     {year.start_date && year.end_date && (
                         isPrivacyMode ? (
-                            <div className="w-full h-1 rounded-full bg-transparent mt-1.5 overflow-hidden" />
+                            <div className="w-full h-1 rounded-full bg-transparent mt-0.5 overflow-hidden" />
                         ) : (
-                            <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1.5 overflow-hidden">
+                            <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-0.5 overflow-hidden">
                                 <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
                             </div>
                         )
@@ -124,7 +119,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     }
     if (key === "created_at") {
         return (
-            <td className="px-3 py-2">
+            <td className="px-6 py-4">
                 <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
                     <span className="text-[10px] font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
@@ -177,7 +172,12 @@ const PeriodsTable = memo(function PeriodsTable({
     const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
     const menuRef = useRef(null);
 
+    const [mobileMenuId, setMobileMenuId] = useState(null);
+    const [mobileMenuPos, setMobileMenuPos] = useState({ top: 0, left: 0 });
+    const mobileMenuRef = useRef(null);
+
     const closeMenu = useCallback(() => setOpenMenuId(null), []);
+    const closeMobileMenu = useCallback(() => setMobileMenuId(null), []);
 
     const toggleMenu = useCallback((e, id) => {
         if (openMenuId === id) {
@@ -203,13 +203,32 @@ const PeriodsTable = memo(function PeriodsTable({
         return () => document.removeEventListener("mousedown", handler);
     }, [openMenuId, closeMenu]);
 
+    useEffect(() => {
+        if (!mobileMenuId) return;
+        const handler = (e) => {
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) closeMobileMenu();
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [mobileMenuId, closeMobileMenu]);
+
+    const toggleMobileMenu = useCallback((e, year) => {
+        e.stopPropagation();
+        if (mobileMenuId === year.id) {
+            closeMobileMenu();
+        } else {
+            setMobileMenuPos({ top: e.currentTarget.getBoundingClientRect().top - 8, right: window.innerWidth - e.currentTarget.getBoundingClientRect().right - 8 });
+            setMobileMenuId(year.id);
+        }
+    }, [mobileMenuId, closeMobileMenu]);
+
     return (
         <>
             <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm" style={{ tableLayout: "auto" }}>
                     <thead className="bg-[var(--color-surface-alt)] sticky top-0 z-10">
                         <tr className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
-                            <th className="px-3 py-2 text-center w-12">
+                            <th className="px-6 py-4 text-center w-12">
                                 <Checkbox
                                     checked={selectedIds.length === paged.length && paged.length > 0}
                                     onChange={toggleSelectAll}
@@ -218,7 +237,7 @@ const PeriodsTable = memo(function PeriodsTable({
                             {orderedCols.map(key => (
                                 <React.Fragment key={key}>{renderColHeader(key)}</React.Fragment>
                             ))}
-                            <th className="px-3 py-2 relative">
+                            <th className="px-6 py-4 relative">
                                 <div className="flex items-center justify-center">
                                     <span>Aksi</span>
                                 </div>
@@ -276,19 +295,19 @@ const PeriodsTable = memo(function PeriodsTable({
                                         data-row-id={year.id}
                                         className={`border-t border-[var(--color-border)] transition-colors group/row ${isPinned ? "bg-amber-500/[0.03] border-l-2 border-l-amber-500/40" : ""} ${isSelected ? "bg-[var(--color-primary)]/5" : "hover:bg-[var(--color-surface-alt)]/40"}`}
                                     >
-                                        <td className="px-3 py-2">
+                                        <td className="px-6 py-4">
                                             <Checkbox checked={isSelected} onChange={() => toggleSelect(year.id)} />
                                         </td>
                                         {orderedCols.map(key => (
                                             <React.Fragment key={key}>{renderColCell(key, { year, ...colCellArgs })}</React.Fragment>
                                         ))}
-                                        <td className="px-3 py-2">
+                                        <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-1">
-                                                <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-xs">
+                                                <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm">
                                                     <Eye />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
-                                                    <button onClick={() => handleEdit(year)} title="Edit" className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-xs">
+                                                    <button onClick={() => handleEdit(year)} title="Edit" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm">
                                                         <Pencil />
                                                     </button>
                                                 )}
@@ -296,33 +315,33 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     <button
                                                         onClick={(e) => toggleMenu(e, year.id)}
                                                         title="Lainnya"
-                                                        className="w-6 h-6 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all text-xs"
+                                                        className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all text-sm"
                                                     >
                                                         <DotsThree weight="bold" />
                                                     </button>
                                                     {openMenuId === year.id && createPortal(
-                                                        <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, bottom: menuPos.bottom, left: menuPos.left, zIndex: 9999 }} className="w-44 py-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
-                                                            <button onClick={() => { onTogglePin?.(year.id); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
-                                                                <PushPin className="w-3.5 h-3.5" /> {pinnedIds?.includes(year.id) ? "Lepas Pin" : "Pin ke Atas"}
+                                                        <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, bottom: menuPos.bottom, left: menuPos.left, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+                                                            <button onClick={() => { onTogglePin?.(year.id); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                <PushPin className="w-4 h-4" /> {pinnedIds?.includes(year.id) ? "Lepas Pin" : "Pin ke Atas"}
                                                             </button>
                                                             {canEdit && (
-                                                                <button onClick={() => { onQuickDuplicate?.(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
-                                                                    <Copy className="w-3.5 h-3.5" /> Duplikasi
+                                                                <button onClick={() => { onQuickDuplicate?.(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                    <Copy className="w-4 h-4" /> Duplikasi
                                                                 </button>
                                                             )}
-                                                            <button onClick={() => { handleOpenHistory(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
-                                                                <ClockCounterClockwise className="w-3.5 h-3.5" /> Riwayat
+                                                            <button onClick={() => { handleOpenHistory(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                <ClockCounterClockwise className="w-4 h-4" /> Riwayat
                                                             </button>
                                                             {canEdit && (
-                                                                <button onClick={() => { handleToggleLock(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 hover:bg-[var(--color-surface-alt)] transition-colors">
-                                                                    {year.is_locked ? <><LockOpen className="w-3.5 h-3.5" /> Buka Kunci</> : <><Lock className="w-3.5 h-3.5" /> Kunci</>}
+                                                                <button onClick={() => { handleToggleLock(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                    {year.is_locked ? <><LockOpen className="w-4 h-4" /> Buka Kunci</> : <><Lock className="w-4 h-4" /> Kunci</>}
                                                                 </button>
                                                             )}
                                                             {canEdit && !year.is_locked && (
                                                                 <>
-                                                                    <div className="my-1 border-t border-[var(--color-border)]" />
-                                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2 text-red-500 hover:bg-red-50 transition-colors">
-                                                                        <Trash className="w-3.5 h-3.5" /> Hapus
+                                                                    <div className="my-1.5 border-t border-[var(--color-border)]" />
+                                                                    <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 text-red-500 hover:bg-red-50 transition-colors">
+                                                                        <Trash className="w-4 h-4" /> Hapus
                                                                     </button>
                                                                 </>
                                                             )}
@@ -356,143 +375,160 @@ const PeriodsTable = memo(function PeriodsTable({
                 ) : (
                     paged.map((year) => {
                         const isSelected = selectedIds.includes(year.id);
+                        const isPinned = pinnedIds?.includes(year.id);
+                        const st = getPeriodStats?.(year.start_date, year.end_date);
+                        const now = Date.now();
+                        const s = new Date(year.start_date).getTime();
+                        const e = new Date(year.end_date).getTime();
+                        const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+                        const barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
                         return (
                             <div
                                 key={year.id}
-                                className={`p-2.5 transition-colors group/mob ${isSelected ? "bg-[var(--color-primary)]/5" : ""}`}
+                                className={`p-4 transition-colors group/mob ${isSelected ? "bg-[var(--color-primary)]/5" : ""}`}
                             >
-                <div className="flex items-center gap-3">
-                                    <div className="flex flex-col items-center gap-2.5 pt-1">
-                                        <Checkbox
-                                            checked={selectedIds.includes(year.id)}
-                                            onChange={() => toggleSelect(year.id)}
-                                            className="mt-1"
-                                        />
-                                    </div>
+                                {/* Top: checkbox + title */}
+                                <div className="flex items-center gap-3">
+                                    <Checkbox
+                                        checked={isSelected}
+                                        onChange={() => toggleSelect(year.id)}
+                                        small
+                                    />
                                     <div
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black shadow-sm relative transition-transform shrink-0 ${year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}
+                                        className={`w-11 h-11 rounded-2xl flex items-center justify-center text-sm font-black shadow-sm relative transition-transform shrink-0 ${isPinned ? "bg-amber-500/10 text-amber-600" : year.is_active ? "bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 text-[var(--color-primary)]" : "bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"}`}
                                     >
                                         <span className="relative z-10">
-                                            <Calendar className="w-4 h-4" />
+                                            {isPinned ? <PushPin weight="fill" className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
                                         </span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div
-                                                className="min-w-0 flex-1"
-                                                onClick={() => handleOpenReadOnlyDetail(year)}
-                                            >
-                                                <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
-                                                    <button type="button" onClick={() => handleOpenReadOnlyDetail(year)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full cursor-pointer">
-                                                        {year.academic_year}
-                                                    </button>
-                                                </PeriodContextTooltip>
-                                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                                    <span
-                                                        className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}
-                                                    >
-                                                        {year.semester}
-                                                    </span>
-                                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">
-                                                        {maskValue(formatDate(year.start_date), "date")} —{" "}
-                                                        {maskValue(formatDate(year.end_date), "date")}
-                                                    </span>
-                                                    {isPrivacyMode ? (
-                                                        <span className="text-[8px] text-transparent select-none">placeholder stats</span>
-                                                    ) : (() => {
-                                                        const st = getPeriodStats?.(year.start_date, year.end_date);
-                                                        if (!st) return null;
-                                                        return (
-                                                            <span className="text-[8px] text-[var(--color-text-muted)]">
-                                                                {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
-                                                            </span>
-                                                        );
-                                                    })()}
-                                                    {year.start_date && year.end_date && (
-                                                        isPrivacyMode ? (
-                                                            <div className="w-full h-1 rounded-full bg-transparent mt-1.5 overflow-hidden" />
-                                                        ) : (() => {
-                                                            const now = Date.now();
-                                                            const s = new Date(year.start_date).getTime();
-                                                            const e = new Date(year.end_date).getTime();
-                                                            const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
-                                                            const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-                                                            return (
-                                                                <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1.5 overflow-hidden">
-                                                                    <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
-                                                                </div>
-                                                            );
-                                                        })()
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <button
-                                                    onClick={() => onTogglePin?.(year.id)}
-                                                    title={pinnedIds?.includes(year.id) ? "Lepas pin" : "Pin ke atas"}
-                                                    className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${pinnedIds?.includes(year.id) ? "text-amber-500 bg-amber-500/10" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10"}`}
-                                                >
-                                                    <PushPin weight={pinnedIds?.includes(year.id) ? "fill" : "regular"} className="text-xs" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenReadOnlyDetail(year)}
-                                                    title="Lihat Detail"
-                                                    className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all"
-                                                >
-                                                    <Eye className="text-xs" />
-                                                </button>
-                                                {canEdit && !year.is_locked && (
-                                                    <button
-                                                        onClick={() => handleEdit(year)}
-                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"
-                                                    >
-                                                        <Pencil className="text-xs" />
-                                                    </button>
-                                                )}
-                                                {canEdit && (
-                                                    <button
-                                                        onClick={() => onQuickDuplicate?.(year)}
-                                                        title="Duplikasi"
-                                                        className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 transition-all"
-                                                    >
-                                                        <Copy className="text-xs" />
-                                                    </button>
-                                                )}
-                                                {canEdit && (
-                                                    <button
-                                                        onClick={() => handleToggleLock(year)}
-                                                        title={year.is_locked ? "Buka Kunci" : "Kunci"}
-                                                        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${year.is_locked ? "text-emerald-500 hover:bg-emerald-500/10" : "text-[var(--color-text-muted)] hover:text-rose-500 hover:bg-rose-500/10"}`}
-                                                    >
-                                                        {year.is_locked ? <LockOpen className="text-xs" /> : <Lock className="text-xs" />}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="mt-2.5 flex items-center gap-2">
+                                    <div className="flex-1 min-w-0 flex items-center gap-3" onClick={() => handleOpenReadOnlyDetail(year)}>
+                                        <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
+                                            <p className="font-extrabold text-[13px] text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
+                                                {year.academic_year}
+                                            </p>
+                                        </PeriodContextTooltip>
+                                        <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                                            <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border whitespace-nowrap ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}>
+                                                {year.semester}
+                                            </span>
                                             {year.is_active ? (
-                                                <span className="flex-1 h-8 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                                                <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 whitespace-nowrap">
                                                     Aktif
                                                 </span>
                                             ) : (
-                                                <span className="flex-1 h-8 rounded-xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border border-[var(--color-border)]">
-                                                    Tidak Aktif
+                                                <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] whitespace-nowrap">
+                                                    Nonaktif
                                                 </span>
                                             )}
-                                            <button
-                                                onClick={() => handleOpenHistory(year)}
-                                                className="flex-1 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 border border-indigo-500/20 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
-                                            >
-                                                <ClockCounterClockwise className="text-xs" />{" "}
-                                                Riwayat
-                                            </button>
+                                            {year.is_locked && (
+                                                <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-rose-500/20 bg-rose-500/10 text-rose-500 flex items-center gap-1 whitespace-nowrap">
+                                                    <Lock className="w-2 h-2" /> Terkunci
+                                                </span>
+                                            )}
                                         </div>
-                                        {year.created_at && (
-                                            <div className="mt-2 pt-2 border-t border-[var(--color-border)]/40 flex items-center gap-1.5">
-                                                <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
-                                                <span className="text-[9px] text-[var(--color-text-muted)] whitespace-nowrap">{maskValue(formatDate(year.created_at), "date")}</span>
+                                    </div>
+                                </div>
+
+                                {/* Dates — baris sendiri, sejajar dengan ikon */}
+                                <div className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-[var(--color-text)] pl-[26px]">
+                                    <Calendar className="w-3 h-3 text-[var(--color-text-muted)]/50 shrink-0" />
+                                    <span className="truncate">
+                                        {maskValue(formatDate(year.start_date), "date")} — {" "}
+                                        {maskValue(formatDate(year.end_date), "date")}
+                                    </span>
+                                </div>
+
+                                {/* Stats + progress */}
+                                {!isPrivacyMode && (st || year.start_date) && (
+                                    <div className="mt-2 pl-[26px]">
+                                        {st && (
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-[9px] text-[var(--color-text-muted)] truncate">
+                                                    {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
+                                                </span>
                                             </div>
                                         )}
+                                        {year.start_date && year.end_date && (
+                                            <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-1 overflow-hidden">
+                                                <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Footer: dibuat + aksi */}
+                                <div className="mt-3 pt-3 border-t border-[var(--color-border)]/40 flex items-center justify-between gap-2 pl-[26px]">
+                                    <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] min-w-0">
+                                        {year.created_at && (
+                                            <>
+                                                <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40 shrink-0" />
+                                                <span className="truncate">Dibuat {maskValue(formatDate(year.created_at), "date")}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                        <button
+                                            onClick={() => onTogglePin?.(year.id)}
+                                            title={isPinned ? "Lepas pin" : "Pin ke atas"}
+                                            className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-95 ${isPinned ? "text-amber-500 bg-amber-500/10 border-amber-500/20" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 border-[var(--color-border)]"}`}
+                                        >
+                                            <PushPin weight={isPinned ? "fill" : "regular"} className="text-sm" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleOpenReadOnlyDetail(year)}
+                                            title="Lihat Detail"
+                                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border border-[var(--color-border)] transition-all active:scale-95"
+                                        >
+                                            <Eye className="text-sm" />
+                                        </button>
+                                        {canEdit && !year.is_locked && (
+                                            <button
+                                                onClick={() => handleEdit(year)}
+                                                title="Edit"
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 border border-[var(--color-border)] transition-all active:scale-95"
+                                            >
+                                                <Pencil className="text-sm" />
+                                            </button>
+                                        )}
+                                        <div className="relative">
+                                            <button
+                                                onClick={(e) => toggleMobileMenu(e, year)}
+                                                title="Lainnya"
+                                                className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] border border-[var(--color-border)] transition-all active:scale-95"
+                                            >
+                                                <DotsThree weight="bold" />
+                                            </button>
+                                            {mobileMenuId === year.id && createPortal(
+                                                <div
+                                                    ref={mobileMenuRef}
+                                                    style={{ position: "fixed", top: mobileMenuPos.top, right: mobileMenuPos.right, zIndex: 9999 }}
+                                                    className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl"
+                                                >
+                                                    {canEdit && (
+                                                        <button onClick={() => { onQuickDuplicate?.(year); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                            <Copy className="w-4 h-4" /> Duplikasi
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => { handleOpenHistory(year); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                        <ClockCounterClockwise className="w-4 h-4" /> Riwayat
+                                                    </button>
+                                                    {canEdit && (
+                                                        <button onClick={() => { handleToggleLock(year); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                            {year.is_locked ? <><LockOpen className="w-4 h-4" /> Buka Kunci</> : <><Lock className="w-4 h-4" /> Kunci</>}
+                                                        </button>
+                                                    )}
+                                                    {canEdit && !year.is_locked && (
+                                                        <>
+                                                            <div className="my-1.5 border-t border-[var(--color-border)]" />
+                                                            <button onClick={() => { setItemToDelete(year); setIsDeleteModalOpen(true); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 text-red-500 hover:bg-red-50 transition-colors">
+                                                                <Trash className="w-4 h-4" /> Hapus
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>,
+                                                document.body
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

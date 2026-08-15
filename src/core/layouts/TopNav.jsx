@@ -1,10 +1,11 @@
 ﻿import { useEffect, useRef, useState, useCallback } from "react"
-import { WarningCircle, Warning, Archive, ArrowRight, Money, Bell, Robot, Cube, Calendar, CalendarBlank, CheckCircle, CaretDown, ClipboardText, Database, FileText, ClockCounterClockwise, Info, StackSimple, SignOut, Moon, NewspaperClipping, Palette, PresentationChart, ArrowClockwise, Buildings, HardDrives, GearSix, ShieldCheck, Sun, UserGear, UserPlus, Users, Wallet, Wrench, X } from '@phosphor-icons/react'
+import { Archive, Money, Bell, Robot, Cube, Calendar, CalendarBlank, CaretDown, ClipboardText, Database, ClockCounterClockwise, StackSimple, SignOut, Moon, NewspaperClipping, Palette, PresentationChart, Buildings, HardDrives, GearSix, Sun, UserGear, UserPlus, Users, Wallet, Wrench } from '@phosphor-icons/react'
 import { NavLink, useNavigate } from "react-router-dom"
 import { createPortal } from "react-dom"
 
 import { useTheme, useAuth, useFeatureFlags, useLanguage } from "@context"
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
+import { NotifBadge, NotifPanelInner } from "./notifShared"
 
 // ─── Avatar component — handles image error state properly ────────────────────
 // Gradient hanya muncul saat tidak ada foto. Kalau foto gagal load,
@@ -73,72 +74,15 @@ const ADMIN_ITEMS = [
     { to: "/admin/playground", label: "UI Playground", icon: Palette, desc: "Panduan visual komponen dan dokumentasi desain", color: "bg-pink-500/10 text-pink-600" },
 ]
 
-// ── Warna & icon per type notifikasi
-const TYPE_STYLE = {
-    error: { bg: 'bg-red-500/10', border: 'border-red-500/20', dot: 'bg-red-500', text: 'text-red-500', icon: WarningCircle },
-    warning: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', dot: 'bg-amber-500', text: 'text-amber-500', icon: Warning },
-    info: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', dot: 'bg-blue-500', text: 'text-blue-500', icon: Info },
-    success: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-500', text: 'text-emerald-500', icon: CheckCircle },
-}
-
-// SealCheck merah di atas icon bell
-function NotifBadge({ count }) {
-    if (!count) return null
-    return (
-        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center leading-none pointer-events-none">
-            {count > 9 ? '9+' : count}
-        </span>
-    )
-}
-
-// Satu baris notifikasi di panel
-function NotifItem({ notif, onDismiss, onNavigate }) {
-    const { t } = useLanguage()
-    const s = TYPE_STYLE[notif.type] || TYPE_STYLE.info
-    return (
-        <div className={`group relative rounded-xl border p-3 transition-all ${s.bg} ${s.border}`}>
-            <div className="flex items-start gap-2.5">
-                <div className={`mt-0.5 text-sm shrink-0 ${s.text}`}>
-                    <s.icon />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-black text-[var(--color-text)] leading-tight">{notif.title}</p>
-                    <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5 leading-snug">{notif.body}</p>
-                    {notif.action && (
-                        <button
-                            onClick={() => onNavigate(notif.action.route)}
-                            aria-label={notif.action.label}
-                            className={`mt-1.5 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 ${s.text} hover:opacity-70 transition-opacity`}
-                        >
-                            {notif.action.label} <ArrowRight className="w-2 h-2" />
-                        </button>
-                    )}
-                </div>
-                <button
-                    onClick={() => onDismiss(notif.id)}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded-md hover:bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[9px]"
-                    title={t('notif.close')}
-                    aria-label={t('notif.close')}
-                >
-                    <X />
-                </button>
-            </div>
-        </div>
-    )
-}
-
-// Panel dropdown notifikasi
+// Panel notifikasi desktop — posisi mengikuti tombol bell
 // KEY FIX: menerima isOpen prop — portal selalu di-render, content dikondisikan di dalam.
 // Pola ini mencegah removeChild crash saat concurrent unmount.
-function NotifPanel({ isOpen, notifications, loading, refreshing, onDismiss, onRefresh, onNavigate, isMobile, anchorRef, panelRef }) {
-    const { t } = useLanguage()
-    const errCount = notifications.filter(n => n.type === 'error').length
-    const warnCount = notifications.filter(n => n.type === 'warning').length
+function DesktopNotifPanel({ isOpen, notifications, loading, refreshing, onDismiss, onRefresh, onNavigate, anchorRef, panelRef }) {
     const container = getPortalContainer('portal-notif')
 
     // Hitung posisi SAAT render (sync) — tidak ada useEffect, tidak ada glitch
     let style = {}
-    if (!isMobile && anchorRef?.current) {
+    if (anchorRef?.current) {
         const rect = anchorRef.current.getBoundingClientRect()
         style = {
             position: 'fixed',
@@ -148,85 +92,18 @@ function NotifPanel({ isOpen, notifications, loading, refreshing, onDismiss, onR
         }
     }
 
-    const inner = (
-        <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)]">
-                <div>
-                    <p className="text-[12px] font-black text-[var(--color-text)]">{t('notif.header')}</p>
-                    {!loading && notifications.length > 0 && (
-                        <p className="text-[9px] text-[var(--color-text-muted)] mt-0.5">
-                            {errCount > 0 && <span className="text-red-500 font-bold">{errCount} {t('notif.need_action')} · </span>}
-                            {warnCount > 0 && <span className="text-amber-500 font-bold">{warnCount} {t('notif.warning')} · </span>}
-                            {notifications.length} {t('notif.total')}
-                        </p>
-                    )}
-                </div>
-                <button
-                    onClick={onRefresh}
-                    title={t('notif.refresh')}
-                    aria-label={t('notif.refresh')}
-                    className={`p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition text-xs ${refreshing ? 'animate-spin pointer-events-none' : ''}`}
-                >
-                    <ArrowClockwise />
-                </button>
-            </div>
-
-            {/* Body */}
-            <div className="max-h-[60vh] overflow-y-auto p-3 space-y-2">
-                {loading ? (
-                    <div className="py-8 flex flex-col items-center gap-2 text-[var(--color-text-muted)]">
-                        <ArrowClockwise className="animate-spin w-5 h-5" />
-                        <p className="text-[10px]">{t('notif.loading')}</p>
-                    </div>
-                ) : notifications.length === 0 ? (
-                    <div className="py-8 flex flex-col items-center gap-2 text-[var(--color-text-muted)]">
-                        <span className="text-2xl">🎉</span>
-                        <p className="text-[11px] font-bold">{t('notif.empty_title')}</p>
-                        <p className="text-[9px] text-center">{t('notif.empty_desc')}</p>
-                    </div>
-                ) : (
-                    notifications.map(n => (
-                        <NotifItem
-                            key={n.id}
-                            notif={n}
-                            onDismiss={onDismiss}
-                            onNavigate={onNavigate}
-                        />
-                    ))
-                )}
-            </div>
-
-            {/* Footer */}
-            {notifications.length > 0 && !loading && (
-                <div className="px-4 py-2.5 border-t border-[var(--color-border)] flex justify-end">
-                    <button
-                        onClick={() => notifications.forEach(n => onDismiss(n.id))}
-                        className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition"
-                    >
-                        {t('notif.close_all')}
-                    </button>
-                </div>
-            )}
-        </div>
-    )
-
-    // Mobile: full-width di bawah header
-    if (isMobile) {
-        return createPortal(
-            !isOpen ? null : (
-                <div ref={panelRef} className="fixed inset-x-0 top-[72px] z-[9999] px-3">
-                    {inner}
-                </div>
-            ),
-            container
-        )
-    }
-
-    // Desktop
     return createPortal(
         !isOpen ? null : (
-            <div ref={panelRef} style={{ ...style, zIndex: 9999 }}>{inner}</div>
+            <div ref={panelRef} style={{ ...style, zIndex: 9999 }}>
+                <NotifPanelInner
+                    notifications={notifications}
+                    loading={loading}
+                    refreshing={refreshing}
+                    onDismiss={onDismiss}
+                    onRefresh={onRefresh}
+                    onNavigate={onNavigate}
+                />
+            </div>
         ),
         container
     )
@@ -270,7 +147,6 @@ export default function TopNav({ title, subtitle }) {
     const financeRef = useRef(null)
     const reportsRef = useRef(null)
     const adminRef = useRef(null)
-    const mobileProfileRef = useRef(null)
     const desktopProfileRef = useRef(null)
     const notifBtnRef = useRef(null)
     const notifPanelRef = useRef(null)
@@ -287,9 +163,8 @@ export default function TopNav({ title, subtitle }) {
             if (reportsRef.current && !reportsRef.current.contains(e.target)) setReportsOpen(false)
             if (adminRef.current && !adminRef.current.contains(e.target)) setAdminOpen(false)
 
-            const isOutsideMobile = mobileProfileRef.current && !mobileProfileRef.current.contains(e.target)
-            const isOutsideDesktop = desktopProfileRef.current && !desktopProfileRef.current.contains(e.target)
-            if (isOutsideMobile && isOutsideDesktop) setProfileOpen(false)
+                        const isOutsideDesktop = desktopProfileRef.current && !desktopProfileRef.current.contains(e.target)
+            if (isOutsideDesktop) setProfileOpen(false)
 
             const isOutsideNotifBtn = notifBtnRef.current && !notifBtnRef.current.contains(e.target)
             const isOutsideNotifPanel = notifPanelRef.current && !notifPanelRef.current.contains(e.target)
@@ -308,21 +183,9 @@ export default function TopNav({ title, subtitle }) {
         `px-3 py-2 rounded-xl text-sm font-bold transition
      ${isActive ? "bg-[var(--color-surface)] shadow-sm text-[var(--color-text)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-white/50 dark:hover:bg-white/5"}`
 
-    const avatarLetter = profile?.name?.charAt(0) || "U"
-
     const today = new Date().toLocaleDateString("id-ID", {
         weekday: "long", year: "numeric", month: "long", day: "numeric",
     })
-
-    // Deteksi mobile (< 1024px = lg breakpoint Tailwind)
-    const [isMobileScreen, setIsMobileScreen] = useState(
-        typeof window !== 'undefined' ? window.innerWidth < 1024 : false
-    )
-    useEffect(() => {
-        const handler = () => setIsMobileScreen(window.innerWidth < 1024)
-        window.addEventListener('resize', handler)
-        return () => window.removeEventListener('resize', handler)
-    }, [])
 
     // Bell button — hanya tombol, panel dirender sekali di luar
     const BellButton = () => {
@@ -395,62 +258,27 @@ export default function TopNav({ title, subtitle }) {
                     {/* MOBILE */}
                     {/* ===================== */}
                     <div className="lg:hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/70 backdrop-blur-md shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
-                        <div className="flex items-start justify-between px-4 py-3">
+                        <div className="flex items-center justify-between gap-3 px-3.5 py-2.5">
                             {/* Left */}
-                            <div className="min-w-0">
-                                <div className="text-base font-extrabold text-[var(--color-text)] truncate">
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[15px] font-extrabold text-[var(--color-text)] truncate leading-tight">
                                     {title || "Dashboard"}
                                 </div>
-                                <div className="text-[10px] font-bold tracking-widest uppercase text-[var(--color-text-muted)]">
+                                <div className="text-[9px] font-bold tracking-widest uppercase text-[var(--color-text-muted)] truncate">
                                     {subtitle || today}
                                 </div>
                             </div>
 
-                            {/* Right: Bell + Profile */}
-                            <div className="flex items-center gap-1.5">
-                                <BellButton />
-
+                            {/* Right: Theme toggle only (Bell & Profile pindah ke BottomNav) */}
+                            <div className="flex items-center gap-1">
                                 <button
                                     onClick={toggleTheme}
                                     aria-label={isDark ? "Aktifkan Mode Terang" : "Aktifkan Mode Gelap"}
-                                    className="p-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition"
+                                    className="p-2 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition"
                                     type="button"
                                 >
                                     {isDark ? <Sun /> : <Moon />}
                                 </button>
-
-                                <div className="relative flex-shrink-0" ref={mobileProfileRef}>
-                                    <button
-                                        onClick={() => setProfileOpen(v => !v)}
-                                        aria-label="Buka List Profil"
-                                        className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-2xl hover:bg-[var(--color-surface-alt)] transition border border-transparent hover:border-[var(--color-border)]"
-                                        type="button"
-                                    >
-                                        <Avatar url={profile?.avatar_url} name={profile?.name} />
-                                        <CaretDown
-                                            className={`text-xs text-[var(--color-text-muted)] transition-transform ${profileOpen ? "rotate-180" : ""}`}
-                                        />
-                                    </button>
-
-                                    {profileOpen && (
-                                        <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl overflow-hidden">
-                                            <button
-                                                onClick={() => { setProfileOpen(false); navigate("/settings") }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-surface-alt)] transition font-bold text-sm text-[var(--color-text)]"
-                                                type="button"
-                                            >
-                                                <GearSix /> GearSix
-                                            </button>
-                                            <button
-                                                onClick={async () => { setProfileOpen(false); await signOut(); navigate("/login") }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-surface-alt)] transition font-bold text-sm text-red-600"
-                                                type="button"
-                                            >
-                                                <SignOut /> Logout
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -648,10 +476,10 @@ export default function TopNav({ title, subtitle }) {
 
                 </div>
             </header>
-            {/* KEY FIX: Selalu render NotifPanel, jangan conditional mount.
+            {/* KEY FIX: Selalu render panel, jangan conditional mount.
                 Portal unmount = crash. Pass isOpen sebagai prop, biarkan
-                NotifPanel yang putuskan render null di dalam portal. */}
-            <NotifPanel
+                panel yang putuskan render null di dalam portal. */}
+            <DesktopNotifPanel
                 isOpen={notifOpen}
                 notifications={notifications.map(n => translateNotification(n, t))}
                 loading={loading}
@@ -659,7 +487,6 @@ export default function TopNav({ title, subtitle }) {
                 onDismiss={dismiss}
                 onRefresh={refresh}
                 onNavigate={handleNotifNavigate}
-                isMobile={isMobileScreen}
                 anchorRef={notifBtnRef}
                 panelRef={notifPanelRef}
             />

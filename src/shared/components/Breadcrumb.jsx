@@ -2,9 +2,12 @@ import { CaretRight } from "@phosphor-icons/react";
 
 export default function Breadcrumb({ items = [], className = '' }) {
     return (
-        <div className={`flex items-center gap-1.5 ${className}`}>
+        <div className={`flex items-center gap-1.5 min-w-0 ${className}`}>
             {items.map((item, i) => (
-                <span key={item.label} className="flex items-center gap-1.5">
+                <span
+                    key={item.label}
+                    className={`flex items-center gap-1.5 whitespace-nowrap ${i === items.length - 1 ? 'min-w-0 flex-1' : 'shrink-0'}`}
+                >
                     {item.onClick ? (
                         <button
                             onClick={item.onClick}
@@ -13,12 +16,12 @@ export default function Breadcrumb({ items = [], className = '' }) {
                             {item.label}
                         </button>
                     ) : (
-                        <span className="text-[10px] font-bold text-[var(--color-text)]">
+                        <span className="text-[10px] font-bold text-[var(--color-text)] truncate">
                             {item.label}
                         </span>
                     )}
                     {i < items.length - 1 && (
-                        <CaretRight className="w-2.5 h-2.5 text-[var(--color-text-muted)] opacity-30" />
+                        <CaretRight className="w-2.5 h-2.5 text-[var(--color-text-muted)] opacity-30 shrink-0" />
                     )}
                 </span>
             ))}

@@ -950,7 +950,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         ]}
                     />
                     {lastRefresh && (
-                        <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1">
+                        <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1 shrink-0 whitespace-nowrap">
                             Diperbarui {(() => {
                                 const ms = Date.now() - lastRefresh.getTime()
                                 const mins = Math.floor(ms / 60000)
@@ -961,7 +961,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         </span>
                     )}
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
                             Detail Tahun Akademik
@@ -970,7 +970,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             {period.academic_year} {period.semester} — informasi lengkap periode akademik.
                         </p>
                         {usageStats && (
-                            <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                 <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
                                     <Buildings className="w-3 h-3" /> {usageStats.classCount} Kelas
                                 </span>
@@ -985,12 +985,12 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0 min-w-0 overflow-x-auto scrollbar-hide lg:shrink-0 -mx-5 px-5 lg:mx-0 lg:px-0 py-0.5">
                         <Tooltip content={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'} position="bottom">
                             <button
                                 onClick={handleEdit}
                                 disabled={!canEdit || period.is_locked}
-                                className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
@@ -999,7 +999,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             <button
                                 onClick={handleToggleActive}
                                 disabled={!canEdit || period.is_locked || saving}
-                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 {period.is_active ? <Prohibit className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                             </button>
@@ -1008,7 +1008,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             <button
                                 onClick={handleToggleLock}
                                 disabled={!canEdit || saving}
-                                className={`h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                className={`h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ${
                                     period.is_locked
                                         ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
                                         : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]'
@@ -1021,16 +1021,16 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             <button
                                 onClick={() => setIsDeleteOpen(true)}
                                 disabled={!canEdit || saving}
-                                className="h-8 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 flex items-center gap-1.5 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="h-8 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 flex items-center gap-1.5 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 <Archive className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
                         <Tooltip content="Muat ulang data" position="bottom">
                             <button
                                 onClick={handleRefresh}
-                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all"
+                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shrink-0"
                             >
                                 <ArrowClockwise className="w-3.5 h-3.5" />
                             </button>
@@ -1038,17 +1038,17 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         <Tooltip content={isPrivacyMode ? 'Matikan Mode Privasi' : 'Aktifkan Mode Privasi'} position="bottom">
                             <button
                                 onClick={togglePrivacyMode}
-                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
+                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all shrink-0 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
                             >
                                 {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
                         
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
                         <Tooltip content="Cetak / Export PDF" position="bottom">
                             <button
                                 onClick={handlePrint}
-                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all"
+                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shrink-0"
                             >
                                 <Printer className="w-3.5 h-3.5" />
                             </button>
@@ -1215,8 +1215,8 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         </div>
 
                         {/* Quick Metrics Row */}
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
+                        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+                            <div className="p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
                                 <div className="flex items-center gap-2">
                                     <div className="w-7 h-7 rounded-xl bg-blue-500/10 flex items-center justify-center">
                                         <TrendUp className="w-3.5 h-3.5 text-blue-500" />
@@ -1229,7 +1229,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 <p className="text-[9px] text-[var(--color-text-muted)] font-bold">dari {totalDays} hari total</p>
                             </div>
 
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
+                            <div className="p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
                                 <div className="flex items-center gap-2">
                                     <div className="w-7 h-7 rounded-xl bg-amber-500/10 flex items-center justify-center">
                                         <Timer className="w-3.5 h-3.5 text-amber-500" />
@@ -1245,7 +1245,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                 </p>
                             </div>
 
-                            <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
+                            <div className="p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-1.5">
                                 <div className="flex items-center gap-2">
                                     <div className="w-7 h-7 rounded-xl bg-emerald-500/10 flex items-center justify-center">
                                         <Users className="w-3.5 h-3.5 text-emerald-500" />

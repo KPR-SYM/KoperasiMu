@@ -53,84 +53,82 @@ const PeriodsToolbar = memo(function PeriodsToolbar({
     return (
         <div>
             <div className="flex items-center gap-2 p-2 lg:p-2.5">
-                <div className="flex-1 min-w-[120px] transition-all duration-300">
+                <div className="flex-1 min-w-[130px] transition-all duration-300">
                     <DebouncedSearchInput
                         searchQuery={searchQuery}
                         onSearch={setSearchQuery}
                         inputRef={searchInputRef}
                         isLoading={loading}
-                        placeholder="Cari nama tahun akademik (contoh: 2024/2025)... (Ctrl+K)"
+                        placeholder="Cari tahun akademik (contoh: 2024/2025)... (Ctrl+K)"
                     />
                 </div>
 
-                {totalRows >= 5 && (
-                    <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
-                        <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+                <div className="flex items-center justify-end gap-1.5 lg:gap-2 shrink min-w-0 overflow-x-auto scrollbar-hide lg:ml-auto">
+                    {totalRows >= 5 && (
+                        <div className="hidden lg:flex flex-none items-center gap-2 overflow-x-auto scrollbar-hide py-0.5 max-w-full">
+                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            {[
-                                { id: "Ganjil", label: "Ganjil", icon: CaretLeft },
-                                { id: "Genap", label: "Genap", icon: CaretRight },
-                            ].map((s) => (
-                                <button
-                                    key={s.id}
-                                    onClick={() =>
-                                        setFilterSemester(filterSemester === s.id ? "" : s.id)
-                                    }
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
-                                        ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                        : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
-                                        }`}
-                                >
-                                    <s.icon
-                                        className={`w-3 h-3 ${filterSemester === s.id ? "opacity-100" : "opacity-30"}`}
-                                    />
-                                    {s.label}
-                                </button>
-                            ))}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {[
+                                    { id: "Ganjil", label: "Ganjil", icon: CaretLeft },
+                                    { id: "Genap", label: "Genap", icon: CaretRight },
+                                ].map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() =>
+                                            setFilterSemester(filterSemester === s.id ? "" : s.id)
+                                        }
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterSemester === s.id
+                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                            }`}
+                                    >
+                                        <s.icon
+                                            className={`w-3 h-3 ${filterSemester === s.id ? "opacity-100" : "opacity-30"}`}
+                                        />
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {[
+                                    { id: "active", label: "Aktif", icon: CheckCircle },
+                                    { id: "inactive", label: "Nonaktif", icon: CircleDashed },
+                                ].map((s) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() =>
+                                            setFilterStatus(filterStatus === s.id ? "" : s.id)
+                                        }
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
+                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
+                                            : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
+                                            }`}
+                                    >
+                                        <s.icon
+                                            className={`w-3 h-3 ${filterStatus === s.id ? "opacity-100" : "opacity-30"}`}
+                                        />
+                                        {s.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
+                    )}
 
-                        <div className="h-4 w-px bg-[var(--color-border)] mx-1 shrink-0" />
+                    <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            {[
-                                { id: "active", label: "Aktif", icon: CheckCircle },
-                                { id: "inactive", label: "Nonaktif", icon: CircleDashed },
-                            ].map((s) => (
-                                <button
-                                    key={s.id}
-                                    onClick={() =>
-                                        setFilterStatus(filterStatus === s.id ? "" : s.id)
-                                    }
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all border ${filterStatus === s.id
-                                        ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white"
-                                        : "bg-[var(--color-surface)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary)]"
-                                        }`}
-                                >
-                                    <s.icon
-                                        className={`w-3 h-3 ${filterStatus === s.id ? "opacity-100" : "opacity-30"}`}
-                                    />
-                                    {s.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                <div className="hidden lg:block w-px h-4 bg-[var(--color-border)] mx-2 shrink-0" />
-
-                <div className="flex items-center justify-end gap-2 shrink-0 lg:ml-auto">
-                    <div className="hidden md:block">
-                        <ViewSwitcher
-                            value={viewMode}
-                            onChange={setViewMode}
-                            views={[
-                                { key: "table", icon: List, label: "Tabel" },
-                                { key: "timeline", icon: ClockClockwise, label: "Linimasa" },
-                                { key: "calendar", icon: Calendar, label: "Kalender" },
-                            ]}
-                        />
-                    </div>
+                    <ViewSwitcher
+                        value={viewMode}
+                        onChange={setViewMode}
+                        views={[
+                            { key: "table", icon: List, label: "Tabel" },
+                            { key: "timeline", icon: ClockClockwise, label: "Linimasa" },
+                            { key: "calendar", icon: Calendar, label: "Kalender" },
+                        ]}
+                    />
 
                     <button
                         onClick={toggleSelectAll}

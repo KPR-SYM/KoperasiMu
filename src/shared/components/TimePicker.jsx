@@ -424,7 +424,7 @@ const TimePicker = memo(({
                 placeholder={placeholder}
                 inputMode={isMobile ? 'none' : undefined}
                 readOnly={isMobile || disabled}
-                className={`w-full pl-9 pr-8 h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-primary)] focus:bg-[var(--color-surface)] outline-none transition-all text-[10px] font-black shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full pl-9 pr-8 h-8 sm:h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] focus:border-[var(--color-primary)] focus:bg-[var(--color-surface)] outline-none transition-all text-[10px] font-black shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             
             <Clock 

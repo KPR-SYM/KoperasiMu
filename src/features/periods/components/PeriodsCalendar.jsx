@@ -29,39 +29,100 @@ function daysBetween(a, b) {
     return (b - a) / (1000 * 60 * 60 * 24);
 }
 
-const PeriodsCalendar = memo(function PeriodsCalendar({
-    years,
-    onEdit,
-    canEdit,
-    formatDate,
-}) {
-    const { start, end } = getYearRange(years);
-    const months = [];
-    for (let y = start; y <= end; y++) {
-        for (let m = 0; m < 12; m++) {
-            months.push({ year: y, month: m, label: `${MONTHS[m]} ${y}` });
-        }
-    }
-    const totalMonths = months.length;
+function getBarColors(year) {
+    const isActive = year.is_active;
+    const isLocked = year.is_locked;
+    return {
+        isActive,
+        isLocked,
+        backgroundColor: isActive
+            ? "var(--color-primary)"
+            : isLocked
+                ? "var(--color-surface-alt)"
+                : "var(--color-border)",
+        borderColor: isLocked ? "var(--color-border)" : undefined,
+    };
+}
 
-    const today = new Date();
-    const rangeStart = new Date(start, 0);
-    const rangeEnd = new Date(end + 1, 0);
-    const totalDays = daysBetween(rangeStart, rangeEnd) || 1;
-
-    const todayPct = (daysBetween(rangeStart, today) / totalDays) * 100;
-    const showToday = today >= rangeStart && today <= rangeEnd;
-
-    if (years.length === 0) {
-        return (
-            <div className="p-6">
-                <EmptyState icon={Calendar} title="Tidak Ada Data" description="Tidak ada periode untuk ditampilkan." color="slate" />
-            </div>
-        );
-    }
-
+function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday, formatDate }) {
     return (
-        <div className="p-4 overflow-x-auto">
+        <div className="md:hidden divide-y divide-[var(--color-border)]">
+            {years.map((year) => {
+                const startDate = new Date(year.start_date);
+                const endDate = new Date(year.end_date);
+                const isActive = year.is_active;
+                const isLocked = year.is_locked;
+                const durDays = Math.round(daysBetween(startDate, endDate));
+                const colors = getBarColors(year);
+
+                const rawStart = ((startDate - rangeStart) / totalDays) * 100;
+                const rawEnd = ((endDate - rangeStart) / totalDays) * 100;
+                const barLeft = Math.max(0, Math.min(100, rawStart));
+                const barRight = Math.max(0, Math.min(100, rawEnd));
+                const barWidth = Math.max(0, barRight - barLeft);
+
+                return (
+                    <div key={year.id} className="p-3.5">
+                        {/* Title row */}
+                        <div className="flex items-center gap-2.5">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-emerald-500" : isLocked ? "bg-amber-500" : "bg-[var(--color-border)]"}`} />
+                                <p className="text-[13px] font-extrabold text-[var(--color-text)] leading-tight truncate">
+                                    {year.academic_year}
+                                </p>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {isActive && <Star className="w-3 h-3 text-emerald-500" weight="fill" />}
+                                    {isLocked && <Lock className="w-3 h-3 text-amber-500" weight="bold" />}
+                                </div>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-1.5">
+                                <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border whitespace-nowrap ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}>
+                                    {year.semester}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Dates + duration */}
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-bold text-[var(--color-text-muted)] truncate">
+                                {formatDate(year.start_date)} – {formatDate(year.end_date)}
+                            </span>
+                            <span className="text-[9px] font-black text-[var(--color-text-muted)] shrink-0">
+                                {durDays} hr
+                            </span>
+                        </div>
+
+                        {/* Proportional bar */}
+                        <div className="relative h-3 rounded-full bg-[var(--color-surface-alt)] mt-2.5 overflow-hidden">
+                            {showToday && (
+                                <div
+                                    className="absolute top-0 bottom-0 w-[2px] bg-red-500/70 z-10 pointer-events-none"
+                                    style={{ left: `${todayPct}%` }}
+                                    title="Hari ini"
+                                />
+                            )}
+                            <div
+                                className={`absolute top-0.5 bottom-0.5 rounded-full flex items-center justify-center overflow-hidden px-1 ${isActive && !isLocked ? "shadow-sm" : ""}`}
+                                style={{
+                                    left: `${barLeft}%`,
+                                    width: `${barWidth}%`,
+                                    minWidth: 10,
+                                    backgroundColor: colors.backgroundColor,
+                                    border: colors.borderColor ? `1px solid ${colors.borderColor}` : "none",
+                                }}
+                                title={`${year.academic_year} ${year.semester}\n${formatDate(year.start_date)} – ${formatDate(year.end_date)}${isLocked ? "\n(Terkunci)" : ""}`}
+                            />
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showToday, formatDate, onEdit, canEdit }) {
+    return (
+        <div className="hidden md:block p-4 overflow-x-auto">
             <div className="min-w-[600px]">
                 {/* Header: months — aligned with data rows */}
                 <div className="flex items-center border-b border-[var(--color-border)] mb-2">
@@ -90,11 +151,13 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                         const endDate = new Date(year.end_date);
                         const isActive = year.is_active;
                         const isLocked = year.is_locked;
-
-                        const startIdx = Math.max(0, (startDate.getFullYear() - start) * 12 + startDate.getMonth());
-                        const endIdx = Math.min(totalMonths - 1, (endDate.getFullYear() - start) * 12 + endDate.getMonth());
                         const durDays = Math.round(daysBetween(startDate, endDate));
 
+                        // Compute proper month indices against range start
+                        const sIdx = Math.max(0, (startDate.getFullYear() - rangeStart.getFullYear()) * 12 + startDate.getMonth() - rangeStart.getMonth());
+                        const eIdx = Math.min(totalMonths - 1, (endDate.getFullYear() - rangeStart.getFullYear()) * 12 + endDate.getMonth() - rangeStart.getMonth());
+
+                        const colors = getBarColors(year);
                         const canClick = canEdit && !isLocked;
 
                         return (
@@ -113,7 +176,7 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                                                 {isActive && <Star className="w-2.5 h-2.5 text-emerald-500 shrink-0" weight="fill" />}
                                                 {isLocked && <Lock className="w-2.5 h-2.5 text-amber-500 shrink-0" weight="bold" />}
                                             </div>
-                                            <p className="text-[8px] font-bold text-[var(--color-text-muted)]">
+                                            <p className="text-[8px] font-bold text-[var(--color-text-muted)] truncate">
                                                 {year.semester} · {formatDate(year.start_date)} – {formatDate(year.end_date)}
                                             </p>
                                         </div>
@@ -132,23 +195,18 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                                         />
                                     )}
                                     {/* Period bar */}
-                                    {startIdx <= endIdx && (
+                                    {sIdx <= eIdx && (
                                         <button
-                                            onClick={() => canClick && onEdit(year)}
-                                            disabled={!canClick}
+                                            onClick={() => canClick && onEdit?.(year)}
+                                            title={`${year.academic_year} ${year.semester}\n${formatDate(year.start_date)} – ${formatDate(year.end_date)}${isLocked ? "\n(Terkunci)" : ""}`}
                                             className={`absolute top-1 h-5 rounded-md flex items-center justify-center text-[8px] font-black tracking-wider transition-all overflow-hidden px-1 ${canClick ? "cursor-pointer hover:brightness-110" : "cursor-default"} ${isActive ? "shadow-sm" : ""}`}
                                             style={{
-                                                left: `${(startIdx / totalMonths) * 100}%`,
-                                                width: `${((endIdx - startIdx + 1) / totalMonths) * 100}%`,
+                                                left: `${(sIdx / totalMonths) * 100}%`,
+                                                width: `${((eIdx - sIdx + 1) / totalMonths) * 100}%`,
                                                 minWidth: 20,
-                                                backgroundColor: isActive
-                                                    ? "var(--color-primary)"
-                                                    : isLocked
-                                                        ? "var(--color-surface-alt)"
-                                                        : "var(--color-border)",
+                                                backgroundColor: colors.backgroundColor,
                                                 color: isActive ? "#fff" : "var(--color-text-muted)",
                                             }}
-                                            title={`${year.academic_year} ${year.semester}\n${formatDate(year.start_date)} – ${formatDate(year.end_date)}${isLocked ? "\n(Terkunci)" : ""}`}
                                         >
                                             <span className="truncate">{year.academic_year}</span>
                                         </button>
@@ -165,7 +223,7 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center gap-4 mt-6 pt-3 border-t border-[var(--color-border)]">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-6 pt-3 border-t border-[var(--color-border)]">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded bg-[var(--color-primary)]" />
                         <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Aktif</span>
@@ -179,20 +237,69 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                         <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Terkunci</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Star className="w-2.5 h-2.5 text-emerald-500" weight="fill" />
-                        <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Aktif</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <Lock className="w-2.5 h-2.5 text-amber-500" weight="bold" />
-                        <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Terkunci</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 ml-auto">
                         <div className="w-0.5 h-3 bg-red-500/60 rounded" />
                         <span className="text-[9px] text-[var(--color-text-muted)] font-medium">Hari Ini</span>
                     </div>
                 </div>
             </div>
         </div>
+    );
+}
+
+const PeriodsCalendar = memo(function PeriodsCalendar({
+    years,
+    onEdit,
+    canEdit,
+    formatDate,
+}) {
+    const { start, end } = getYearRange(years);
+
+    if (years.length === 0) {
+        return (
+            <div className="p-6">
+                <EmptyState icon={Calendar} title="Tidak Ada Data" description="Tidak ada periode untuk ditampilkan." color="slate" />
+            </div>
+        );
+    }
+
+    const months = [];
+    for (let y = start; y <= end; y++) {
+        for (let m = 0; m < 12; m++) {
+            months.push({ year: y, month: m, label: `${MONTHS[m]} ${y}` });
+        }
+    }
+    const totalMonths = months.length;
+
+    const today = new Date();
+    const rangeStart = new Date(start, 0);
+    const rangeEnd = new Date(end + 1, 0);
+    const totalDays = daysBetween(rangeStart, rangeEnd) || 1;
+
+    const todayPct = (daysBetween(rangeStart, today) / totalDays) * 100;
+    const showToday = today >= rangeStart && today <= rangeEnd;
+
+    return (
+        <>
+            <MobileCalendarList
+                years={years}
+                rangeStart={rangeStart}
+                totalDays={totalDays}
+                todayPct={todayPct}
+                showToday={showToday}
+                formatDate={formatDate}
+            />
+            <DesktopGantt
+                years={years}
+                months={months}
+                totalMonths={totalMonths}
+                rangeStart={rangeStart}
+                todayPct={todayPct}
+                showToday={showToday}
+                formatDate={formatDate}
+                onEdit={onEdit}
+                canEdit={canEdit}
+            />
+        </>
     );
 });
 

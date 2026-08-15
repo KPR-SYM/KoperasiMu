@@ -202,8 +202,8 @@ const TeachersToolbar = memo(function TeachersToolbar({
                         </button>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <div>
+                    <div className="flex flex-wrap items-end gap-2">
+                        <div className="flex-1 min-w-[140px]">
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Jenis</label>
                             <Select
                                 value={filterType}
@@ -219,7 +219,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 small
                             />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-[140px]">
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Mata Pelajaran</label>
                             <Select
                                 value={filterSubject}
@@ -233,7 +233,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 searchable
                             />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-[120px]">
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Gender</label>
                             <Select
                                 value={filterGender}
@@ -247,7 +247,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 small
                             />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-[120px]">
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Status</label>
                             <Select
                                 value={filterStatus}
@@ -262,7 +262,7 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 small
                             />
                         </div>
-                        <div>
+                        <div className="flex-1 min-w-[120px]">
                             <label className="block text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-1.5">Urutkan</label>
                             <Select
                                 value={sortBy}
@@ -278,19 +278,15 @@ const TeachersToolbar = memo(function TeachersToolbar({
                                 small
                             />
                         </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-                        <div className="flex gap-1.5 overflow-x-auto pb-1">
+                        <div className="flex gap-1.5 shrink-0 pb-0.5">
                             {[
                                 { label: 'Semua', icon: Users, active: !filterMissing && filterStatus === 'active', onClick: () => { setFilterMissing(''); setFilterStatus('active'); setSortBy('name_asc') } },
                                 { label: 'Tanpa WA', icon: ChatCircle, active: filterMissing === 'wa', onClick: () => { setFilterMissing('wa'); setPage(1) } },
                                 { label: 'Nonaktif', icon: Archive, active: filterStatus === 'inactive', onClick: () => { setFilterStatus('inactive'); setPage(1) } },
                                 { label: 'Cuti', icon: Archive, active: filterStatus === 'cuti', onClick: () => { setFilterStatus('cuti'); setPage(1) } },
                             ].map((s, i) => (
-                                <button key={i} onClick={s.onClick} className={`whitespace-nowrap h-9 px-3 rounded-xl border flex items-center gap-2 transition-all ${s.active ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-md shadow-[var(--color-primary)]/20' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
-                                    <s.icon className="w-3 h-3" /><span className="text-[9px] font-black uppercase tracking-widest">{s.label}</span>
+                                <button key={i} onClick={s.onClick} className={`whitespace-nowrap h-8 px-2.5 rounded-lg border flex items-center gap-1.5 transition-all text-[9px] font-black uppercase tracking-widest ${s.active ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-md shadow-[var(--color-primary)]/20' : 'border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}>
+                                    <s.icon className="w-3 h-3" /><span>{s.label}</span>
                                 </button>
                             ))}
                         </div>

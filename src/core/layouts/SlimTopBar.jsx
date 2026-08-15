@@ -279,8 +279,8 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
             >
                 <div className="flex items-center justify-between h-14 px-3 sm:px-4 lg:px-4 gap-2 sm:gap-4">
 
-                    {/* Left: Breadcrumbs */}
-                    <div className={`flex items-center gap-2 min-w-0 transition-all duration-200 ${searchFocused ? 'flex-1' : 'flex-1 sm:flex-1'}`}>
+                    {/* Left: Breadcrumbs — sembunyikan di mobile saat search fokus */}
+                    <div className={`flex items-center gap-2 min-w-0 transition-all duration-200 ${searchFocused ? 'hidden sm:flex' : 'flex'}`}>
                         {/* Sidebar toggle — only in sidebar mode */}
                         {layoutMode === 'sidebar' && (
                             <button
@@ -293,12 +293,12 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             </button>
                         )}
 
-                        {/* Layout mode toggle */}
+                        {/* Layout mode toggle — desktop only (SlimBar/HorizontalNav hanya render di lg+) */}
                         <button
                             onClick={() => setLayoutMode(layoutMode === 'sidebar' ? 'horizontal' : 'sidebar')}
                             type="button"
                             aria-label="Toggle layout mode"
-                            className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
+                            className="hidden lg:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] shrink-0"
                             title={layoutMode === 'sidebar' ? 'Switch to horizontal nav' : 'Switch to sidebar'}
                         >
                             {layoutMode === 'sidebar' ? (
@@ -308,33 +308,39 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             )}
                         </button>
 
-                        {/* Breadcrumbs */}
+                        {/* Breadcrumbs — mobile: icon home + menu utama + halaman aktif (kompak) */}
                         <nav className={`flex items-center gap-1.5 min-w-0 ${searchFocused ? 'hidden sm:flex' : 'flex'}`} aria-label="Breadcrumb">
-                            {breadcrumbs.map((crumb, idx) => (
-                                <div key={idx} className="flex items-center gap-1.5 min-w-0">
-                                    {idx > 0 && <span className="text-[var(--color-text-muted)] opacity-40 text-[11px]">/</span>}
-                                    {crumb.to ? (
-                                        <button
-                                            onClick={() => navigate(crumb.to)}
-                                            className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors truncate max-w-[140px]"
-                                        >
-                                            {crumb.icon && <crumb.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />}
-                                            <span className="truncate">{crumb.label}</span>
-                                        </button>
-                                    ) : (
-                                        <span className={`text-[12px] font-bold truncate max-w-[160px] ${idx === breadcrumbs.length - 1 ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
-                                            {crumb.label}
-                                        </span>
-                                    )}
-                                </div>
-                            ))}
+                            {breadcrumbs.map((crumb, idx) => {
+                                const isLast = idx === breadcrumbs.length - 1
+                                const isHome = idx === 0 && crumb.to === '/dashboard'
+                                return (
+                                    <div key={idx} className="flex items-center gap-1.5 min-w-0">
+                                        {idx > 0 && <span className="text-[var(--color-text-muted)] opacity-40 text-[11px]">/</span>}
+                                        {crumb.to ? (
+                                            <button
+                                                onClick={() => navigate(crumb.to)}
+                                                className="flex items-center gap-1.5 text-[12px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors truncate"
+                                            >
+                                                {crumb.icon && <crumb.icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />}
+                                                <span className={`truncate max-w-[100px] sm:max-w-[140px] ${isHome ? 'hidden sm:inline' : ''}`}>
+                                                    {crumb.label}
+                                                </span>
+                                            </button>
+                                        ) : (
+                                            <span className={`text-[12px] font-bold truncate max-w-[100px] sm:max-w-[160px] ${isLast ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)]'}`}>
+                                                {crumb.label}
+                                            </span>
+                                        )}
+                                    </div>
+                                )
+                            })}
                         </nav>
                     </div>
 
-                    {/* ── Right: Search + Actions ── */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    {/* ── Right: Search + Actions — full width saat search fokus di mobile ── */}
+                    <div className={`flex items-center gap-1 ${searchFocused ? 'flex-1 min-w-0' : 'shrink-0'}`}>
                         {/* Search */}
-                        <div className={`relative ${searchFocused ? 'flex-1' : ''}`} ref={searchRef}>
+                        <div className={`relative ${searchFocused ? 'flex-1 min-w-0' : ''}`} ref={searchRef}>
                             {/* Mobile collapsed: icon only */}
                             {!searchFocused && (
                                 <button
@@ -378,20 +384,13 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                         <X className="w-4 h-4" strokeWidth={2} />
                                     </button>
                                 )}
-                                <button
-                                    type="button"
-                                    onClick={() => { setSearchQuery(''); setSearchFocused(false) }}
-                                    className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xs shrink-0"
-                                >
-                                    <X className="w-4 h-4" strokeWidth={2} />
-                                </button>
                             </div>
 
-                            {/* Search dropdown */}
+                            {/* Search dropdown — full width mengikuti search bar */}
                             {showSearchDropdown && (
                                 <div
                                     ref={searchDropdownRef}
-                                    className="absolute top-full right-0 mt-2 w-72 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
+                                    className="absolute top-full right-0 mt-2 w-full min-w-[260px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl overflow-hidden z-50"
                                 >
                                     {searchResults.length === 0 ? (
                                         <div className="px-4 py-6 text-center text-[var(--color-text-muted)]">
@@ -490,18 +489,18 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             )}
                         </button>
 
-                        {/* Customize button */}
+                        {/* Customize button — desktop only (mobile: accessible via BottomNav Profil → Pengaturan) */}
                         <button
                             onClick={() => navigate('/settings')}
                             aria-label="Customize theme"
-                            className={`w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition ${searchFocused ? 'hidden' : 'flex'}`}
+                            className={`hidden sm:flex w-8 h-8 items-center justify-center rounded-lg hover:bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition ${searchFocused ? 'hidden' : 'flex'}`}
                             type="button"
                         >
                             <Palette className="w-4.5 h-4.5" strokeWidth={2} />
                         </button>
 
-                        {/* Notification bell */}
-                        <div className={`relative ${searchFocused ? 'hidden' : 'block'}`} ref={notifBtnRef}>
+                        {/* Notification bell — desktop only (mobile: accessible via BottomNav) */}
+                        <div className={`hidden sm:block relative ${searchFocused ? 'hidden' : 'block'}`} ref={notifBtnRef}>
                             <button
                                 onClick={() => setNotifOpen(v => !v)}
                                 className={`relative w-8 h-8 flex items-center justify-center rounded-lg transition
@@ -557,11 +556,11 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                             )}
                         </div>
 
-                        {/* Divider */}
-                        <div className="w-px h-6 bg-[var(--color-border)] mx-0.5 opacity-50" />
+                        {/* Divider — desktop only */}
+                        <div className="hidden sm:block w-px h-6 bg-[var(--color-border)] mx-0.5 opacity-50" />
 
-                        {/* Profile — visible on all screen sizes */}
-                        <div className="relative" ref={profileRef}>
+                        {/* Profile — desktop only (mobile: accessible via BottomNav Profil) */}
+                        <div className="hidden sm:block relative" ref={profileRef}>
                             <button
                                 onClick={() => setProfileOpen(v => !v)}
                                 aria-label="List Profil"

@@ -871,7 +871,7 @@ const DatePicker = memo(({
         heightClass = 'h-8 sm:h-9'
         leftPad = 'pl-9'
     } else {
-        heightClass = 'h-11'
+        heightClass = 'h-8 sm:h-11'
         leftPad = 'pl-9'
     }
 
@@ -910,7 +910,7 @@ const DatePicker = memo(({
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
                 title={inputInvalid ? currentLocale.invalid : undefined}
-                className={`w-full bg-transparent outline-none text-xs font-bold ${leftPad} ${rightPad} ${hasCustomHeight ? '' : heightClass} placeholder:text-[var(--color-text-muted)] placeholder:opacity-60 text-[var(--color-text)] disabled:cursor-not-allowed`}
+                className={`w-full bg-transparent outline-none text-[10px] sm:text-xs font-bold ${leftPad} ${rightPad} ${hasCustomHeight ? '' : heightClass} placeholder:text-[var(--color-text-muted)] placeholder:opacity-60 text-[var(--color-text)] disabled:cursor-not-allowed`}
             />
             {showClear && (
                 <button

@@ -46,9 +46,9 @@
   "auth.demoViewerName": "Demo Viewer",
   "ui.search_no_result": "Not found",
   "ui.search_no_result_hint": "Try another keyword",
-  "ui.search_hint_navigate": "↑↓ navigate",
-  "ui.search_hint_open": "↵ open",
-  "ui.search_hint_close": "esc close",
+  "ui.search_hint_navigate": "↑↓ Navigate",
+  "ui.search_hint_open": "↵ Open",
+  "ui.search_hint_close": "Esc Close",
   "ui.detail": "Detail",
   "ui.more": "More"
 }

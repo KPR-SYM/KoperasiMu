@@ -50,9 +50,9 @@
   "auth.demoViewerName": "Demo Viewer",
   "ui.search_no_result": "Tidak ditemukan",
   "ui.search_no_result_hint": "Coba kata kunci lain",
-  "ui.search_hint_navigate": "↑↓ navigasi",
-  "ui.search_hint_open": "↵ buka",
-  "ui.search_hint_close": "esc tutup",
+  "ui.search_hint_navigate": "↑↓ Navigasi",
+  "ui.search_hint_open": "↵ Buka",
+  "ui.search_hint_close": "Esc Tutup",
   "ui.detail": "Detail",
   "ui.more": "Lainnya"
 }
