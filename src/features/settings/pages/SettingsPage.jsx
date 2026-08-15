@@ -228,7 +228,7 @@ function AvatarUpload({ profile, onAvatarChange }) {
     const busy = uploading || deleting
 
     return (
-        <div className="flex items-center gap-5">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
             <div className="relative shrink-0">
                 <div className={`w-20 h-20 rounded-xl overflow-hidden border border-[var(--color-border)] shadow-sm flex items-center justify-center font-bold text-white
                     ${showImg ? 'bg-[var(--color-surface-alt)]' : 'bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)]'}`}>
@@ -424,7 +424,7 @@ function AppearanceSection() {
                         <button
                             key={opt.id}
                             onClick={() => setThemeMode(opt.id)}
-                            className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all
+                            className={`flex flex-col items-center gap-1.5 p-3 md:p-4 rounded-xl border text-center transition-all
                                 ${(!isDark && opt.id === 'light') || (isDark && opt.id === 'dark')
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
@@ -440,7 +440,7 @@ function AppearanceSection() {
             {/* Color */}
             <div className="space-y-3">
                 <p className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-widest">Color</p>
-                <div className="grid grid-cols-6 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                     {COLOR_PRESETS.map(preset => (
                         <button
                             key={preset.id}
@@ -470,7 +470,7 @@ function AppearanceSection() {
                         <button
                             key={opt.id}
                             onClick={() => setDensity(opt.id)}
-                            className={`flex flex-col items-center gap-2 p-4 rounded-xl border text-center transition-all
+                            className={`flex flex-col items-center gap-1.5 p-3 md:p-4 rounded-xl border text-center transition-all
                                 ${density === opt.id
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
@@ -494,7 +494,7 @@ function AppearanceSection() {
                         <button
                             key={opt.id}
                             onClick={() => setContainer(opt.id)}
-                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all
+                            className={`flex items-center gap-2.5 p-3 md:p-4 rounded-xl border text-left transition-all
                                 ${container === opt.id
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
@@ -521,7 +521,7 @@ function AppearanceSection() {
                         <button
                             key={opt.id}
                             onClick={() => setLayoutMode(opt.id)}
-                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all
+                            className={`flex items-center gap-2.5 p-3 md:p-4 rounded-xl border text-left transition-all
                                 ${layoutMode === opt.id
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
@@ -548,7 +548,7 @@ function AppearanceSection() {
                         <button
                             key={opt.id}
                             onClick={() => setLanguage(opt.id)}
-                            className={`flex items-center gap-3 p-4 rounded-xl border text-left transition-all
+                            className={`flex items-center gap-2.5 p-3 md:p-4 rounded-xl border text-left transition-all
                                 ${language === opt.id
                                     ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 text-[var(--color-primary)]'
                                     : 'border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-text-muted)]/30 hover:text-[var(--color-text)]'}`}
@@ -713,7 +713,7 @@ export default function SettingsPage() {
     return (
         <DashboardLayout title="Pengaturan">
             <div className="p-4 md:p-6 max-w-[1800px] mx-auto">
-                <div className="flex rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden min-h-[600px]">
+                <div className="flex flex-col md:flex-row rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden min-h-[60vh] md:min-h-[600px]">
 
                     {/* ── Sidebar Navigation ── */}
                     <div className="w-60 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 p-3 hidden md:block">
@@ -743,7 +743,7 @@ export default function SettingsPage() {
                     </div>
 
                     {/* ── Mobile Tab Bar ── */}
-                    <div className="md:hidden flex border-b border-[var(--color-border)] overflow-x-auto">
+                    <div className="md:hidden flex w-full shrink-0 border-b border-[var(--color-border)] overflow-x-auto scrollbar-hide">
                         {NAV_SECTIONS.flatMap(s => s.items).map(item => (
                             <button
                                 key={item.id}
@@ -761,7 +761,7 @@ export default function SettingsPage() {
                     </div>
 
                     {/* ── Content ── */}
-                    <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="flex-1 min-w-0 p-4 md:p-6 overflow-y-auto">
                         {SECTIONS[activeSection]}
                     </div>
                 </div>

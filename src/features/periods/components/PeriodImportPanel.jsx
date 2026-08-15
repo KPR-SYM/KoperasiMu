@@ -487,7 +487,7 @@ const ReviewDesktopTable = React.memo(({ visibleRows, filterIssuesOnly, visibleC
 
 const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCols, selectedRows, onToggleRow, importEditCell, setImportEditCell, handleImportCellEdit, handleRemoveImportRow, getRowErrorMessage, rowConflictOverrides, onSetRowConflictOverride, importConflictStrategy }) => {
     return (
-        <div className="md:hidden divide-y divide-[var(--color-border)]/50 p-3" role="list" aria-label="Data import preview mobile">
+        <div className="md:hidden divide-y divide-[var(--color-border)]/50" role="list" aria-label="Data import preview mobile">
             {visibleRows.length === 0 ? (
                 <EmptyState icon={MagnifyingGlass} title={filterIssuesOnly ? 'Tidak ada isu ditemukan' : 'Tidak ada data preview'} description={filterIssuesOnly ? 'Semua baris valid, tidak ada error/duplikat' : 'Upload file dan lakukan mapping untuk melihat preview'} color="slate" variant="plain" className="py-8" />
             ) : visibleRows.map((r) => {
@@ -498,26 +498,22 @@ const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCo
                 const statusIcon = getStatusIcon(status)
                 const errorMsg = getRowErrorMessage(r)
                 return (
-                    <div key={i} className={`rounded-xl p-2.5 transition-colors ${rowBg}`} role="listitem" title={errorMsg}>
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <div className="flex items-center gap-1.5">
-                                <input
-                                    type="checkbox"
-                                    aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
-                                    className="w-3.5 h-3.5 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
-                                    checked={selectedRows.has(i)}
-                                    onChange={() => onToggleRow(i)}
-                                />
-                                <span className="text-[9px] font-bold text-[var(--color-text-muted)] opacity-40 min-w-[14px]">{rowNum}</span>
-                                <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full ${statusIcon.cls} ${statusIcon.extra}`} title={errorMsg || status}>
-                                    <statusIcon.Icon className="w-2 h-2" />
-                                </span>
-                            </div>
+                    <div key={i} className={`px-2.5 py-2 transition-colors ${rowBg}`} role="listitem" title={errorMsg}>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                aria-label={`Pilih baris ${rowNum}: ${r.academic_year || 'Tahun tidak dikenal'}`}
+                                className="w-3.5 h-3.5 rounded border-[var(--color-border)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer shrink-0"
+                                checked={selectedRows.has(i)}
+                                onChange={() => onToggleRow(i)}
+                            />
+                            <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-40 w-3 text-center shrink-0">{rowNum}</span>
+                            <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded-full shrink-0 ${statusIcon.cls} ${statusIcon.extra}`} title={errorMsg || status}>
+                                <statusIcon.Icon className="w-1.5 h-1.5" />
+                            </span>
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1 mb-0.5">
-                                    <span className="font-bold text-[var(--color-text)] text-[11px] truncate">{r.academic_year || '-'}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5 text-[10px] text-[var(--color-text-muted)] items-center">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-[var(--color-text)] text-[11px]">{r.academic_year || '-'}</span>
                                     {visibleCols.semester && (
                                         <EditableCell
                                             rowIdx={i} colKey="semester" value={r.semester}
@@ -548,11 +544,11 @@ const ReviewMobileCards = React.memo(({ visibleRows, filterIssuesOnly, visibleCo
                                     ) : (
                                         <button
                                             onClick={() => handleRemoveImportRow(i)}
-                                            className="w-5 h-5 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center"
+                                            className="w-4 h-4 rounded bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center shrink-0"
                                             title="Hapus Baris"
                                             aria-label={`Hapus baris ${rowNum}`}
                                         >
-                                            <Trash className="w-2.5 h-2.5" />
+                                            <Trash className="w-2 h-2" />
                                         </button>
                                     )}
                                 </div>
@@ -1049,45 +1045,47 @@ export default function PeriodImportPanel(props) {
                     return (
                         <DraggableItem key={sys.key} id={sys.key} index={idx} onMove={handleMoveMapping}>
                             <div className={`p-2.5 rounded-xl border transition-all ${isUnmappedRequired ? 'bg-amber-500/4 border-amber-500/30 ring-1 ring-amber-500/20' : mapped ? 'bg-emerald-500/4 border-emerald-500/20' : 'bg-[var(--color-surface-alt)]/50 border-[var(--color-border)]'}`}>
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="cursor-grab active:cursor-grabbing text-[var(--color-text-muted)] opacity-30 hover:opacity-60 transition-opacity" title="Drag untuk mengurutkan">
+                                <div className="flex flex-col md:flex-row md:items-center gap-1.5 md:gap-2 min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        <div className="cursor-grab active:cursor-grabbing text-[var(--color-text-muted)] opacity-30 hover:opacity-60 transition-opacity shrink-0" title="Drag untuk mengurutkan">
                                             <DotsSix className="w-3 h-3" />
                                         </div>
-                                        <div className="flex flex-col w-[130px] shrink-0">
-                                            <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1">
+                                        <div className="flex flex-col w-full md:w-[130px] md:shrink-0 min-w-0">
+                                            <span className="text-[10px] font-black text-[var(--color-text)] flex items-center gap-1 truncate">
                                                 {sys.label}
-                                                {isRequired && <span className="text-red-500 text-[9px]">*</span>}
+                                                {isRequired && <span className="text-red-500 text-[9px] shrink-0">*</span>}
                                             </span>
                                             <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 uppercase tracking-tight">Sistem</span>
                                         </div>
                                     </div>
 
-                                    <div className={`flex items-center justify-center w-6 h-6 rounded-full transition-all ${mapped ? 'bg-emerald-500/15' : isUnmappedRequired ? 'bg-amber-500/15' : ''}`}>
-                                        <ArrowRight className={`w-3.5 h-3.5 transition-all ${mapped ? 'text-emerald-500' : isUnmappedRequired ? 'text-amber-500' : 'text-[var(--color-text-muted)] opacity-30'}`} />
-                                    </div>
+                                    <div className="flex items-center gap-1.5 md:gap-2 md:flex-1 md:min-w-0">
+                                        <div className={`flex items-center justify-center w-5 h-5 rounded-full shrink-0 transition-all ${mapped ? 'bg-emerald-500/15' : isUnmappedRequired ? 'bg-amber-500/15' : ''}`}>
+                                            <ArrowRight className={`w-3 h-3 transition-all ${mapped ? 'text-emerald-500' : isUnmappedRequired ? 'text-amber-500' : 'text-[var(--color-text-muted)] opacity-30'}`} />
+                                        </div>
 
-                                    <div className="flex-1 min-w-0 relative">
-                                        <Select
-                                            small
-                                            value={mapped || ''}
-                                            onChange={(val) => {
-                                                setImportColumnMapping(v => ({ ...v, [sys.key]: val }))
-                                                if (val && isRequired) focusNextRequired(sys.key)
-                                            }}
-                                            options={fileHeaderOptions}
-                                            placeholder="-- Lewati Kolom --"
-                                            extraOption={{ id: '', name: '-- Lewati Kolom --' }}
-                                            status={mapped ? 'success' : isUnmappedRequired ? 'warning' : 'normal'}
-                                            searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
-                                            autoFocus={focusNextRequiredRef.current === sys.key}
-                                        />
+                                        <div className="flex-1 min-w-0 relative">
+                                            <Select
+                                                small
+                                                value={mapped || ''}
+                                                onChange={(val) => {
+                                                    setImportColumnMapping(v => ({ ...v, [sys.key]: val }))
+                                                    if (val && isRequired) focusNextRequired(sys.key)
+                                                }}
+                                                options={fileHeaderOptions}
+                                                placeholder="-- Lewati Kolom --"
+                                                extraOption={{ id: '', name: '-- Lewati Kolom --' }}
+                                                status={mapped ? 'success' : isUnmappedRequired ? 'warning' : 'normal'}
+                                                searchable={importFileHeaders.length > SEARCHABLE_THRESHOLD}
+                                                autoFocus={focusNextRequiredRef.current === sys.key}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                                 {mapped && columnExampleValues[sys.key]?.length > 0 && (
-                                    <div className="mt-2 pt-2 border-t border-dashed border-emerald-500/20 flex items-center gap-2">
-                                        <span className="text-[8px] font-black uppercase tracking-tight text-[var(--color-text-muted)]">Contoh:</span>
-                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] font-mono">{columnExampleValues[sys.key].join(', ')}</span>
+                                    <div className="mt-2 pt-2 border-t border-dashed border-emerald-500/20 flex items-center gap-2 min-w-0">
+                                        <span className="text-[8px] font-black uppercase tracking-tight text-[var(--color-text-muted)] shrink-0">Contoh:</span>
+                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)] font-mono truncate">{columnExampleValues[sys.key].join(', ')}</span>
                                     </div>
                                 )}
                             </div>
@@ -1213,12 +1211,12 @@ export default function PeriodImportPanel(props) {
                         onClick={() => setTemplateTableCollapsed(v => !v)}
                         className="w-full flex items-center justify-between px-4 py-2.5 bg-[var(--color-surface-alt)]/60 hover:bg-[var(--color-surface-alt)] transition-colors cursor-pointer"
                     >
-                        <div className="flex items-center gap-2">
-                            <CaretDown className={`w-3 h-3 text-[var(--color-text-muted)] transition-transform ${templateTableCollapsed ? '-rotate-90' : ''}`} />
-                            <List className="w-3 h-3 text-[var(--color-primary)]" />
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)]">Contoh Format Import</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                            <CaretDown className={`w-3 h-3 text-[var(--color-text-muted)] transition-transform shrink-0 ${templateTableCollapsed ? '-rotate-90' : ''}`} />
+                            <List className="w-3 h-3 text-[var(--color-primary)] shrink-0" />
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] truncate">Contoh Format Import</span>
                         </div>
-                        <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 text-[9px] font-extrabold uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 text-[9px] font-extrabold uppercase tracking-wider shrink-0 whitespace-nowrap">
                             <FileText className="w-2.5 h-2.5" />
                             Contoh Format
                         </span>
@@ -1282,19 +1280,19 @@ export default function PeriodImportPanel(props) {
         {importStep === 2 && (
             <div key={importStep} className="animate-in fade-in slide-in-from-right-4 duration-300">
                 {/* File Context */}
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-5">
                     <button
                         onClick={() => handleGoToStep(1)}
-                        className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                        className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors shrink-0"
                     >
                         <ArrowLeft className="w-3 h-3" />
                         Ubah File
                     </button>
                     {importFileName && (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-600 text-[10px] font-bold">
-                            <FileText className="w-3 h-3" />
+                        <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-600 text-[10px] font-bold max-w-full">
+                            <FileText className="w-3 h-3 shrink-0" />
                             <span className="max-w-[180px] truncate">{importFileName}</span>
-                            <button onClick={handleImportClick} className="ml-0.5 hover:text-violet-800 transition-colors" title="Ganti File">
+                            <button onClick={handleImportClick} className="ml-0.5 hover:text-violet-800 transition-colors shrink-0" title="Ganti File">
                                 <PencilSimple className="w-3 h-3" />
                             </button>
                         </span>
@@ -1320,27 +1318,27 @@ export default function PeriodImportPanel(props) {
                     <div className="space-y-6">
                         {/* Section 1: Pemetaan Kolom */}
                         <div>
-                            <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
-                                <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mb-2">
                                     <span className="w-5 h-5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] flex items-center justify-center text-[10px] font-extrabold shrink-0">1</span>
                                     <span className="text-[13px] font-extrabold">Pemetaan Kolom</span>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {importDetectedDateFormat && (
-                                        <span className="text-[9px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-700 px-2 py-1 rounded-full">
-                                            Format Tanggal: {importDetectedDateFormat}
-                                        </span>
-                                    )}
-                                    <span className={`flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider px-2 py-1 rounded-full ${mappingProgress.mapped === mappingProgress.total ? 'bg-emerald-500/10 text-emerald-600' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]'}`}>
-                                        {mappingProgress.mapped === mappingProgress.total && <Check className="w-2.5 h-2.5" />}
-                                        {mappingProgress.mapped}/{mappingProgress.total} Kolom Cocok
+                            <p className="text-[11px] text-[var(--color-text-muted)] mb-4 sm:ml-7">
+                                Cocokkan kolom di file kamu dengan field sistem. Contoh nilai dari file ditampilkan di bawah tiap kartu untuk membantu verifikasi.
+                            </p>
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-4 sm:ml-7">
+                                {importDetectedDateFormat && (
+                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface-alt)] px-2 py-0.5 rounded-md whitespace-nowrap">
+                                        Format: {importDetectedDateFormat}
                                     </span>
-                                </div>
+                                )}
+                                <span className={`text-[10px] font-bold whitespace-nowrap ${mappingProgress.mapped === mappingProgress.total ? 'text-emerald-600' : 'text-[var(--color-text-muted)]'}`}>
+                                    {mappingProgress.mapped === mappingProgress.total && <Check className="w-2.5 h-2.5 inline-block mr-0.5" weight="bold" />}
+                                    {mappingProgress.mapped}/{mappingProgress.total} kolom cocok
+                                </span>
                             </div>
-                            <p className="text-[11px] text-[var(--color-text-muted)] mb-3 ml-7">Cocokkan kolom di file kamu dengan field sistem. Contoh nilai dari file ditampilkan di bawah tiap kartu untuk membantu verifikasi.</p>
 
                             {hasUnmappedRequired && (
-                                <div className="flex items-center gap-2 px-3 py-2 mb-3 ml-7 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                <div className="flex items-center gap-2 px-3 py-2 mb-3 sm:ml-7 rounded-xl bg-amber-500/5 border border-amber-500/10">
                                     <Warning className="w-3 h-3 text-amber-500 shrink-0" />
                                     <span className="text-[9px] font-bold text-amber-600">Semua kolom wajib (*) harus dipetakan sebelum melanjutkan</span>
                                 </div>
@@ -1360,10 +1358,10 @@ export default function PeriodImportPanel(props) {
                                     <span className="text-[13px] font-extrabold">Strategi Data Duplikat</span>
                                 </div>
                             </div>
-                            <p className="text-[11px] text-[var(--color-text-muted)] mb-3 ml-7">Pilih perlakuan default kalau periode di file sudah ada di database. Bisa diubah lagi per-baris nanti di langkah Pratinjau.</p>
+                            <p className="text-[11px] text-[var(--color-text-muted)] mb-3 sm:ml-7">Pilih perlakuan default kalau periode di file sudah ada di database. Bisa diubah lagi per-baris nanti di langkah Pratinjau.</p>
 
-                            <div className="flex items-center gap-3 flex-wrap ml-7">
-                                <div className="flex items-center rounded-xl bg-[var(--color-surface-alt)] p-0.5">
+                            <div className="flex items-center gap-3 flex-wrap sm:ml-7">
+                                <div className="flex items-center rounded-xl bg-[var(--color-surface-alt)] p-0.5 overflow-x-auto scrollbar-hide max-w-full">
                                     {[
                                         { id: 'skip', label: 'Lewati Duplikat', icon: Copy },
                                         { id: 'replace', label: 'Timpa Data Lama', icon: ArrowClockwise },
@@ -1372,7 +1370,7 @@ export default function PeriodImportPanel(props) {
                                         <button
                                             key={strat.id}
                                             onClick={() => setImportConflictStrategy(strat.id)}
-                                            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg transition-all
+                                            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-lg transition-all whitespace-nowrap shrink-0
                                                 ${importConflictStrategy === strat.id
                                                     ? 'bg-violet-500 text-white shadow-sm'
                                                     : 'text-[var(--color-text-muted)] hover:text-violet-600'}`}
@@ -1401,31 +1399,29 @@ export default function PeriodImportPanel(props) {
                 {importLoading ? (
                     <ReviewTableSkeleton />
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         {/* Stats Row */}
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[11px] font-extrabold">
-                                    <FileText className="w-3 h-3 opacity-60" />
-                                    {statValues.total} Total
-                                </span>
-                                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 text-[11px] font-extrabold">
-                                    <CheckCircle className="w-3 h-3" />
-                                    {statValues.ready} Siap
-                                </span>
-                                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-violet-500/10 text-violet-600 text-[11px] font-extrabold">
-                                    <Copy className="w-3 h-3" />
-                                    {statValues.dupe} Duplikat
-                                </span>
-                                <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/10 text-red-600 text-[11px] font-extrabold">
-                                    <WarningCircle className="w-3 h-3" />
-                                    {statValues.error} Error
-                                </span>
-                            </div>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[10px] font-extrabold whitespace-nowrap">
+                                <FileText className="w-2.5 h-2.5 opacity-60" />
+                                {statValues.total} Total
+                            </span>
+                            <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] font-extrabold whitespace-nowrap">
+                                <CheckCircle className="w-2.5 h-2.5" />
+                                {statValues.ready} Siap
+                            </span>
+                            <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-violet-500/10 text-violet-600 text-[10px] font-extrabold whitespace-nowrap">
+                                <Copy className="w-2.5 h-2.5" />
+                                {statValues.dupe} Duplikat
+                            </span>
+                            <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 text-red-600 text-[10px] font-extrabold whitespace-nowrap">
+                                <WarningCircle className="w-2.5 h-2.5" />
+                                {statValues.error} Error
+                            </span>
                             {importFileName && (
-                                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-violet-500/10 text-violet-600 text-[10px] font-bold">
-                                    <FileText className="w-3 h-3" />
-                                    <span className="max-w-[180px] truncate">{importFileName}</span>
+                                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-600 text-[9px] font-bold max-w-full">
+                                    <FileText className="w-2.5 h-2.5 shrink-0" />
+                                    <span className="max-w-[140px] truncate">{importFileName}</span>
                                 </span>
                             )}
                         </div>
@@ -1438,12 +1434,12 @@ export default function PeriodImportPanel(props) {
                                     onClick={() => setImportDiffOpen(v => !v)}
                                     className="w-full px-3 py-2 bg-[var(--color-surface-alt)]/60 border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-surface-alt)] transition-colors cursor-pointer"
                                 >
-                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
-                                        <CaretDown className={`w-3 h-3 transition-transform ${importDiffOpen ? '' : '-rotate-90'}`} />
-                                        <GitDiff className="w-3 h-3 text-amber-500" />
-                                        Perubahan Data ({diffUpdates.length} baris akan ditimpa)
+                                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5 min-w-0">
+                                        <CaretDown className={`w-3 h-3 transition-transform shrink-0 ${importDiffOpen ? '' : '-rotate-90'}`} />
+                                        <GitDiff className="w-3 h-3 text-amber-500 shrink-0" />
+                                        <span className="truncate">Perubahan Data ({diffUpdates.length} baris akan ditimpa)</span>
                                     </span>
-                                    <span className="text-[9px] font-extrabold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">Update</span>
+                                    <span className="text-[9px] font-extrabold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full shrink-0">Update</span>
                                 </button>
                                 {importDiffOpen && (
                                     <div className="max-h-[180px] overflow-auto divide-y divide-[var(--color-border)]/50">
@@ -1490,7 +1486,7 @@ export default function PeriodImportPanel(props) {
                                 value={searchQuery}
                                 onChange={e => { setSearchQuery(e.target.value); setVisibleCount(PAGE_SIZE) }}
                                 placeholder="Cari tahun akademik atau semester..."
-                                className="w-full h-8 pl-7 pr-3 rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)] text-[11px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
+                                className="w-full h-7 pl-7 pr-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-[10px] font-bold text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] placeholder:opacity-40 outline-none focus:border-[var(--color-primary)] transition-all"
                             />
                             {searchQuery && (
                                 <button
@@ -1504,56 +1500,57 @@ export default function PeriodImportPanel(props) {
 
                         {/* Bulk action bar when rows selected */}
                         {selectedRows.size > 0 && (
-                            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-red-500/5 border border-red-500/20 animate-in slide-in-from-top-2 fade-in">
-                                <span className="text-[10px] font-black text-red-600">{selectedRows.size} baris terpilih</span>
-                                <div className="w-px h-4 bg-red-500/20" />
-                                <div className="flex items-center gap-1">
-                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Set Semester:</span>
+                            <div className="rounded-xl bg-red-500/5 border border-red-500/20 overflow-hidden animate-in slide-in-from-top-2 fade-in">
+                                <div className="flex items-center gap-2 px-3 py-2">
+                                    <span className="text-[10px] font-black text-red-600 shrink-0">{selectedRows.size} terpilih</span>
+                                    <div className="w-px h-3.5 bg-red-500/20" />
+                                    <span className="text-[8px] font-bold text-[var(--color-text-muted)] shrink-0">Semester:</span>
                                     <button
                                         onClick={() => handleBatchSemester('Ganjil')}
-                                        className="h-6 px-2 rounded-lg bg-violet-500/10 text-violet-600 text-[9px] font-black hover:bg-violet-500 hover:text-white transition-all"
+                                        className="h-5 px-1.5 rounded bg-violet-500/10 text-violet-600 text-[8px] font-black hover:bg-violet-500 hover:text-white transition-all"
                                     >
                                         Ganjil
                                     </button>
                                     <button
                                         onClick={() => handleBatchSemester('Genap')}
-                                        className="h-6 px-2 rounded-lg bg-violet-500/10 text-violet-600 text-[9px] font-black hover:bg-violet-500 hover:text-white transition-all"
+                                        className="h-5 px-1.5 rounded bg-violet-500/10 text-violet-600 text-[8px] font-black hover:bg-violet-500 hover:text-white transition-all"
                                     >
                                         Genap
                                     </button>
+                                    <div className="flex-1" />
+                                    <button
+                                        onClick={() => setSelectedRows(new Set())}
+                                        className="text-[8px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors shrink-0"
+                                    >
+                                        Batal
+                                    </button>
                                 </div>
-                                <div className="flex-1" />
-                                <button
-                                    onClick={handleExportFiltered}
-                                    className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all"
-                                >
-                                    <Export className="w-3 h-3" />
-                                    Export
-                                </button>
-                                <button
-                                    onClick={handleBulkDelete}
-                                    className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
-                                >
-                                    <Trash className="w-3 h-3" />
-                                    Hapus
-                                </button>
-                                <button
-                                    onClick={() => setSelectedRows(new Set())}
-                                    className="text-[10px] font-black text-[var(--color-text-muted)] uppercase tracking-widest hover:text-[var(--color-text)] transition-colors"
-                                >
-                                    Batal
-                                </button>
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 border-t border-red-500/10">
+                                    <button
+                                        onClick={handleExportFiltered}
+                                        className="flex-1 flex items-center justify-center gap-1 h-7 rounded-lg bg-emerald-500 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all"
+                                    >
+                                        <Export className="w-2.5 h-2.5" />
+                                        Export
+                                    </button>
+                                    <button
+                                        onClick={handleBulkDelete}
+                                        className="flex-1 flex items-center justify-center gap-1 h-7 rounded-lg bg-red-500 text-white text-[9px] font-black uppercase tracking-widest hover:bg-red-600 transition-all"
+                                    >
+                                        <Trash className="w-2.5 h-2.5" />
+                                        Hapus
+                                    </button>
+                                </div>
                             </div>
                         )}
 
                         {/* Undo bar when rows pending deletion */}
                         {pendingDeletions.size > 0 && (
-                            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in slide-in-from-top-2 fade-in">
-                                <span className="text-[10px] font-black text-amber-600">{pendingDeletions.size} baris akan dihapus otomatis</span>
-                                <div className="flex-1" />
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-in slide-in-from-top-2 fade-in">
+                                <span className="text-[10px] font-black text-amber-600 flex-1 min-w-0 truncate">{pendingDeletions.size} baris akan dihapus</span>
                                 <button
                                     onClick={undoDeletions}
-                                    className="flex items-center gap-1.5 h-7 px-3 rounded-lg bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
+                                    className="flex items-center gap-1 h-6 px-2.5 rounded-lg bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all shrink-0"
                                 >
                                     <ArrowClockwise className="w-3 h-3" />
                                     Undo
@@ -1596,20 +1593,20 @@ export default function PeriodImportPanel(props) {
                                 />
                             </div>
                             {displayPreview.length > visibleCount && (
-                                <div className="px-4 py-2 border-t border-[var(--color-border)]">
+                                <div className="px-3 py-1.5 border-t border-[var(--color-border)]">
                                     <button
                                         onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
-                                        className="w-full py-2 rounded-xl text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all"
+                                        className="w-full py-1.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 transition-all"
                                     >
-                                        Muat {Math.min(PAGE_SIZE, displayPreview.length - visibleCount)} baris lagi ({displayPreview.length - visibleCount} tersisa) <CaretDown className="w-2 h-2 inline-block ml-1" />
+                                        Muat {Math.min(PAGE_SIZE, displayPreview.length - visibleCount)} lagi ({displayPreview.length - visibleCount} tersisa) <CaretDown className="w-2 h-2 inline-block ml-0.5" />
                                     </button>
                                 </div>
                             )}
-                            <div className="px-4 py-2 text-[10px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface-alt)]/60 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-2">
-                                <span>Menampilkan {visibleRows.length} dari {displayPreview.length} baris</span>
+                            <div className="px-3 py-1.5 text-[9px] font-bold text-[var(--color-text-muted)] bg-[var(--color-surface-alt)]/60 border-t border-[var(--color-border)] flex flex-wrap items-center justify-between gap-1.5">
+                                <span>{visibleRows.length}/{displayPreview.length} baris</span>
                                 <span className="text-emerald-600 flex items-center gap-1 font-extrabold">
-                                    <CheckCircle className="w-2.5 h-2.5" />
-                                    {importReadyRows.length} baris siap diimport
+                                    <CheckCircle className="w-2 h-2" />
+                                    {importReadyRows.length} siap diimport
                                 </span>
                             </div>
                         </div>
@@ -1623,7 +1620,7 @@ export default function PeriodImportPanel(props) {
                                     className="w-full px-4 py-2.5 bg-[var(--color-surface-alt)]/60 border-b border-[var(--color-border)] flex items-center justify-between hover:bg-[var(--color-surface-alt)] transition-colors cursor-pointer"
                                 >
                                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)]">Catatan Validasi</span>
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{importIssues.length} isu</span>
+                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)] shrink-0">{importIssues.length} isu</span>
                                 </button>
                                 {importValidationOpen && (
                                     <div className="divide-y divide-[var(--color-border)]">
@@ -1649,30 +1646,29 @@ export default function PeriodImportPanel(props) {
                         )}
 
                         {/* Summary Card */}
-                        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-                            <p className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-text-muted)] mb-3">Ringkasan Import</p>
-                            <div className="flex items-center gap-5 flex-wrap">
-                                <span className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-muted)]">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                    {importSummary.willInsert} baris akan ditambahkan
+                        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2.5">
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-[var(--color-text-muted)]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    {importSummary.willInsert} tambah
                                 </span>
                                 {importSummary.willUpdate > 0 && (
-                                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-muted)]">
-                                        <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                        {importSummary.willUpdate} baris akan ditimpa
+                                    <span className="flex items-center gap-1 text-[10px] font-bold text-[var(--color-text-muted)]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                        {importSummary.willUpdate} timpa
                                     </span>
                                 )}
                                 {importSummary.willSkip > 0 && (
-                                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-[var(--color-text-muted)]">
-                                        <span className="w-2 h-2 rounded-full bg-slate-400" />
-                                        {importSummary.willSkip} baris dilewati
+                                    <span className="flex items-center gap-1 text-[10px] font-bold text-[var(--color-text-muted)]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                                        {importSummary.willSkip} lewati
                                     </span>
                                 )}
-                                <span className="text-[11px] font-extrabold text-[var(--color-text)]">Total: {importSummary.total} baris</span>
+                                <span className="text-[10px] font-extrabold text-[var(--color-text)]">Total: {importSummary.total}</span>
+                                <span className="text-[8px] font-bold text-[var(--color-text-muted)] opacity-50 ml-auto">
+                                    Strategi: {importConflictStrategy === 'skip' ? 'Lewati' : importConflictStrategy === 'replace' ? 'Timpa' : 'Biarkan'}
+                                </span>
                             </div>
-                            <p className="mt-2 text-[9px] font-bold text-[var(--color-text-muted)] opacity-50">
-                                Strategi: {importConflictStrategy === 'skip' ? 'Lewati duplikat' : importConflictStrategy === 'replace' ? 'Timpa data lama' : 'Biarkan tetap ada'}
-                            </p>
                         </div>
                     </div>
                 )}
@@ -1680,7 +1676,7 @@ export default function PeriodImportPanel(props) {
         )}</>)
 
     const importSteps = (<>
-        <div className="flex items-center justify-center gap-2 mb-5">
+        <div className="lg:hidden flex items-center justify-center gap-2 px-4 pt-1.5 pb-2.5 mb-4 border-b border-[var(--color-border)]">
             {STEPS.map((s) => (
                 <React.Fragment key={s.step}>
                     <div className="flex items-center gap-2">
@@ -1701,9 +1697,9 @@ export default function PeriodImportPanel(props) {
 
     return (
         <>
-                <div className="grid gap-5 h-full w-full min-h-0 grid-rows-[1fr_auto]" style={{ gridTemplateColumns: showSidebar ? '230px 1fr' : '1fr' }}>
+                <div className={`grid gap-5 h-full w-full min-h-0 grid-rows-[1fr_auto] ${showSidebar ? 'grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)]'}`}>
                 {showSidebar && (
-                    <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] h-auto overflow-hidden">
+                    <div className="hidden lg:flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] h-auto overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-3 pb-4 custom-scrollbar">
                             <div className="flex flex-col gap-0">
                                 {STEPS.map((s, idx) => {
@@ -1782,15 +1778,15 @@ export default function PeriodImportPanel(props) {
 
                 <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden min-h-0">
                     <div className="overflow-y-auto p-5 custom-scrollbar">
-                        {lastImportedIds.length > 0 ? successScreen : stepBody}
+                        {stepContent}
                     </div>
 
-                    <div className="flex items-center justify-between px-5 py-3.5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
-                        <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
+                        <div className="flex items-center gap-2">
                             {!showSidebar && (
                                 <button
                                     onClick={() => setShowSidebar(true)}
-                                    className="h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-1.5"
+                                    className="hidden lg:flex h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all items-center gap-1.5 shrink-0"
                                 >
                                     <List className="w-3 h-3" />
                                     Panduan
@@ -1799,7 +1795,7 @@ export default function PeriodImportPanel(props) {
                             {importStep === 1 && (
                                 <button
                                     onClick={handleDownloadTemplate}
-                                    className="h-[38px] px-4 rounded-[10px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 text-[12.5px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-2"
+                                    className="h-[38px] px-4 rounded-[10px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 text-[12.5px] font-bold hover:bg-emerald-500/20 transition-all flex items-center gap-2 shrink-0"
                                 >
                                     <DownloadSimple className="w-3.5 h-3.5" />
                                     Template
@@ -1808,7 +1804,7 @@ export default function PeriodImportPanel(props) {
                             {importStep > 1 && !importing && (
                                 <button
                                     onClick={() => handleGoToStep(v => v - 1)}
-                                    className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2"
+                                    className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2 shrink-0"
                                 >
                                     <ArrowLeft className="w-3.5 h-3.5" />
                                     Kembali
@@ -1816,11 +1812,11 @@ export default function PeriodImportPanel(props) {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             {importStep === 1 ? (
                                 <button
                                     onClick={() => (importRawData.length > 0 && importFileName) ? handleGoToStep(2) : importFileInputRef.current?.click()}
-                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2 shrink-0"
                                 >
                                     {(importRawData.length > 0 && importFileName) ? (
                                         <>Lanjutkan <ArrowRight className="w-3.5 h-3.5" /></>
@@ -1832,7 +1828,7 @@ export default function PeriodImportPanel(props) {
                                 <button
                                     onClick={handleReviewPreview}
                                     disabled={!isMappingComplete(importColumnMapping)}
-                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold disabled:opacity-40 shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold disabled:opacity-40 shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2 shrink-0"
                                 >
                                     Review Data <ArrowRight className="w-3.5 h-3.5" />
                                 </button>
@@ -1840,7 +1836,7 @@ export default function PeriodImportPanel(props) {
                                 <button
                                     onClick={handleCommitWithConfirmation}
                                     disabled={importing || hasImportBlockingErrors || importReadyRows.length === 0}
-                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold disabled:opacity-40 shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2"
+                                    className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white text-[12.5px] font-bold disabled:opacity-40 shadow-md shadow-[var(--color-primary)]/20 transition-all flex items-center gap-2 shrink-0"
                                 >
                                     {importing
                                         ? <><Spinner className="animate-spin w-3.5 h-3.5" /> Mengimport...</>

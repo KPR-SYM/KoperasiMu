@@ -247,6 +247,12 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
             return [crumbs[0], { label: tNav(TASK_CENTER_ITEM) }]
         }
 
+        // Standalone routes with proper translation
+        if (path === '/settings') {
+            crumbs.push({ label: t('nav.settings') })
+            return crumbs
+        }
+
         // Fallback: use last path segment
         const segments = path.split('/').filter(Boolean)
         if (segments.length > 1) {

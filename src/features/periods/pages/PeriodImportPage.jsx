@@ -1,10 +1,9 @@
-import React, { useMemo, useCallback } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import Skeleton from "@shared/components/Skeleton";
-import { CaretLeft, Spinner } from "@phosphor-icons/react";
+import { CaretLeft } from "@phosphor-icons/react";
 
 import DashboardLayout from "@core/layouts/DashboardLayout";
-import { Breadcrumb } from "@shared/components";
 import { useToast } from "@context/Toast";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
 import { usePeriodsModals } from "@features/periods/hooks/usePeriodsModals";
@@ -56,18 +55,12 @@ export default function PeriodImportPage() {
                     <div className="flex items-center gap-2 mb-3">
                         <button
                             onClick={() => navigate('/master/periods')}
-                            className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                            title="Kembali ke Tahun Akademik"
+                            className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                            title="Kembali ke Tahun Akademik (Esc)"
                         >
                             <CaretLeft className="w-3.5 h-3.5" />
+                            <span>Tahun Akademik</span>
                         </button>
-                        <Breadcrumb
-                            items={[
-                                { label: 'Master' },
-                                { label: 'Tahun Akademik', onClick: () => navigate('/master/periods') },
-                                { label: 'Import' },
-                            ]}
-                        />
                     </div>
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">

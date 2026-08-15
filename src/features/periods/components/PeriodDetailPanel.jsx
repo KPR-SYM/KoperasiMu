@@ -17,7 +17,7 @@ import { useAuth } from '@context/Auth'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import { logAudit } from '@utils/auditLogger'
 import {
-    Breadcrumb, AuditTimeline, Skeleton, Tooltip,
+    AuditTimeline, Skeleton, Tooltip,
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
 import { ArchiveModal } from '@features/periods/components/PeriodConfirmModals'
@@ -937,18 +937,12 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={goBack}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                        title="Kembali (Esc)"
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        title="Kembali ke Tahun Akademik (Esc)"
                     >
                         <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Tahun Akademik</span>
                     </button>
-                    <Breadcrumb
-                        items={[
-                            { label: 'Master' },
-                            { label: 'Tahun Akademik', onClick: goBack },
-                            { label: `${period.academic_year} ${period.semester}` },
-                        ]}
-                    />
                     {lastRefresh && (
                         <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1 shrink-0 whitespace-nowrap">
                             Diperbarui {(() => {

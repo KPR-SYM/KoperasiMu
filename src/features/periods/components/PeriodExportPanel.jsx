@@ -3,9 +3,9 @@ import {
     Warning, Archive, ArrowsLeftRight, ArrowsDownUp, Calendar, CheckCircle, Clock,
     FileXls, FileText, FileArrowUp, Tag, TextH, SlidersHorizontal, Users,
     DotsSixVertical, Eye, EyeSlash, Check, Shield, List, ArrowLeft, ArrowRight,
-    Spinner, MagnifyingGlass,
+    Spinner, MagnifyingGlass, CaretLeft,
 } from '@phosphor-icons/react'
-import { Breadcrumb, EmptyState } from '@shared/components'
+import { EmptyState } from '@shared/components'
 import DashboardLayout from '@core/layouts/DashboardLayout'
 
 const STEPS = [
@@ -200,7 +200,7 @@ export default function PeriodExportPanel(props) {
         <div className="space-y-4">
             <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--color-text-muted)] mb-2">Jangkauan Data</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {scopeOptions.map(({ val, label, desc, icon: Icon, disabled }) => (
                         <button
                             key={val}
@@ -295,14 +295,14 @@ export default function PeriodExportPanel(props) {
                         value={fileName}
                         onChange={(e) => setFileName(e.target.value)}
                         placeholder="Nama file export..."
-                        className="w-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-xs font-bold focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all placeholder:opacity-50 pr-20"
+                        className="w-full bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-xs font-bold focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)]/20 transition-all placeholder:opacity-50 sm:pr-20 pr-24"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)]">Multi Format</div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 px-2 py-1 rounded bg-[var(--color-border)] text-[8px] font-black uppercase text-[var(--color-text-muted)] whitespace-nowrap">Multi Format</div>
                 </div>
             </div>
 
             <div className="p-4 rounded-2xl bg-[var(--color-surface-alt)]/60 border border-[var(--color-border)]">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-wider text-[var(--color-text-muted)] flex items-center gap-1.5">
                             <TextH /> Header
@@ -618,18 +618,12 @@ export default function PeriodExportPanel(props) {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={onClose}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                        title="Kembali ke Tahun Akademik"
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        title="Kembali ke Tahun Akademik (Esc)"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Tahun Akademik</span>
                     </button>
-                    <Breadcrumb
-                        items={[
-                            { label: 'Master' },
-                            { label: 'Tahun Akademik', onClick: onClose },
-                            { label: 'Export' },
-                        ]}
-                    />
                 </div>
                 <div>
                     <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Export Tahun Akademik</h1>
@@ -638,9 +632,9 @@ export default function PeriodExportPanel(props) {
             </div>
 
             <div className="flex-1 min-h-0 px-5 pb-5">
-                <div className="grid gap-5 h-full w-full min-h-0" style={{ gridTemplateColumns: showSidebar ? '230px 1fr' : '1fr' }}>
+                <div className={`grid gap-5 h-full w-full min-h-0 ${showSidebar ? 'grid-cols-1 lg:grid-cols-[230px_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)]'}`}>
                     {showSidebar && (
-                    <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] h-full overflow-hidden">
+                    <div className="hidden lg:flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] h-full overflow-hidden">
                         <div className="flex-1 overflow-y-auto p-4 pb-5 custom-scrollbar">
                             <div className="flex flex-col gap-0">
                                 {STEPS.map((s, idx) => {
@@ -701,16 +695,29 @@ export default function PeriodExportPanel(props) {
                     )}
 
                     <div className="flex flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden min-h-0">
+                        <div className="lg:hidden flex items-center justify-center gap-2 px-4 pt-3 pb-2 border-b border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
+                            {STEPS.map((s) => (
+                                <React.Fragment key={s.step}>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black transition-all shadow-sm ${step >= s.step ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] border border-[var(--color-border)] opacity-40'}`}>
+                                            {step > s.step ? <Check className="w-2.5 h-2.5" /> : s.step}
+                                        </div>
+                                        <span className={`text-[9px] font-black uppercase tracking-wider leading-none ${step >= s.step ? 'text-[var(--color-text)]' : 'text-[var(--color-text-muted)] opacity-50'}`}>{s.label}</span>
+                                    </div>
+                                    {s.step < 3 && <div className={`w-6 h-px rounded-full transition-all ${step > s.step ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-border)] opacity-30'}`} />}
+                                </React.Fragment>
+                            ))}
+                        </div>
                         <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
                             {stepContent}
                         </div>
 
-                        <div className="flex items-center justify-between px-5 py-3.5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
-                            <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-[var(--color-border)] bg-[var(--color-surface-alt)]/30">
+                            <div className="flex items-center gap-2">
                                 {step > 1 && !exporting && (
                                     <button
                                         onClick={() => handleGoToStep(v => v - 1)}
-                                        className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2"
+                                        className="h-[38px] px-4 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[12.5px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-2 shrink-0"
                                     >
                                         <ArrowLeft className="w-3.5 h-3.5" /> Kembali
                                     </button>
@@ -718,17 +725,17 @@ export default function PeriodExportPanel(props) {
                                 {!showSidebar && (
                                     <button
                                         onClick={() => setShowSidebar(true)}
-                                        className="h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all flex items-center gap-1.5"
+                                        className="hidden lg:flex h-[38px] px-3 rounded-[10px] border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] text-[10px] font-bold hover:bg-[var(--color-surface-alt)] transition-all items-center gap-1.5 shrink-0"
                                     >
                                         <List className="w-3 h-3" /> Panduan
                                     </button>
                                 )}
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
                                 {step < 3 && (
                                     <button
                                         onClick={() => handleGoToStep(v => v + 1)}
-                                        className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] text-white text-[12.5px] font-bold hover:brightness-110 transition-all flex items-center gap-2 shadow-md shadow-[var(--color-primary)]/20"
+                                        className="h-[38px] px-5 rounded-[10px] bg-[var(--color-primary)] text-white text-[12.5px] font-bold hover:brightness-110 transition-all flex items-center gap-2 shadow-md shadow-[var(--color-primary)]/20 shrink-0"
                                     >
                                         Selanjutnya <ArrowRight className="w-3.5 h-3.5" />
                                     </button>
