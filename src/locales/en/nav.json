@@ -1,8 +1,10 @@
 {
   "section.finance": "Finance",
   "section.master": "Master Data",
+  "section.koperasi": "Cooperative",
   "section.sheet.finance": "Finance Management",
   "section.sheet.master": "Master Data",
+  "section.sheet.koperasi": "Cooperative & Business Unit",
   "section.sheet.admin": "Infrastructure & Control",
   "nav.dashboard": "Dashboard",
   "nav.task_center": "Task Center",

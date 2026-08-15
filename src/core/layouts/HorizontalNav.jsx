@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 
 import { useAuth, useFeatureFlags, useLanguage } from '@context'
 import {
-    DASHBOARD_ITEM, TASK_CENTER_ITEM, NAV_GROUPS, filterNavItems,
+    DASHBOARD_ITEM, TASK_CENTER_ITEM, NAV_GROUPS, filterNavItems, flattenNavItems,
 } from './navItems'
 
 // ─── NavIcon Helper ─────────────────────────────────────────────────────────
@@ -48,7 +48,7 @@ function GroupDropdown({ group, isOpen, onToggle, onClose }) {
     const [coords, setCoords] = useState(null)
 
     const visibleItems = useMemo(() =>
-        filterNavItems(group.items, flags, role),
+        flattenNavItems(filterNavItems(group.items, flags, role)),
         [group.items, flags, role]
     )
 
@@ -150,7 +150,7 @@ export default function HorizontalNav() {
 
     // Check if a group has active route
     const isGroupActive = useCallback((group) => {
-        return group.items.some(item =>
+        return flattenNavItems(group.items).some(item =>
             location.pathname === item.to || location.pathname.startsWith(item.to + '/')
         )
     }, [location.pathname])

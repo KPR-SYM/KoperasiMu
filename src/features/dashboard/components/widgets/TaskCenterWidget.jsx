@@ -114,10 +114,10 @@ export function TaskCenterWidget() {
       <div className="relative z-10 pt-4 border-t border-[var(--color-border)]/60 mt-4">
         <Link
           to="/task-center"
-          className="flex items-center justify-between w-3 h-3 font-black uppercase tracking-widest text-[var(--color-primary)] hover:translate-x-0.5 transition-transform"
+          className="group/link flex items-center justify-center gap-2 w-full p-3 rounded-2xl border border-[var(--color-primary)]/25 bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-black uppercase tracking-widest text-[10px] hover:bg-[var(--color-primary)]/15 hover:shadow-lg hover:shadow-[var(--color-primary)]/10 active:scale-[0.98] transition-all"
         >
-          <span>Kelola Semua Tugas ({pendingTasks.length} pending)</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <span className="min-w-0 truncate">Kelola Semua Tugas · {pendingTasks.length} pending</span>
+          <ArrowRight className="w-3.5 h-3.5 shrink-0 transition-transform group-hover/link:translate-x-1" />
         </Link>
       </div>
     </div>

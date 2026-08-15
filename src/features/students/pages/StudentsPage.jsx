@@ -3,8 +3,6 @@ import { WarningCircle, Warning, Archive, ArrowDown, ArrowsLeftRight, Checks, Ch
 import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { createPortal } from 'react-dom'
 
-import { LIST_KAMAR } from '@features/dorms/utils/dormConstants'
-
 import DashboardLayout from '@core/layouts/DashboardLayout'
 import {
     PageHeader,
@@ -19,7 +17,7 @@ import {
 import { useToast, useFlag, useLanguage } from '@context'
 import { supabase } from '@lib/supabase'
 
-import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate } from '@features/students/utils/studentsConstants'
+import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate, LIST_KAMAR } from '@features/students/utils/studentsConstants'
 import { useStudentsImportWizard } from '@features/students/hooks/useStudentsImportWizard'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useStudentsCore } from '@features/students/hooks/useStudentsCore'

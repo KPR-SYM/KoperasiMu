@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Link } from 'react-router-dom'
 
-import { ClipboardText, Plus, Users, HandHeart } from '@phosphor-icons/react'
+import { ClipboardText, Plus, Users } from '@phosphor-icons/react'
 
 export const QuickActions = memo(function QuickActions() {
     return (
@@ -29,15 +29,6 @@ export const QuickActions = memo(function QuickActions() {
                     <div className="min-w-0">
                         <p className="text-[13px] font-black text-[var(--color-text)] leading-tight">Raport Bulanan</p>
                         <p className="text-[9px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest opacity-60 mt-0.5">Progress Pengisian</p>
-                    </div>
-                </Link>
-                <Link to="/boarding/counseling" className="flex items-center gap-3 p-3.5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] hover:border-purple-500/40 hover:shadow-lg group/btn transition-all">
-                    <div className="w-9 h-9 bg-purple-500/10 text-purple-500 rounded-xl flex items-center justify-center shrink-0 group-hover/btn:scale-110 transition-transform">
-                        <HandHeart className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                        <p className="text-[13px] font-black text-[var(--color-text)] leading-tight">Konseling & BK</p>
-                        <p className="text-[9px] text-[var(--color-text-muted)] font-bold uppercase tracking-widest opacity-60 mt-0.5">Bimbingan Santri</p>
                     </div>
                 </Link>
             </div>

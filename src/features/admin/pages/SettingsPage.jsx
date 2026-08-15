@@ -76,7 +76,6 @@ const CATEGORIES = [
 // --- New Enterprise Feature: Flag Definitions (Self-Healing System) ---
 const KNOWN_FLAGS = [
     // Module (Modul Utama)
-    { key: 'module.absensi', label: 'Absensi Bulanan', category: 'module', description: 'Rekap kehadiran harian per bulan', sort_order: 1 },
     { key: 'module.students', label: 'Data Siswa', category: 'module', description: 'Modul kelola data santri aktif', sort_order: 3 },
     { key: 'module.teachers', label: 'Data Guru', category: 'module', description: 'Modul kelola data guru & musyrif', sort_order: 4 },
     { key: 'module.classes', label: 'Data Kelas', category: 'module', description: 'Modul kelola kelas & kamar', sort_order: 5 },
@@ -102,9 +101,6 @@ const KNOWN_FLAGS = [
     // Nav
     { key: 'nav.dashboard', label: 'List Dashboard', category: 'nav', description: 'Tampilkan ringkasan statistik di sidebar', sort_order: 1 },
     { key: 'nav.students', label: 'List Data Siswa', category: 'nav', description: 'Tampilkan akses ke manajemen santri', sort_order: 2 },
-    { key: 'nav.dorms', label: 'List Manajemen Asrama', category: 'nav', description: 'Tampilkan menu plotting kamar & audit kebersihan', sort_order: 4 },
-    { key: 'nav.health', label: 'List Klinik & Kesehatan', category: 'nav', description: 'Tampilkan menu rekam medis & stok obat', sort_order: 5 },
-    { key: 'nav.counseling', label: 'List Konseling & BK', category: 'nav', description: 'Tampilkan menu Bimbingan Konseling (BK) santri', sort_order: 6 },
     { key: 'nav.tahfidz', label: 'List Tahfidz Al-Qur\'an', category: 'nav', description: 'Tampilkan jurnal setoran hafalan santri', sort_order: 7 },
     { key: 'nav.extracurricular', label: 'List Ekstrakurikuler', category: 'nav', description: 'Tampilkan manajemen klub & ekskul', sort_order: 8 },
     { key: 'nav.saving', label: 'List Tabungan Santri', category: 'nav', description: 'Tampilkan sistem deposit uang saku santri', sort_order: 9 },

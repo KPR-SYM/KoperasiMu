@@ -44,10 +44,6 @@ const InformationPage = lazyRetry(() => import('@features/public/pages/Informati
 // Core
 const DashboardPage = lazyRetry(() => import('@features/dashboard/pages/DashboardPage.jsx'))
 const TaskCenterPage = lazyRetry(() => import('@features/dashboard/pages/TaskCenterPage.jsx'))
-const DormsPage = lazyRetry(() => import('@features/dorms/pages/DormsPage.jsx'))
-const HealthPage = lazyRetry(() => import('@features/health/pages/HealthPage.jsx'))
-const CounselingPage = lazyRetry(() => import('@features/counseling/pages/CounselingPage.jsx'))
-const AttendancePage = lazyRetry(() => import('@features/attendance/pages/AttendancePage.jsx'))
 const SettingsPage = lazyRetry(() => import('@features/settings/pages/SettingsPage.jsx'))
 
 // Admin-only
@@ -74,9 +70,9 @@ const ClassExportPage = lazyRetry(() => import('@features/classes/pages/ClassExp
 const PeriodsPage = lazyRetry(() => import('@features/periods/pages/PeriodsPage.jsx'))
 const PeriodImportPage = lazyRetry(() => import('@features/periods/pages/PeriodImportPage.jsx'))
 const PeriodExportPage = lazyRetry(() => import('@features/periods/pages/PeriodExportPage.jsx'))
-const EnrollmentPage = lazyRetry(() => import('@features/enrollment/pages/EnrollmentPage.jsx'))
-const PublicEnrollmentPage = lazyRetry(() => import('@features/public/pages/PublicEnrollmentPage.jsx'))
-const PublicStatusCheckPage = lazyRetry(() => import('@features/public/pages/PublicStatusCheckPage.jsx'))
+
+// Koperasi & Unit Usaha (semua submenu masih placeholder "Coming Soon")
+const KoperasiComingSoonPage = lazyRetry(() => import('@features/koperasi/pages/KoperasiComingSoonPage.jsx'))
 
 // ─── Role Hierarchy ───────────────────────────────────────────────────────────
 
@@ -87,8 +83,6 @@ const ALL_STAFF = ['developer', 'admin', 'teacher', 'staff', 'pimpinan']
 
 const ROUTE_ALIASES = [
   // English ↔ Indonesian aliases
-  { from: '/absence', to: '/attendance' },
-  { from: '/attendance', to: '/attendance' },
   // Master data aliases
   { from: '/master/student', to: '/master/students' },
   { from: '/master/teacher', to: '/master/teachers' },
@@ -103,7 +97,6 @@ const ROUTE_ALIASES = [
   { from: '/playground', to: '/admin/playground' },
   { from: '/master/academic-years', to: '/master/periods' },
   { from: '/master/academic-year', to: '/master/periods' },
-  { from: '/master/psb', to: '/master/enrollment' },
 ]
 
 // ─── Loading Spinner ──────────────────────────────────────────────────────────
@@ -156,67 +149,6 @@ function RoleRoute({ children, roles = [] }) {
   if (!role || !roles.includes(role)) {
     return <Navigate to="/dashboard" replace />
   }
-
-  return children
-}
-
-/**
- * Feature flag guard — wraps a single page element.
- * Jika flag off: tampilkan "Akses Ditolak" di dalam DashboardLayout (tidak redirect).
- * Jika flag sedang load: tampilkan spinner.
- *
- * Usage:
- *   <Route path="/attendance" element={<FlagRoute flag="module.absensi"><AttendancePage /></FlagRoute>} />
- */
-function FlagRoute({ children, flag, label }) {
-  const { flags, loading } = useFeatureFlags()
-  const navigate = useNavigate()
-
-  if (loading) return (
-    <DashboardLayout>
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Spinner className="animate-spin text-2xl text-[var(--color-primary)]" />
-      </div>
-    </DashboardLayout>
-  )
-
-  if (flags[flag] === false) return (
-    <DashboardLayout>
-      <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 relative overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-[var(--color-primary)]/5 rounded-full blur-[80px] pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col items-center max-w-sm w-full">
-          {/* Animated Icon Container */}
-          <div className="relative mb-8">
-            <div className="absolute inset-0 bg-amber-500/20 rounded-3xl blur-xl animate-pulse" />
-            <div className="relative w-20 h-20 rounded-[2.5rem] bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-2xl shadow-orange-500/20">
-              <Lock className="text-3xl text-white drop-shadow-md" />
-            </div>
-          </div>
-
-          {/* TextT Content */}
-          <div className="text-center space-y-3 mb-10">
-            <h2 className="text-2xl font-black text-[var(--color-text)] tracking-tight">
-              Modul Tidak Aktif
-            </h2>
-            <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed px-4 opacity-80">
-              Fitur <span className="font-bold text-[var(--color-text)] px-1.5 py-0.5 rounded-lg bg-[var(--color-surface-alt)] border border-[var(--color-border)]">{label || flag}</span> saat ini sedang dinonaktifkan oleh administrator sistem.
-            </p>
-          </div>
-
-          {/* Action Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="group relative h-12 px-8 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-3"
-          >
-            <span className="opacity-70 group-hover:opacity-100 transition-opacity">←</span>
-            Kembali Sekarang
-          </button>
-        </div>
-      </div>
-    </DashboardLayout>
-  )
 
   return children
 }
@@ -553,8 +485,6 @@ function AppRoutes() {
 
         {/* ── Public ── */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/psb" element={<PublicEnrollmentPage />} />
-        <Route path="/psb/status" element={<PublicStatusCheckPage />} />
         <Route path="/check" element={<ParentCheckPage />} />
         <Route path="/login" element={
           <PublicRoute><LoginPage /></PublicRoute>
@@ -567,23 +497,7 @@ function AppRoutes() {
             {/* Core — module flag guarded */}
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/task-center" element={<TaskCenterPage />} />
-            <Route path="/attendance" element={<FlagRoute flag="module.absensi" label="Absensi Bulanan"><AttendancePage /></FlagRoute>} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/boarding/dorms" element={
-              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="nav.dorms" label="Manajemen Asrama">
-                <DormsPage />
-              </RoleFlagRoute>
-            } />
-            <Route path="/boarding/health" element={
-              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="nav.health" label="Klinik & Kesehatan">
-                <HealthPage />
-              </RoleFlagRoute>
-            } />
-            <Route path="/boarding/counseling" element={
-              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="nav.counseling" label="Bimbingan Konseling">
-                <CounselingPage />
-              </RoleFlagRoute>
-            } />
 
             <Route path="/admin/logs" element={
               <RoleFlagRoute roles={DEV_ADMIN}>
@@ -713,9 +627,16 @@ function AppRoutes() {
                 <PeriodsPage />
               </RoleFlagRoute>
             } />
-            <Route path="/master/enrollment" element={
-              <RoleFlagRoute roles={DEV_ADMIN_TEACHER} flag="module.enrollment" label="PSB / Enrollment">
-                <EnrollmentPage />
+
+            {/* Koperasi — semua route /master/koperasi/* tetap render placeholder */}
+            <Route path="/master/koperasi/*" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER}>
+                <KoperasiComingSoonPage />
+              </RoleFlagRoute>
+            } />
+            <Route path="/master/koperasi" element={
+              <RoleFlagRoute roles={DEV_ADMIN_TEACHER}>
+                <KoperasiComingSoonPage />
               </RoleFlagRoute>
             } />
 

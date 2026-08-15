@@ -5,7 +5,7 @@ import { useTheme, useAuth, useLanguage, useFeatureFlags, useCustomize } from "@
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
 import logoSenyum from '../../assets/images/logos/logo-senyum.png'
 import {
-    DASHBOARD_ITEM, TASK_CENTER_ITEM, NAV_GROUPS, filterNavItems, TYPE_STYLE,
+    DASHBOARD_ITEM, TASK_CENTER_ITEM, NAV_GROUPS, filterNavItems, flattenNavItems, TYPE_STYLE,
 } from "./navItems"
 
 // ─── Portal container helper ──────────────────────────────────────────────────
@@ -128,7 +128,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
             if (group.requireRoles && !group.requireRoles.includes(role)) return
             if (group.hideForRoles && group.hideForRoles.includes(role)) return
 
-            const filteredItems = filterNavItems(group.items, flags, role)
+            const filteredItems = flattenNavItems(filterNavItems(group.items, flags, role))
             filteredItems.forEach(item => {
                 items.push({
                     ...item,
@@ -227,14 +227,15 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
         const crumbs = [{ label: 'Home', to: '/dashboard', icon: House }]
         const path = location.pathname
 
-        // Find matching group and item
+        // Find matching group and item (termasuk nested leaf koperasi)
         for (const group of NAV_GROUPS) {
-            const groupItem = group.items.find(item =>
+            const leaves = flattenNavItems(group.items)
+            const leafItem = leaves.find(item =>
                 path === item.to || path.startsWith(item.to + '/')
             )
-            if (groupItem) {
+            if (leafItem) {
                 crumbs.push({ label: tGroup(group.key, group.label) })
-                crumbs.push({ label: tNav(groupItem), to: groupItem.to })
+                crumbs.push({ label: tNav(leafItem), to: leafItem.to })
                 return crumbs
             }
         }

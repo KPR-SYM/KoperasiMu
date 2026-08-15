@@ -18,15 +18,10 @@ export function FeatureFlagsProvider({ children }) {
     const fetchFlags = useCallback(async () => {
         if (isDemoMode) {
             setFlags({
-                'module.absensi': true,
                 'module.students': true,
                 'module.teachers': true,
                 'module.classes': true,
                 'module.periods': true,
-                'module.enrollment': true,
-                'nav.dorms': true,
-                'nav.health': true,
-                'nav.counseling': true,
                 'system.maintenance': false,
             })
             setLoading(false)

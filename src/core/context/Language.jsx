@@ -23,8 +23,6 @@ const STORAGE_KEY = "app-language"
 const ROUTE_KEY_MAP = {
     "/dashboard": "nav.dashboard",
     "/task-center": "nav.task_center",
-    "/boarding/dorms": "nav.dorms",
-    "/boarding/health": "nav.health",
     "/academic/tahfidz": "nav.tahfidz",
     "/academic/attendance": "nav.attendance",
     "/academic/schedule": "nav.schedule",
@@ -37,8 +35,6 @@ const ROUTE_KEY_MAP = {
     "/master/classes": "nav.classes",
     "/master/subjects": "nav.subjects",
     "/master/periods": "nav.periods",
-    "/master/enrollment": "nav.enrollment",
-    "/boarding/counseling": "nav.counseling",
     "/academic/library": "nav.library",
     "/master/inventory": "nav.inventory",
     "/admin": "nav.admin_dashboard",

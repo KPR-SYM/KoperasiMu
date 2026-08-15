@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, useState, useCallback } from "react"
-import { Archive, Money, Bell, Robot, Cube, Calendar, CalendarBlank, CaretDown, ClipboardText, Database, ClockCounterClockwise, StackSimple, SignOut, Moon, NewspaperClipping, Palette, PresentationChart, Buildings, HardDrives, GearSix, Sun, UserGear, UserPlus, Users, Wallet, Wrench } from '@phosphor-icons/react'
+import { Archive, Money, Bell, Robot, Cube, Calendar, CaretDown, Database, ClockCounterClockwise, StackSimple, SignOut, Moon, NewspaperClipping, Palette, PresentationChart, Buildings, HardDrives, GearSix, Sun, UserGear, Users, Wallet, Wrench } from '@phosphor-icons/react'
 import { NavLink, useNavigate } from "react-router-dom"
 import { createPortal } from "react-dom"
 
@@ -48,16 +48,11 @@ const MASTER_ITEMS = [
     { to: "/master/teachers", label: "Data Guru", icon: PresentationChart, desc: "Data akun pengajar, musyrif, dan staf sekolah" },
     { to: "/master/classes", label: "Data Kelas", icon: Buildings, desc: "Pengaturan struktur kelas dan pembagian asrama" },
     { to: "/master/periods", label: "Tahun Pelajaran", icon: Calendar, desc: "Manajemen semester dan periode kalender akademik" },
-    { to: "/master/enrollment", label: "PSB / Enrollment", icon: UserPlus, desc: "Manajemen pendaftaran dan penerimaan siswa baru", color: "bg-emerald-500/10 text-emerald-600" },
 ]
 
 const FINANCE_ITEMS = [
     { to: "/finance/invoices", label: "Tagihan SPP", icon: Money, desc: "Kelola tagihan bulanan dan iuran sekolah", color: "bg-amber-500/10 text-amber-600" },
     { to: "/finance/payments", label: "Riwayat Bayar", icon: Wallet, desc: "Rekapitulasi pembayaran dan tunggakan wali", color: "bg-emerald-500/10 text-emerald-600" },
-]
-
-const REPORTS_ITEMS = [
-    { to: "/attendance", label: "Absensi Bulanan", icon: CalendarBlank, desc: "Rekapitulasi Absensi Santri", color: "bg-emerald-500/10 text-emerald-600" },
 ]
 
 // Admin-only items — hanya tampil untuk developer & admin
@@ -118,14 +113,8 @@ export default function TopNav({ title, subtitle }) {
     const { notifications, loading, refreshing, dismiss, refresh } = useNotifications()
     const { t } = useLanguage()
 
-    // ── Filter nav items by feature flags
-    const visibleReportsItems = REPORTS_ITEMS.filter(it => {
-        if (it.to === '/attendance') return flags['nav.absensi'] !== false
-        return true
-    })
     const role = profile?.role?.toLowerCase()
     const isStaff = role === 'staff'
-    const filteredReportsItems = visibleReportsItems
 
     // Filter master items by nav flags
     const filteredMasterItems = MASTER_ITEMS.filter(it => {
@@ -138,14 +127,12 @@ export default function TopNav({ title, subtitle }) {
 
     const [masterOpen, setMasterOpen] = useState(false)
     const [financeOpen, setFinanceOpen] = useState(false)
-    const [reportsOpen, setReportsOpen] = useState(false)
     const [adminOpen, setAdminOpen] = useState(false)
     const [profileOpen, setProfileOpen] = useState(false)
     const [notifOpen, setNotifOpen] = useState(false)
 
     const masterRef = useRef(null)
     const financeRef = useRef(null)
-    const reportsRef = useRef(null)
     const adminRef = useRef(null)
     const desktopProfileRef = useRef(null)
     const notifBtnRef = useRef(null)
@@ -160,7 +147,6 @@ export default function TopNav({ title, subtitle }) {
         const onClick = (e) => {
             if (masterRef.current && !masterRef.current.contains(e.target)) setMasterOpen(false)
             if (financeRef.current && !financeRef.current.contains(e.target)) setFinanceOpen(false)
-            if (reportsRef.current && !reportsRef.current.contains(e.target)) setReportsOpen(false)
             if (adminRef.current && !adminRef.current.contains(e.target)) setAdminOpen(false)
 
                         const isOutsideDesktop = desktopProfileRef.current && !desktopProfileRef.current.contains(e.target)
@@ -317,24 +303,6 @@ export default function TopNav({ title, subtitle }) {
                                                 <div className="p-2">
                                                     {FINANCE_ITEMS.map(it => (
                                                         <button key={it.to} onClick={() => { setFinanceOpen(false); navigate(it.to) }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition group" type="button">
-                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${it.color}`}><it.icon className="text-xs" /></div>
-                                                            <div className="text-left"><p className="text-[11px] font-black text-[var(--color-text)] leading-tight">{it.label}</p><p className="text-[9px] text-[var(--color-text-muted)] font-medium leading-tight mt-0.5">{it.desc}</p></div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="relative" ref={reportsRef}>
-                                        <button onClick={() => setReportsOpen(v => !v)} className={`px-3 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 ${reportsOpen ? "bg-[var(--color-surface)] shadow-sm text-[var(--color-text)]" : "text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-white/50 dark:hover:bg-white/5"}`} type="button">
-                                            <ClipboardText className="opacity-70" /> Laporan <CaretDown className={`w-2.5 h-2.5 transition-transform ${reportsOpen ? "rotate-180" : ""}`} />
-                                        </button>
-                                        {reportsOpen && (
-                                            <div className="absolute left-0 mt-2 w-64 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl overflow-hidden animate-in zoom-in-95 duration-200">
-                                                <div className="px-3 py-2 text-[10px] font-black tracking-widest text-[var(--color-text-muted)] uppercase border-b border-[var(--color-border)]">Rekapitulasi</div>
-                                                <div className="p-2">
-                                                    {REPORTS_ITEMS.map(it => (
-                                                        <button key={it.to} onClick={() => { setReportsOpen(false); navigate(it.to) }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] transition group" type="button">
                                                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${it.color}`}><it.icon className="text-xs" /></div>
                                                             <div className="text-left"><p className="text-[11px] font-black text-[var(--color-text)] leading-tight">{it.label}</p><p className="text-[9px] text-[var(--color-text-muted)] font-medium leading-tight mt-0.5">{it.desc}</p></div>
                                                         </button>

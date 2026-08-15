@@ -3,7 +3,7 @@
  * Single source of truth for all navigation data.
  * Used by: Sidebar, SlimTopBar (search), BottomNav/MasterSheet (mobile), NotFoundPage.
  */
-import { House, CreditCard, PiggyBank, Clipboard, Users, GraduationCap, Buildings, CalendarDots, UserPlus, SquaresFour, NewspaperClipping, Robot, ClockCounterClockwise, UserGear, Database, FolderOpen, HardDrives, GearSix, Palette, WarningCircle, Warning, Info, CheckCircle, Stack, ClipboardText } from '@phosphor-icons/react'
+import { House, CreditCard, PiggyBank, Clipboard, Users, GraduationCap, Buildings, CalendarDots, SquaresFour, NewspaperClipping, Robot, ClockCounterClockwise, UserGear, Database, FolderOpen, HardDrives, GearSix, Palette, WarningCircle, Warning, Info, CheckCircle, Stack, ClipboardText, Storefront, ShoppingCartSimple, ArrowUUpLeft, Barcode, Package, Tag, Money, Bank, Wallet, BookOpenText, ArrowDown, ArrowUp, ArrowsLeftRight, HandCoins, Receipt, ChartBar, ChartPie, ChartLineUp, TrendUp, Truck, Gift, Percent, Ticket, ShieldCheck, Printer, FloppyDisk, Student, Coins, FileText } from '@phosphor-icons/react'
 
 // ─── Dashboard & Pusat Tugas (standalone) ────────────────────────────────────
 export const DASHBOARD_ITEM = {
@@ -35,8 +35,134 @@ export const MASTER_ITEMS = [
     { to: "/master/teachers", label: "Data Guru", icon: GraduationCap, desc: "Data akun pengajar, musyrif, dan staf sekolah", color: "bg-indigo-500/10 text-indigo-600" },
     { to: "/master/classes", label: "Data Kelas", icon: Buildings, desc: "Pengaturan struktur kelas dan pembagian asrama", color: "bg-indigo-500/10 text-indigo-600" },
     { to: "/master/periods", label: "Tahun Akademik", icon: CalendarDots, desc: "Manajemen semester dan periode kalender akademik", color: "bg-indigo-500/10 text-indigo-600" },
-    { to: "/master/enrollment", label: "Pendaftaran Baru (PPDB)", icon: UserPlus, desc: "Manajemen pendaftaran dan penerimaan siswa baru", color: "bg-emerald-500/10 text-emerald-600" },
     { to: "/master/inventory", label: "Inventaris & Aset", icon: Stack, desc: "Pencatatan sarana prasarana sekolah, inventaris asrama & kelas", color: "bg-blue-500/10 text-blue-600" },
+]
+
+// ─── Koperasi & Unit Usaha ────────────────────────────────────────────────────
+// Struktur bertingkat: kategori (dengan children) → item leaf.
+// Route leaf selalu berprefix /master/koperasi/... dan sementara render placeholder.
+export const KOPERASI_ITEMS = [
+    {
+        to: "/master/koperasi/kasir",
+        label: "Kasir & POS",
+        icon: Storefront,
+        desc: "Transaksi penjualan di koperasi / kantin sekolah",
+        color: "bg-emerald-500/10 text-emerald-600",
+        children: [
+            { to: "/master/koperasi/kasir/pos", label: "Kasir / POS", icon: ShoppingCartSimple, desc: "Layar kasir untuk transaksi penjualan cepat", color: "bg-emerald-500/10 text-emerald-600" },
+            { to: "/master/koperasi/kasir/riwayat", label: "Riwayat Transaksi", icon: ClockCounterClockwise, desc: "Catatan historis seluruh transaksi kasir", color: "bg-emerald-500/10 text-emerald-600" },
+            { to: "/master/koperasi/kasir/tutup", label: "Tutup Buka Kas", icon: Wallet, desc: "Sesi buka/tutup kas dan saldo per kasir", color: "bg-emerald-500/10 text-emerald-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/produk",
+        label: "Produk & Stok",
+        icon: Package,
+        desc: "Manajemen produk, kategori, dan persediaan stok",
+        color: "bg-amber-500/10 text-amber-600",
+        children: [
+            { to: "/master/koperasi/produk/list", label: "Daftar Produk", icon: Package, desc: "Katalog seluruh produk yang dijual koperasi", color: "bg-amber-500/10 text-amber-600" },
+            { to: "/master/koperasi/produk/kategori", label: "Kategori Produk", icon: Tag, desc: "Pengelompokan produk berdasarkan kategori", color: "bg-amber-500/10 text-amber-600" },
+            { to: "/master/koperasi/produk/stok", label: "Stok & Persediaan", icon: Stack, desc: "Pemantauan stok masuk, keluar, dan opname", color: "bg-amber-500/10 text-amber-600" },
+            { to: "/master/koperasi/produk/barcode", label: "Cetak Barcode", icon: Barcode, desc: "Pembuatan label barcode untuk produk", color: "bg-amber-500/10 text-amber-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/paket",
+        label: "Paket Siswa Baru",
+        icon: Student,
+        desc: "Paket seragam dan perlengkapan siswa baru",
+        color: "bg-indigo-500/10 text-indigo-600",
+        children: [
+            { to: "/master/koperasi/paket/list", label: "Daftar Paket", icon: Student, desc: "Paket seragam & perlengkapan yang tersedia", color: "bg-indigo-500/10 text-indigo-600" },
+            { to: "/master/koperasi/paket/harga", label: "Harga Paket", icon: Money, desc: "Konfigurasi harga dan komposisi paket", color: "bg-indigo-500/10 text-indigo-600" },
+            { to: "/master/koperasi/paket/penjualan", label: "Penjualan Paket", icon: Receipt, desc: "Transaksi penjualan paket ke siswa baru", color: "bg-indigo-500/10 text-indigo-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/pembelian",
+        label: "Pembelian & Supplier",
+        icon: Truck,
+        desc: "Pembelian barang, retur, dan manajemen supplier",
+        color: "bg-blue-500/10 text-blue-600",
+        children: [
+            { to: "/master/koperasi/pembelian/list", label: "Pembelian Barang", icon: ArrowDown, desc: "Catatan pembelian & PO ke supplier", color: "bg-blue-500/10 text-blue-600" },
+            { to: "/master/koperasi/pembelian/retur", label: "Retur Pembelian", icon: ArrowUUpLeft, desc: "Pengembalian barang ke supplier", color: "bg-blue-500/10 text-blue-600" },
+            { to: "/master/koperasi/suppliers", label: "Daftar Supplier", icon: Buildings, desc: "Database supplier dan kontaknya", color: "bg-blue-500/10 text-blue-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/keuangan",
+        label: "Keuangan / Kas",
+        icon: BookOpenText,
+        desc: "Buku kas, penerimaan, dan pengeluaran koperasi",
+        color: "bg-emerald-500/10 text-emerald-600",
+        children: [
+            { to: "/master/koperasi/keuangan/kas-masuk", label: "Kas Masuk", icon: ArrowDown, desc: "Penerimaan kas dari penjualan dan putusan", color: "bg-emerald-500/10 text-emerald-600" },
+            { to: "/master/koperasi/keuangan/kas-keluar", label: "Kas Keluar", icon: ArrowUp, desc: "Pengeluaran operasional koperasi", color: "bg-emerald-500/10 text-emerald-600" },
+            { to: "/master/koperasi/keuangan/buku-besar", label: "Buku Besar", icon: BookOpenText, desc: "Rekapitulasi seluruh pergerakan kas", color: "bg-emerald-500/10 text-emerald-600" },
+            { to: "/master/koperasi/keuangan/rekonsiliasi", label: "Rekonsiliasi", icon: ArrowsLeftRight, desc: "Mencocokkan kas fisik dengan catatan", color: "bg-emerald-500/10 text-emerald-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/kasbon",
+        label: "Kasbon / Piutang",
+        icon: HandCoins,
+        desc: "Kasbon anggota & piutang pelanggan koperasi",
+        color: "bg-rose-500/10 text-rose-600",
+        children: [
+            { to: "/master/koperasi/kasbon/kasbon", label: "Kasbon Karyawan", icon: HandCoins, desc: "Pinjaman & kasbon untuk pengurus/karyawan", color: "bg-rose-500/10 text-rose-600" },
+            { to: "/master/koperasi/kasbon/piutang", label: "Piutang Pelanggan", icon: ClipboardText, desc: "Tagihan yang belum dilunasi pelanggan", color: "bg-rose-500/10 text-rose-600" },
+            { to: "/master/koperasi/kasbon/pembayaran", label: "Pembayaran Piutang", icon: Money, desc: "Pencatatan angsuran & pelunasan piutang", color: "bg-rose-500/10 text-rose-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/laporan",
+        label: "Laporan & Analitik",
+        icon: ChartBar,
+        desc: "Laporan penjualan, keuangan, dan tren bisnis",
+        color: "bg-purple-500/10 text-purple-600",
+        children: [
+            { to: "/master/koperasi/laporan/penjualan", label: "Laporan Penjualan", icon: ChartLineUp, desc: "Rekap penjualan per periode & per produk", color: "bg-purple-500/10 text-purple-600" },
+            { to: "/master/koperasi/laporan/keuangan", label: "Laporan Keuangan", icon: ChartPie, desc: "Ringkasan laba rugi dan posisi kas", color: "bg-purple-500/10 text-purple-600" },
+            { to: "/master/koperasi/laporan/stok", label: "Laporan Stok", icon: Stack, desc: "Analisa pergerakan dan nilai persediaan", color: "bg-purple-500/10 text-purple-600" },
+            { to: "/master/koperasi/laporan/analitik", label: "Analitik & Tren", icon: TrendUp, desc: "Dashboard data penjualan & produk terlaris", color: "bg-purple-500/10 text-purple-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/promo",
+        label: "Promo & Diskon",
+        icon: Gift,
+        desc: "Promo, diskon, dan program loyalitas",
+        color: "bg-pink-500/10 text-pink-600",
+        children: [
+            { to: "/master/koperasi/promo/diskon", label: "Diskon & Promo", icon: Percent, desc: "Buat promo dan potongan harga produk", color: "bg-pink-500/10 text-pink-600" },
+            { to: "/master/koperasi/promo/kupon", label: "Kupon & Voucher", icon: Ticket, desc: "Penerbitan dan validasi kupon belanja", color: "bg-pink-500/10 text-pink-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/pengguna",
+        label: "Pengguna & Akses",
+        icon: Users,
+        desc: "Manajemen pengguna dan hak akses koperasi",
+        color: "bg-slate-500/10 text-slate-600",
+        children: [
+            { to: "/master/koperasi/pengguna/list", label: "Daftar Pengguna", icon: Users, desc: "Pengurus, kasir, dan staf koperasi", color: "bg-slate-500/10 text-slate-600" },
+            { to: "/master/koperasi/pengguna/roles", label: "Role & Hak Akses", icon: ShieldCheck, desc: "Pengaturan peran dan izin akses menu", color: "bg-slate-500/10 text-slate-600" },
+        ],
+    },
+    {
+        to: "/master/koperasi/pengaturan",
+        label: "Pengaturan Koperasi",
+        icon: GearSix,
+        desc: "Profil koperasi, printer, dan preferensi",
+        color: "bg-cyan-500/10 text-cyan-600",
+        children: [
+            { to: "/master/koperasi/pengaturan/profil", label: "Profil Koperasi", icon: Storefront, desc: "Identitas, nama, dan kontak koperasi", color: "bg-cyan-500/10 text-cyan-600" },
+            { to: "/master/koperasi/pengaturan/devices", label: "Perangkat & Printer", icon: Printer, desc: "Konfigurasi printer struk & perangkat kasir", color: "bg-cyan-500/10 text-cyan-600" },
+            { to: "/master/koperasi/pengaturan/backup", label: "Backup & Restore", icon: FloppyDisk, desc: "Cadangkan dan pulihkan data koperasi", color: "bg-cyan-500/10 text-cyan-600" },
+        ],
+    },
 ]
 
 // ─── Admin Panel ──────────────────────────────────────────────────────────────
@@ -65,6 +191,7 @@ export const TYPE_STYLE = {
 export const SECTION_TITLES = {
     finance: "Keuangan",
     master: "Master Data",
+    koperasi: "Koperasi",
     admin: "Admin",
 }
 
@@ -82,6 +209,13 @@ export const NAV_GROUPS = [
         label: SECTION_TITLES.master,
         icon: Users,
         items: MASTER_ITEMS,
+        hideForRoles: ['staff'],
+    },
+    {
+        key: 'koperasi',
+        label: SECTION_TITLES.koperasi,
+        icon: Storefront,
+        items: KOPERASI_ITEMS,
         hideForRoles: ['staff'],
     },
     {
@@ -119,6 +253,16 @@ export function filterNavItems(items, flags = {}, role = '') {
 }
 
 /**
+ * Flatten nested nav items (kategori dengan children) menjadi daftar leaf (URL) saja.
+ * Dipakai untuk search, breadcrumb, dan NotFound quick links.
+ */
+export function flattenNavItems(items) {
+    return items.flatMap(item =>
+        item.children?.length ? flattenNavItems(item.children) : [item]
+    )
+}
+
+/**
  * Cek apakah sebuah grup NAV_GROUPS boleh dilihat oleh role tertentu.
  * @param {Object} group - Salah satu entry dari NAV_GROUPS
  * @param {string} role - User role (lowercase)
@@ -145,7 +289,7 @@ function isGroupVisibleForRole(group, role) {
 export function getAccessibleNavItems(role = '', flags = {}) {
     const groupedItems = NAV_GROUPS
         .filter(group => isGroupVisibleForRole(group, role))
-        .flatMap(group => group.items)
+        .flatMap(group => flattenNavItems(group.items))
 
     const allItems = [...STANDALONE_ITEMS, ...groupedItems]
     const flagFiltered = filterNavItems(allItems, flags, role)

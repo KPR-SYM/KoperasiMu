@@ -13,6 +13,7 @@ export const StatCard = memo(function StatCard({
     label,
     value,
     suffix,
+    subValue,
     trend,
     trendUp,
     loading = false,
@@ -128,6 +129,9 @@ export const StatCard = memo(function StatCard({
                                 {tNum(displayValue)}{suffix && <span className="text-sm font-bold ml-0.5 opacity-80">{tNum(suffix)}</span>}
                             </h3>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-white/70 mt-1 truncate">{label}</p>
+                            {subValue && (
+                                <p className="text-[9px] font-bold text-white/70 mt-0.5 truncate">{tNum(subValue)}</p>
+                            )}
 
                             {/* Trend badge */}
                             {trend && (
@@ -202,6 +206,10 @@ export const StatCard = memo(function StatCard({
                     </span>
                 )}
             </div>
+
+            {!loading && subValue && (
+                <p className="text-[9px] font-bold text-[var(--color-text-muted)] truncate mt-0.5">{tNum(subValue)}</p>
+            )}
 
             {progressPct != null && (
                 <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--color-border)]/60">

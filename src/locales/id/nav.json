@@ -1,8 +1,10 @@
 {
   "section.finance": "Keuangan",
   "section.master": "Master Data",
+  "section.koperasi": "Koperasi",
   "section.sheet.finance": "Manajemen Keuangan",
   "section.sheet.master": "Master Data",
+  "section.sheet.koperasi": "Koperasi & Unit Usaha",
   "section.sheet.admin": "Infrastructure & Control",
 
   "nav.dashboard": "Dashboard",

@@ -25,6 +25,7 @@ function getInitialGroupsOpen() {
             services: true,
             finance: true,
             master: true,
+            koperasi: true,
             admin: true
         }
     } catch {
@@ -32,6 +33,7 @@ function getInitialGroupsOpen() {
             services: true,
             finance: true,
             master: true,
+            koperasi: true,
             admin: true
         }
     }
@@ -87,16 +89,87 @@ function SidebarItem({ item, collapsed }) {
     )
 }
 
+// ─── Nested Submenu Category (kategori dengan children di dalam grup) ─────────
+function SidebarSubGroup({ item, collapsed, isOpen, onToggle }) {
+    const { tNav } = useLanguage()
+    const location = useLocation()
+
+    const hasActiveChild = useMemo(() =>
+        (item.children || []).some(child =>
+            location.pathname === child.to || location.pathname.startsWith(child.to + '/')
+        ),
+        [item.children, location.pathname]
+    )
+
+    const showChildren = isOpen || hasActiveChild
+
+    return (
+        <div className="relative flex flex-col">
+            {/* Category Header Button */}
+            <button
+                type="button"
+                onClick={collapsed ? undefined : onToggle}
+                className={`flex items-center justify-between rounded-xl min-w-0 outline-none transition-all duration-300 group/item
+                    ${collapsed
+                        ? 'w-10 h-10 justify-center mx-auto hover:bg-[var(--color-surface-alt)] group-hover/sidebar:w-full group-hover/sidebar:px-2.5 group-hover/sidebar:py-[5px] group-hover/sidebar:justify-between group-hover/sidebar:mx-0'
+                        : 'w-full justify-between px-2.5 py-[5px]'}
+                    ${(!collapsed && hasActiveChild)
+                        ? 'text-[var(--color-primary)]'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}
+            >
+                <div className="flex items-center min-w-0 gap-1.5">
+                    {/* Icon — hidden when collapsed, shown on hover */}
+                    <div className={`flex items-center justify-center shrink-0 transition-all duration-300
+                        ${collapsed ? 'w-5 opacity-100 group-hover/sidebar:w-5 group-hover/sidebar:opacity-100' : 'w-5 opacity-100'}`}
+                    >
+                        <NavIcon icon={item.icon} className="w-[18px] h-[18px]" />
+                    </div>
+
+                    {/* Label — hidden when collapsed, expands on hover */}
+                    <span className={`truncate leading-none text-[12.5px] font-semibold text-left transition-all duration-300
+                        ${collapsed ? 'w-0 opacity-0 group-hover/sidebar:w-32 group-hover/sidebar:opacity-100 overflow-hidden' : 'w-auto opacity-100'}`}
+                    >
+                        {tNav(item)}
+                    </span>
+                </div>
+
+                {/* Chevron */}
+                <div className={`w-2.5 flex items-center justify-center shrink-0 transition-all duration-300
+                    ${collapsed ? 'w-0 opacity-0 group-hover/sidebar:w-2.5 group-hover/sidebar:opacity-100 overflow-hidden' : 'w-2.5 opacity-100'}`}
+                >
+                    <NavIcon
+                        icon={showChildren ? CaretDown : CaretRight}
+                        className="w-2 h-2 shrink-0"
+                    />
+                </div>
+            </button>
+
+            {/* Nested Submenu Items (indented) */}
+            <div className={`pl-0.5 space-y-[1px] mt-0.5 transition-all duration-300 origin-top
+                ${collapsed ? 'h-0 opacity-0 overflow-hidden group-hover/sidebar:h-auto group-hover/sidebar:opacity-100 group-hover/sidebar:mt-1' : ''}`}
+            >
+                {showChildren && (
+                    <div className="relative ml-2.5 border-l border-[var(--color-border)]/50 pl-2.5 space-y-[1px]">
+                        {item.children.map(child => (
+                            <SidebarItem key={child.to} item={child} collapsed={collapsed} />
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    )
+}
+
 // ─── Collapsible UsersThree ────────────────────────────────────────────────────────
-function SidebarGroup({ group, items, collapsed, isOpen, onToggle }) {
+function SidebarGroup({ group, items, collapsed, isOpen, onToggle, subOpen, onSubToggle }) {
     const { tNav, tGroup } = useLanguage()
     const location = useLocation()
 
-    // Auto-expand group if any child route is active
-    const hasActiveChild = useMemo(() =>
-        items.some(item => location.pathname === item.to || location.pathname.startsWith(item.to + '/')),
-        [items, location.pathname]
-    )
+    // Auto-expand group if any child route is active (termasuk nested leaf)
+    const hasActiveChild = useMemo(() => {
+        const leaves = items.flatMap(item => item.children?.length ? item.children : [item])
+        return leaves.some(item => location.pathname === item.to || location.pathname.startsWith(item.to + '/'))
+    }, [items, location.pathname])
 
     const showChildren = isOpen || hasActiveChild
 
@@ -148,9 +221,21 @@ function SidebarGroup({ group, items, collapsed, isOpen, onToggle }) {
             <div className={`pl-0.5 space-y-[1px] mt-0.5 transition-all duration-300 origin-top
                 ${collapsed ? 'h-0 opacity-0 overflow-hidden group-hover/sidebar:h-auto group-hover/sidebar:opacity-100 group-hover/sidebar:mt-1' : ''}`}
             >
-                {showChildren && items.map(item => (
-                    <SidebarItem key={item.to} item={item} collapsed={collapsed} />
-                ))}
+                {showChildren && items.map(item =>
+                    item.children?.length
+                        ? (
+                            <SidebarSubGroup
+                                key={item.to}
+                                item={item}
+                                collapsed={collapsed}
+                                isOpen={subOpen?.[item.to] ?? false}
+                                onToggle={() => onSubToggle(item.to)}
+                            />
+                        )
+                        : (
+                            <SidebarItem key={item.to} item={item} collapsed={collapsed} />
+                        )
+                )}
             </div>
         </div>
     )
@@ -194,6 +279,22 @@ export default function Sidebar({ collapsed, onToggle }) {
 
     const toggleGroup = useCallback((key) => {
         setGroupsOpen(prev => ({ ...prev, [key]: !prev[key] }))
+    }, [])
+
+    // ── Submenu (kategori dengan children) open/close state ──
+    const [subOpen, setSubOpen] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('sidebar-subgroups-open') || '{}')
+        } catch { return {} }
+    })
+
+    useEffect(() => {
+        try { localStorage.setItem('sidebar-subgroups-open', JSON.stringify(subOpen)) }
+        catch { /* ignore */ }
+    }, [subOpen])
+
+    const toggleSub = useCallback((key) => {
+        setSubOpen(prev => ({ ...prev, [key]: !prev[key] }))
     }, [])
 
     // Filter groups based on role
@@ -269,6 +370,8 @@ export default function Sidebar({ collapsed, onToggle }) {
                             collapsed={collapsed}
                             isOpen={groupsOpen[group.key] ?? true}
                             onToggle={() => toggleGroup(group.key)}
+                            subOpen={subOpen}
+                            onSubToggle={toggleSub}
                         />
                     )
                 })}
