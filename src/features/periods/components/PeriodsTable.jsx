@@ -6,7 +6,6 @@ import {
     ClockCounterClockwise,
     Copy,
     DotsThree,
-    Eye,
     GraduationCap,
     Lock,
     LockOpen,
@@ -47,7 +46,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                         <div className="flex items-center min-w-0 flex-1">
                             <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
                                 <span onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
-                                    <PrivacyValue active={isPrivacyMode}>{year.academic_year}</PrivacyValue>
+                                    <PrivacyValue active={isPrivacyMode} maskType="year">{year.academic_year}</PrivacyValue>
                                 </span>
                             </PeriodContextTooltip>
                         </div>
@@ -58,7 +57,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     if (key === "semester") {
         return (
             <td className="px-6 py-4">
-                <InlineCell id={year.id} field="semester" value={year.semester} displayValue={year.semester} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                <InlineCell id={year.id} field="semester" value={year.semester} displayValue={maskValue(year.semester, "semester")} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
             </td>
         );
     }
@@ -74,7 +73,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
             barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
         }
         const durationText = maskValue(getDuration(year.start_date, year.end_date), "duration");
-        const statsText = st ? `${st.elapsed}/${st.totalDays} hari · ${st.remaining} hari lagi` : null;
+        const statsText = st ? `${maskValue(String(st.elapsed), "number")}/${maskValue(String(st.totalDays), "number")} hari · ${maskValue(String(st.remaining), "number")} hari lagi` : null;
         return (
             <td className="px-6 py-4">
                 <div className="flex flex-col gap-0.5">
@@ -87,13 +86,9 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                         {durationText}{statsText ? ` · ${statsText}` : ""}
                     </span>
                     {year.start_date && year.end_date && (
-                        isPrivacyMode ? (
-                            <div className="w-full h-1 rounded-full bg-transparent mt-0.5 overflow-hidden" />
-                        ) : (
-                            <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-0.5 overflow-hidden">
-                                <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
-                            </div>
-                        )
+                        <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-0.5 overflow-hidden">
+                            <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${pct}%` }} />
+                        </div>
                     )}
                 </div>
             </td>
@@ -304,7 +299,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-1">
                                                 <button onClick={() => handleOpenReadOnlyDetail(year)} title="Lihat Detail" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm">
-                                                    <Eye />
+                                                    <MagnifyingGlass />
                                                 </button>
                                                 {canEdit && !year.is_locked && (
                                                     <button onClick={() => handleEdit(year)} title="Edit" className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 transition-all text-sm">
@@ -404,12 +399,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                     <div className="flex-1 min-w-0 flex items-center gap-3" onClick={() => handleOpenReadOnlyDetail(year)}>
                                         <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
                                             <p className="font-extrabold text-[13px] text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
-                                                {year.academic_year}
+                                                {maskValue(year.academic_year, "year")}
                                             </p>
                                         </PeriodContextTooltip>
                                         <div className="flex items-center gap-1.5 flex-wrap shrink-0">
                                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border whitespace-nowrap ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}>
-                                                {year.semester}
+                                                {maskValue(year.semester, "semester")}
                                             </span>
                                             {year.is_active ? (
                                                 <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 whitespace-nowrap">
@@ -439,12 +434,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                 </div>
 
                                 {/* Stats + progress */}
-                                {!isPrivacyMode && (st || year.start_date) && (
+                                {(st || year.start_date) && (
                                     <div className="mt-2 pl-[26px]">
                                         {st && (
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="text-[9px] text-[var(--color-text-muted)] truncate">
-                                                    {st.elapsed} / {st.totalDays} hari · {st.remaining} hari lagi
+                                                    {maskValue(String(st.elapsed), "number")} / {maskValue(String(st.totalDays), "number")} hari · {maskValue(String(st.remaining), "number")} hari lagi
                                                 </span>
                                             </div>
                                         )}
@@ -479,7 +474,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                             title="Lihat Detail"
                                             className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border border-[var(--color-border)] transition-all active:scale-95"
                                         >
-                                            <Eye className="text-sm" />
+                                            <MagnifyingGlass className="text-sm" />
                                         </button>
                                         {canEdit && !year.is_locked && (
                                             <button

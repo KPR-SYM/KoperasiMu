@@ -164,30 +164,24 @@ function TimelineView({
                                                 {maskValue(dur, "duration")}
                                             </div>
                                         )}
-                                        {year.start_date && year.end_date && (
-                                            isPrivacyMode ? (
-                                                <div className="w-full h-1 rounded-full bg-transparent mt-2 overflow-hidden" />
-                                            ) : (() => {
-                                                const now = Date.now();
-                                                const s = new Date(year.start_date).getTime();
-                                                const e = new Date(year.end_date).getTime();
-                                                const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
-                                                const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
-                                                return (
-                                                    <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-2 overflow-hidden">
-                                                        <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
-                                                    </div>
-                                                );
-                                            })()
-                                        )}
-                                        {isPrivacyMode ? (
-                                            <div className="mt-1.5 text-[7px] text-transparent select-none">placeholder stats</div>
-                                        ) : (() => {
+                                        {year.start_date && year.end_date && (() => {
+                                            const now = Date.now();
+                                            const s = new Date(year.start_date).getTime();
+                                            const e = new Date(year.end_date).getTime();
+                                            const pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
+                                            const color = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
+                                            return (
+                                                <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-2 overflow-hidden">
+                                                    <div className={`h-full rounded-full ${color} transition-all`} style={{ width: `${pct}%` }} />
+                                                </div>
+                                            );
+                                        })()}
+                                        {(() => {
                                             const st = getPeriodStats?.(year.start_date, year.end_date);
                                             if (!st) return null;
                                             return (
                                                 <div className="mt-1.5 flex items-center gap-2 text-[7px] text-[var(--color-text-muted)]">
-                                                    <span>{st.elapsed}/{st.totalDays} hari · {st.remaining} hr lagi</span>
+                                                    <span>{maskValue(String(st.elapsed), "number")}/{maskValue(String(st.totalDays), "number")} hari · {maskValue(String(st.remaining), "number")} hr lagi</span>
                                                 </div>
                                             );
                                         })()}

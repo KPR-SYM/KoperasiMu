@@ -736,6 +736,8 @@ export default function PeriodsPage() {
                                 canEdit={canEdit}
                                 formatDate={formatDate}
                                 getTimeStatus={getTimeStatus}
+                                isPrivacyMode={isPrivacyMode}
+                                maskValue={maskValue}
                             />
                         ) : (
                             <>

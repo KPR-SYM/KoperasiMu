@@ -227,7 +227,7 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
         const crumbs = [{ label: 'Home', to: '/dashboard', icon: House }]
         const path = location.pathname
 
-        // Find matching group and item (termasuk nested leaf koperasi)
+        // Find matching group and item (termasuk kategori koperasi sebagai grup)
         for (const group of NAV_GROUPS) {
             const leaves = flattenNavItems(group.items)
             const leafItem = leaves.find(item =>

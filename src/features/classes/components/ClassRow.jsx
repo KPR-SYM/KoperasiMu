@@ -1,6 +1,6 @@
 ﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Bed, Buildings, Calendar, CaretRight, DotsThree, Eye, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
+import { Bed, Buildings, Calendar, CaretRight, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
 import Checkbox from '@shared/components/Checkbox'
 
 function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo }) {
@@ -211,7 +211,7 @@ export const ClassRow = React.memo(({
                             title="Lihat Detail"
                             aria-label={`Lihat detail kelas ${cls.name}`}
                         >
-                            <Eye />
+                            <MagnifyingGlass />
                         </button>
                     )}
                     {handleEdit && (
@@ -276,12 +276,65 @@ export const ClassMobileCard = React.memo(({
     handleView,
     handleDuplicate,
     handleArchive,
+    onHistory,
     setItemToDelete,
-    setIsDeleteModalOpen
+    setIsDeleteModalOpen,
+    isPrivacyMode,
+    maskValue,
+    pinnedIds,
+    togglePin,
 }) => {
     const isSelected = selectedIds.includes(cls.id)
     const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === '\u2014'
     const isCrowded = (cls.students || 0) > 35
+    const isPinned = pinnedIds?.includes(cls.id)
+    const mask = maskValue || ((v) => v)
+
+    const [menuOpen, setMenuOpen] = useState(false)
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+    const menuRef = useRef(null)
+    const btnRef = useRef(null)
+
+    const closeMenu = useCallback(() => setMenuOpen(false), [])
+
+    const toggleMenu = useCallback((e) => {
+        e.stopPropagation()
+        if (menuOpen) {
+            closeMenu()
+        } else {
+            const rect = e.currentTarget.getBoundingClientRect()
+            const menuHeight = 200
+            const spaceBelow = window.innerHeight - rect.bottom
+            const showUp = spaceBelow < menuHeight
+            setMenuPos({
+                ...(showUp
+                    ? { bottom: window.innerHeight - rect.top + 8 }
+                    : { top: rect.bottom + 8 }
+                ),
+                right: window.innerWidth - rect.right - 8,
+            })
+            setMenuOpen(true)
+        }
+    }, [menuOpen, closeMenu])
+
+    useEffect(() => {
+        if (!menuOpen) return
+        const handler = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) closeMenu()
+        }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [menuOpen, closeMenu])
+
+    const menuItems = [
+        togglePin && { icon: PushPin, weight: isPinned ? 'fill' : 'regular', label: isPinned ? 'Lepas Pin' : 'Pin ke Atas', onClick: () => { togglePin(cls.id); closeMenu() } },
+        handleDuplicate && { icon: Copy, label: 'Duplikasi', onClick: () => { handleDuplicate(cls); closeMenu() } },
+        onHistory && { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(cls); closeMenu() } },
+        handleArchive && !cls.is_locked && { icon: Lock, label: 'Kunci', onClick: () => { handleArchive(cls); closeMenu() } },
+        handleArchive && cls.is_locked && { icon: Lock, label: 'Buka Kunci', onClick: () => { handleArchive(cls); closeMenu() } },
+        setItemToDelete && setIsDeleteModalOpen && { icon: Trash, label: 'Hapus', danger: true, onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); closeMenu() } },
+    ].filter(Boolean)
+
     return (
         <div className={`p-4 transition-all duration-300 border-l-4 ${isSelected ? 'bg-[var(--color-primary)]/[0.03] border-[var(--color-primary)]' : 'bg-[var(--color-surface)] border-transparent active:bg-[var(--color-surface-alt)]/30'}`}>
             <div className="flex items-start gap-3">
@@ -300,45 +353,61 @@ export const ClassMobileCard = React.memo(({
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                            <h3 className="font-extrabold text-sm text-[var(--color-text)] truncate">{cls.name}</h3>
-                            <div className="flex items-center gap-1.5 mt-1">
-                                {isNoTeacher && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-500 text-[8px] font-black uppercase tracking-widest border border-amber-500/10">Tanpa Wali</span>
-                                )}
-                                {isCrowded && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 text-[8px] font-black uppercase tracking-widest border border-rose-500/10">Padat</span>
-                                )}
-                            </div>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                            {handleView && <button onClick={() => handleView(cls)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Lihat Detail"><Eye /></button>}
-                            {handleEdit && <button onClick={() => handleEdit(cls)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Edit"><Pencil /></button>}
-                            {setItemToDelete && setIsDeleteModalOpen && <button onClick={() => { setItemToDelete(cls); setIsDeleteModalOpen(true) }} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-red-500 bg-[var(--color-surface-alt)]/50 text-xs transition-all" title="Hapus"><Trash /></button>}
-                        </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-4">
-                        <div className="space-y-0.5">
-                            <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-60">Wali Kelas</p>
-                            <p className="font-bold text-[11px] text-[var(--color-text)] truncate">{cls.teacherName || '\u2014'}</p>
-                        </div>
-                        <div className="space-y-0.5 text-right">
-                            <p className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-60">Siswa</p>
-                            <p className="font-bold text-[11px] text-[var(--color-text)]">
-                                <Users className="text-[var(--color-primary)] mr-1.5 w-3 h-3" />
-                                {cls.students || 0}
-                            </p>
+                    {/* Name + Badges */}
+                    <div className="min-w-0">
+                        <h3 className="font-extrabold text-sm text-[var(--color-text)] truncate">{mask(cls.name, 'text')}</h3>
+                        <div className="flex items-center gap-1.5 mt-1">
+                            {isNoTeacher && (
+                                <span className="px-1.5 py-0.5 rounded bg-amber-500/8 text-amber-600 text-[7px] font-bold uppercase tracking-wider">Tanpa Wali</span>
+                            )}
                             {isCrowded && (
-                                <p className="text-[8px] font-black uppercase tracking-widest text-rose-600 opacity-80">Padat &gt; 35</p>
+                                <span className="px-1.5 py-0.5 rounded bg-rose-500/8 text-rose-500 text-[7px] font-bold uppercase tracking-wider">Padat</span>
                             )}
                         </div>
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-dashed border-[var(--color-border)] flex items-center justify-between text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest">
+                    {/* Info Row */}
+                    <div className="mt-2.5 flex items-center gap-3 text-[10px]">
+                        <div className="flex items-center gap-1 min-w-0">
+                            <User className="w-3 h-3 text-[var(--color-text-muted)] shrink-0" />
+                            <span className="font-medium text-[var(--color-text-muted)] truncate">{mask(cls.teacherName || '—', 'text')}</span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <Users className="w-3 h-3 text-[var(--color-text-muted)]" />
+                            <span className="font-bold text-[var(--color-text)]">{mask(String(cls.students || 0), 'number')}</span>
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mt-2.5 pt-2 border-t border-[var(--color-border)]/40 flex items-center justify-between text-[8px] font-bold text-[var(--color-text-muted)]">
                         <span>Lvl {cls.grade_level}</span>
-                        <span>{cls.periodName || '\u2014'}</span>
+                        <span>{mask(cls.periodName || '—', 'text')}</span>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-3 flex items-center gap-1.5">
+                        {handleView && <button onClick={() => handleView(cls)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-[9px] font-bold transition-all" title="Lihat Detail"><MagnifyingGlass className="w-3 h-3" /> Detail</button>}
+                        {handleEdit && <button onClick={() => handleEdit(cls)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-[9px] font-bold transition-all" title="Edit"><Pencil className="w-3 h-3" /> Edit</button>}
+                        <div className="relative">
+                            <button
+                                ref={btnRef}
+                                onClick={toggleMenu}
+                                className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] bg-[var(--color-surface-alt)]/60'}`}
+                                title="Lainnya"
+                            >
+                                <DotsThree weight="bold" />
+                            </button>
+                            {menuOpen && createPortal(
+                                <div ref={menuRef} style={{ position: 'fixed', ...(menuPos.top !== undefined ? { top: menuPos.top } : { bottom: menuPos.bottom }), right: menuPos.right, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+                                    {menuItems.map((item, i) => (
+                                        <button key={i} onClick={item.onClick} className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 transition-colors ${item.danger ? 'text-red-500 hover:bg-red-50' : 'hover:bg-[var(--color-surface-alt)]'}`}>
+                                            <item.icon className="w-4 h-4" /> {item.label}
+                                        </button>
+                                    ))}
+                                </div>,
+                                document.body
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

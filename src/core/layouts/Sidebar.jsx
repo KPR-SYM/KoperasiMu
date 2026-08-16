@@ -21,21 +21,9 @@ const GROUPS_KEY = 'sidebar-groups-open'
 function getInitialGroupsOpen() {
     try {
         const stored = localStorage.getItem(GROUPS_KEY)
-        return stored ? JSON.parse(stored) : {
-            services: true,
-            finance: true,
-            master: true,
-            koperasi: true,
-            admin: true
-        }
+        return stored ? JSON.parse(stored) : {}
     } catch {
-        return {
-            services: true,
-            finance: true,
-            master: true,
-            koperasi: true,
-            admin: true
-        }
+        return {}
     }
 }
 

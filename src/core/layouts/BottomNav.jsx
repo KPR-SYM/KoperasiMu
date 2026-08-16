@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { NavLink, useNavigate } from "react-router-dom"
-import { House, StackSimple, GearSix, CreditCard, DotsThree, Bell, SignOut } from '@phosphor-icons/react'
+import { House, StackSimple, GearSix, CreditCard, DotsThree, Bell, SignOut, Storefront } from '@phosphor-icons/react'
 import { useAuth, useLanguage } from "@context"
 import { useNotifications, translateNotification } from "@hooks/useNotifications"
 import MasterSheet from "./MasterSheet"
@@ -213,11 +213,16 @@ export default function BottomNav() {
                 <div className="mx-auto max-w-lg px-3 pb-2">
                     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 backdrop-blur-xl shadow-[0_-4px_24px_rgba(15,23,42,0.10)] overflow-hidden">
 
-                        {/* ── Admin / Developer: Dashboard, Finance, More, + Notif + Profil ── */}
+                        {/* ── Admin / Developer: Dashboard, Koperasi, Lainnya, + Notif + Profil ── */}
                         {isAdminUp && (
                             <div className="grid grid-cols-5">
                                 <NavItem to="/dashboard" icon={House} label={t('nav.dashboard')} />
-                                <MenuButton icon={CreditCard} label={t('section.finance')} onClick={() => open('finance')} active={openSheet === 'finance'} />
+                                <MenuButton
+                                    icon={Storefront}
+                                    label={t('nav.koperasi')}
+                                    onClick={() => open(openSheet === 'koperasi' ? null : 'koperasi')}
+                                    active={openSheet === 'koperasi'}
+                                />
                                 <MenuButton
                                     icon={DotsThree}
                                     label={t('ui.more')}
@@ -251,12 +256,22 @@ export default function BottomNav() {
                             </div>
                         )}
 
-                        {/* ── Staff: Dashboard, Finance, Master, + Notif + Profil ── */}
+                        {/* ── Regular User: Dashboard, Koperasi, Lainnya, + Notif + Profil ── */}
                         {!isAdminUp && !isStaff && (
                             <div className="grid grid-cols-5">
                                 <NavItem to="/dashboard" icon={House} label={t('nav.dashboard')} />
-                                <MenuButton icon={CreditCard} label={t('section.finance')} onClick={() => open('finance')} active={openSheet === 'finance'} />
-                                <MenuButton icon={StackSimple} label={t('section.master')} onClick={() => open('master')} active={openSheet === 'master'} />
+                                <MenuButton
+                                    icon={Storefront}
+                                    label={t('nav.koperasi')}
+                                    onClick={() => open(openSheet === 'koperasi' ? null : 'koperasi')}
+                                    active={openSheet === 'koperasi'}
+                                />
+                                <MenuButton
+                                    icon={DotsThree}
+                                    label={t('ui.more')}
+                                    onClick={() => open(openSheet === 'more' ? null : 'more')}
+                                    active={openSheet === 'more'}
+                                />
                                 <MenuButton
                                     icon={Bell}
                                     label={t('notif.header')}

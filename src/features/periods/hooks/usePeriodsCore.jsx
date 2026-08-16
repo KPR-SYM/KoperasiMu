@@ -217,8 +217,11 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
     const maskValue = useCallback((value, type) => {
         if (!isPrivacyMode) return value;
         switch (type) {
-            case "year": return "????/????";
-            case "semester": return "***";
+            case "year": return "****/****";
+            case "semester": return "****";
+            case "number": return "**";
+            case "duration": return "** Bulan";
+            case "date": return "** *** ****";
             case "id": return "ID: ****";
             default: return "****";
         }

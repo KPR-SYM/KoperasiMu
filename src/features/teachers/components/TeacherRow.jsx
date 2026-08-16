@@ -1,6 +1,6 @@
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Archive, ChatCircle, DotsThree, Eye, GenderMale, MapPin, Pencil, Trash, User } from '@phosphor-icons/react'
+import { Archive, ChatCircle, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, Trash, User } from '@phosphor-icons/react'
 import { Badge } from '@shared/components'
 import Checkbox from '@shared/components/Checkbox'
 import { STATUS_CONFIG, TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
@@ -165,7 +165,7 @@ const TeacherRow = memo(({
                 <div className="flex items-center justify-center gap-1">
                     {handleView && (
                         <button onClick={() => handleView(teacher)} title="Lihat Detail" aria-label={`Lihat detail guru ${teacher.name}`} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm">
-                            <Eye />
+                            <MagnifyingGlass />
                         </button>
                     )}
                     {handleEdit && (
@@ -250,7 +250,7 @@ const TeacherMobileCard = memo(({
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
-                            {handleView && <button onClick={() => handleView(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Eye className="text-xs" /></button>}
+                            {handleView && <button onClick={() => handleView(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><MagnifyingGlass className="text-xs" /></button>}
                             {handleEdit && <button onClick={() => handleEdit(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Pencil className="text-xs" /></button>}
                             <button
                                 onClick={() => handleTogglePin(teacher)}

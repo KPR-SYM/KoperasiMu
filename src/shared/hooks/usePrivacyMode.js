@@ -1,24 +1,16 @@
 import { useState, useCallback, useRef, useEffect, createElement, Fragment } from 'react'
 
 const DEFAULT_MASKS = {
-  year:     (v) => v.replace(/\d(?=\d{2})/g, 'X'),      // 2024/2025 → 2X24/2X25
-  semester: (v) => v.replace(/[a-zA-Z]/g, '?'),           // Ganjil → ??????
-  date:     (v) => v.replace(/\d/g, 'X'),                  // 2024-07-14 → XXXX-XX-XX
-  duration: (v) => v.replace(/\d+/g, '**'),               // 6 bulan → ** bulan
-  id:       (v) => v?.toString().replace(/\d/g, '*'),      // 1 → *
-  text:     (v) => {
-    const len = Math.min(v.length, 4)
-    return '•'.repeat(len) || '••••'
-  },
-  phone:    (v) => v.replace(/.(?=.{3})/g, 'X'),          // 08123456789 → XXXXXXXXX89
-  email:    (v) => {
-    const [local, domain] = v.split('@')
-    return `${local[0]}•••@${domain}`
-  },
-  name:     (v) => {
-    const parts = v.split(' ')
-    return parts.map(p => p[0] + '•••').join(' ')
-  },
+  year:     (v) => '****/****',
+  semester: (v) => '****',
+  date:     (v) => '** *** ****',
+  duration: (v) => '** Bulan',
+  id:       (v) => 'ID: ****',
+  text:     (v) => '****',
+  number:   (v) => '**',
+  phone:    (v) => '**********',
+  email:    (v) => '****@****',
+  name:     (v) => '**** ****',
 }
 
 export function usePrivacyMode({ defaultMasks = {}, idleTimeout = 0 } = {}) {

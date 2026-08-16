@@ -17,7 +17,7 @@ const COL_LABELS = {
 const ClassesTable = memo(function ClassesTable({
     paged, totalFilteredRows, selectedIds, toggleSelect, visibleCols, columnOrder,
     allSelected, someSelected, toggleSelectAll,
-    handleEdit, handleView, handleDuplicate, handleArchive, onHistory, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode,
+    handleEdit, handleView, handleDuplicate, handleArchive, onHistory, setItemToDelete, setIsDeleteModalOpen, isPrivacyMode, maskValue,
     canEdit, loading, searchQuery, filterLevel, filterProgram,
     filterNoTeacher, filterCrowded, resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize, jumpPage, setJumpPage,
@@ -163,7 +163,7 @@ const ClassesTable = memo(function ClassesTable({
                         variant="plain"
                     />
                 ) : paged.map(cls => (
-                    <ClassMobileCard key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={handleArchive} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} />
+                    <ClassMobileCard key={cls.id} cls={cls} selectedIds={selectedIds} toggleSelect={toggleSelect} handleEdit={canEdit ? handleEdit : null} handleView={handleView} handleDuplicate={handleDuplicate} handleArchive={canEdit ? handleArchive : null} onHistory={onHistory} setItemToDelete={canEdit ? setItemToDelete : null} setIsDeleteModalOpen={canEdit ? setIsDeleteModalOpen : null} isPrivacyMode={isPrivacyMode} maskValue={maskValue} pinnedIds={pinnedIds} togglePin={canEdit ? togglePin : null} />
                 ))}
             </div>
             <Pagination

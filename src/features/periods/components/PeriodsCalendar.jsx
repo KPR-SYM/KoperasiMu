@@ -44,7 +44,7 @@ function getBarColors(year) {
     };
 }
 
-function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday, formatDate }) {
+function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday, formatDate, maskValue }) {
     return (
         <div className="md:hidden divide-y divide-[var(--color-border)]">
             {years.map((year) => {
@@ -68,7 +68,7 @@ function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday,
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <div className={`w-2 h-2 rounded-full shrink-0 ${isActive ? "bg-emerald-500" : isLocked ? "bg-amber-500" : "bg-[var(--color-border)]"}`} />
                                 <p className="text-[13px] font-extrabold text-[var(--color-text)] leading-tight truncate">
-                                    {year.academic_year}
+                                    {maskValue(year.academic_year, "year")}
                                 </p>
                                 <div className="flex items-center gap-1.5 shrink-0">
                                     {isActive && <Star className="w-3 h-3 text-emerald-500" weight="fill" />}
@@ -77,7 +77,7 @@ function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday,
                             </div>
                             <div className="shrink-0 flex items-center gap-1.5">
                                 <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border whitespace-nowrap ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}>
-                                    {year.semester}
+                                    {maskValue(year.semester, "semester")}
                                 </span>
                             </div>
                         </div>
@@ -85,10 +85,10 @@ function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday,
                         {/* Dates + duration */}
                         <div className="mt-2 flex items-center justify-between gap-2">
                             <span className="text-[10px] font-bold text-[var(--color-text-muted)] truncate">
-                                {formatDate(year.start_date)} – {formatDate(year.end_date)}
+                                {maskValue(formatDate(year.start_date), "date")} – {maskValue(formatDate(year.end_date), "date")}
                             </span>
                             <span className="text-[9px] font-black text-[var(--color-text-muted)] shrink-0">
-                                {durDays} hr
+                                {maskValue(String(durDays), "number")} hr
                             </span>
                         </div>
 
@@ -110,7 +110,7 @@ function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday,
                                     backgroundColor: colors.backgroundColor,
                                     border: colors.borderColor ? `1px solid ${colors.borderColor}` : "none",
                                 }}
-                                title={`${year.academic_year} ${year.semester}\n${formatDate(year.start_date)} – ${formatDate(year.end_date)}${isLocked ? "\n(Terkunci)" : ""}`}
+                                title={`${maskValue(year.academic_year, "year")} ${maskValue(year.semester, "semester")}\n${maskValue(formatDate(year.start_date), "date")} – ${maskValue(formatDate(year.end_date), "date")}${isLocked ? "\n(Terkunci)" : ""}`}
                             />
                         </div>
                     </div>
@@ -120,7 +120,7 @@ function MobileCalendarList({ years, rangeStart, totalDays, todayPct, showToday,
     );
 }
 
-function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showToday, formatDate, onEdit, canEdit }) {
+function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showToday, formatDate, onEdit, canEdit, maskValue }) {
     return (
         <div className="hidden md:block p-4 overflow-x-auto">
             <div className="min-w-[600px]">
@@ -171,13 +171,13 @@ function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showTo
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1">
                                                 <p className="text-[11px] font-bold text-[var(--color-text)] leading-tight truncate">
-                                                    {year.academic_year}
+                                                    {maskValue(year.academic_year, "year")}
                                                 </p>
                                                 {isActive && <Star className="w-2.5 h-2.5 text-emerald-500 shrink-0" weight="fill" />}
                                                 {isLocked && <Lock className="w-2.5 h-2.5 text-amber-500 shrink-0" weight="bold" />}
                                             </div>
                                             <p className="text-[8px] font-bold text-[var(--color-text-muted)] truncate">
-                                                {year.semester} · {formatDate(year.start_date)} – {formatDate(year.end_date)}
+                                                {maskValue(year.semester, "semester")} · {maskValue(formatDate(year.start_date), "date")} – {maskValue(formatDate(year.end_date), "date")}
                                             </p>
                                         </div>
                                     </div>
@@ -198,7 +198,7 @@ function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showTo
                                     {sIdx <= eIdx && (
                                         <button
                                             onClick={() => canClick && onEdit?.(year)}
-                                            title={`${year.academic_year} ${year.semester}\n${formatDate(year.start_date)} – ${formatDate(year.end_date)}${isLocked ? "\n(Terkunci)" : ""}`}
+                                            title={`${maskValue(year.academic_year, "year")} ${maskValue(year.semester, "semester")}\n${maskValue(formatDate(year.start_date), "date")} – ${maskValue(formatDate(year.end_date), "date")}${isLocked ? "\n(Terkunci)" : ""}`}
                                             className={`absolute top-1 h-5 rounded-md flex items-center justify-center text-[8px] font-black tracking-wider transition-all overflow-hidden px-1 ${canClick ? "cursor-pointer hover:brightness-110" : "cursor-default"} ${isActive ? "shadow-sm" : ""}`}
                                             style={{
                                                 left: `${(sIdx / totalMonths) * 100}%`,
@@ -208,13 +208,13 @@ function DesktopGantt({ years, months, totalMonths, rangeStart, todayPct, showTo
                                                 color: isActive ? "#fff" : "var(--color-text-muted)",
                                             }}
                                         >
-                                            <span className="truncate">{year.academic_year}</span>
+                                            <span className="truncate">{maskValue(year.academic_year, "year")}</span>
                                         </button>
                                     )}
                                 </div>
                                 <div className="w-14 shrink-0 text-center">
                                     <span className="text-[8px] font-bold text-[var(--color-text-muted)]">
-                                        {durDays} hr
+                                        {maskValue(String(durDays), "number")} hr
                                     </span>
                                 </div>
                             </div>
@@ -251,6 +251,8 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
     onEdit,
     canEdit,
     formatDate,
+    isPrivacyMode,
+    maskValue,
 }) {
     const { start, end } = getYearRange(years);
 
@@ -278,6 +280,8 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
     const todayPct = (daysBetween(rangeStart, today) / totalDays) * 100;
     const showToday = today >= rangeStart && today <= rangeEnd;
 
+    const identityMask = (v, t) => v;
+
     return (
         <>
             <MobileCalendarList
@@ -287,6 +291,7 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                 todayPct={todayPct}
                 showToday={showToday}
                 formatDate={formatDate}
+                maskValue={maskValue || identityMask}
             />
             <DesktopGantt
                 years={years}
@@ -298,6 +303,7 @@ const PeriodsCalendar = memo(function PeriodsCalendar({
                 formatDate={formatDate}
                 onEdit={onEdit}
                 canEdit={canEdit}
+                maskValue={maskValue || identityMask}
             />
         </>
     );

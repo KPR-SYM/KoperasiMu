@@ -1,76 +1,125 @@
 import { useMemo } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { Storefront, CaretLeft } from '@phosphor-icons/react'
-import { KOPERASI_ITEMS, flattenNavItems } from '@core/layouts/navItems'
+import { Clock, Lock, Package, CaretLeft, Sparkle } from '@phosphor-icons/react'
+import DashboardLayout from '@core/layouts/DashboardLayout'
+import { KOPERASI_CATEGORIES } from '@core/layouts/navItems'
+import { PageHeader, Badge, StatsCarousel, StatCard } from '@shared/components'
+import { useLanguage } from '@context'
+
+// ─── FeaturePreviewCard: clean minimalis ──────────────────────────────────────
+function FeaturePreviewCard({ child, tNav }) {
+    const Icon = child.icon
+
+    return (
+        <div className="group rounded-xl border border-[var(--color-border)]/50 bg-[var(--color-surface)] overflow-hidden hover:border-[var(--color-primary)]/30 hover:shadow-md transition-all">
+            {/* Icon area */}
+            <div className={`relative h-24 ${child.color} flex items-center justify-center overflow-hidden`}>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
+                <Icon className="w-10 h-10 text-current opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-300" strokeWidth={1.5} />
+            </div>
+
+            {/* Info */}
+            <div className="p-3">
+                <div className="flex items-center gap-1.5 mb-1">
+                    <p className="text-[12px] font-bold text-[var(--color-text)] leading-tight truncate">
+                        {tNav(child)}
+                    </p>
+                </div>
+                <p className="text-[10px] text-[var(--color-text-muted)] leading-snug line-clamp-2">
+                    {child.desc}
+                </p>
+            </div>
+        </div>
+    )
+}
 
 // ─── Placeholder halaman Koperasi ─────────────────────────────────────────────
-// Semua route /master/koperasi/... sementara render di sini ("Coming Soon").
-// Struktur menu sudah lengkap; fungsionalitas tiap modul menyusul.
 export default function KoperasiComingSoonPage() {
     const location = useLocation()
     const navigate = useNavigate()
+    const { tNav } = useLanguage()
 
-    const current = useMemo(() => {
-        const matches = flattenNavItems(KOPERASI_ITEMS).filter(item => location.pathname === item.to)
-        return matches[0] || null
+    const { category, leaf } = useMemo(() => {
+        for (const cat of KOPERASI_CATEGORIES) {
+            const match = cat.children?.find(child => location.pathname === child.to)
+            if (match) return { category: cat, leaf: match }
+            if (location.pathname === cat.to) return { category: cat, leaf: null }
+        }
+        return { category: null, leaf: null }
     }, [location.pathname])
 
+    const totalFeatures = category?.children?.length || 0
+
     return (
-        <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Ambient glow */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute -top-24 -right-24 w-[460px] h-[460px] bg-emerald-500/8 rounded-full blur-[120px]" />
-                <div className="absolute -bottom-24 -left-24 w-[460px] h-[460px] bg-indigo-500/8 rounded-full blur-[120px]" />
-            </div>
+        <DashboardLayout title={category?.label || 'Koperasi'}>
+            <div className="space-y-3 max-w-[1800px] mx-auto relative">
+                {/* ── Header ── */}
+                <PageHeader
+                    title={leaf?.label || category?.label || 'Koperasi'}
+                    subtitle={leaf?.desc || category?.desc || 'Modul ini sedang dalam tahap pengembangan.'}
+                    actions={
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="h-9 px-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[11px] font-bold text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-primary)]/30 transition-all flex items-center gap-1.5"
+                            type="button"
+                        >
+                            <CaretLeft className="w-3.5 h-3.5" />
+                            <span>Kembali</span>
+                        </button>
+                    }
+                />
 
-            <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
-                {/* Icon */}
-                <div className="relative mb-8">
-                    <div className="absolute inset-0 bg-emerald-500/20 rounded-[2.5rem] blur-xl" />
-                    <div className="relative w-20 h-20 rounded-[2.5rem] bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-2xl shadow-emerald-500/20">
-                        {current?.icon
-                            ? <current.icon className="text-3xl text-white drop-shadow-md" weight="duotone" />
-                            : <Storefront className="text-3xl text-white drop-shadow-md" weight="duotone" />}
+                {/* ── Stats ── */}
+                <StatsCarousel count={3} cols={3}>
+                    <StatCard
+                        icon={Package}
+                        label="Total Fitur"
+                        value={totalFeatures}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Lock}
+                        label="Belum Tersedia"
+                        value={totalFeatures}
+                        color="primary"
+                    />
+                    <StatCard
+                        icon={Clock}
+                        label="Status"
+                        value="Soon"
+                        color="primary"
+                    />
+                </StatsCarousel>
+
+                {/* ── Feature Preview Grid ── */}
+                {totalFeatures > 0 && (
+                    <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden">
+                        <div className="border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Sparkle className="w-3.5 h-3.5 text-[var(--color-primary)]" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">
+                                    Pratinjau Fitur
+                                </span>
+                            </div>
+                            <Badge color="amber" size="xs">
+                                Coming Soon
+                            </Badge>
+                        </div>
+
+                        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {category.children
+                                .filter(child => child.to !== location.pathname)
+                                .map(child => (
+                                    <FeaturePreviewCard
+                                        key={child.to}
+                                        child={child}
+                                        tNav={tNav}
+                                    />
+                                ))}
+                        </div>
                     </div>
-                </div>
-
-                {/* Badge */}
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-4">
-                    Modul Koperasi
-                </span>
-
-                {/* Label */}
-                <h2 className="text-2xl font-black text-[var(--color-text)] tracking-tight mb-2">
-                    {current?.label || 'Modul Koperasi'}
-                </h2>
-                <p className="text-[13px] text-[var(--color-text-muted)] leading-relaxed opacity-80 mb-3">
-                    Modul ini sedang dalam tahap pengembangan.
-                </p>
-                <p className="text-[12px] text-[var(--color-text-muted)] leading-relaxed opacity-60 mb-8">
-                    Halaman <span className="font-mono text-[10px] bg-[var(--color-surface-alt)] border border-[var(--color-border)] rounded-md px-1.5 py-0.5">{location.pathname}</span>{" "}
-                    akan segera hadir dalam sistem Koperasi SenyumMu.
-                </p>
-
-                {/* Actions */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="flex-1 h-11 px-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[11px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-primary)]/30 transition-all flex items-center justify-center gap-2"
-                        type="button"
-                    >
-                        <CaretLeft className="text-sm" />
-                        Kembali
-                    </button>
-                    <button
-                        onClick={() => navigate('/master/koperasi/kasir')}
-                        className="flex-1 h-11 px-6 rounded-2xl bg-[var(--color-primary)] text-white text-[11px] font-black uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--color-primary)]/20 flex items-center justify-center gap-2"
-                        type="button"
-                    >
-                        <Storefront className="text-sm" />
-                        Buka Kasir
-                    </button>
-                </div>
+                )}
             </div>
-        </div>
+        </DashboardLayout>
     )
 }

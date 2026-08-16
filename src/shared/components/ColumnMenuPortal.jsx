@@ -36,7 +36,7 @@ export default function ColumnMenuPortal({
                     className="flex items-center gap-1 px-1 py-1 rounded-xl hover:bg-[var(--color-surface-alt)] transition-all group"
                 >
                     {moveColumnLeft && moveColumnRight && (
-                        <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex flex-col gap-0.5">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
