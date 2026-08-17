@@ -28,7 +28,7 @@ function renderColCell(key, { teacher, visibleCols, disp, isPrivacyMode, quickSt
         return (
             <td key={key} className="px-6 py-4">
                 {teacher.subject
-                    ? <span className="px-2.5 py-1 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[10px] font-black uppercase tracking-widest">{teacher.subject}</span>
+                    ? <span className="px-2.5 py-1 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[10px] font-black uppercase tracking-widest"><PrivacyMask active={isPrivacyMode}>{teacher.subject}</PrivacyMask></span>
                     : <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}
             </td>
         )
@@ -45,7 +45,7 @@ function renderColCell(key, { teacher, visibleCols, disp, isPrivacyMode, quickSt
     if (key === 'contact') {
         return (
             <td key={key} className="px-6 py-4 space-y-1">
-                {teacher.phone && <a href={`https://wa.me/${teacher.phone.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-bold w-fit"><ChatCircle className="text-sm" /><PrivacyMask active={isPrivacyMode}>{teacher.phone}</PrivacyMask></a>}
+                {teacher.phone && <a href={isPrivacyMode ? '#' : `https://wa.me/${teacher.phone.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-bold w-fit"><ChatCircle className="text-sm" /><PrivacyMask active={isPrivacyMode}>{teacher.phone}</PrivacyMask></a>}
                 {!teacher.phone && <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}
             </td>
         )
@@ -145,11 +145,11 @@ const TeacherRow = memo(({
             <td className="px-6 py-4">
                 <div className="flex items-start gap-3">
                     <div className="relative shrink-0">
-                        <Avatar url={teacher.avatar_url} name={teacher.name} />
+                        <Avatar name={teacher.name} />
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
                         <button onClick={() => handleView(teacher)} className="font-extrabold text-[var(--color-text)] hover:text-[var(--color-primary)] transition-colors text-left leading-snug truncate">
-                            {teacher.name}
+                            <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
                         </button>
                         <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             {(Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []).map(t => (
@@ -237,7 +237,7 @@ const TeacherMobileCard = memo(({
                     />
                 </div>
                 <div className="relative shrink-0">
-                    <Avatar url={teacher.avatar_url} name={teacher.name} size="w-12 h-12" textSize="text-sm" />
+                    <Avatar name={teacher.name} size="w-12 h-12" textSize="text-sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

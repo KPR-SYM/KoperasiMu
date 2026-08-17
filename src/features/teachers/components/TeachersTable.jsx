@@ -167,6 +167,7 @@ const TeachersTable = memo(function TeachersTable({
                                 quickStatusId={quickStatusId}
                                 setQuickStatusId={setQuickStatusId}
                                 quickStatusRef={quickStatusRef}
+                                isPrivacyMode={isPrivacyMode}
                             />
                         ))}
                     </tbody>

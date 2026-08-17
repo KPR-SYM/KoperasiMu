@@ -17,7 +17,7 @@ import { useAuth } from '@context/Auth'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import { logAudit } from '@utils/auditLogger'
 import {
-    AuditTimeline, Skeleton, Tooltip,
+    AuditTimeline, Skeleton, Tooltip, PrivacyMask,
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
 import { ArchiveModal } from '@features/periods/components/PeriodConfirmModals'
@@ -503,7 +503,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     const { addToast } = useToast()
     const { enabled: canEdit } = useFlag('access.teacher_academic')
     const { profile } = useAuth()
-    const { isPrivacyMode, togglePrivacyMode, maskValue } = usePrivacyMode()
+    const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode()
 
     const addToastRef = useRef(addToast)
     const onBackRef = useRef(onBack)
@@ -809,14 +809,13 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
             if (error) throw error
             addToast(newStatus ? 'Periode dikunci' : 'Kunci periode dibuka', 'success')
             try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'periods', recordId: period.id, oldData: period, newData: { ...period, ...updatePayload } }) } catch { /* skip */ }
-            fetchPeriod()
         } catch (err) {
             setPeriod(prev => prev ? { ...prev, ...period } : prev)
             addToast(err?.message || 'Gagal mengubah kunci', 'error')
         } finally {
             setSaving(false)
         }
-    }, [period, saving, addToast, profile, fetchPeriod])
+    }, [period, saving, addToast, profile])
 
     const handleToggleActive = useCallback(async () => {
         if (!period || saving) return
@@ -963,21 +962,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
                             {period.academic_year} {period.semester} — informasi lengkap periode akademik.
                         </p>
-                        {usageStats && (
-                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                    <Buildings className="w-3 h-3" /> {usageStats.classCount} Kelas
-                                </span>
-                                <span className="text-[var(--color-text-muted)]">·</span>
-                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                    <Users className="w-3 h-3" /> {usageStats.studentCount} Siswa
-                                </span>
-                                <span className="text-[var(--color-text-muted)]">·</span>
-                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                    Rata-rata {avgStudents}/kelas
-                                </span>
-                            </div>
-                        )}
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 min-w-0 overflow-x-auto scrollbar-hide lg:shrink-0 -mx-5 px-5 lg:mx-0 lg:px-0 py-0.5">
                         <Tooltip content={!canEdit ? 'Akses terbatas' : period.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'} position="bottom">
@@ -1015,7 +999,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                             <button
                                 onClick={() => setIsDeleteOpen(true)}
                                 disabled={!canEdit || saving}
-                                className="h-8 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 flex items-center gap-1.5 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                                className="h-8 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 flex items-center gap-1.5 transition-all hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                             >
                                 <Archive className="w-3.5 h-3.5" />
                             </button>
@@ -1076,7 +1060,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                             Tahun Akademik
                                         </p>
                                         <h2 className="text-2xl font-black text-[var(--color-text)] leading-tight">
-                                            {maskValue(period.academic_year, 'text')}
+                                            <PrivacyMask active={isPrivacyMode}>{period.academic_year}</PrivacyMask>
                                         </h2>
                                         <div className="flex flex-wrap items-center gap-2 mt-2">
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${period.semester === 'Ganjil' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-purple-500/10 text-purple-600 border-purple-500/20'}`}>
@@ -1128,7 +1112,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Mulai</p>
                                         </div>
                                         <p className="text-xs font-bold text-[var(--color-text)]">
-                                            {formatDate(maskValue(period.start_date, 'date'))}
+                                            <PrivacyMask active={isPrivacyMode}>{formatDate(period.start_date)}</PrivacyMask>
                                         </p>
                                     </div>
 
@@ -1140,7 +1124,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Selesai</p>
                                         </div>
                                         <p className="text-xs font-bold text-[var(--color-text)]">
-                                            {formatDate(maskValue(period.end_date, 'date'))}
+                                            <PrivacyMask active={isPrivacyMode}>{formatDate(period.end_date)}</PrivacyMask>
                                         </p>
                                     </div>
 
@@ -1218,7 +1202,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                     <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Hari Berlalu</p>
                                 </div>
                                 <p className="text-2xl font-black text-[var(--color-text)] leading-none">
-                                    {timeStatus === 'upcoming' ? 0 : maskValue(String(daysElapsed), 'number')}
+                                    {timeStatus === 'upcoming' ? 0 : <PrivacyMask active={isPrivacyMode}>{daysElapsed}</PrivacyMask>}
                                 </p>
                                 <p className="text-[9px] text-[var(--color-text-muted)] font-bold">dari {totalDays} hari total</p>
                             </div>
@@ -1231,7 +1215,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                     <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Hari Tersisa</p>
                                 </div>
                                 <p className="text-2xl font-black text-[var(--color-text)] leading-none">
-                                    {maskValue(String(daysRemaining), 'number')}
+                                    <PrivacyMask active={isPrivacyMode}>{daysRemaining}</PrivacyMask>
                                 </p>
                                 <p className="text-[9px] text-[var(--color-text-muted)] font-bold">
                                     {timeStatus === 'ended'    ? 'periode telah berakhir' :
@@ -1247,7 +1231,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                     <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Rata-rata Siswa</p>
                                 </div>
                                 <p className="text-2xl font-black text-[var(--color-text)] leading-none">
-                                    {maskValue(String(avgStudents), 'number')}
+                                    <PrivacyMask active={isPrivacyMode}>{avgStudents}</PrivacyMask>
                                 </p>
                                 <p className="text-[9px] text-[var(--color-text-muted)] font-bold">per kelas</p>
                             </div>

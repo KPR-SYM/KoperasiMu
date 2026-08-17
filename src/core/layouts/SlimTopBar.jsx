@@ -382,11 +382,12 @@ export default function SlimTopBar({ onToggleSidebar, sidebarCollapsed, onOpenCh
                                         <span>⌘</span><span>K</span>
                                     </span>
                                 )}
-                                {searchQuery && (
+                                {searchFocused && (
                                     <button
                                         type="button"
-                                        onClick={() => { setSearchQuery(''); setSearchFocused(false) }}
+                                        onClick={() => { setSearchQuery(''); setSearchFocused(false); searchRef.current?.querySelector('input')?.blur() }}
                                         className="text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-xs shrink-0"
+                                        title="Tutup pencarian (Esc)"
                                     >
                                         <X className="w-4 h-4" strokeWidth={2} />
                                     </button>

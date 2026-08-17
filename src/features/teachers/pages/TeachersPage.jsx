@@ -80,7 +80,7 @@ export default function TeachersPage() {
     }, [navigate])
 
     const handleViewTeacher = useCallback((teacher) => {
-        if (teacher?.id) navigate(`/master/teachers/${teacher.id}`)
+        if (teacher?.uuid || teacher?.id) navigate(`/master/teachers/${teacher.uuid || teacher.id}`)
     }, [navigate])
 
     const handleBackToList = useCallback(() => {
@@ -148,10 +148,10 @@ export default function TeachersPage() {
             return {
                 id: t.id,
                 label: t.name || t.full_name,
-                meta: `${t.subject || '—'} · ${t.phone || '—'}`
+                meta: `${t.subject || '—'} · ${disp(t.phone)}`
             }
         }).filter(Boolean)
-    }, [selectedIds, teachers])
+    }, [selectedIds, teachers, disp])
 
     return (
         <DashboardLayout title="Data Guru">
@@ -450,12 +450,9 @@ export default function TeachersPage() {
                                     {bulkWATeachers.map((t, i) => (
                                         <div key={t.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${i === bulkWAIndex ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5' : bulkWAResults[t.id] === 'sent' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-[var(--color-border)]'}`}>
                                             <div className="w-8 h-8 rounded-xl overflow-hidden bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] flex items-center justify-center text-white text-xs font-black shrink-0">
-                                                {t.avatar_url
-                                                    ? <img src={t.avatar_url} alt={t.name} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none' }} />
-                                                    : t.name.charAt(0)
-                                                }
+                                                {t.name.charAt(0)}
                                             </div>
-                                            <div className="flex-1 min-w-0"><p className="text-xs font-bold truncate">{t.name}</p><p className="text-[10px] text-[var(--color-text-muted)]">{t.phone}</p></div>
+                                            <div className="flex-1 min-w-0"><p className="text-xs font-bold truncate">{t.name}</p><p className="text-[10px] text-[var(--color-text-muted)]">{disp(t.phone)}</p></div>
                                             {bulkWAResults[t.id] === 'sent' && <CheckCircle className="text-emerald-500 shrink-0" />}
                                             {i === bulkWAIndex && <span className="text-[9px] font-black text-[var(--color-primary)] uppercase">Berikutnya</span>}
                                         </div>

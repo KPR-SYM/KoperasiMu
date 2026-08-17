@@ -12,16 +12,6 @@ const SYSTEM_COLS = [
     { key: 'phone', label: 'No. WhatsApp', synonyms: ['wa', 'no. hp/wa', 'phone', 'whatsapp', 'no hp', 'no telp'] },
     { key: 'status', label: 'Status', synonyms: ['status', 'aktif', 'status aktif', 'status (active/inactive/cuti)'] },
     { key: 'type', label: 'Jenis Pegawai', synonyms: ['jenis', 'type', 'jenis pegawai', 'tipe', 'peran', 'jenis pegawai (guru/karyawan)'] },
-    { key: 'nik', label: 'NIK', synonyms: ['nik', 'nomor induk kependudukan', 'no ktp', 'ktp'] },
-    { key: 'nuptk', label: 'NUPTK', synonyms: ['nuptk'] },
-    { key: 'birth_place', label: 'Tempat Lahir', synonyms: ['tempat lahir', 'birth_place', 'birthplace', 'tmp lahir'] },
-    { key: 'birth_date', label: 'Tanggal Lahir', synonyms: ['tanggal lahir', 'birth_date', 'tgl lahir', 'tanggal_lahir', 'tanggal lahir (yyyy-mm-dd)'] },
-    { key: 'address', label: 'Alamat', synonyms: ['alamat', 'address', 'alamat tinggal'] },
-    { key: 'employment_status', label: 'Status Kepegawaian', synonyms: ['status kepegawaian', 'status pegawai', 'kepegawaian', 'status kerja'] },
-    { key: 'teaching_hours', label: 'Jam Mengajar', synonyms: ['jam mengajar', 'teaching_hours', 'jam', 'teaching hours'] },
-    { key: 'last_education', label: 'Pendidikan Terakhir', synonyms: ['pendidikan terakhir', 'pendidikan', 'last_education', 'last education', 'pendidikan_terakhir'] },
-    { key: 'major', label: 'Jurusan', synonyms: ['jurusan', 'major', 'program studi', 'prodi'] },
-    { key: 'graduation_year', label: 'Tahun Lulus', synonyms: ['tahun lulus', 'graduation_year', 'tahun_lulus', 'lulus tahun'] },
 ]
 
     const ALL_EXPORT_COLUMNS = [
@@ -31,17 +21,7 @@ const SYSTEM_COLS = [
     { key: 'phone', label: 'No. HP/WA', fn: t => t.phone || '' },
     { key: 'status', label: 'Status', fn: t => t.is_active ? 'Aktif' : t.status === 'cuti' ? 'Cuti' : 'Non-Aktif' },
     { key: 'join_date', label: 'Tgl Bergabung', fn: t => t.created_at || t.join_date || '' },
-    { key: 'address', label: 'Alamat', fn: t => t.address || '' },
-    { key: 'type', label: 'Jenis Pegawai', fn: t => { const types = Array.isArray(t.type) ? t.type : t.type ? [t.type] : []; return types.map(tp => tp === 'karyawan' ? 'Karyawan' : tp === 'guru' ? 'Guru' : TYPE_LABELS[tp] || tp).join(', ') || 'Guru' } },
-    { key: 'nik', label: 'NIK', fn: t => t.nik || '' },
-    { key: 'nuptk', label: 'NUPTK', fn: t => t.nuptk || '' },
-    { key: 'birth_place', label: 'Tempat Lahir', fn: t => t.birth_place || '' },
-    { key: 'birth_date', label: 'Tanggal Lahir', fn: t => t.birth_date || '' },
-    { key: 'employment_status', label: 'Status Kepegawaian', fn: t => t.employment_status || '' },
-    { key: 'teaching_hours', label: 'Jam Mengajar', fn: t => t.teaching_hours || 0 },
-    { key: 'last_education', label: 'Pendidikan Terakhir', fn: t => t.last_education || '' },
-    { key: 'major', label: 'Jurusan', fn: t => t.major || '' },
-    { key: 'graduation_year', label: 'Tahun Lulus', fn: t => t.graduation_year || '' }
+    { key: 'type', label: 'Jenis Pegawai', fn: t => { const types = Array.isArray(t.type) ? t.type : t.type ? [t.type] : []; return types.map(tp => tp === 'karyawan' ? 'Karyawan' : tp === 'guru' ? 'Guru' : TYPE_LABELS[tp] || tp).join(', ') || 'Guru' } }
 ]
 
 export function useTeachersImportExport({
@@ -149,12 +129,6 @@ export function useTeachersImportExport({
                     const t = data.type.toLowerCase().trim()
                     data.type = ['karyawan', 'staf', 'staff', 'non-guru', 'kary'].includes(t) ? 'karyawan' : 'guru'
                 }
-                if (data.teaching_hours) {
-                    data.teaching_hours = Number(data.teaching_hours) || 0
-                }
-                if (data.graduation_year) {
-                    data.graduation_year = Number(data.graduation_year) || null
-                }
                 if (data.phone) {
                     data.phone = data.phone.toString().replace(/[\s-]/g, '')
                     if (data.phone.startsWith('62')) data.phone = '0' + data.phone.slice(2)
@@ -223,28 +197,20 @@ export function useTeachersImportExport({
     const handleDownloadTemplate = useCallback(async () => {
         const headers = [
             'Nama Lengkap', 'Mata Pelajaran', 'Jenis Kelamin', 'No. WhatsApp',
-            'Status', 'Jenis Pegawai', 'NIK', 'NUPTK',
-            'Tempat Lahir', 'Tanggal Lahir', 'Alamat', 'Status Kepegawaian',
-            'Jam Mengajar', 'Pendidikan Terakhir', 'Jurusan', 'Tahun Lulus'
+            'Status', 'Jenis Pegawai'
         ]
         const data = [
             [
                 'Ahmad Fauzi, S.Pd', 'Bahasa Indonesia', 'L', '081234567890',
-                'active', 'guru', '320101XXXXXXXXXX',
-                '9876543210987654', 'Jakarta', '1985-03-12', 'Jl. Merdeka No. 123', 'GTY',
-                24, 'S1', 'Pendidikan Bahasa Indonesia', 2008
+                'active', 'guru'
             ],
             [
                 'Siti Aminah, M.Pd', 'Matematika', 'P', '089876543210',
-                'active', 'guru', '320101XXXXXXXXXY',
-                '', 'Bandung', '1989-07-24', 'Jl. Kenanga No. 45', 'GTY',
-                28, 'S2', 'Pendidikan Matematika', 2013
+                'active', 'guru'
             ],
             [
                 'Budi Hartono', '', 'L', '085678901234',
-                'active', 'karyawan', '320101XXXXXXXXXZ',
-                '', 'Surabaya', '1992-11-05', 'Jl. Melati No. 8', 'PTY',
-                0, 'SMA', 'IPS', 2010
+                'active', 'karyawan'
             ]
         ]
         const XLSX = await import('xlsx')
@@ -258,16 +224,6 @@ export function useTeachersImportExport({
             { wch: 18 }, // No. WhatsApp
             { wch: 12 }, // Status (active)
             { wch: 15 }, // Jenis Pegawai (guru/karyawan)
-            { wch: 20 }, // NIK
-            { wch: 20 }, // NUPTK
-            { wch: 15 }, // Tempat Lahir
-            { wch: 15 }, // Tanggal Lahir
-            { wch: 30 }, // Alamat
-            { wch: 20 }, // Status Kepegawaian (GTY)
-            { wch: 15 }, // Jam Mengajar
-            { wch: 20 }, // Pendidikan Terakhir
-            { wch: 25 }, // Jurusan
-            { wch: 12 }  // Tahun Lulus
         ]
 
         const wb = XLSX.utils.book_new()
@@ -297,16 +253,6 @@ export function useTeachersImportExport({
                     phone: r.phone || null,
                     is_active: r.status === 'active',
                     type: r.type ? [r.type] : ['guru'],
-                    nik: r.nik || null,
-                    nuptk: r.nuptk || null,
-                    birth_place: r.birth_place || null,
-                    birth_date: r.birth_date || null,
-                    address: r.address || null,
-                    employment_status: r.employment_status || 'GTY',
-                    teaching_hours: Number(r.teaching_hours) || 0,
-                    last_education: r.last_education || null,
-                    major: r.major || null,
-                    graduation_year: r.graduation_year ? Number(r.graduation_year) : null
                 }))
                 const { error } = await supabase.from('teachers').insert(chunk)
                 if (error) throw error
@@ -327,18 +273,18 @@ export function useTeachersImportExport({
 
     // ── export data ───────────────────────────────────────────────────────────
     const getExportData = useCallback(async () => {
-        let q = supabase.from('teachers').select('full_name,subject,gender,phone,is_active,type,address,created_at').is('deleted_at', null)
+        let q = supabase.from('teachers').select('full_name,subject,gender,phone,is_active,type,is_pinned,created_at').is('deleted_at', null)
 
         if (exportScope === 'selected' && selectedIds.length > 0) {
             q = q.in('id', selectedIds)
         } else if (exportScope === 'filtered') {
-            if (filterStatus) q = q.eq('status', filterStatus)
+            if (filterStatus) q = q.eq('is_active', filterStatus === 'active')
             if (filterGender) q = q.eq('gender', filterGender)
             if (filterSubject) q = q.eq('subject', filterSubject)
             if (filterType) q = q.contains('type', [filterType])
         }
 
-        q = q.order('name')
+        q = q.order('full_name')
         const { data, error } = await q
         if (error) throw error
 
@@ -451,14 +397,9 @@ export function useTeachersImportExport({
                 alternateRowStyles: { fillColor: [248, 250, 252] },
                 columnStyles: {
                     'Gender': { halign: 'center' },
-                    'NIK': { halign: 'center' },
-                    'NUPTK': { halign: 'center' },
                     'Status': { halign: 'center' },
                     'Tgl Bergabung': { halign: 'center' },
-                    'Tanggal Lahir': { halign: 'center' },
                     'No. HP/WA': { halign: 'center' },
-                    'Jam Mengajar': { halign: 'right' },
-                    'Tahun Lulus': { halign: 'center' }
                 }
             })
 

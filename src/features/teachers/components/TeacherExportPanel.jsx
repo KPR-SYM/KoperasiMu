@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import {
-    Warning, ArrowsLeftRight, ArrowsDownUp, Book, BookOpenText, Suitcase, Calendar, CalendarCheck,
-    CheckCircle, Question, Clock, FileXls, FileText, GraduationCap, Hash, TextH, IdentificationCard,
-    SlidersHorizontal, Tag, User, Users, GenderIntersex, MapPin, ChatCircle,
+    Warning, ArrowsLeftRight, ArrowsDownUp, Book, Calendar, IdentificationCard,
+    CheckCircle, Question, FileXls, FileText, ChatCircle,
+    SlidersHorizontal, Tag, User, Users, GenderIntersex,
     CaretLeft, ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
 } from '@phosphor-icons/react'
 
@@ -21,25 +21,13 @@ const COLUMN_DEFS = [
     { key: 'phone', label: 'No. WhatsApp', icon: ChatCircle, exportKey: 'No. HP/WA' },
     { key: 'status', label: 'Status', icon: Question, exportKey: 'Status' },
     { key: 'type', label: 'Jenis Pegawai', icon: IdentificationCard, exportKey: 'Jenis Pegawai' },
-    { key: 'nik', label: 'NIK', icon: IdentificationCard, exportKey: 'NIK' },
-    { key: 'nuptk', label: 'NUPTK', icon: Hash, exportKey: 'NUPTK' },
-    { key: 'birth_place', label: 'Tempat Lahir', icon: MapPin, exportKey: 'Tempat Lahir' },
-    { key: 'birth_date', label: 'Tanggal Lahir', icon: Calendar, exportKey: 'Tanggal Lahir' },
-    { key: 'address', label: 'Alamat', icon: MapPin, exportKey: 'Alamat' },
-    { key: 'employment_status', label: 'Status Kepegawaian', icon: Suitcase, exportKey: 'Status Kepegawaian' },
-    { key: 'teaching_hours', label: 'Jam Mengajar', icon: Clock, exportKey: 'Jam Mengajar' },
-    { key: 'last_education', label: 'Pendidikan Terakhir', icon: GraduationCap, exportKey: 'Pendidikan Terakhir' },
-    { key: 'major', label: 'Jurusan', icon: BookOpenText, exportKey: 'Jurusan' },
-    { key: 'graduation_year', label: 'Tahun Lulus', icon: CalendarCheck, exportKey: 'Tahun Lulus' },
     { key: 'join_date', label: 'Tgl Bergabung', icon: Calendar, exportKey: 'Tgl Bergabung' },
 ]
 
 const PRESETS = [
     { id: 'all', label: 'Data Lengkap', cols: COLUMN_DEFS.map(c => c.key) },
-    { id: 'contact', label: 'Kontak', cols: ['nama', 'phone', 'address'] },
-    { id: 'employment', label: 'Kepegawaian', cols: ['nama', 'status', 'type', 'employment_status', 'join_date', 'teaching_hours'] },
-    { id: 'academic', label: 'Akademik', cols: ['nama', 'subject', 'last_education', 'major', 'graduation_year'] },
-    { id: 'personal', label: 'Pribadi', cols: ['nama', 'gender', 'birth_place', 'birth_date', 'nik', 'nuptk'] },
+    { id: 'contact', label: 'Kontak', cols: ['nama', 'phone'] },
+    { id: 'employment', label: 'Kepegawaian', cols: ['nama', 'status', 'type', 'join_date'] },
 ]
 
 const ALL_COLUMN_KEYS = COLUMN_DEFS.map(c => c.key)

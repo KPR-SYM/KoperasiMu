@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, memo, useRef } from 'react'
-import { Warning, Book, Camera, Spinner, Pencil, Plus, FloppyDisk, Briefcase } from '@phosphor-icons/react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
+import { Warning, Book, Spinner, Pencil, Plus, FloppyDisk, Briefcase } from '@phosphor-icons/react'
 
 import { Modal, Select } from '@shared/components'
 
@@ -14,7 +14,7 @@ const TYPE_OPTIONS = [
 
 const EMPTY_FORM = {
     name: '', subject: '', gender: 'L', phone: '',
-    status: 'active', type: [], avatar_url: '',
+    status: 'active', type: [],
 }
 
 const TeacherFormModal = memo(function TeacherFormModal({
@@ -25,8 +25,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
     const [formError, setFormError] = useState('')
     const [touched, setTouched] = useState({})
     const [attemptedSubmit, setAttemptedSubmit] = useState(false)
-    const [avatarPreview, setAvatarPreview] = useState(null)
-    const fileInputRef = useRef(null)
 
     useEffect(() => {
         if (!isOpen) return
@@ -40,12 +38,9 @@ const TeacherFormModal = memo(function TeacherFormModal({
                 phone: selectedItem.phone || '',
                 status: selectedItem.status || 'active',
                 type: types,
-                avatar_url: selectedItem.avatar_url || selectedItem.photo_url || '',
             })
-            setAvatarPreview(selectedItem.avatar_url || selectedItem.photo_url || null)
         } else {
             setForm(EMPTY_FORM)
-            setAvatarPreview(null)
         }
         setFormError('')
         setTouched({})
@@ -57,20 +52,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
     }, [])
 
     const setFieldTouched = (field) => setTouched(prev => ({ ...prev, [field]: true }))
-
-    const handleFileChange = async (e) => {
-        const file = e.target.files?.[0]
-        if (!file) return
-
-        const reader = new FileReader()
-        reader.onloadend = () => setAvatarPreview(reader.result)
-        reader.readAsDataURL(file)
-
-        if (onPhotoUpload) {
-            const url = await onPhotoUpload(file)
-            if (url) setField('avatar_url', url)
-        }
-    }
 
     const getStatus = (field, isRequired = false) => {
         const value = form[field]
@@ -102,8 +83,6 @@ const TeacherFormModal = memo(function TeacherFormModal({
             phone: (form.phone || '').trim() || null,
             status: form.status || 'active',
             type: form.type.length > 0 ? form.type : ['guru'],
-            avatar_url: form.avatar_url || null,
-            photo_url: form.avatar_url || null,
         }
         const result = await onSubmit(payload)
         if (result?.error) {
@@ -190,38 +169,10 @@ const TeacherFormModal = memo(function TeacherFormModal({
             }
         >
             <form id="teacher-form-modal" onSubmit={handleSubmit} className="space-y-5">
-                {/* Foto + Nama */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="shrink-0 flex flex-col items-center gap-2">
-                        <div className="relative group shrink-0">
-                            <div
-                                className={`w-[80px] h-[80px] rounded-2xl bg-[var(--color-surface-alt)] border flex items-center justify-center overflow-hidden transition-all cursor-pointer ${form.avatar_url || avatarPreview ? 'border-emerald-500/50' : 'border-[var(--color-border)] hover:border-[var(--color-primary)]'}`}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                {(avatarPreview || form.avatar_url) ? (
-                                    <img src={avatarPreview || form.avatar_url} alt="Preview" className="w-full h-full object-cover animate-in fade-in zoom-in duration-300" />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center gap-1 opacity-40 group-hover:opacity-100 group-hover:text-[var(--color-primary)] transition-all">
-                                        <Camera className="text-lg" />
-                                        <span className="text-[8px] font-bold uppercase tracking-wider">Foto</span>
-                                    </div>
-                                )}
-                                {uploadingPhoto && (
-                                    <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                        <Spinner className="fa-spin text-white" />
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-                    </div>
-
-                    <div className="flex-1 space-y-3">
-                        <div>
-                            <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Nama Lengkap <span className="text-rose-500">*</span></label>
-                            <input type="text" value={form.name} onChange={e => setField('name', e.target.value)} onBlur={() => setFieldTouched('name')} placeholder="Nama lengkap dengan gelar..." className={inputCls('name', true)} />
-                        </div>
-                    </div>
+                {/* Nama */}
+                <div>
+                    <label className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider ml-1 mb-1 block opacity-50">Nama Lengkap <span className="text-rose-500">*</span></label>
+                    <input type="text" value={form.name} onChange={e => setField('name', e.target.value)} onBlur={() => setFieldTouched('name')} placeholder="Nama lengkap dengan gelar..." className={inputCls('name', true)} />
                 </div>
 
                 {/* Jenis Kelamin + Jabatan */}
