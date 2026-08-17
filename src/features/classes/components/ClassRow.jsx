@@ -2,8 +2,9 @@
 import { createPortal } from 'react-dom'
 import { Bed, Buildings, Calendar, CaretRight, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
 import Checkbox from '@shared/components/Checkbox'
+import { PrivacyMask } from '@shared/components'
 
-function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo }) {
+function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo, maskValue }) {
     if (!visibleCols[key]) return null
     if (key === 'level') {
         return (
@@ -55,12 +56,9 @@ function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTea
             <td key={key} className="px-6 py-4">
                 <div className="flex flex-col">
                     <span className="font-bold text-xs text-[var(--color-text)] truncate max-w-[150px]">
-                        {isPrivacyMode ? (
-                            <span className="inline-flex items-center gap-2">
-                                <EyeSlash className="w-3 h-3 opacity-50" />
-                                {maskInfo(cls.teacherName, 4)}
-                            </span>
-                        ) : (cls.teacherName || '\u2014')}
+                        <PrivacyMask active={isPrivacyMode}>
+                            {cls.teacherName || '\u2014'}
+                        </PrivacyMask>
                     </span>
                     <span className="text-[8px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-50">Wali Kelas</span>
                 </div>
@@ -72,7 +70,9 @@ function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTea
             <td key={key} className="px-6 py-4 text-center">
                 <div className="inline-flex items-center gap-2 bg-[var(--color-surface-alt)]/50 px-2.5 py-1 rounded-md text-[10px] font-black text-[var(--color-text)] border border-[var(--color-border)]">
                     <Users className="text-[var(--color-primary)] w-3 h-3" />
-                    {cls.students || 0}
+                    <PrivacyMask active={isPrivacyMode}>
+                        {cls.students || 0}
+                    </PrivacyMask>
                 </div>
                 {isCrowded && (
                     <div className="mt-1 text-[8px] font-black uppercase tracking-widest text-rose-600 opacity-80">
@@ -86,7 +86,9 @@ function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTea
         return (
             <td key={key} className="px-6 py-4 text-center">
                 <span className="text-[9px] font-black text-[var(--color-text-muted)] uppercase tracking-widest opacity-70">
-                    {cls.periodName || '\u2014'}
+                    <PrivacyMask active={isPrivacyMode}>
+                        {cls.periodName || '\u2014'}
+                    </PrivacyMask>
                 </span>
             </td>
         )
@@ -108,6 +110,7 @@ export const ClassRow = React.memo(({
     setItemToDelete,
     setIsDeleteModalOpen,
     isPrivacyMode,
+    maskValue,
     pinnedIds,
     togglePin,
 }) => {
@@ -153,7 +156,7 @@ export const ClassRow = React.memo(({
     ]
 
     const orderedCols = (columnOrder || ['level', 'program', 'gender', 'teacher', 'students', 'year'])
-    const colCellArgs = { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo }
+    const colCellArgs = { cls, visibleCols, isPrivacyMode, isPinned, isNoTeacher, isCrowded, maskInfo, maskValue }
 
     return (
         <tr className={`border-t border-[var(--color-border)] hover:bg-[var(--color-surface-alt)]/40 transition-colors group/row ${isPinned ? 'bg-amber-500/[0.03] border-l-2 border-l-amber-500/40' : ''} ${isSelected ? 'bg-[var(--color-primary)]/[0.04]' : ''}`}>
@@ -169,7 +172,6 @@ export const ClassRow = React.memo(({
             <td
                 className={`px-6 py-4 ${handleEdit ? 'cursor-pointer' : ''}`}
                 onClick={handleEdit ? () => handleEdit(cls) : undefined}
-                title={handleEdit ? `Pen ${cls.name}` : undefined}
             >
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shadow-inner shrink-0 border border-[var(--color-primary)]/20 relative">
@@ -182,7 +184,9 @@ export const ClassRow = React.memo(({
                     </div>
                     <div className="flex flex-col min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-extrabold text-sm text-[var(--color-text)] truncate">{cls.name}</span>
+                            <span className="font-extrabold text-sm text-[var(--color-text)] truncate">
+                                <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask>
+                            </span>
                             {isNoTeacher && (
                                 <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-500 text-[8px] font-black uppercase tracking-widest border border-amber-500/20">
                                     Tanpa Wali
@@ -209,7 +213,7 @@ export const ClassRow = React.memo(({
                             onClick={() => handleView(cls)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm"
                             title="Lihat Detail"
-                            aria-label={`Lihat detail kelas ${cls.name}`}
+                            aria-label={isPrivacyMode ? 'Lihat detail kelas' : `Lihat detail kelas ${cls.name}`}
                         >
                             <MagnifyingGlass />
                         </button>
@@ -219,7 +223,7 @@ export const ClassRow = React.memo(({
                             onClick={() => handleEdit(cls)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 transition-all text-sm"
                             title="Edit"
-                            aria-label={`Edit kelas ${cls.name}`}
+                            aria-label={isPrivacyMode ? 'Edit kelas' : `Edit kelas ${cls.name}`}
                         >
                             <Pencil />
                         </button>
@@ -230,7 +234,7 @@ export const ClassRow = React.memo(({
                             onClick={toggleMenu}
                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all text-sm ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'}`}
                             title="Lainnya"
-                            aria-label={`Menu lainnya untuk kelas ${cls.name}`}
+                            aria-label={isPrivacyMode ? 'Menu lainnya' : `Menu lainnya untuk kelas ${cls.name}`}
                             aria-expanded={menuOpen}
                         >
                             <DotsThree weight="bold" />
@@ -288,12 +292,14 @@ export const ClassMobileCard = React.memo(({
     const isNoTeacher = !cls.homeroom_teacher_id || cls.teacherName === '\u2014'
     const isCrowded = (cls.students || 0) > 35
     const isPinned = pinnedIds?.includes(cls.id)
-    const mask = maskValue || ((v) => v)
+
+    const isBoarding = cls.name?.toLowerCase().includes('boarding')
+    const isPutra = cls.name?.toLowerCase().includes('putra')
+    const isPutri = cls.name?.toLowerCase().includes('putri')
 
     const [menuOpen, setMenuOpen] = useState(false)
     const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
     const menuRef = useRef(null)
-    const btnRef = useRef(null)
 
     const closeMenu = useCallback(() => setMenuOpen(false), [])
 
@@ -336,9 +342,11 @@ export const ClassMobileCard = React.memo(({
     ].filter(Boolean)
 
     return (
-        <div className={`p-4 transition-all duration-300 border-l-4 ${isSelected ? 'bg-[var(--color-primary)]/[0.03] border-[var(--color-primary)]' : 'bg-[var(--color-surface)] border-transparent active:bg-[var(--color-surface-alt)]/30'}`}>
+        <div className={`p-3 transition-all duration-300 ${isSelected ? 'bg-[var(--color-primary)]/[0.03]' : 'bg-[var(--color-surface)]'}`}>
+            {/* Row 1: Checkbox + Avatar + Name + Menu */}
             <div className="flex items-start gap-3">
-                <div className="mt-1 shrink-0">
+                {/* Checkbox */}
+                <div className="mt-0.5 shrink-0">
                     <Checkbox
                         checked={isSelected}
                         onChange={() => toggleSelect(cls.id)}
@@ -347,55 +355,25 @@ export const ClassMobileCard = React.memo(({
                     />
                 </div>
 
-                {/* Identity */}
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-accent)]/10 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shrink-0 border border-[var(--color-primary)]/20 shadow-inner">
+                {/* Avatar Level */}
+                <div className="w-[38px] h-[38px] rounded-xl bg-gradient-to-br from-[var(--color-primary)]/15 to-[var(--color-accent)]/15 flex items-center justify-center text-[var(--color-primary)] text-sm font-black shrink-0 border border-[var(--color-primary)]/10">
                     {cls.grade_level}
                 </div>
 
+                {/* Name Column */}
                 <div className="flex-1 min-w-0">
-                    {/* Name + Badges */}
-                    <div className="min-w-0">
-                        <h3 className="font-extrabold text-sm text-[var(--color-text)] truncate">{mask(cls.name, 'text')}</h3>
-                        <div className="flex items-center gap-1.5 mt-1">
-                            {isNoTeacher && (
-                                <span className="px-1.5 py-0.5 rounded bg-amber-500/8 text-amber-600 text-[7px] font-bold uppercase tracking-wider">Tanpa Wali</span>
-                            )}
-                            {isCrowded && (
-                                <span className="px-1.5 py-0.5 rounded bg-rose-500/8 text-rose-500 text-[7px] font-bold uppercase tracking-wider">Padat</span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Info Row */}
-                    <div className="mt-2.5 flex items-center gap-3 text-[10px]">
-                        <div className="flex items-center gap-1 min-w-0">
-                            <User className="w-3 h-3 text-[var(--color-text-muted)] shrink-0" />
-                            <span className="font-medium text-[var(--color-text-muted)] truncate">{mask(cls.teacherName || '—', 'text')}</span>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                            <Users className="w-3 h-3 text-[var(--color-text-muted)]" />
-                            <span className="font-bold text-[var(--color-text)]">{mask(String(cls.students || 0), 'number')}</span>
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div className="mt-2.5 pt-2 border-t border-[var(--color-border)]/40 flex items-center justify-between text-[8px] font-bold text-[var(--color-text-muted)]">
-                        <span>Lvl {cls.grade_level}</span>
-                        <span>{mask(cls.periodName || '—', 'text')}</span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="mt-3 flex items-center gap-1.5">
-                        {handleView && <button onClick={() => handleView(cls)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-[9px] font-bold transition-all" title="Lihat Detail"><MagnifyingGlass className="w-3 h-3" /> Detail</button>}
-                        {handleEdit && <button onClick={() => handleEdit(cls)} className="flex-1 h-8 rounded-lg flex items-center justify-center gap-1.5 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-[9px] font-bold transition-all" title="Edit"><Pencil className="w-3 h-3" /> Edit</button>}
-                        <div className="relative">
+                    {/* Name + Menu */}
+                    <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-medium text-[15px] text-[var(--color-text)] truncate">
+                            <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask>
+                        </h3>
+                        <div className="relative shrink-0">
                             <button
-                                ref={btnRef}
                                 onClick={toggleMenu}
-                                className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] bg-[var(--color-surface-alt)]/60'}`}
+                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'}`}
                                 title="Lainnya"
                             >
-                                <DotsThree weight="bold" />
+                                <DotsThree weight="bold" className="w-4 h-4" />
                             </button>
                             {menuOpen && createPortal(
                                 <div ref={menuRef} style={{ position: 'fixed', ...(menuPos.top !== undefined ? { top: menuPos.top } : { bottom: menuPos.bottom }), right: menuPos.right, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
@@ -409,7 +387,71 @@ export const ClassMobileCard = React.memo(({
                             )}
                         </div>
                     </div>
+
+                    {/* Badges Row */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        <span className="px-1.5 py-0.5 rounded bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-bold uppercase">
+                            Lvl {cls.grade_level}
+                        </span>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${isBoarding ? 'bg-blue-500/10 text-blue-600' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                            {isBoarding ? 'Boarding' : 'Reguler'}
+                        </span>
+                        {isPutra && (
+                            <span className="px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 text-[9px] font-bold uppercase">Putra</span>
+                        )}
+                        {isPutri && (
+                            <span className="px-1.5 py-0.5 rounded bg-pink-500/10 text-pink-600 text-[9px] font-bold uppercase">Putri</span>
+                        )}
+                        {isNoTeacher ? (
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 text-[9px] font-bold uppercase">Tanpa Wali</span>
+                        ) : (
+                            <span className="px-1.5 py-0.5 rounded bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] text-[9px] font-bold truncate max-w-[120px]">
+                                <PrivacyMask active={isPrivacyMode}>{cls.teacherName}</PrivacyMask>
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Info Row */}
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--color-text-muted)]">
+                        <div className="flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5" />
+                            <span className="font-medium">
+                                <PrivacyMask active={isPrivacyMode}>{cls.students || 0}</PrivacyMask> siswa
+                            </span>
+                        </div>
+                        <span className="opacity-40">·</span>
+                        <div className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span className="font-medium truncate">
+                                <PrivacyMask active={isPrivacyMode}>{cls.periodName || '—'}</PrivacyMask>
+                            </span>
+                        </div>
+                    </div>
                 </div>
+            </div>
+
+            {/* Row 2: Actions */}
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]/40 flex items-center gap-2">
+                {handleView && (
+                    <button
+                        onClick={() => handleView(cls)}
+                        className="flex-1 h-10 rounded-xl flex items-center justify-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-xs font-bold transition-all active:scale-[0.98]"
+                        title="Lihat Detail"
+                    >
+                        <MagnifyingGlass className="w-4 h-4" />
+                        Detail
+                    </button>
+                )}
+                {handleEdit && (
+                    <button
+                        onClick={() => handleEdit(cls)}
+                        className="flex-1 h-10 rounded-xl flex items-center justify-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-xs font-bold transition-all active:scale-[0.98]"
+                        title="Edit"
+                    >
+                        <Pencil className="w-4 h-4" />
+                        Edit
+                    </button>
+                )}
             </div>
         </div>
     )

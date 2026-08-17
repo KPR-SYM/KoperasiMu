@@ -3,9 +3,10 @@ import {
     Warning, ArrowsLeftRight, ArrowsDownUp, Book, BookOpenText, Suitcase, Calendar, CalendarCheck,
     CheckCircle, Question, Clock, FileXls, FileText, GraduationCap, Hash, TextH, IdentificationCard,
     SlidersHorizontal, Tag, User, Users, GenderIntersex, MapPin, ChatCircle,
-    ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
+    CaretLeft, ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
 } from '@phosphor-icons/react'
-import { Breadcrumb } from '@shared/components'
+
+
 
 const STEPS = [
     { step: 1, label: 'Jangkauan' },
@@ -420,18 +421,12 @@ export default function TeacherExportPanel(props) {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={onClose}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
                         title="Kembali ke Data Guru"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Data Guru</span>
                     </button>
-                    <Breadcrumb
-                        items={[
-                            { label: 'Master' },
-                            { label: 'Data Guru', onClick: onClose },
-                            { label: 'Export' },
-                        ]}
-                    />
                 </div>
                 <div>
                     <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Export Data Guru</h1>

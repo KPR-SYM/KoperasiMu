@@ -1,7 +1,7 @@
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { Archive, ChatCircle, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, Trash, User } from '@phosphor-icons/react'
-import { Badge } from '@shared/components'
+import { Badge, PrivacyMask } from '@shared/components'
 import Checkbox from '@shared/components/Checkbox'
 import { STATUS_CONFIG, TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
 
@@ -22,7 +22,7 @@ function Avatar({ url, name, size = 'w-10 h-10', textSize = 'text-xs', rounded =
 }
 
 // ─── Cell renderer ────────────────────────────────────────────────────────────
-function renderColCell(key, { teacher, visibleCols, disp, quickStatusId, setQuickStatusId, quickStatusRef, handleQuickStatus }) {
+function renderColCell(key, { teacher, visibleCols, disp, isPrivacyMode, quickStatusId, setQuickStatusId, quickStatusRef, handleQuickStatus }) {
     if (!visibleCols[key]) return null
     if (key === 'subject') {
         return (
@@ -45,7 +45,7 @@ function renderColCell(key, { teacher, visibleCols, disp, quickStatusId, setQuic
     if (key === 'contact') {
         return (
             <td key={key} className="px-6 py-4 space-y-1">
-                {teacher.phone && <a href={`https://wa.me/${teacher.phone.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-bold w-fit"><ChatCircle className="text-sm" />{disp(teacher.phone)}</a>}
+                {teacher.phone && <a href={`https://wa.me/${teacher.phone.replace(/^0/, '62')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-bold w-fit"><ChatCircle className="text-sm" /><PrivacyMask active={isPrivacyMode}>{teacher.phone}</PrivacyMask></a>}
                 {!teacher.phone && <span className="w-3 h-3 text-[var(--color-text-muted)]">—</span>}
             </td>
         )
@@ -95,7 +95,8 @@ const TeacherRow = memo(({
     setIsArchiveModalOpen,
     quickStatusId,
     setQuickStatusId,
-    quickStatusRef }) => {
+    quickStatusRef,
+    isPrivacyMode }) => {
     const isSelected = selectedIds.includes(teacher.id)
 
     const [menuOpen, setMenuOpen] = useState(false)
@@ -127,7 +128,7 @@ const TeacherRow = memo(({
     ]
 
     const orderedCols = (columnOrder || ['subject', 'gender', 'contact', 'status', 'join'])
-    const colCellArgs = { teacher, visibleCols, disp, quickStatusId, setQuickStatusId, quickStatusRef, handleQuickStatus }
+    const colCellArgs = { teacher, visibleCols, disp, isPrivacyMode, quickStatusId, setQuickStatusId, quickStatusRef, handleQuickStatus }
 
     return (
         <tr className={`border-t border-[var(--color-border)] transition-colors group/row
@@ -220,7 +221,8 @@ const TeacherMobileCard = memo(({
     handleEdit,
     handleTogglePin,
     setTeacherToAction,
-    setIsArchiveModalOpen }) => {
+    setIsArchiveModalOpen,
+    isPrivacyMode }) => {
     const isSelected = selectedIds.includes(teacher.id)
 
     return (
@@ -240,9 +242,11 @@ const TeacherMobileCard = memo(({
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                            <button onClick={() => handleView(teacher)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">{teacher.name}</button>
+                            <button onClick={() => handleView(teacher)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
+                                <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
+                            </button>
                             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest">{teacher.subject}</span>}
+                                {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest"><PrivacyMask active={isPrivacyMode}>{teacher.subject}</PrivacyMask></span>}
                                 <Badge color={teacher.status === 'active' ? 'emerald' : teacher.status === 'inactive' ? 'rose' : 'amber'}>{STATUS_CONFIG[teacher.status]?.label}</Badge>
                                 {(Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []).map(t => (
                                     <Badge key={t} color={t === 'karyawan' ? 'blue' : 'indigo'}>{TYPE_LABELS[t] || t}</Badge>

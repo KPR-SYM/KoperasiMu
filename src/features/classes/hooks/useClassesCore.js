@@ -4,6 +4,7 @@ import { logAudit } from '@utils/auditLogger'
 import { useAuth } from '@context/Auth'
 import { useFlag } from '@context/FeatureFlags'
 import { useErrorHandler } from '@hooks'
+import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 
 const LEVELS = ['7', '8', '9', '10', '11', '12']
 const PROGRAMS = ['Boarding', 'Reguler']
@@ -82,7 +83,6 @@ export function useClassesCore({ addToast }) {
     const [lastChange, setLastChange] = useState(null)
 
     // ── UI ──
-    const [isPrivacyMode, setIsPrivacyMode] = useState(false)
     const [isShortcutOpen, setIsShortcutOpen] = useState(false)
     const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false)
     const searchInputRef = useRef(null)
@@ -176,13 +176,13 @@ export function useClassesCore({ addToast }) {
     const hasActiveFilters = !!(searchQuery || activeFilterCount)
     const resetAllFilters = () => { setSearchQuery(''); setFilterLevel(''); setFilterProgram(''); setFilterNoTeacher(false); setFilterCrowded(false); setPage(1) }
 
-    const togglePrivacyMode = useCallback(() => setIsPrivacyMode(v => !v), [])
+    const { isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue: privacyMaskValue } = usePrivacyMode()
 
-    const maskValue = useCallback((str, vis = 4) => {
-        if (!str) return '—'
-        if (str.length <= vis) return str[0] + '*'.repeat(str.length - 1)
-        return str.substring(0, vis) + '***'
-    }, [])
+    const maskValue = useCallback((value, type = 'text') => {
+        if (!isPrivacyMode) return value
+        if (value == null) return '—'
+        return privacyMaskValue(value, type)
+    }, [isPrivacyMode, privacyMaskValue])
 
     // ── Pinned ──
     const togglePin = useCallback((id) => {

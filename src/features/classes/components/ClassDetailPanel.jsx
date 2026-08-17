@@ -14,7 +14,7 @@ import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import { logAudit } from '@utils/auditLogger'
-import { Breadcrumb, Skeleton, Tooltip } from '@shared/components'
+import { Skeleton, Tooltip } from '@shared/components'
 import ClassFormModal from '@features/classes/components/ClassFormModal'
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
@@ -811,15 +811,11 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
             <div className="px-5 pt-5 pb-3 no-print">
                 <div className="flex items-center gap-2 mb-3">
                     <button onClick={goBack}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                        title="Kembali (Esc)">
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        title="Kembali ke Data Kelas (Esc)">
                         <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Data Kelas</span>
                     </button>
-                    <Breadcrumb items={[
-                        { label: 'Master' },
-                        { label: 'Kelas', onClick: goBack },
-                        { label: cls.name },
-                    ]} />
                     {lastRefresh && (
                         <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1">
                             Diperbarui {(() => {

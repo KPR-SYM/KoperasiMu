@@ -19,7 +19,7 @@ const TeachersTable = memo(function TeachersTable({
     canEdit, handleEdit, handleView, handleTogglePin, handleQuickStatus,
     setTeacherToAction, setIsArchiveModalOpen,
     quickStatusId, setQuickStatusId, quickStatusRef,
-    disp,
+    disp, isPrivacyMode,
     loading, searchQuery, filterGender, filterSubject, filterType, filterMissing, filterStatus,
     resetAllFilters, handleAdd,
     page, pageSize, setPage, setPageSize,
@@ -41,7 +41,7 @@ const TeachersTable = memo(function TeachersTable({
                                 <th className="px-6 py-4"><div className="w-12 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
                                 <th className="px-6 py-4"><div className="w-16 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
                                 <th className="px-6 py-4"><div className="w-14 h-3 bg-[var(--color-border)] rounded animate-pulse" /></th>
-                                <th className="px-6 py-4 text-center w-32"><div className="w-10 h-3 bg-[var(--color-border)] rounded animate-pulse mx-auto" /></th>
+                                <th className="px-6 py-4"><div className="flex items-center justify-center"><div className="w-10 h-3 bg-[var(--color-border)] rounded animate-pulse" /></div></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-[var(--color-border)]/50">
@@ -54,7 +54,7 @@ const TeachersTable = memo(function TeachersTable({
                                     <td className="px-6 py-4"><div className="w-18 h-4 bg-[var(--color-surface-alt)] rounded-full" /></td>
                                     <td className="px-6 py-4"><div className="w-20 h-3.5 bg-[var(--color-surface-alt)] rounded-md" /></td>
                                     <td className="px-6 py-4"><div className="w-14 h-4 bg-[var(--color-surface-alt)] rounded-full" /></td>
-                                    <td className="px-6 py-4 text-center w-32"><div className="flex gap-1 justify-center"><div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" /><div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" /></div></td>
+                                    <td className="px-6 py-4"><div className="flex items-center justify-center gap-1"><div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" /><div className="w-6 h-6 bg-[var(--color-surface-alt)] rounded-lg" /></div></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -107,8 +107,10 @@ const TeachersTable = memo(function TeachersTable({
                                 <th key={key} className={`px-6 py-4 ${key === 'subject' || key === 'contact' || key === 'status' || key === 'join' ? '' : 'text-center'}`}>{COL_LABELS[key]}</th>
                             ))}
                             {/* Aksi header with column menu toggle */}
-                            <th className="px-6 py-4 text-center pr-6 w-32 relative">
-                                <span>Aksi</span>
+                            <th className="px-6 py-4 relative">
+                                <div className="flex items-center justify-center">
+                                    <span>Aksi</span>
+                                </div>
                                 {setIsColMenuOpen && (
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                         <button
@@ -194,6 +196,7 @@ const TeachersTable = memo(function TeachersTable({
                         handleTogglePin={handleTogglePin}
                         setTeacherToAction={canEdit ? setTeacherToAction : null}
                         setIsArchiveModalOpen={canEdit ? setIsArchiveModalOpen : null}
+                        isPrivacyMode={isPrivacyMode}
                     />
                 ))}
             </div>

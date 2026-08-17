@@ -14,8 +14,7 @@ import {
     PushPin,
     Trash,
 } from "@phosphor-icons/react";
-import { Checkbox, EmptyState } from "@shared/components";
-import { PrivacyValue } from "@hooks/usePrivacyMode";
+import { Checkbox, EmptyState, PrivacyMask } from "@shared/components";
 import InlineCell from "./InlineCell";
 import PeriodContextTooltip from "./PeriodContextTooltip";
 
@@ -46,7 +45,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                         <div className="flex items-center min-w-0 flex-1">
                             <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
                                 <span onClick={() => onQuickFilterYear?.(year.academic_year)} className="font-extrabold text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
-                                    <PrivacyValue active={isPrivacyMode} maskType="year">{year.academic_year}</PrivacyValue>
+                                    <PrivacyMask active={isPrivacyMode}>{year.academic_year}</PrivacyMask>
                                 </span>
                             </PeriodContextTooltip>
                         </div>
@@ -57,7 +56,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
     if (key === "semester") {
         return (
             <td className="px-6 py-4">
-                <InlineCell id={year.id} field="semester" value={year.semester} displayValue={maskValue(year.semester, "semester")} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                <InlineCell id={year.id} field="semester" value={year.semester} displayValue={year.semester} type="select" options={[{ value: "Ganjil", label: "Ganjil" }, { value: "Genap", label: "Genap" }]} canEdit={!year.is_locked} className={`text-[9px] font-black px-2 py-1 rounded-lg uppercase tracking-widest border ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
             </td>
         );
     }
@@ -72,18 +71,18 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
             pct = Math.min(100, Math.max(0, ((now - s) / (e - s)) * 100));
             barColor = pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-emerald-500";
         }
-        const durationText = maskValue(getDuration(year.start_date, year.end_date), "duration");
-        const statsText = st ? `${maskValue(String(st.elapsed), "number")}/${maskValue(String(st.totalDays), "number")} hari · ${maskValue(String(st.remaining), "number")} hari lagi` : null;
+        const durationText = getDuration(year.start_date, year.end_date);
+        const statsText = st ? `${st.elapsed}/${st.totalDays} hari · ${st.remaining} hari lagi` : null;
         return (
             <td className="px-6 py-4">
                 <div className="flex flex-col gap-0.5">
                     <span className="text-[11px] font-bold text-[var(--color-text)] whitespace-nowrap">
-                        <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={maskValue(formatDate(year.start_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                        <InlineCell id={year.id} field="start_date" value={year.start_date} displayValue={formatDate(year.start_date)} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                         {" — "}
-                        <InlineCell id={year.id} field="end_date" value={year.end_date} displayValue={maskValue(formatDate(year.end_date), "date")} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
+                        <InlineCell id={year.id} field="end_date" value={year.end_date} displayValue={formatDate(year.end_date)} type="date" canEdit={!year.is_locked} inlineEditCell={inlineEditCell} setInlineEditCell={setInlineEditCell} handleInlineSave={handleInlineSave} />
                     </span>
                     <span className="text-[9px] text-[var(--color-text-muted)]">
-                        {durationText}{statsText ? ` · ${statsText}` : ""}
+                        <PrivacyMask active={isPrivacyMode}>{durationText}</PrivacyMask>{statsText ? ` · ` : ""}{statsText ? <PrivacyMask active={isPrivacyMode}>{statsText}</PrivacyMask> : ""}
                     </span>
                     {year.start_date && year.end_date && (
                         <div className="w-full h-1 rounded-full bg-[var(--color-surface-alt)] mt-0.5 overflow-hidden">
@@ -118,7 +117,7 @@ function renderColCell(key, { year, isPrivacyMode, maskValue, formatDate, getDur
                 <div className="flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40" />
                     <span className="text-[10px] font-semibold text-[var(--color-text-muted)] whitespace-nowrap">
-                        {maskValue(formatDate(year.created_at), "date")}
+                        <PrivacyMask active={isPrivacyMode}>{formatDate(year.created_at)}</PrivacyMask>
                     </span>
                 </div>
             </td>
@@ -399,12 +398,12 @@ const PeriodsTable = memo(function PeriodsTable({
                                     <div className="flex-1 min-w-0 flex items-center gap-3" onClick={() => handleOpenReadOnlyDetail(year)}>
                                         <PeriodContextTooltip years={years} currentId={year.id} formatDate={formatDate}>
                                             <p className="font-extrabold text-[13px] text-[var(--color-text)] leading-snug truncate cursor-pointer hover:text-[var(--color-primary)] transition-colors">
-                                                {maskValue(year.academic_year, "year")}
+                                                <PrivacyMask active={isPrivacyMode}>{year.academic_year}</PrivacyMask>
                                             </p>
                                         </PeriodContextTooltip>
                                         <div className="flex items-center gap-1.5 flex-wrap shrink-0">
                                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest border whitespace-nowrap ${year.semester === "Ganjil" ? "bg-indigo-500/10 text-indigo-600 border-indigo-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}`}>
-                                                {maskValue(year.semester, "semester")}
+                                                <PrivacyMask active={isPrivacyMode}>{year.semester}</PrivacyMask>
                                             </span>
                                             {year.is_active ? (
                                                 <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 whitespace-nowrap">
@@ -428,8 +427,8 @@ const PeriodsTable = memo(function PeriodsTable({
                                 <div className="mt-2.5 flex items-center gap-1 text-[11px] font-bold text-[var(--color-text)] pl-[26px]">
                                     <Calendar className="w-3 h-3 text-[var(--color-text-muted)]/50 shrink-0" />
                                     <span className="truncate">
-                                        {maskValue(formatDate(year.start_date), "date")} — {" "}
-                                        {maskValue(formatDate(year.end_date), "date")}
+                                        <PrivacyMask active={isPrivacyMode}>{formatDate(year.start_date)}</PrivacyMask> — {" "}
+                                        <PrivacyMask active={isPrivacyMode}>{formatDate(year.end_date)}</PrivacyMask>
                                     </span>
                                 </div>
 
@@ -439,7 +438,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                         {st && (
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="text-[9px] text-[var(--color-text-muted)] truncate">
-                                                    {maskValue(String(st.elapsed), "number")} / {maskValue(String(st.totalDays), "number")} hari · {maskValue(String(st.remaining), "number")} hari lagi
+                                                    <PrivacyMask active={isPrivacyMode}>{st.elapsed}</PrivacyMask> / <PrivacyMask active={isPrivacyMode}>{st.totalDays}</PrivacyMask> hari · <PrivacyMask active={isPrivacyMode}>{st.remaining}</PrivacyMask> hari lagi
                                                 </span>
                                             </div>
                                         )}
@@ -457,7 +456,7 @@ const PeriodsTable = memo(function PeriodsTable({
                                         {year.created_at && (
                                             <>
                                                 <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40 shrink-0" />
-                                                <span className="truncate">Dibuat {maskValue(formatDate(year.created_at), "date")}</span>
+                                                <span className="truncate">Dibuat <PrivacyMask active={isPrivacyMode}>{formatDate(year.created_at)}</PrivacyMask></span>
                                             </>
                                         )}
                                     </div>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import {
     Warning, ArrowsLeftRight, ArrowsDownUp, Buildings, Calendar, CheckCircle, FileXls, FileText, FileArrowUp, GraduationCap, TextH, Spinner, GearSix, SlidersHorizontal, Tag, UserCheck, Users,
-    ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
+    CaretLeft, ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
 } from '@phosphor-icons/react'
-import { Breadcrumb, EmptyState } from '@shared/components'
+import { EmptyState } from '@shared/components'
 
 const STEPS = [
     { step: 1, label: 'Jangkauan' },
@@ -387,18 +387,12 @@ export default function ClassExportPanel(props) {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={onClose}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
                         title="Kembali ke Data Kelas"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Data Kelas</span>
                     </button>
-                    <Breadcrumb
-                        items={[
-                            { label: 'Master' },
-                            { label: 'Data Kelas', onClick: onClose },
-                            { label: 'Export' },
-                        ]}
-                    />
                 </div>
                 <div>
                     <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Export Data Kelas</h1>

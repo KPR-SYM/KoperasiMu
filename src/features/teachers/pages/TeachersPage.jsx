@@ -333,6 +333,7 @@ export default function TeachersPage() {
                                 setQuickStatusId={setQuickStatusId}
                                 quickStatusRef={quickStatusRef}
                                 disp={disp}
+                                isPrivacyMode={isPrivacyMode}
                                 loading={loading}
                                 searchQuery={searchQuery}
                                 filterStatus={filterStatus}

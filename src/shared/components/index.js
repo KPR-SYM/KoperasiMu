@@ -28,5 +28,6 @@ export { default as SectionEmptyState } from './SectionEmptyState'
 export { default as ImportFileInfo } from './ImportFileInfo'
 export { default as NumberCircle } from './NumberCircle'
 export { default as ColumnMenuPortal } from './ColumnMenuPortal'
+export { default as PrivacyMask } from './PrivacyMask'
 export * from './ImportWizard'
 

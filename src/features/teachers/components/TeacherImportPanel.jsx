@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { WarningCircle, Warning, ArrowLeft, ArrowsLeftRight, ArrowRight, Book, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple } from '@phosphor-icons/react'
+import { WarningCircle, Warning, CaretLeft, ArrowLeft, ArrowsLeftRight, ArrowRight, Book, Check, CheckCircle, CaretDown, Copy, DownloadSimple, FileText, SlidersHorizontal, List, Spinner, Pen, Trash, UploadSimple } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 
-import { Breadcrumb, Dropzone, Select } from '@shared/components'
+import { Dropzone, Select } from '@shared/components'
 
 const STEPS = [
     { step: 1, label: 'Upload' },
@@ -190,18 +190,12 @@ export default function TeacherImportPanel(props) {
                 <div className="flex items-center gap-2 mb-3">
                     <button
                         onClick={onClose}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
                         title="Kembali ke Data Guru"
                     >
-                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Data Guru</span>
                     </button>
-                    <Breadcrumb
-                        items={[
-                            { label: 'Master' },
-                            { label: 'Data Guru', onClick: onClose },
-                            { label: 'Import' },
-                        ]}
-                    />
                 </div>
                 <div>
                     <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">Import Data Guru</h1>

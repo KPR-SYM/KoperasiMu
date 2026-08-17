@@ -11,7 +11,7 @@ import {
     ArrowCounterClockwise,
     Trash,
 } from "@phosphor-icons/react";
-import { EmptyState } from "@shared/components";
+import { EmptyState, PrivacyMask } from "@shared/components";
 import PeriodContextTooltip from "./PeriodContextTooltip";
 
 function TimelineView({
@@ -107,7 +107,7 @@ function TimelineView({
                                             <div
                                                 className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest ${isGanjil ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]" : "bg-purple-500/10 text-purple-600"}`}
                                             >
-                                                {maskValue(year.semester, "semester")}
+                                                <PrivacyMask active={isPrivacyMode}>{year.semester}</PrivacyMask>
                                             </div>
                                             {isActive ? (
                                                 <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[7px] font-black">
@@ -139,7 +139,7 @@ function TimelineView({
                                                 onClick={() => onQuickFilterYear?.(year.academic_year)}
                                                 className="text-lg font-black font-heading tracking-tight text-[var(--color-text)] leading-none mb-1.5 group-hover/item:text-[var(--color-primary)] transition-colors cursor-pointer hover:text-[var(--color-primary)]"
                                             >
-                                                {maskValue(year.academic_year, "year")}
+                                                <PrivacyMask active={isPrivacyMode}>{year.academic_year}</PrivacyMask>
                                             </h4>
                                         </PeriodContextTooltip>
 
@@ -147,21 +147,21 @@ function TimelineView({
                                         <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] font-medium">
                                             <Calendar className="w-3 h-3 opacity-50 shrink-0" />
                                             <span>
-                                                {maskValue(new Date(year.start_date).toLocaleDateString("id-ID", {
+                                                <PrivacyMask active={isPrivacyMode}>{new Date(year.start_date).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "short",
-                                                }), "date")}
+                                                })}</PrivacyMask>
                                                 {" – "}
-                                                {maskValue(new Date(year.end_date).toLocaleDateString("id-ID", {
+                                                <PrivacyMask active={isPrivacyMode}>{new Date(year.end_date).toLocaleDateString("id-ID", {
                                                     day: "numeric",
                                                     month: "short",
                                                     year: "2-digit",
-                                                }), "date")}
+                                                })}</PrivacyMask>
                                             </span>
                                         </div>
                                         {dur && (
                                             <div className="mt-1 text-[8px] font-bold text-[var(--color-text-muted)] opacity-60">
-                                                {maskValue(dur, "duration")}
+                                                <PrivacyMask active={isPrivacyMode}>{dur}</PrivacyMask>
                                             </div>
                                         )}
                                         {year.start_date && year.end_date && (() => {
@@ -181,7 +181,7 @@ function TimelineView({
                                             if (!st) return null;
                                             return (
                                                 <div className="mt-1.5 flex items-center gap-2 text-[7px] text-[var(--color-text-muted)]">
-                                                    <span>{maskValue(String(st.elapsed), "number")}/{maskValue(String(st.totalDays), "number")} hari · {maskValue(String(st.remaining), "number")} hr lagi</span>
+                                                    <span><PrivacyMask active={isPrivacyMode}>{String(st.elapsed)}</PrivacyMask>/<PrivacyMask active={isPrivacyMode}>{String(st.totalDays)}</PrivacyMask> hari · <PrivacyMask active={isPrivacyMode}>{String(st.remaining)}</PrivacyMask> hr lagi</span>
                                                 </div>
                                             );
                                         })()}

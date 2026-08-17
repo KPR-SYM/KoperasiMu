@@ -10,7 +10,7 @@ import { useFlag } from '@context/FeatureFlags'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { logAudit } from '@utils/auditLogger'
-import { Breadcrumb, Skeleton, Tooltip, AuditTimeline } from '@shared/components'
+import { Skeleton, Tooltip, AuditTimeline } from '@shared/components'
 import TeacherFormModal from '@features/teachers/components/TeacherFormModal'
 import { TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
 
@@ -239,15 +239,11 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
             <div className="px-5 pt-5 pb-3 no-print">
                 <div className="flex items-center gap-2 mb-3">
                     <button onClick={goBack}
-                        className="h-7 w-7 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
-                        title="Kembali (Esc)">
+                        className="h-7 px-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1 text-[10px] font-black text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all shrink-0"
+                        title="Kembali ke Data Guru (Esc)">
                         <CaretLeft className="w-3.5 h-3.5" />
+                        <span>Data Guru</span>
                     </button>
-                    <Breadcrumb items={[
-                        { label: 'Master' },
-                        { label: 'Data Guru', onClick: goBack },
-                        { label: teacher.name },
-                    ]} />
                     {lastRefresh && (
                         <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1">
                             Diperbarui {(() => {

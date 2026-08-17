@@ -56,7 +56,7 @@ export default function ClassesPage() {
         isColMenuOpen, setIsColMenuOpen, colMenuPos, setColMenuPos,
         colMenuRef, colMenuPortalRef,
         pinnedIds, togglePin,
-        isPrivacyMode, setIsPrivacyMode, togglePrivacyMode,
+        isPrivacyMode, setIsPrivacyMode, togglePrivacyMode, maskValue,
         isShortcutOpen, setIsShortcutOpen, isHeaderMenuOpen, setIsHeaderMenuOpen,
         headerMenuBtnRef, shortcutBtnRef, headerMenuRect, setHeaderMenuRect,
         shortcutRect, setShortcutRect, headerMenuMounted, searchInputRef,
@@ -362,6 +362,7 @@ export default function ClassesPage() {
                                 setItemToDelete={setItemToDelete}
                                 setIsDeleteModalOpen={setIsDeleteModalOpen}
                                 isPrivacyMode={isPrivacyMode}
+                                maskValue={maskValue}
                                 canEdit={canEdit}
                                 loading={loading}
                                 searchQuery={searchQuery}
