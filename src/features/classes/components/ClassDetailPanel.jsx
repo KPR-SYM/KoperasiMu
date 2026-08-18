@@ -14,7 +14,7 @@ import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import { logAudit } from '@utils/auditLogger'
-import { Skeleton, Tooltip } from '@shared/components'
+import { Skeleton, Tooltip, PrivacyMask, ConfirmDialog } from '@shared/components'
 import ClassFormModal from '@features/classes/components/ClassFormModal'
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
@@ -118,7 +118,7 @@ function LifecycleTimeline({ cls }) {
     )
 }
 
-function HealthScore({ cls, studentCount }) {
+function HealthScore({ cls, studentCount, isPrivacyMode }) {
     const { score, label, color, items } = computeHealthScore(cls, studentCount)
     const size = 48
     const strokeWidth = 5
@@ -161,7 +161,7 @@ function HealthScore({ cls, studentCount }) {
                                     <Warning className="w-2.5 h-2.5 text-amber-500 shrink-0" />
                                 )}
                                 <span className={`text-[9px] font-medium ${item.pass ? 'text-[var(--color-text-muted)]' : 'text-amber-600'}`}>
-                                    {item.label}
+                                    <PrivacyMask active={isPrivacyMode}>{item.label}</PrivacyMask>
                                 </span>
                             </div>
                         ))}
@@ -172,7 +172,7 @@ function HealthScore({ cls, studentCount }) {
     )
 }
 
-function TeacherInfoCard({ cls, teacherName, onEdit }) {
+function TeacherInfoCard({ cls, teacherName, onEdit, isPrivacyMode }) {
     const hasTeacher = cls.homeroom_teacher_id && teacherName
 
     return (
@@ -189,7 +189,9 @@ function TeacherInfoCard({ cls, teacherName, onEdit }) {
                         {teacherName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-[var(--color-text)] truncate">{teacherName}</p>
+                        <p className="text-[11px] font-bold text-[var(--color-text)] truncate">
+                            <PrivacyMask active={isPrivacyMode}>{teacherName}</PrivacyMask>
+                        </p>
                         <p className="text-[9px] text-[var(--color-text-muted)]">Homeroom Teacher</p>
                     </div>
                 </div>
@@ -207,7 +209,7 @@ function TeacherInfoCard({ cls, teacherName, onEdit }) {
     )
 }
 
-function NotesSection({ notes, setNotes, isNotesEditing, setIsNotesEditing, onSave, saving }) {
+function NotesSection({ notes, setNotes, isNotesEditing, setIsNotesEditing, onSave, saving, isPrivacyMode }) {
     const [localNotes, setLocalNotes] = useState(notes || '')
 
     useEffect(() => { setLocalNotes(notes || '') }, [notes])
@@ -244,7 +246,7 @@ function NotesSection({ notes, setNotes, isNotesEditing, setIsNotesEditing, onSa
                 />
             ) : (
                 <p className="text-[11px] text-[var(--color-text-muted)] leading-relaxed">
-                    {notes || <span className="italic opacity-50">Belum ada catatan.</span>}
+                    {notes ? <PrivacyMask active={isPrivacyMode}>{notes}</PrivacyMask> : <span className="italic opacity-50">Belum ada catatan.</span>}
                 </p>
             )}
         </div>
@@ -301,7 +303,7 @@ function WarningsPanel({ cls, studentCount, onAddTeacher, collapsed, onToggleCol
     )
 }
 
-function ComparisonCard({ cls, studentCount, allClassesData }) {
+function ComparisonCard({ cls, studentCount, allClassesData, isPrivacyMode }) {
     if (!allClassesData || allClassesData.length < 2) return null
 
     const sorted = [...allClassesData].sort((a, b) => (b.studentCount || 0) - (a.studentCount || 0))
@@ -317,22 +319,20 @@ function ComparisonCard({ cls, studentCount, allClassesData }) {
     ]
 
     return (
-        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-            <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-7 h-7 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                    <TrendUp className="w-3.5 h-3.5 text-cyan-500" />
+        <div className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="flex items-center gap-2 mb-2">
+                <div className="w-5 h-5 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                    <TrendUp className="w-3 h-3 text-cyan-500" />
                 </div>
-                <h3 className="text-xs font-black text-[var(--color-text)]">Perbandingan</h3>
-                <span className="text-[9px] font-bold text-[var(--color-text-muted)]">{sorted.length} kelas</span>
+                <h3 className="text-[10px] font-black text-[var(--color-text)]">Perbandingan</h3>
+                <span className="text-[8px] font-bold text-[var(--color-text-muted)]">{sorted.length} kelas</span>
             </div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
                 {metrics.map((m, i) => (
-                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
-                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{m.label}</span>
-                        <div className="text-right">
-                            <span className={`text-sm font-black ${m.color}`}>{m.value}</span>
-                            <p className="text-[8px] font-medium text-[var(--color-text-muted)]">{m.sub}</p>
-                        </div>
+                    <div key={i} className="text-center p-2 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
+                        <span className={`text-sm font-black ${m.color}`}><PrivacyMask active={isPrivacyMode}>{m.value}</PrivacyMask></span>
+                        <p className="text-[8px] font-bold text-[var(--color-text-muted)] leading-tight mt-0.5">{m.label}</p>
+                        <p className="text-[7px] font-medium text-[var(--color-text-muted)]"><PrivacyMask active={isPrivacyMode}>{m.sub}</PrivacyMask></p>
                     </div>
                 ))}
             </div>
@@ -340,7 +340,7 @@ function ComparisonCard({ cls, studentCount, allClassesData }) {
     )
 }
 
-function AuditTrail({ auditLogs }) {
+function AuditTrail({ auditLogs, isPrivacyMode }) {
     if (!auditLogs || auditLogs.length === 0) return null
 
     return (
@@ -369,7 +369,7 @@ function AuditTrail({ auditLogs }) {
                                 {log.action === 'CREATE' ? 'Dibuat' : log.action === 'DELETE' ? 'Dihapus' : 'Diperbarui'}
                             </p>
                             <p className="text-[9px] text-[var(--color-text-muted)]">
-                                {log.user_name || 'Sistem'} · {formatDateTime(log.created_at)}
+                                <PrivacyMask active={isPrivacyMode}>{log.user_name || 'Sistem'}</PrivacyMask> · {formatDateTime(log.created_at)}
                             </p>
                         </div>
                     </div>
@@ -379,10 +379,10 @@ function AuditTrail({ auditLogs }) {
     )
 }
 
-function QuickLinks({ cls }) {
+function QuickLinks({ cls, isPrivacyMode }) {
     const links = [
-        { label: 'Data Siswa Kelas Ini', sublabel: `${cls.name}`, icon: Users, color: 'blue', href: '/master/students' },
-        { label: 'Tahun Akademik', sublabel: cls.academic_year || '-', icon: Calendar, color: 'emerald', href: '/master/periods' },
+        { label: 'Data Siswa Kelas Ini', sublabel: `${cls.name}`, icon: Users, color: 'blue', href: '/master/students', mask: true },
+        { label: 'Tahun Akademik', sublabel: cls.academic_year || '-', icon: Calendar, color: 'emerald', href: '/master/periods', mask: true },
     ]
 
     return (
@@ -406,7 +406,9 @@ function QuickLinks({ cls }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-[11px] font-bold text-[var(--color-text)]">{link.label}</p>
-                                <p className="text-[9px] text-[var(--color-text-muted)]">{link.sublabel}</p>
+                                <p className="text-[9px] text-[var(--color-text-muted)]">
+                                    {link.mask ? <PrivacyMask active={isPrivacyMode}>{link.sublabel}</PrivacyMask> : link.sublabel}
+                                </p>
                             </div>
                             <ArrowSquareOut className="w-3.5 h-3.5 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
                         </a>
@@ -486,7 +488,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
     const { addToast } = useToast()
     const { enabled: canEdit } = useFlag('access.teacher_classes')
     const { profile } = useAuth()
-    const { isPrivacyMode, togglePrivacyMode, maskValue } = usePrivacyMode()
+    const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode()
 
     const addToastRef = useRef(addToast)
     const onBackRef = useRef(onBack)
@@ -500,7 +502,6 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
     const [teacherName, setTeacherName] = useState('')
     const [saving, setSaving] = useState(false)
     const [deleting, setDeleting] = useState(false)
-    const [copiedId, setCopiedId] = useState(false)
     const [copiedSummary, setCopiedSummary] = useState(false)
     const [lastRefresh, setLastRefresh] = useState(null)
     const [notes, setNotes] = useState('')
@@ -614,13 +615,6 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
     useEffect(() => { fetchClass() }, [fetchClass])
 
     /* ── Handlers ── */
-    const handleCopyId = useCallback(() => {
-        if (!cls) return
-        navigator.clipboard.writeText(String(cls.id))
-            .then(() => { setCopiedId(true); setTimeout(() => setCopiedId(false), 2000) })
-            .catch(() => addToast('Gagal menyalin ID', 'error'))
-    }, [cls, addToast])
-
     const handleCopySummary = useCallback(() => {
         if (!cls) return
         const summary = [
@@ -725,7 +719,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
             const { error } = await supabase.from('classes').update({ is_active: newActive }).eq('id', cls.id)
             if (error) throw error
             addToast(newActive ? 'Kelas diaktifkan' : 'Kelas dinonaktifkan', 'success')
-            try { await logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, is_active: newActive } }) } catch { /* skip */ }
+            logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, is_active: newActive } }).catch(() => {})
         } catch (err) {
             setCls(prev => prev ? { ...prev, is_active: cls.is_active } : prev)
             addToast(err?.message || 'Gagal mengubah status', 'error')
@@ -828,33 +822,16 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                         </span>
                     )}
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
                             Detail Kelas
                         </h1>
                         <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
-                            {cls.name} — informasi lengkap kelas.
+                            <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask> — informasi lengkap kelas.
                         </p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                <Buildings className="w-3 h-3" /> Level {cls.grade_level}
-                            </span>
-                            <span className="text-[var(--color-text-muted)]">·</span>
-                            <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                <Users className="w-3 h-3" /> {studentCount} Siswa
-                            </span>
-                            {cls.capacity && (
-                                <>
-                                    <span className="text-[var(--color-text-muted)]">·</span>
-                                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[var(--color-text-muted)]">
-                                        Kapasitas {cls.capacity}
-                                    </span>
-                                </>
-                            )}
-                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0 min-w-0 overflow-x-auto scrollbar-hide lg:shrink-0 -mx-5 px-5 lg:mx-0 lg:px-0 py-0.5">
                         <Tooltip content={!canEdit ? 'Akses terbatas' : cls.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'} position="bottom">
                             <button onClick={handleEdit} disabled={!canEdit || cls.is_locked}
                                 className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed">
@@ -877,33 +854,27 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                         </Tooltip>
                         <Tooltip content="Arsipkan" position="bottom">
                             <button onClick={() => setIsDeleteOpen(true)} disabled={!canEdit || cls.is_locked}
-                                className="h-8 px-3 rounded-lg border border-red-200 bg-red-50 text-red-600 flex items-center gap-1.5 transition-all hover:bg-red-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                                className="h-8 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 flex items-center gap-1.5 transition-all hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed">
                                 <Archive className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
                         <Tooltip content="Muat ulang data" position="bottom">
                             <button onClick={handleRefresh}
-                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
+                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shrink-0">
                                 <ArrowClockwise className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
                         <Tooltip content={isPrivacyMode ? 'Matikan Mode Privasi' : 'Aktifkan Mode Privasi'} position="bottom">
                             <button onClick={togglePrivacyMode}
-                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
+                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all shrink-0 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
                                 {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5" />
-                        <Tooltip content="Salin Ringkasan" position="bottom">
-                            <button onClick={handleCopySummary}
-                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)]">
-                                {copiedSummary ? <CheckFat className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                        </Tooltip>
-                        <Tooltip content="Cetak" position="bottom">
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
+                        <Tooltip content="Cetak (Ctrl+P)" position="bottom">
                             <button onClick={handlePrint}
-                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)]">
+                                className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center transition-all hover:bg-[var(--color-surface-alt)] shrink-0">
                                 <Printer className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
@@ -922,7 +893,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                             <WarningsPanel cls={cls} studentCount={studentCount}
                                 onAddTeacher={handleEdit} collapsed={warningsCollapsed}
                                 onToggleCollapse={() => setWarningsCollapsed(v => !v)} />
-                            <HealthScore cls={cls} studentCount={studentCount} />
+                            <HealthScore cls={cls} studentCount={studentCount} isPrivacyMode={isPrivacyMode} />
                         </div>
 
                         {/* Main Header Card */}
@@ -940,22 +911,22 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                             Nama Kelas
                                         </p>
                                         <h2 className="text-2xl font-black text-[var(--color-text)] leading-tight">
-                                            {cls.name}
+                                            <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask>
                                         </h2>
                                         <div className="flex flex-wrap items-center gap-2 mt-2">
                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${gradeStyle.bg} ${gradeStyle.text} border-current/20`}>
-                                                Level {gradeStyle.label}
+                                                Level <PrivacyMask active={isPrivacyMode}>{gradeStyle.label}</PrivacyMask>
                                             </span>
                                             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                                                 programInfo.color === 'blue' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
                                             }`}>
-                                                <programInfo.icon className="w-3 h-3" /> {programInfo.label}
+                                                <programInfo.icon className="w-3 h-3" /> <PrivacyMask active={isPrivacyMode}>{programInfo.label}</PrivacyMask>
                                             </span>
                                             {genderInfo.icon && (
                                                 <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                                                     genderInfo.color === 'sky' ? 'bg-sky-500/10 text-sky-600 border-sky-500/20' : 'bg-pink-500/10 text-pink-600 border-pink-500/20'
                                                 }`}>
-                                                    <genderInfo.icon className="w-3 h-3" /> {genderInfo.label}
+                                                    <genderInfo.icon className="w-3 h-3" /> <PrivacyMask active={isPrivacyMode}>{genderInfo.label}</PrivacyMask>
                                                 </span>
                                             )}
                                             {cls.is_active && (
@@ -1006,7 +977,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                             </div>
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Siswa</p>
                                         </div>
-                                        <p className="text-xs font-black text-[var(--color-text)]">{studentCount}</p>
+                                        <p className="text-xs font-black text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{studentCount}</PrivacyMask></p>
                                     </div>
 
                                     <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-1.5">
@@ -1016,7 +987,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                             </div>
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Kapasitas</p>
                                         </div>
-                                        <p className="text-xs font-black text-[var(--color-text)]">{cls.capacity || '-'}</p>
+                                        <p className="text-xs font-black text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{cls.capacity || '-'}</PrivacyMask></p>
                                     </div>
 
                                     <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-1.5">
@@ -1026,7 +997,9 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                             </div>
                                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Tahun Akademik</p>
                                         </div>
-                                        <p className="text-xs font-black text-[var(--color-text)]">{cls.academic_year || '-'}</p>
+                                        <p className="text-xs font-black text-[var(--color-text)]">
+                                            <PrivacyMask active={isPrivacyMode}>{cls.academic_year || '-'}</PrivacyMask>
+                                        </p>
                                     </div>
 
 <div className="p-3.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/30 space-y-1.5 cursor-default"
@@ -1041,7 +1014,7 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                              </div>
                                              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)]">Okupansi</p>
                                          </div>
-                                         <p className="text-xs font-black text-[var(--color-text)]">{occupancyPct}%</p>
+                                         <p className="text-xs font-black text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{occupancyPct}%</PrivacyMask></p>
                                          {cls.capacity && (
                                              <div className="h-1.5 bg-[var(--color-border)] rounded-full overflow-hidden">
                                                  <div className={`h-full rounded-full transition-all ${occupancyPct > 100 ? 'bg-red-500' : occupancyPct > 80 ? 'bg-amber-500' : 'bg-emerald-500'}`}
@@ -1110,9 +1083,9 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-[11px] font-bold text-[var(--color-text)] truncate">
-                                                        {isPrivacyMode ? maskValue(s.full_name) : s.full_name}
+                                                        <PrivacyMask active={isPrivacyMode}>{s.full_name}</PrivacyMask>
                                                     </p>
-                                                    <p className="text-[9px] text-[var(--color-text-muted)]">NISN: {isPrivacyMode ? maskValue(s.nisn) : s.nisn}</p>
+                                                    <p className="text-[9px] text-[var(--color-text-muted)]">NISN: <PrivacyMask active={isPrivacyMode}>{s.nisn}</PrivacyMask></p>
                                                 </div>
                                             </div>
                                         ))}
@@ -1134,100 +1107,61 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                             setIsNotesEditing={setIsNotesEditing}
                             onSave={handleSaveNotes}
                             saving={saving}
+                            isPrivacyMode={isPrivacyMode}
                         />
                     </div>
 
                     {/* ── Right Column (1/3) ── */}
                     <div className="space-y-4">
                         {/* Quick Links */}
-                        <QuickLinks cls={cls} />
+                        <QuickLinks cls={cls} isPrivacyMode={isPrivacyMode} />
 
                         {/* Comparison Card */}
-                        <ComparisonCard cls={cls} studentCount={studentCount} allClassesData={allClassesData} />
+                        <ComparisonCard cls={cls} studentCount={studentCount} allClassesData={allClassesData} isPrivacyMode={isPrivacyMode} />
 
                         {/* Teacher Info */}
-                        <TeacherInfoCard cls={cls} teacherName={teacherName} onEdit={handleEdit} />
+                        <TeacherInfoCard cls={cls} teacherName={teacherName} onEdit={handleEdit} isPrivacyMode={isPrivacyMode} />
 
                         {/* Informasi / Metadata */}
-                        <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                            <div className="flex items-center gap-2.5 mb-4">
-                                <div className="w-7 h-7 rounded-xl bg-zinc-500/10 flex items-center justify-center">
-                                    <Info className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                        <div className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded-lg bg-zinc-500/10 flex items-center justify-center">
+                                    <Info className="w-3 h-3 text-[var(--color-text-muted)]" />
                                 </div>
-                                <h3 className="text-xs font-black text-[var(--color-text)]">Informasi</h3>
+                                <h3 className="text-[10px] font-black text-[var(--color-text)]">Informasi</h3>
                             </div>
 
-                            {/* Class ID + Copy */}
-                            <div className="p-3 rounded-xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] mb-3">
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-0.5">
-                                            ID Kelas
-                                        </p>
-                                        <p className="text-[10px] font-mono font-bold text-[var(--color-text)] truncate">
-                                            {cls.id}
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={handleCopyId}
-                                        className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                                            copiedId
-                                                ? 'bg-emerald-500/10 text-emerald-600'
-                                                : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                        }`}
-                                        title="Salin ID"
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </button>
+                            {/* Quick actions row */}
+                            <button
+                                onClick={handleCopySummary}
+                                className={`w-full flex items-center gap-1.5 p-2 rounded-lg border text-left transition-all mb-2 ${
+                                    copiedSummary
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600'
+                                        : 'bg-[var(--color-surface-alt)]/30 border-[var(--color-border)] hover:bg-[var(--color-border)]/50'
+                                }`}
+                            >
+                                <Copy className="w-3 h-3 shrink-0" />
+                                <div className="min-w-0">
+                                    <p className="text-[8px] font-black uppercase text-[var(--color-text-muted)]">Ringkasan Kelas</p>
+                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)]">Salin untuk laporan</p>
                                 </div>
-                                {copiedId && (
-                                    <p className="text-[9px] text-emerald-600 font-bold mt-1.5">Tersalin ke clipboard</p>
-                                )}
-                            </div>
-
-                            {/* Copy Summary */}
-                            <div className="p-3 rounded-xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] mb-3">
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-0.5">
-                                            Ringkasan Kelas
-                                        </p>
-                                        <p className="text-[10px] font-medium text-[var(--color-text-muted)]">
-                                            Salin ringkasan untuk laporan
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={handleCopySummary}
-                                        className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                                            copiedSummary
-                                                ? 'bg-emerald-500/10 text-emerald-600'
-                                                : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                        }`}
-                                        title="Salin Ringkasan"
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </button>
-                                </div>
-                                {copiedSummary && (
-                                    <p className="text-[9px] text-emerald-600 font-bold mt-1.5">Ringkasan tersalin</p>
-                                )}
-                            </div>
+                            </button>
 
                             {/* Metadata rows */}
                             <div className="space-y-0 divide-y divide-[var(--color-border)]/50">
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Dibuat</span>
-                                    <span className="text-[10px] font-bold text-[var(--color-text)]">{formatDate(cls.created_at)}</span>
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Dibuat</span>
+                                    <span className="text-[9px] font-bold text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{formatDate(cls.created_at)}</PrivacyMask></span>
                                 </div>
                                 {cls.updated_at && cls.updated_at !== cls.created_at && (
-                                    <div className="flex justify-between items-center py-2">
-                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Diperbarui</span>
-                                        <span className="text-[10px] font-bold text-[var(--color-text)]">{formatDate(cls.updated_at)}</span>
+                                    <div className="flex justify-between items-center py-1.5">
+                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Diperbarui</span>
+                                        <span className="text-[9px] font-bold text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{formatDate(cls.updated_at)}</PrivacyMask></span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Status Aktif</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Status Aktif</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                                         cls.is_active
                                             ? 'bg-emerald-500/10 text-emerald-600'
                                             : 'bg-zinc-500/10 text-zinc-500'
@@ -1235,9 +1169,9 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                         {cls.is_active ? 'Aktif' : 'Nonaktif'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Status Kunci</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Status Kunci</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                                         cls.is_locked
                                             ? 'bg-amber-500/10 text-amber-600'
                                             : 'bg-emerald-500/10 text-emerald-600'
@@ -1246,24 +1180,24 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                                     </span>
                                 </div>
                                 {cls.locked_at && (
-                                    <div className="flex justify-between items-center py-2">
-                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Dikunci Pada</span>
-                                        <span className="text-[10px] font-bold text-[var(--color-text)]">{formatDate(cls.locked_at)}</span>
+                                    <div className="flex justify-between items-center py-1.5">
+                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Dikunci Pada</span>
+                                        <span className="text-[9px] font-bold text-[var(--color-text)]"><PrivacyMask active={isPrivacyMode}>{formatDate(cls.locked_at)}</PrivacyMask></span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Riwayat Perubahan */}
-                        <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                            <div className="flex items-center gap-2.5 mb-3">
-                                <div className="w-7 h-7 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                                    <ClockCounterClockwise className="w-3.5 h-3.5 text-indigo-500" />
+                        <div className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                                    <ClockCounterClockwise className="w-3 h-3 text-indigo-500" />
                                 </div>
-                                <h3 className="text-xs font-black text-[var(--color-text)]">Riwayat Perubahan</h3>
-                                <span className="text-[9px] font-bold text-[var(--color-text-muted)]">{auditLogs.length} aktivitas</span>
+                                <h3 className="text-[10px] font-black text-[var(--color-text)]">Riwayat Perubahan</h3>
+                                <span className="text-[8px] font-bold text-[var(--color-text-muted)]">{auditLogs.length} aktivitas</span>
                             </div>
-                            <AuditTrail auditLogs={auditLogs} />
+                            <AuditTrail auditLogs={auditLogs} isPrivacyMode={isPrivacyMode} />
                         </div>
                     </div>
                 </div>
@@ -1280,34 +1214,24 @@ export default function ClassDetailPanel({ classId, onBack, teachersList = [], p
                 submitting={saving}
             />
 
-            {isDeleteOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsDeleteOpen(false)}>
-                    <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-2xl p-6 w-full max-w-sm mx-4" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
-                                <Trash className="w-5 h-5 text-red-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-sm font-black text-[var(--color-text)]">Arsipkan Kelas</h3>
-                                <p className="text-[11px] text-[var(--color-text-muted)]">Yakin ingin mengarsipkan kelas ini?</p>
-                            </div>
-                        </div>
-                        <p className="text-[11px] text-[var(--color-text-muted)] mb-4">
-                            Kelas <span className="font-black text-[var(--color-text)]">"{cls.name}"</span> akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.
-                        </p>
-                        <div className="flex items-center gap-2 justify-end">
-                            <button onClick={() => setIsDeleteOpen(false)}
-                                className="h-9 px-4 rounded-xl border border-[var(--color-border)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-surface-alt)] transition">
-                                Batal
-                            </button>
-                            <button onClick={handleDeleteConfirm} disabled={deleting}
-                                className="h-9 px-4 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition disabled:opacity-50">
-                                {deleting ? 'Mengarsipkan...' : 'Arsipkan'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDialog
+                isOpen={isDeleteOpen}
+                onClose={() => setIsDeleteOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Arsipkan Kelas"
+                description="Yakin ingin mengarsipkan kelas ini?"
+                icon={Archive}
+                iconBg="bg-amber-500/10"
+                iconColor="text-amber-500"
+                confirmText="Arsipkan"
+                confirmIcon={Archive}
+                confirmColor="amber"
+                submitting={deleting}
+            >
+                <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                    Kelas <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black mx-0.5">{cls.name}</span> akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.
+                </p>
+            </ConfirmDialog>
         </div>
     )
 }

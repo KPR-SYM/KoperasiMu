@@ -408,22 +408,20 @@ function ComparisonCard({ period, usageStats, allPeriodsData }) {
     ]
 
     return (
-        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-            <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-7 h-7 rounded-xl bg-cyan-500/10 flex items-center justify-center">
-                    <TrendUp className="w-3.5 h-3.5 text-cyan-500" />
+        <div className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+            <div className="flex items-center gap-2 mb-2">
+                <div className="w-5 h-5 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                    <TrendUp className="w-3 h-3 text-cyan-500" />
                 </div>
-                <h3 className="text-xs font-black text-[var(--color-text)]">Perbandingan</h3>
-                <span className="text-[9px] font-bold text-[var(--color-text-muted)]">{sorted.length} periode</span>
+                <h3 className="text-[10px] font-black text-[var(--color-text)]">Perbandingan</h3>
+                <span className="text-[8px] font-bold text-[var(--color-text-muted)]">{sorted.length} periode</span>
             </div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-3 gap-2">
                 {metrics.map((m, i) => (
-                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
-                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">{m.label}</span>
-                        <div className="text-right">
-                            <span className={`text-sm font-black ${m.color}`}>{m.value}</span>
-                            <p className="text-[8px] font-medium text-[var(--color-text-muted)]">{m.sub}</p>
-                        </div>
+                    <div key={i} className="text-center p-2 rounded-xl bg-[var(--color-surface-alt)]/30 border border-[var(--color-border)]">
+                        <span className={`text-sm font-black ${m.color}`}>{m.value}</span>
+                        <p className="text-[8px] font-bold text-[var(--color-text-muted)] leading-tight mt-0.5">{m.label}</p>
+                        <p className="text-[7px] font-medium text-[var(--color-text-muted)]">{m.sub}</p>
                     </div>
                 ))}
             </div>
@@ -518,7 +516,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     const [saving, setSaving] = useState(false)
     const [deleting, setDeleting] = useState(false)
     
-    const [copiedId, setCopiedId] = useState(false)
     const [lastRefresh, setLastRefresh] = useState(null)
     const [copiedSummary, setCopiedSummary] = useState(false)
     const [notes, setNotes] = useState('')
@@ -687,13 +684,6 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
     useEffect(() => { fetchPeriod() }, [fetchPeriod])
 
     /* ── Handlers ── */
-    const handleCopyId = useCallback(() => {
-        if (!period) return
-        navigator.clipboard.writeText(period.id)
-            .then(() => { setCopiedId(true); setTimeout(() => setCopiedId(false), 2000) })
-            .catch(() => addToast('Gagal menyalin ID', 'error'))
-    }, [period, addToast])
-
     const handleCopySummary = useCallback(() => {
         if (!period) return
         const timeSt = getTimeStatus(period.start_date, period.end_date)
@@ -1023,7 +1013,7 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         </Tooltip>
                         
                         <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
-                        <Tooltip content="Cetak / Export PDF" position="bottom">
+                        <Tooltip content="Cetak (Ctrl+P)" position="bottom">
                             <button
                                 onClick={handlePrint}
                                 className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shrink-0"
@@ -1471,85 +1461,45 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                         )}
 
                         {/* Metadata / Info */}
-                        <div className="p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-                            <div className="flex items-center gap-2.5 mb-4">
-                                <div className="w-7 h-7 rounded-xl bg-zinc-500/10 flex items-center justify-center">
-                                    <Info className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                        <div className="p-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded-lg bg-zinc-500/10 flex items-center justify-center">
+                                    <Info className="w-3 h-3 text-[var(--color-text-muted)]" />
                                 </div>
-                                <h3 className="text-xs font-black text-[var(--color-text)]">Informasi</h3>
+                                <h3 className="text-[10px] font-black text-[var(--color-text)]">Informasi</h3>
                             </div>
 
-                            {/* Period ID + Copy */}
-                            <div className="p-3 rounded-xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] mb-3">
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-0.5">
-                                            ID Periode
-                                        </p>
-                                        <p className="text-[10px] font-mono font-bold text-[var(--color-text)] truncate">
-                                            {period.id}
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={handleCopyId}
-                                        className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                                            copiedId
-                                                ? 'bg-emerald-500/10 text-emerald-600'
-                                                : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                        }`}
-                                        title="Salin ID"
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </button>
+                            {/* Quick actions row */}
+                            <button
+                                onClick={handleCopySummary}
+                                className={`w-full flex items-center gap-1.5 p-2 rounded-lg border text-left transition-all mb-2 ${
+                                    copiedSummary
+                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600'
+                                        : 'bg-[var(--color-surface-alt)]/30 border-[var(--color-border)] hover:bg-[var(--color-border)]/50'
+                                }`}
+                            >
+                                <Copy className="w-3 h-3 shrink-0" />
+                                <div className="min-w-0">
+                                    <p className="text-[8px] font-black uppercase text-[var(--color-text-muted)]">Ringkasan Periode</p>
+                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)]">Salin untuk laporan</p>
                                 </div>
-                                {copiedId && (
-                                    <p className="text-[9px] text-emerald-600 font-bold mt-1.5">Tersalin ke clipboard</p>
-                                )}
-                            </div>
-
-                            {/* Copy Summary */}
-                            <div className="p-3 rounded-xl bg-[var(--color-surface-alt)]/50 border border-[var(--color-border)] mb-3">
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] mb-0.5">
-                                            Ringkasan Periode
-                                        </p>
-                                        <p className="text-[10px] font-medium text-[var(--color-text-muted)]">
-                                            Salin ringkasan untuk laporan
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={handleCopySummary}
-                                        className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${
-                                            copiedSummary
-                                                ? 'bg-emerald-500/10 text-emerald-600'
-                                                : 'bg-[var(--color-surface-alt)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'
-                                        }`}
-                                        title="Salin Ringkasan"
-                                    >
-                                        <Copy className="w-3 h-3" />
-                                    </button>
-                                </div>
-                                {copiedSummary && (
-                                    <p className="text-[9px] text-emerald-600 font-bold mt-1.5">Ringkasan tersalin</p>
-                                )}
-                            </div>
+                            </button>
 
                             {/* Metadata rows */}
                             <div className="space-y-0 divide-y divide-[var(--color-border)]/50">
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Dibuat</span>
-                                    <span className="text-[10px] font-bold text-[var(--color-text)]">{formatDate(period.created_at)}</span>
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Dibuat</span>
+                                    <span className="text-[9px] font-bold text-[var(--color-text)]">{formatDate(period.created_at)}</span>
                                 </div>
                                 {period.updated_at && period.updated_at !== period.created_at && (
-                                    <div className="flex justify-between items-center py-2">
-                                        <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Diperbarui</span>
-                                        <span className="text-[10px] font-bold text-[var(--color-text)]">{formatDate(period.updated_at)}</span>
+                                    <div className="flex justify-between items-center py-1.5">
+                                        <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Diperbarui</span>
+                                        <span className="text-[9px] font-bold text-[var(--color-text)]">{formatDate(period.updated_at)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Status Aktif</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Status Aktif</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                                         period.is_active
                                             ? 'bg-emerald-500/10 text-emerald-600'
                                             : 'bg-zinc-500/10 text-zinc-500'
@@ -1557,9 +1507,9 @@ export default function PeriodDetailPanel({ periodId, onBack }) {
                                         {period.is_active ? 'Aktif' : 'Tidak Aktif'}
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center py-2">
-                                    <span className="text-[10px] font-bold text-[var(--color-text-muted)]">Status Kunci</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                <div className="flex justify-between items-center py-1.5">
+                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)]">Status Kunci</span>
+                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${
                                         period.is_locked
                                             ? 'bg-amber-500/10 text-amber-600'
                                             : 'bg-emerald-500/10 text-emerald-600'
