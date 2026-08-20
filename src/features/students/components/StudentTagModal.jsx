@@ -3,7 +3,7 @@ import { Check, CheckCircle, Info, Pen, Tag, Trash, X } from '@phosphor-icons/re
 
 import Modal from '@shared/components/Modal'
 import { EmptyState } from '@shared/components'
-import { AvailableTags } from '@features/students/utils/studentsConstants'
+import { AvailableTags } from '@features/students/constants/studentConstants'
 
 /**
  * StudentTagModal Component

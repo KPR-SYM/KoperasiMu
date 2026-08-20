@@ -4,12 +4,12 @@ import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { calculateCompleteness } from '@features/students/constants/studentConstants'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useAuth } from '@context/Auth'
 import { useErrorHandler } from '@hooks'
 
-export function useStudentsCore({ addToast, addUndoToast }) {
+export function useStudentsCore({ addToast, addUndoToast } = {}) {
     const { handleError } = useErrorHandler('StudentsCore')
     const navigate = useNavigate()
     const { profile } = useAuth()

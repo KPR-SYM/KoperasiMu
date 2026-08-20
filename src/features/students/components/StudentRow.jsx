@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 
 
 import useLongPress from '@hooks/useLongPress'
-import { getTagColor, calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { getTagColor, calculateCompleteness } from '@features/students/constants/studentConstants'
 
 // Singleton portal manager to prevent 'removeChild' errors in concurrent mode or Android/GlobeHemisphereWest Translate
 const _portalContainers = {}

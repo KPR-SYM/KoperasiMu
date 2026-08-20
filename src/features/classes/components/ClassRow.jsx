@@ -1,6 +1,6 @@
 ﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Bed, Buildings, Calendar, CaretRight, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise } from '@phosphor-icons/react'
+import { Bed, Buildings, Calendar, CaretRight, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise, Prohibit, CheckCircle } from '@phosphor-icons/react'
 import Checkbox from '@shared/components/Checkbox'
 import { PrivacyMask } from '@shared/components'
 
@@ -106,6 +106,7 @@ export const ClassRow = React.memo(({
     handleView,
     handleDuplicate,
     handleArchive,
+    onQuickToggleActive,
     onHistory,
     setItemToDelete,
     setIsDeleteModalOpen,
@@ -151,6 +152,7 @@ export const ClassRow = React.memo(({
         ...(togglePin ? [{ icon: PushPin, label: isPinned ? 'Lepas Pin' : 'Pin ke atas', onClick: () => { togglePin(cls.id); setMenuOpen(false) }, danger: false, weight: isPinned ? 'fill' : 'regular' }] : []),
         ...(handleDuplicate ? [{ icon: Copy, label: 'Duplikat', onClick: () => { handleDuplicate(cls); setMenuOpen(false) } }] : []),
         ...(onHistory ? [{ icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(cls); setMenuOpen(false) } }] : []),
+        ...(onQuickToggleActive ? [{ icon: cls.is_active ? Prohibit : CheckCircle, label: cls.is_active ? 'Nonaktifkan' : 'Aktifkan', onClick: () => { onQuickToggleActive(cls); setMenuOpen(false) }, divider: true }] : []),
         ...(handleArchive ? [{ icon: Lock, label: 'Arsipkan', onClick: () => { handleArchive(cls); setMenuOpen(false) } }] : []),
         ...(setItemToDelete && setIsDeleteModalOpen ? [{ divider: true }, { icon: Trash, label: 'Hapus', onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); setMenuOpen(false) }, danger: true }] : []),
     ]
@@ -280,6 +282,7 @@ export const ClassMobileCard = React.memo(({
     handleView,
     handleDuplicate,
     handleArchive,
+    onQuickToggleActive,
     onHistory,
     setItemToDelete,
     setIsDeleteModalOpen,
@@ -336,6 +339,7 @@ export const ClassMobileCard = React.memo(({
         togglePin && { icon: PushPin, weight: isPinned ? 'fill' : 'regular', label: isPinned ? 'Lepas Pin' : 'Pin ke Atas', onClick: () => { togglePin(cls.id); closeMenu() } },
         handleDuplicate && { icon: Copy, label: 'Duplikasi', onClick: () => { handleDuplicate(cls); closeMenu() } },
         onHistory && { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(cls); closeMenu() } },
+        onQuickToggleActive && { icon: cls.is_active ? Prohibit : CheckCircle, label: cls.is_active ? 'Nonaktifkan' : 'Aktifkan', onClick: () => { onQuickToggleActive(cls); closeMenu() } },
         handleArchive && !cls.is_locked && { icon: Lock, label: 'Kunci', onClick: () => { handleArchive(cls); closeMenu() } },
         handleArchive && cls.is_locked && { icon: Lock, label: 'Buka Kunci', onClick: () => { handleArchive(cls); closeMenu() } },
         setItemToDelete && setIsDeleteModalOpen && { icon: Trash, label: 'Hapus', danger: true, onClick: () => { setItemToDelete(cls); setIsDeleteModalOpen(true); closeMenu() } },

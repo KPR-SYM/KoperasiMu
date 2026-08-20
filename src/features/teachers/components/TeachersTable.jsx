@@ -17,7 +17,7 @@ const TeachersTable = memo(function TeachersTable({
     teachers, totalRows, selectedIds, toggleSelect, visibleCols, columnOrder,
     allSelected, someSelected, toggleSelectAll,
     canEdit, handleEdit, handleView, handleTogglePin, handleQuickStatus,
-    setTeacherToAction, setIsArchiveModalOpen,
+    onHistory, setTeacherToAction, setIsArchiveModalOpen,
     quickStatusId, setQuickStatusId, quickStatusRef,
     disp, isPrivacyMode,
     loading, searchQuery, filterGender, filterSubject, filterType, filterMissing, filterStatus,
@@ -162,6 +162,7 @@ const TeachersTable = memo(function TeachersTable({
                                 handleEdit={canEdit ? handleEdit : null}
                                 handleTogglePin={handleTogglePin}
                                 handleQuickStatus={handleQuickStatus}
+                                onHistory={onHistory}
                                 setTeacherToAction={canEdit ? setTeacherToAction : null}
                                 setIsArchiveModalOpen={canEdit ? setIsArchiveModalOpen : null}
                                 quickStatusId={quickStatusId}
@@ -195,6 +196,7 @@ const TeachersTable = memo(function TeachersTable({
                         handleView={handleView}
                         handleEdit={canEdit ? handleEdit : null}
                         handleTogglePin={handleTogglePin}
+                        onHistory={onHistory}
                         setTeacherToAction={canEdit ? setTeacherToAction : null}
                         setIsArchiveModalOpen={canEdit ? setIsArchiveModalOpen : null}
                         isPrivacyMode={isPrivacyMode}

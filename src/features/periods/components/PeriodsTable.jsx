@@ -13,6 +13,8 @@ import {
     Pencil,
     PushPin,
     Trash,
+    Prohibit,
+    CheckCircle,
 } from "@phosphor-icons/react";
 import { Checkbox, EmptyState, PrivacyMask } from "@shared/components";
 import InlineCell from "./InlineCell";
@@ -151,6 +153,7 @@ const PeriodsTable = memo(function PeriodsTable({
     handleEdit,
     handleOpenHistory,
     handleToggleLock,
+    onQuickToggleActive,
     onQuickDuplicate,
     onTogglePin,
     pinnedIds,
@@ -331,6 +334,11 @@ const PeriodsTable = memo(function PeriodsTable({
                                                                     {year.is_locked ? <><LockOpen className="w-4 h-4" /> Buka Kunci</> : <><Lock className="w-4 h-4" /> Kunci</>}
                                                                 </button>
                                                             )}
+                                                            {canEdit && onQuickToggleActive && (
+                                                                <button onClick={() => { onQuickToggleActive(year); closeMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                                    {year.is_active ? <><Prohibit className="w-4 h-4" /> Nonaktifkan</> : <><CheckCircle className="w-4 h-4" /> Aktifkan</>}
+                                                                </button>
+                                                            )}
                                                             {canEdit && !year.is_locked && (
                                                                 <>
                                                                     <div className="my-1.5 border-t border-[var(--color-border)]" />
@@ -509,6 +517,11 @@ const PeriodsTable = memo(function PeriodsTable({
                                                     {canEdit && (
                                                         <button onClick={() => { handleToggleLock(year); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
                                                             {year.is_locked ? <><LockOpen className="w-4 h-4" /> Buka Kunci</> : <><Lock className="w-4 h-4" /> Kunci</>}
+                                                        </button>
+                                                    )}
+                                                    {canEdit && onQuickToggleActive && (
+                                                        <button onClick={() => { onQuickToggleActive(year); closeMobileMenu(); }} className="w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 hover:bg-[var(--color-surface-alt)] transition-colors">
+                                                            {year.is_active ? <><Prohibit className="w-4 h-4" /> Nonaktifkan</> : <><CheckCircle className="w-4 h-4" /> Aktifkan</>}
                                                         </button>
                                                     )}
                                                     {canEdit && !year.is_locked && (

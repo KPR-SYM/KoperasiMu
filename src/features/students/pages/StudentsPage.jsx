@@ -17,11 +17,11 @@ import {
 import { useToast, useFlag, useLanguage } from '@context'
 import { supabase } from '@lib/supabase'
 
-import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate, LIST_KAMAR } from '@features/students/utils/studentsConstants'
+import { SortOptions, AvailableTags, getTagColor, calculateCompleteness, maskInfo, formatRelativeDate, LIST_KAMAR } from '@features/students/constants/studentConstants'
 import { useStudentsImportWizard } from '@features/students/hooks/useStudentsImportWizard'
 import { generateStudentPDF as _generateStudentPDF, handlePrintThermal as _handlePrintThermal, handleSavePNG as _handleSavePNG } from '@features/students/utils/studentPdfUtils'
 import { useStudentsCore } from '@features/students/hooks/useStudentsCore'
-import StudentClassHistoryModal from '@features/students/components/StudentClassHistoryModal'
+import StudentsHistoryModal from '@features/students/components/StudentsHistoryModal'
 import { MobileListSkeleton, MobileCardSkeleton } from '@shared/components/Skeleton'
 
 import StudentArchiveModal from '@features/students/components/StudentArchiveModal'
@@ -2209,7 +2209,7 @@ export default function StudentsPage() {
                 />
 
                 {/* Modal Riwayat Kelas */}
-                <StudentClassHistoryModal
+                <StudentsHistoryModal
                     isOpen={activeModal === 'classHistory'}
                     onClose={() => closeModal()}
                     selectedStudent={selectedStudent}

@@ -13,6 +13,7 @@ import TeachersShortcutMenu from '@features/teachers/components/TeachersShortcut
 import TeacherFormModal from '@features/teachers/components/TeacherFormModal'
 import TeacherDetailPanel from '@features/teachers/components/TeacherDetailPanel'
 import TeacherArchiveModal from '@features/teachers/components/TeacherArchiveModal'
+import TeachersHistoryModal from '@features/teachers/components/TeachersHistoryModal'
 import {
     BulkActionsBar,
     ConfirmDialog,
@@ -87,6 +88,13 @@ export default function TeachersPage() {
         navigate('/master/teachers')
         fetchData()
     }, [navigate, fetchData])
+
+    // ── History State ──
+    const [historyItem, setHistoryItem] = React.useState(null)
+    const isHistoryOpen = !!historyItem
+    const handleOpenHistory = useCallback((teacher) => {
+        setHistoryItem(teacher)
+    }, [])
 
     // ── Keyboard Shortcuts ──
     useTeachersKeyboard({
@@ -327,6 +335,7 @@ export default function TeachersPage() {
                                 handleView={handleViewTeacher}
                                 handleTogglePin={handleTogglePin}
                                 handleQuickStatus={handleQuickStatus}
+                                onHistory={handleOpenHistory}
                                 setTeacherToAction={setTeacherToAction}
                                 setIsArchiveModalOpen={setIsArchiveModalOpen}
                                 quickStatusId={quickStatusId}
@@ -391,6 +400,12 @@ export default function TeachersPage() {
                             fetchData={fetchData}
                             fetchStats={fetchStats}
                             addToast={addToast}
+                        />
+
+                        <TeachersHistoryModal
+                            isOpen={isHistoryOpen}
+                            onClose={() => setHistoryItem(null)}
+                            item={historyItem}
                         />
 
                         <ConfirmDialog

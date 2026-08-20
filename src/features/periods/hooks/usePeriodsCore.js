@@ -676,18 +676,29 @@ export function usePeriodsCore({ addToast, addUndoToast }) {
         if (isSaving || !canEdit || item?.is_locked) return;
         setIsSaving(true);
         try {
-            await supabase.from("periods").update({ is_active: false });
-            await supabase.from("periods").update({ is_active: true }).eq("id", item.id);
-            addToast(`Periode ${item.academic_year} ${item.semester} diaktifkan`, "success");
-            try {
-                await logAudit({
-                    action: "UPDATE", source: "MASTER", tableName: "periods",
-                    recordId: item.id, oldData: { is_active: false }, newData: { is_active: true },
-                });
-            } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            if (item.is_active) {
+                await supabase.from("periods").update({ is_active: false }).eq("id", item.id);
+                addToast(`Periode ${item.academic_year} ${item.semester} dinonaktifkan`, "success");
+                try {
+                    await logAudit({
+                        action: "UPDATE", source: "MASTER", tableName: "periods",
+                        recordId: item.id, oldData: { is_active: true }, newData: { is_active: false },
+                    });
+                } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            } else {
+                await supabase.from("periods").update({ is_active: false });
+                await supabase.from("periods").update({ is_active: true }).eq("id", item.id);
+                addToast(`Periode ${item.academic_year} ${item.semester} diaktifkan`, "success");
+                try {
+                    await logAudit({
+                        action: "UPDATE", source: "MASTER", tableName: "periods",
+                        recordId: item.id, oldData: { is_active: false }, newData: { is_active: true },
+                    });
+                } catch (e) { console.warn("[PeriodsCore] logAudit skip:", e.message); }
+            }
             fetchData();
         } catch (err) {
-            addToast(err?.message || "Gagal mengaktifkan periode", "error");
+            addToast(err?.message || "Gagal mengubah status periode", "error");
         } finally {
             setIsSaving(false);
         }

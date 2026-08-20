@@ -64,7 +64,7 @@ export default function ClassesPage() {
         isModalOpen, setIsModalOpen, isDeleteModalOpen, setIsDeleteModalOpen,
         isBulkDeleteOpen, setIsBulkDeleteOpen,
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
-        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive,
+        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive, handleQuickToggleActive,
         LEVELS, PROGRAMS,
         handleError,
         viewMode, setViewMode,
@@ -358,6 +358,7 @@ export default function ClassesPage() {
                                 handleView={handleViewClass}
                                 handleDuplicate={canEdit ? handleDuplicate : null}
                                 handleArchive={canEdit ? handleArchive : null}
+                                onQuickToggleActive={canEdit ? handleQuickToggleActive : null}
                                 onHistory={handleOpenHistory}
                                 setItemToDelete={setItemToDelete}
                                 setIsDeleteModalOpen={setIsDeleteModalOpen}

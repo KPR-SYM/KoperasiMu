@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '@lib/supabase'
 import { logAudit } from '@utils/auditLogger'
-import { calculateCompleteness } from '@features/students/utils/studentsConstants'
+import { calculateCompleteness } from '@features/students/constants/studentConstants'
 import { useErrorHandler } from '@hooks'
 
 export const SYSTEM_COLS = [

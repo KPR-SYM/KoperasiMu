@@ -52,6 +52,7 @@
 | `created_at` | `timestamptz` |  Nullable |
 | `updated_at` | `timestamptz` |  Nullable |
 | `deleted_at` | `timestamptz` |  Nullable |
+| `uuid` | `uuid` |  Unique |
 
 ## Table `enrollment_waves`
 
@@ -68,6 +69,7 @@
 | `is_active` | `bool` |  |
 | `created_at` | `timestamptz` |  Nullable |
 | `updated_at` | `timestamptz` |  Nullable |
+| `period_uuid` | `uuid` |  |
 
 ## Table `classes`
 
@@ -76,8 +78,7 @@
 | Name | Type | Constraints |
 |------|------|-------------|
 | `id` | `int4` | Primary Identity |
-| `uuid` | `uuid` | Not Null, Unique, Default gen_random_uuid() |
-| `education_unit_id` | `int4` |  |
+| `education_unit_id` | `int4` |  Nullable |
 | `academic_year` | `varchar` |  |
 | `name` | `varchar` |  |
 | `grade_level` | `int4` |  Nullable |
@@ -87,6 +88,12 @@
 | `created_at` | `timestamptz` |  Nullable |
 | `updated_at` | `timestamptz` |  Nullable |
 | `deleted_at` | `timestamptz` |  Nullable |
+| `is_locked` | `bool` |  Nullable |
+| `locked_at` | `timestamptz` |  Nullable |
+| `locked_by` | `uuid` |  Nullable |
+| `uuid` | `uuid` |  Unique |
+| `deleted_by` | `uuid` |  Nullable |
+| `notes` | `text` |  Nullable |
 
 ## Table `students`
 
@@ -301,6 +308,7 @@
 | `subject` | `varchar` |  Nullable |
 | `is_pinned` | `bool` |  Nullable |
 | `type` | `_text` |  Nullable |
+| `uuid` | `uuid` |  Unique |
 
 ## Table `feature_flags`
 
@@ -458,19 +466,19 @@
 | `Semua role login bisa baca enrollment_waves` | SELECT | authenticated | PERMISSIVE | `true` | — |
 | `Staff/admin/developer bisa kelola enrollment_waves` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
 
-### `education_units`
-
-| Policy | Command | Roles | Action | USING | WITH CHECK |
-|--------|---------|-------|--------|-------|------------|
-| `Semua role login bisa baca education_units` | SELECT | authenticated | PERMISSIVE | `true` | — |
-| `Staff/admin/developer bisa kelola education_units` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
-
 ### `classes`
 
 | Policy | Command | Roles | Action | USING | WITH CHECK |
 |--------|---------|-------|--------|-------|------------|
 | `Semua role login bisa baca classes` | SELECT | authenticated | PERMISSIVE | `true` | — |
 | `Staff/admin/developer bisa kelola classes` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `education_units`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Semua role login bisa baca education_units` | SELECT | authenticated | PERMISSIVE | `true` | — |
+| `Staff/admin/developer bisa kelola education_units` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
 
 ### `students`
 
@@ -548,17 +556,17 @@
 | `only_admin_dev_can_read_error_logs` | SELECT | authenticated | PERMISSIVE | `(EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['admin'::user_role, 'developer'::user_role])))))` | — |
 | `only_admin_dev_can_update_error_logs` | UPDATE | authenticated | PERMISSIVE | `(EXISTS ( SELECT 1    FROM profiles   WHERE ((profiles.id = auth.uid()) AND (profiles.role = ANY (ARRAY['admin'::user_role, 'developer'::user_role])))))` | — |
 
-### `audit_logs`
-
-| Policy | Command | Roles | Action | USING | WITH CHECK |
-|--------|---------|-------|--------|-------|------------|
-| `Users can insert audit logs` | INSERT | authenticated | PERMISSIVE | — | `(user_id = auth.uid())` |
-| `Users can view audit logs` | SELECT | authenticated | PERMISSIVE | `true` | — |
-
 ### `periods`
 
 | Policy | Command | Roles | Action | USING | WITH CHECK |
 |--------|---------|-------|--------|-------|------------|
 | `Semua role login bisa baca periods` | SELECT | authenticated | PERMISSIVE | `true` | — |
 | `Staff/admin/developer bisa kelola periods` | ALL | authenticated | PERMISSIVE | `can_write_operational()` | `can_write_operational()` |
+
+### `audit_logs`
+
+| Policy | Command | Roles | Action | USING | WITH CHECK |
+|--------|---------|-------|--------|-------|------------|
+| `Users can insert audit logs` | INSERT | authenticated | PERMISSIVE | — | `(user_id = auth.uid())` |
+| `Users can view audit logs` | SELECT | authenticated | PERMISSIVE | `true` | — |
 

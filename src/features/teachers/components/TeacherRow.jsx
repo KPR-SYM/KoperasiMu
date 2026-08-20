@@ -1,6 +1,6 @@
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Archive, ChatCircle, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, Trash, User } from '@phosphor-icons/react'
+import { Archive, ChatCircle, ClockCounterClockwise, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, Trash, User, Prohibit, CheckCircle } from '@phosphor-icons/react'
 import { Badge, PrivacyMask } from '@shared/components'
 import Checkbox from '@shared/components/Checkbox'
 import { STATUS_CONFIG, TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
@@ -91,6 +91,7 @@ const TeacherRow = memo(({
     handleEdit,
     handleTogglePin,
     handleQuickStatus,
+    onHistory,
     setTeacherToAction,
     setIsArchiveModalOpen,
     quickStatusId,
@@ -124,6 +125,8 @@ const TeacherRow = memo(({
     const menuItems = [
         ...(handleTogglePin ? [{ icon: MapPin, label: teacher.is_pinned ? 'Lepas Pin' : 'Pin ke atas', onClick: () => { handleTogglePin(teacher); setMenuOpen(false) }, weight: teacher.is_pinned ? 'fill' : 'regular' }] : []),
         ...(teacher.phone ? [{ icon: ChatCircle, label: 'Hubungi WhatsApp', onClick: () => { window.open(`https://wa.me/${teacher.phone.replace(/^0/, '62')}`, '_blank'); setMenuOpen(false) } }] : []),
+        ...(onHistory ? [{ divider: true }, { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(teacher); setMenuOpen(false) } }] : []),
+        ...(handleQuickStatus ? [{ icon: teacher.is_active ? Prohibit : CheckCircle, label: teacher.is_active ? 'Nonaktifkan' : 'Aktifkan', onClick: () => { handleQuickStatus(teacher, teacher.is_active ? 'inactive' : 'active'); setMenuOpen(false) } }] : []),
         ...(setIsArchiveModalOpen && setTeacherToAction ? [{ divider: true }, { icon: Archive, label: 'Arsipkan', onClick: () => { setTeacherToAction(teacher); setIsArchiveModalOpen(true); setMenuOpen(false) } }] : []),
     ]
 

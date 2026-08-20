@@ -3,13 +3,14 @@ import {
     CaretLeft, Pencil, Printer, ArrowsClockwise, IdentificationCard,
     Briefcase, ClockCounterClockwise, ChatCircle, Copy,
     GenderMale, GenderFemale,
+    Prohibit, CheckCircle, Archive, Eye, EyeSlash, ArrowClockwise,
 } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import { useFlag } from '@context/FeatureFlags'
 import { useToast } from '@context/Toast'
 import { useAuth } from '@context/Auth'
 import { logAudit } from '@utils/auditLogger'
-import { Skeleton, Tooltip, AuditTimeline } from '@shared/components'
+import { Skeleton, Tooltip, AuditTimeline, ConfirmDialog } from '@shared/components'
 import { PrivacyMask } from '@shared/components'
 import { usePrivacyMode } from '@shared/hooks/usePrivacyMode'
 import TeacherFormModal from '@features/teachers/components/TeacherFormModal'
@@ -45,14 +46,16 @@ function DetailSkeleton() {
     )
 }
 
-function InfoRow({ label, value, hint }) {
+function InfoRow({ label, value, hint, isPrivacyMode }) {
     return (
         <div className="space-y-1">
             <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest opacity-80">
                 {label}
             </p>
             {value ? (
-                <p className="text-[12px] font-bold text-[var(--color-text)] truncate" title={typeof value === 'string' ? value : undefined}>{value}</p>
+                <p className="text-[12px] font-bold text-[var(--color-text)] truncate" title={typeof value === 'string' ? value : undefined}>
+                    <PrivacyMask active={isPrivacyMode}>{value}</PrivacyMask>
+                </p>
             ) : (
                 <p className="text-[11px] text-[var(--color-text-muted)] italic">{hint || 'Belum diisi'}</p>
             )}
@@ -90,12 +93,14 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [isFormOpen, setIsFormOpen] = useState(false)
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+    const [deleting, setDeleting] = useState(false)
     const [profileTab, setProfileTab] = useState('info')
     const [copiedPhone, setCopiedPhone] = useState(false)
     const [lastRefresh, setLastRefresh] = useState(null)
 
     const isAdmin = ['developer', 'admin'].includes(profile?.role)
-    const { isPrivacyMode } = usePrivacyMode()
+    const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode()
 
     /* ── Fetch ── */
     const fetchTeacher = useCallback(async () => {
@@ -139,6 +144,41 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
         fetchTeacher()
         addToast('Data diperbarui', 'info')
     }, [fetchTeacher, addToast])
+
+    const handleToggleActive = useCallback(async () => {
+        if (!teacher || saving) return
+        const newActive = !teacher.is_active
+        setTeacher(prev => prev ? { ...prev, is_active: newActive, status: newActive ? 'active' : 'inactive' } : prev)
+        setSaving(true)
+        try {
+            const { error } = await supabase.from('teachers').update({ is_active: newActive }).eq('id', teacher.id)
+            if (error) throw error
+            addToast(newActive ? 'Guru diaktifkan' : 'Guru dinonaktifkan', 'success')
+            logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, is_active: newActive } }).catch(() => {})
+        } catch (err) {
+            setTeacher(prev => prev ? { ...prev, is_active: teacher.is_active, status: teacher.status } : prev)
+            addToast(err?.message || 'Gagal mengubah status', 'error')
+        } finally {
+            setSaving(false)
+        }
+    }, [teacher, saving, addToast])
+
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!teacher || deleting) return
+        setDeleting(true)
+        try {
+            const { error } = await supabase.from('teachers').update({ deleted_at: new Date().toISOString() }).eq('id', teacher.id)
+            if (error) throw error
+            addToast('Guru berhasil diarsipkan', 'success')
+            logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, deleted_at: new Date().toISOString() } }).catch(() => {})
+            onBack()
+        } catch (err) {
+            addToast(err?.message || 'Gagal mengarsipkan', 'error')
+        } finally {
+            setDeleting(false)
+            setIsDeleteOpen(false)
+        }
+    }, [teacher, deleting, addToast, onBack])
 
     const handleEdit = useCallback(() => setIsFormOpen(true), [])
 
@@ -235,43 +275,63 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                     </button>
                     {lastRefresh && (
                         <span className="text-[8px] font-bold text-[var(--color-text-muted)] ml-1">
-                            Diperbarui {(() => {
+                            Diperbarui <PrivacyMask active={isPrivacyMode}>{(() => {
                                 // eslint-disable-next-line react-hooks/purity -- relative "time ago" label intentionally reads the clock during render
                                 const ms = Date.now() - lastRefresh.getTime()
                                 const mins = Math.floor(ms / 60000)
                                 if (mins < 1) return 'baru saja'
                                 if (mins < 60) return `${mins}m lalu`
                                 return `${Math.floor(mins / 60)}j lalu`
-                            })()}
+                            })()}</PrivacyMask>
                         </span>
                     )}
                 </div>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
                     <div>
                         <h1 className="text-xl font-black font-heading tracking-tight text-[var(--color-text)] leading-tight">
                             Detail Guru
                         </h1>
                         <p className="text-[var(--color-text-muted)] text-[10px] mt-0.5 font-medium">
-                            {teacher.name} — informasi lengkap kepegawaian & kontak.
+                            <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask> — informasi lengkap kepegawaian & kontak.
                         </p>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        <Tooltip content="Refresh (R)" position="bottom">
-                            <button onClick={handleRefresh}
-                                className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all">
-                                <ArrowsClockwise className="w-3.5 h-3.5" />
-                            </button>
-                        </Tooltip>
-                        <Tooltip content="Cetak (P)" position="bottom">
-                            <button onClick={handlePrint}
-                                className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] transition-all">
-                                <Printer className="w-3.5 h-3.5" />
-                            </button>
-                        </Tooltip>
+                    <div className="flex items-center gap-1.5 shrink-0 min-w-0 overflow-x-auto scrollbar-hide lg:shrink-0 -mx-5 px-5 lg:mx-0 lg:px-0 py-0.5">
                         <Tooltip content={!editable ? 'Akses terbatas' : 'Edit (E)'} position="bottom">
                             <button onClick={handleEdit} disabled={!editable}
-                                className="h-8 w-8 rounded-lg bg-[var(--color-primary)] text-white flex items-center justify-center transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed">
+                                className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
                                 <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={!editable ? 'Akses terbatas' : teacher.is_active ? 'Nonaktifkan' : 'Aktifkan'} position="bottom">
+                            <button onClick={handleToggleActive} disabled={!editable || saving}
+                                className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
+                                {teacher.is_active ? <Prohibit className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={!editable ? 'Akses terbatas' : 'Arsipkan'} position="bottom">
+                            <button onClick={() => setIsDeleteOpen(true)} disabled={!editable || saving}
+                                className="h-8 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 flex items-center gap-1.5 transition-all hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
+                                <Archive className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
+                        <Tooltip content="Muat ulang data" position="bottom">
+                            <button onClick={handleRefresh}
+                                className="h-8 w-8 rounded-lg border bg-[var(--color-surface-alt)] border-[var(--color-border)] flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all shrink-0">
+                                <ArrowClockwise className="w-3.5 h-3.5" />
+                            </button>
+                        </Tooltip>
+                        <Tooltip content={isPrivacyMode ? 'Matikan Mode Privasi' : 'Aktifkan Mode Privasi'} position="bottom">
+                            <button onClick={togglePrivacyMode}
+                                className={`h-8 w-8 rounded-lg border flex items-center justify-center transition-all shrink-0 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'}`}>
+                                {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                        </Tooltip>
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
+                        <Tooltip content="Cetak (P)" position="bottom">
+                            <button onClick={handlePrint}
+                                className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center transition-all hover:bg-[var(--color-surface-alt)] shrink-0">
+                                <Printer className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
                     </div>
@@ -297,24 +357,24 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
 
                             <div className="flex-1 min-w-0">
                                 <h2 className="text-xl font-black tracking-tight truncate drop-shadow-lg">
-                                    {teacher.name}
+                                    <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
                                 </h2>
                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                     {types.map(t => (
                                         <span key={t} className="px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-sm text-[9px] font-bold uppercase tracking-wider border border-white/10">
-                                            {TYPE_LABELS[t] || t}
+                                            <PrivacyMask active={isPrivacyMode}>{TYPE_LABELS[t] || t}</PrivacyMask>
                                         </span>
                                     ))}
                                     {teacher.subject && (
                                         <span className="px-2 py-0.5 rounded-md bg-emerald-400/20 backdrop-blur-sm text-[9px] font-bold uppercase tracking-wider border border-emerald-400/20 text-emerald-100">
-                                            {teacher.subject}
+                                            <PrivacyMask active={isPrivacyMode}>{teacher.subject}</PrivacyMask>
                                         </span>
                                     )}
                                 </div>
                                 {teacher.created_at && (
                                     <p className="text-[10px] text-white/50 mt-2.5 flex items-center gap-1.5">
                                         <span className="w-1 h-1 rounded-full bg-white/40" />
-                                        Bergabung sejak {formatDate(teacher.created_at)}
+                                        Bergabung sejak <PrivacyMask active={isPrivacyMode}>{formatDate(teacher.created_at)}</PrivacyMask>
                                     </p>
                                 )}
                             </div>
@@ -348,17 +408,17 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                             <div className="grid grid-cols-3 gap-4">
                                 <SectionCard icon={IdentificationCard} iconBg="text-indigo-500" accent="bg-indigo-500" title="Identitas">
                                     <div className="space-y-4">
-                                        <InfoRow label="Nama Lengkap" value={teacher.name} hint="Klik Edit" />
-                                        <InfoRow label="Jenis Kelamin" value={genderInfo?.label} hint="Pilih di form Edit" />
-                                        <InfoRow label="Jabatan" value={types.map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'} hint="Klik Edit" />
+                                        <InfoRow label="Nama Lengkap" value={teacher.name} hint="Klik Edit" isPrivacyMode={isPrivacyMode} />
+                                        <InfoRow label="Jenis Kelamin" value={genderInfo?.label} hint="Pilih di form Edit" isPrivacyMode={isPrivacyMode} />
+                                        <InfoRow label="Jabatan" value={types.map(t => TYPE_LABELS[t] || t).join(', ') || 'Guru'} hint="Klik Edit" isPrivacyMode={isPrivacyMode} />
                                     </div>
                                 </SectionCard>
 
                                 <SectionCard icon={Briefcase} iconBg="text-emerald-500" accent="bg-emerald-500" title="Kepegawaian">
                                     <div className="space-y-4">
-                                        <InfoRow label="Mata Pelajaran" value={teacher.subject} hint="Pilih di form Edit" />
-                                        <InfoRow label="Status" value={STATUS_CONFIG[teacher.status]?.label || teacher.status} />
-                                        <InfoRow label="Bergabung" value={teacher.created_at ? formatDate(teacher.created_at) : null} />
+                                        <InfoRow label="Mata Pelajaran" value={teacher.subject} hint="Pilih di form Edit" isPrivacyMode={isPrivacyMode} />
+                                        <InfoRow label="Status" value={STATUS_CONFIG[teacher.status]?.label || teacher.status} isPrivacyMode={isPrivacyMode} />
+                                        <InfoRow label="Bergabung" value={teacher.created_at ? formatDate(teacher.created_at) : null} isPrivacyMode={isPrivacyMode} />
                                     </div>
                                 </SectionCard>
 
@@ -397,7 +457,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                                         })()}
                                         {teacher.updated_at && (
                                             <p className="text-[9px] text-[var(--color-text-muted)] opacity-50">
-                                                Terakhir diperbarui {formatDate(teacher.updated_at)}
+                                                Terakhir diperbarui <PrivacyMask active={isPrivacyMode}>{formatDate(teacher.updated_at)}</PrivacyMask>
                                             </p>
                                         )}
                                     </div>
@@ -407,15 +467,22 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                     )}
 
                     {profileTab === 'audit' && isAdmin && (
-                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/10 p-1">
-                            <AuditTimeline
-                                tableName="teachers"
-                                recordId={teacher.id}
-                                onRestored={fetchTeacher}
-                                showSearch
-                                stickyHeader
-                                limit={30}
-                            />
+                        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] space-y-3">
+                            <div className="flex items-center gap-2">
+                                <ClockCounterClockwise className="w-4 h-4 text-purple-500" />
+                                <h3 className="text-xs font-black text-[var(--color-text)]">Riwayat Perubahan</h3>
+                            </div>
+                            <div className="h-[300px] overflow-auto rounded-xl border border-[var(--color-border)]">
+                                <AuditTimeline
+                                    tableName="teachers"
+                                    recordId={teacher.id}
+                                    onRestored={fetchTeacher}
+                                    showSearch
+                                    stickyHeader
+                                    limit={30}
+                                    containerClassName="p-3"
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
@@ -430,6 +497,26 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                 onSubmit={handleSubmitEdit}
                 submitting={saving}
             />
+
+            {/* ── Archive Confirm ── */}
+            <ConfirmDialog
+                isOpen={isDeleteOpen}
+                onClose={() => setIsDeleteOpen(false)}
+                onConfirm={handleDeleteConfirm}
+                title="Arsipkan Guru"
+                description="Yakin ingin mengarsipkan guru ini?"
+                icon={Archive}
+                iconBg="bg-amber-500/10"
+                iconColor="text-amber-500"
+                confirmText="Arsipkan"
+                confirmIcon={Archive}
+                confirmColor="amber"
+                submitting={deleting}
+            >
+                <p className="text-[11px] font-bold text-[var(--color-text-muted)] leading-relaxed">
+                    Guru <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black mx-0.5">{teacher.name}</span> akan dipindahkan ke arsip. Anda dapat memulihkannya nanti.
+                </p>
+            </ConfirmDialog>
         </div>
     )
 }

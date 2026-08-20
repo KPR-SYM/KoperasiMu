@@ -493,6 +493,21 @@ export function useClassesCore({ addToast }) {
         finally { setSubmitting(false) }
     }
 
+    // ── Quick Toggle Active ──
+    const handleQuickToggleActive = useCallback(async (cls) => {
+        if (!cls || !canEdit) return
+        setSubmitting(true)
+        try {
+            const newActive = !cls.is_active
+            const { error } = await supabase.from('classes').update({ is_active: newActive }).eq('id', cls.id)
+            if (error) throw error
+            addToast(`Kelas "${cls.name}" ${newActive ? 'diaktifkan' : 'dinonaktifkan'}`, 'success')
+            await logAudit({ action: 'UPDATE', source: 'SYSTEM', tableName: 'classes', recordId: cls.id, oldData: cls, newData: { ...cls, is_active: newActive } })
+            fetchData()
+        } catch (err) { handleError(err, { context: 'Gagal mengubah status kelas' }) }
+        finally { setSubmitting(false) }
+    }, [canEdit, fetchData, addToast, handleError])
+
     // ── Archive (soft delete) ──
     const handleArchive = async (cls) => {
         if (!cls || !canEdit) return
@@ -567,7 +582,7 @@ export function useClassesCore({ addToast }) {
 
         // Handlers
         handleAdd, handleEdit, handleSubmit, handleDeleteConfirm, handleBulkDelete,
-        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive,
+        handleBulkLock, handleBulkUnlock, handleDuplicate, handleArchive, handleQuickToggleActive,
 
         // Insights
         insights,

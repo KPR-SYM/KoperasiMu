@@ -3,7 +3,7 @@ import {
     Warning, ArrowsLeftRight, ArrowsDownUp, Book, Calendar, IdentificationCard,
     CheckCircle, Question, FileXls, FileText, ChatCircle,
     SlidersHorizontal, Tag, User, Users, GenderIntersex,
-    CaretLeft, ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash,
+    CaretLeft, ArrowLeft, ArrowRight, Check, List, Eye, EyeSlash, TextH,
 } from '@phosphor-icons/react'
 
 

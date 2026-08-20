@@ -3,13 +3,13 @@ import { ArrowsLeftRight, ArrowRight, CalendarBlank, CheckCircle, Circle, ClockC
 
 import Modal from '@shared/components/Modal'
 import { EmptyState } from '@shared/components/DataDisplay'
-import { formatRelativeDate } from '@features/students/utils/studentsConstants'
+import { formatRelativeDate } from '@features/students/constants/studentConstants'
 
 /**
- * StudentClassHistoryModal Component
+ * StudentsHistoryModal Component
  * Displays a vertical timeline of a student's class movement history.
  */
-export default function StudentClassHistoryModal({
+export default function StudentsHistoryModal({
     isOpen,
     onClose,
     selectedStudent,
