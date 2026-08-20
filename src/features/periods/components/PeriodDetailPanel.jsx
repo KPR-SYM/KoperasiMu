@@ -20,7 +20,7 @@ import {
     AuditTimeline, Skeleton, Tooltip, PrivacyMask,
 } from '@shared/components'
 import PeriodFormModal from '@features/periods/components/PeriodFormModal'
-import { ArchiveModal } from '@features/periods/components/PeriodConfirmModals'
+import { ArchiveModal } from '@features/periods/components/PeriodsConfirmModals'
 
 /* ─── Helpers ──────────────────────────────────────────────────────────────── */
 

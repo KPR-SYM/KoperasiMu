@@ -7,7 +7,7 @@ import Select from '@shared/components/Select'
 import { Dropzone } from '@shared/components'
 import { useLanguage } from '@context'
 
-export default function StudentImportModal(props) {
+export default function StudentImportPanel(props) {
     const { t, language } = useLanguage()
     const [showClassesDropdown, setShowClassesDropdown] = useState(false)
     const classesDropdownRef = useRef(null)

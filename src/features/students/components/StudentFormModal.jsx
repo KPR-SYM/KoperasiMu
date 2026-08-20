@@ -164,7 +164,7 @@ function PhotoUploader({ preview, photoUrl, photoError, uploading, onClick, onEr
 /* ─── GenderToggle ──────────────────────────────────────────── */
 function GenderToggle({ value, onChange }) {
     return (
-        <div className="flex gap-2 h-11">
+        <div className="flex gap-2 h-9">
             {GENDER_OPTIONS.map(({ val, label, icon: Icon, active }) => {
                 const isActive = value === val
                 return (
@@ -172,13 +172,13 @@ function GenderToggle({ value, onChange }) {
                         key={val}
                         type="button"
                         onClick={() => onChange(val)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold tracking-wide transition-all duration-200
+                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold tracking-wide transition-all duration-200
                             ${isActive
                                 ? active
                                 : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text-muted)]/30'
                             }`}
                     >
-                        <Icon className="w-3.5 h-3.5" />
+                        <Icon className="w-3 h-3" />
                         {label}
                     </button>
                 )
@@ -190,7 +190,7 @@ function GenderToggle({ value, onChange }) {
 /* ─── StatusToggle ──────────────────────────────────────────── */
 function StatusToggle({ value, onChange }) {
     return (
-        <div className="flex gap-1.5 h-11">
+        <div className="flex gap-1.5 h-9">
             {STATUS_OPTIONS.map(({ key, label, icon: Icon, active }) => {
                 const isActive = value === key
                 return (
@@ -198,13 +198,13 @@ function StatusToggle({ value, onChange }) {
                         key={key}
                         type="button"
                         onClick={() => onChange(key)}
-                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border text-[11px] font-bold tracking-wide transition-all duration-200
+                        className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border text-[10px] font-bold tracking-wide transition-all duration-200
                             ${isActive
                                 ? active
                                 : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:border-[var(--color-text-muted)]/30'
                             }`}
                     >
-                        <Icon className="w-3.5 h-3.5 shrink-0" />
+                        <Icon className="w-3 h-3 shrink-0" />
                         {label}
                     </button>
                 )
@@ -329,33 +329,33 @@ const StudentFormModal = memo(function StudentFormModal({
                 ? `Perbarui data ${selectedStudent?.name || 'siswa'}`
                 : 'Isi data untuk mendaftarkan siswa baru'}
             size="md"
+            mobileVariant="bottom-sheet"
             footer={
                 <div className="flex items-center gap-3 w-full">
                     {/* Cancel — more visible border */}
                     <button
                         type="button"
                         onClick={onClose}
-                        className="h-10 px-5 rounded-xl border border-[var(--color-border)] hover:border-[var(--color-text-muted)]/40 bg-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] text-[10px] font-black uppercase tracking-widest transition-all duration-200 shrink-0"
+                        className="h-10 px-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] text-[10px] font-black uppercase tracking-widest transition-all duration-200 shrink-0"
                     >
                         Batal
                     </button>
 
                     <div className="flex-1" />
 
-                    {/* Submit — uses primary theme color */}
                     <button
                         type="submit"
                         form="student-form-modal"
                         disabled={submitting}
-                        className="h-10 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 flex items-center gap-2 shrink-0
-                            bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25
+                        className="h-10 px-6 sm:px-8 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 shrink-0
+                            bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 border border-white/10
                             hover:brightness-110 active:scale-[0.97]
                             disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                     >
                         {submitting ? (
-                            <><Spinner className="fa-spin w-3.5 h-3.5" /><span>Menyimpan...</span></>
+                            <><Spinner className="fa-spin w-3 h-3" /><span>Menyimpan...</span></>
                         ) : (
-                            <><FloppyDisk className="w-3.5 h-3.5 opacity-80" /><span>{isEditing ? 'Simpan Perubahan' : 'Daftarkan'}</span></>
+                            <><FloppyDisk className="w-3 h-3 opacity-80" /><span>{isEditing ? 'Simpan Perubahan' : 'Daftarkan'}</span></>
                         )}
                     </button>
                 </div>

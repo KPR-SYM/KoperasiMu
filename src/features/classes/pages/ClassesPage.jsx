@@ -19,7 +19,7 @@ import ClassArchiveModal from '@features/classes/components/ClassArchiveModal'
 import ClassImportModal from '@features/classes/components/ClassImportModal'
 import ClassDetailPanel from '@features/classes/components/ClassDetailPanel'
 import ClassesHistoryModal from '@features/classes/components/ClassesHistoryModal'
-import { ClassBulkDeleteModal, ClassBulkLockModal, ClassBulkUnlockModal } from '@features/classes/components/ClassConfirmModals'
+import { ClassBulkDeleteModal, ClassBulkLockModal, ClassBulkUnlockModal } from '@features/classes/components/ClassesConfirmModals'
 import {
     BulkActionsBar,
     ConfirmDialog,

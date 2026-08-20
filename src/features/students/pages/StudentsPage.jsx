@@ -12,7 +12,8 @@ import {
     StatCard,
     EmptyState,
     Pagination,
-    DebouncedSearchInput
+    DebouncedSearchInput,
+    Alert,
 } from '@shared/components'
 import { useToast, useFlag, useLanguage } from '@context'
 import { supabase } from '@lib/supabase'
@@ -187,6 +188,8 @@ export default function StudentsPage() {
     const { handleError } = useErrorHandler('StudentsPage')
     const { dir } = useLanguage()
     const { enabled: canEdit } = useFlag('access.teacher_students')
+    const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator?.platform)
+    const MOD = isMac ? '⌘' : 'Ctrl'
     const [classSearchQuery, setClassSearchQuery] = useState('')
     const [removingStudentId, setRemovingStudentId] = useState(null)
 
@@ -449,22 +452,14 @@ export default function StudentsPage() {
     }, [handleAdd, toggleSelectAll, setIsExportModalOpen, fetchData, fetchStats, resetAllFilters, setIsHeaderMenuOpen, setIsShortcutOpen, setIsPrivacyMode, setShowAdvancedFilter, setIsColMenuOpen])
 
     return (
-        <DashboardLayout title="Data Siswa" hideHeader={isAnyModalOpen} hideSidebar={isAnyModalOpen}>
-            <style>
-                {isAnyModalOpen ? `
-                    .top-nav, .sidebar, .floating-dock { display: none !important; }
-                    main { padding-top: 0 !important; }
-                ` : ''}
-            </style>
-
-            <div className="space-y-4 max-w-[1800px] mx-auto relative">
+        <DashboardLayout title="Data Siswa">
+            <div className="space-y-3 max-w-[1800px] mx-auto relative">
 
                 {/* Read-only Banner */}
                 {!canEdit && (
-                    <div className="px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-2">
-                        <EyeSlash className="text-rose-500 shrink-0 w-3 h-3" />
-                        <p className="text-[11px] font-bold text-rose-600">Mode Read-only â€”â€ Pen data siswa dinonaktifkan oleh administrator.</p>
-                    </div>
+                    <Alert variant="rose" size="md">
+                        Mode Read-only — Pen data siswa dinonaktifkan oleh administrator.
+                    </Alert>
                 )}
 
                 {/* Header */}
@@ -477,106 +472,120 @@ export default function StudentsPage() {
                             <button
                                 ref={headerMenuBtnRef}
                                 onClick={() => { if (!isHeaderMenuOpen) setHeaderMenuRect(headerMenuBtnRef.current?.getBoundingClientRect()); setIsHeaderMenuOpen(v => !v) }}
-                                className={`h-9 w-9 rounded-xl border flex items-center justify-center text-sm transition-all active:scale-95 ${isHeaderMenuOpen ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'}`}
+                                className={`h-9 w-9 rounded-lg border flex items-center justify-center text-sm transition-all active:scale-95 ${isHeaderMenuOpen ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-border)]'}`}
                                 title="Aksi lainnya"
                             >
-                                <SlidersHorizontal className="w-[18px] h-[18px]" />
+                                <SlidersHorizontal />
                             </button>
 
                             {/* Portaled Header List Dropdown */}
                             {headerMenuMounted && headerMenuRect && createPortal(
                                 <>
                                     <div
-                                        className={`fixed inset-0 z-[9990] bg-black/5 backdrop-blur-[1px] transition-opacity duration-200 ${isHeaderMenuOpen ? 'opacity-100' : 'opacity-0'}`}
+                                        className={`fixed inset-0 z-[9990] transition-opacity duration-200 ${isHeaderMenuOpen ? 'opacity-100' : 'opacity-0'}`}
                                         onClick={() => setIsHeaderMenuOpen(false)}
                                     />
                                     <div
-                                        className={`fixed z-[9991] w-56 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-2 transition-all duration-200 ease-out origin-top-right
+                                        className={`fixed z-[9991] w-60 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-2xl p-1.5 transition-all duration-200 ease-out origin-top-right
                                         ${isHeaderMenuOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2'}`}
                                         style={{
                                             top: headerMenuRect.bottom + 8,
-                                            left: Math.max(10, headerMenuRect.right - 224)
+                                            left: Math.max(10, headerMenuRect.right - 240)
                                         }}
                                     >
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-text-muted)] px-3 py-2">Data</p>
                                         {canImportCSV && (
                                             <button onClick={() => { setIsHeaderMenuOpen(false); handleImportClick() }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group">
-                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <FileArrowDown className="w-3 h-3" />
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group cursor-pointer hover:bg-[var(--color-surface-alt)]">
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                                    <FileArrowDown className="w-3.5 h-3.5" />
                                                 </div>
-                                                <div className="text-left">
-                                                    <p className="text-[11px] font-black leading-tight">Import CSV / Excel</p>
-                                                    <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">Unggah data murid masal dari file Excel/CSV</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-black leading-tight text-[var(--color-text)] truncate">Import CSV / Excel</p>
+                                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)] leading-tight mt-0.5 truncate">Unggah data murid masal dari file Excel/CSV</p>
                                                 </div>
+                                                <kbd className="px-1.5 py-0.5 rounded-md bg-[var(--color-surface-alt)] border border-[var(--color-border)]/60 text-[8px] font-bold text-[var(--color-text-muted)] font-mono shrink-0">
+                                                    {MOD}+I
+                                                </kbd>
                                             </button>
                                         )}
                                         {canImportGSheets && (
                                             <button onClick={() => { setIsHeaderMenuOpen(false); setActiveModal('gsheets') }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group">
-                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <Link className="w-3 h-3" />
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group cursor-pointer hover:bg-[var(--color-surface-alt)]">
+                                                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                                    <Link className="w-3.5 h-3.5" />
                                                 </div>
-                                                <div className="text-left">
-                                                    <p className="text-[11px] font-black leading-tight">Import GSheets</p>
-                                                    <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">Sinkronisasi data otomatis via Google Sheets</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-black leading-tight text-[var(--color-text)] truncate">Import GSheets</p>
+                                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)] leading-tight mt-0.5 truncate">Sinkronisasi data otomatis via Google Sheets</p>
                                                 </div>
                                             </button>
                                         )}
                                         {canExport && (
                                             <button onClick={() => { setIsHeaderMenuOpen(false); setIsExportModalOpen(true) }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group">
-                                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <FileArrowUp className="w-3 h-3" />
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group cursor-pointer hover:bg-[var(--color-surface-alt)]">
+                                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                                    <FileArrowUp className="w-3.5 h-3.5" />
                                                 </div>
-                                                <div className="text-left">
-                                                    <p className="text-[11px] font-black leading-tight">Export Data</p>
-                                                    <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">Cadangkan seluruh database ke format Excel</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-black leading-tight text-[var(--color-text)] truncate">Export Data</p>
+                                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)] leading-tight mt-0.5 truncate">Cadangkan seluruh database ke format Excel</p>
                                                 </div>
+                                                <kbd className="px-1.5 py-0.5 rounded-md bg-[var(--color-surface-alt)] border border-[var(--color-border)]/60 text-[8px] font-bold text-[var(--color-text-muted)] font-mono shrink-0">
+                                                    {MOD}+E
+                                                </kbd>
                                             </button>
                                         )}
                                         {canBulkPhoto && (
                                             <button onClick={() => { setIsHeaderMenuOpen(false); setActiveModal('bulkPhoto') }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--text-color)] transition-all group">
-                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <Camera className="w-3 h-3" />
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group cursor-pointer hover:bg-[var(--color-surface-alt)]">
+                                                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                                    <Camera className="w-3.5 h-3.5" />
                                                 </div>
-                                                <div className="text-left">
-                                                    <p className="text-[11px] font-black leading-tight">Bulk Foto</p>
-                                                    <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">Update foto siswa secara masal via NISN</p>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-[11px] font-black leading-tight text-[var(--color-text)] truncate">Bulk Foto</p>
+                                                    <p className="text-[9px] font-medium text-[var(--color-text-muted)] leading-tight mt-0.5 truncate">Update foto siswa secara masal via NISN</p>
                                                 </div>
                                             </button>
                                         )}
-
                                         {canArchive && (
-                                            <button onClick={() => { setIsHeaderMenuOpen(false); fetchArchivedStudents(); setActiveModal('archived') }}
-                                                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[var(--color-surface-alt)] text-[var(--color-text)] transition-all group">
-                                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <Archive className="w-3 h-3" />
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className="text-[11px] font-black leading-tight">Arsip Siswa</p>
-                                                    <p className="text-[9px] opacity-60 font-medium leading-tight mt-0.5">Lihat & pulihkan data siswa tidak aktif</p>
-                                                </div>
-                                            </button>
+                                            <>
+                                                <div className="h-px bg-[var(--color-border)] my-1 mx-2" />
+                                                <button onClick={() => { setIsHeaderMenuOpen(false); fetchArchivedStudents(); setActiveModal('archived') }}
+                                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left group cursor-pointer hover:bg-[var(--color-surface-alt)]">
+                                                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                                        <Archive className="w-3.5 h-3.5" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-[11px] font-black leading-tight text-[var(--color-text)] truncate">Arsip Siswa</p>
+                                                            {archivedStudents.length > 0 && (
+                                                                <span className="px-1.5 py-0.5 rounded-full bg-orange-500/15 text-orange-600 text-[8px] font-black shrink-0">
+                                                                    {archivedStudents.length}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[9px] font-medium text-[var(--color-text-muted)] leading-tight mt-0.5 truncate">Lihat & pulihkan data siswa tidak aktif</p>
+                                                    </div>
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </>,
                                 getPortalContainer('portal-header-menu')
                             )}
 
-                            {/* StackSimple Shortcuts Button - hidden on mobile */}
+                            {/* Keyboard Shortcuts Button - hidden on mobile */}
                             <button
                                 ref={shortcutBtnRef}
                                 onClick={() => { if (!isShortcutOpen) setShortcutRect(shortcutBtnRef.current?.getBoundingClientRect()); setIsShortcutOpen(v => !v) }}
-                                className={`hidden sm:flex h-9 w-9 rounded-xl border items-center justify-center transition-all active:scale-95
+                                className={`hidden sm:flex h-9 w-9 rounded-lg border items-center justify-center transition-all active:scale-95
                                 ${isShortcutOpen
                                         ? 'bg-[var(--color-primary)]/10 border-[var(--color-primary)]/30 text-[var(--color-primary)]'
                                         : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
                                     }`}
                                 title="Keyboard Shortcuts (?)"
                             >
-                                <Keyboard className="w-[18px] h-[18px]" />
+                                <Keyboard className="w-4 h-4" />
                             </button>
 
                             {/* Portaled StackSimple Shortcuts Dropdown */}
@@ -635,30 +644,20 @@ export default function StudentsPage() {
                                 accept=".csv,.xlsx"
                             />
 
-                            {canPrivacyMode && (
-                                <button
-                                    onClick={() => {
-                                        const next = !isPrivacyMode
-                                        setIsPrivacyMode(next)
-                                    }}
-                                    className={`h-9 w-9 sm:w-auto sm:px-3 rounded-xl border flex items-center justify-center sm:justify-start gap-1.5 transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
-                                    title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}
-                                >
-                                    {isPrivacyMode ? <EyeSlash className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-                                    <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">
-                                        Privasi
-                                    </span>
-                                </button>
-                            )}
+                            {/* Privacy toggle */}
+                            <button
+                                onClick={() => setIsPrivacyMode(v => !v)}
+                                className={`h-9 w-9 rounded-lg border flex items-center justify-center transition-all active:scale-95 ${isPrivacyMode ? 'bg-amber-500/10 border-amber-500/30 text-amber-600' : 'bg-[var(--color-surface-alt)] border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'} `}
+                                title={isPrivacyMode ? "Matikan Mode Privasi" : "Aktifkan Mode Privasi"}
+                            >
+                                {isPrivacyMode ? <EyeSlash className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
 
-                            {canAddStudent && (
-                                <button
-                                    onClick={handleAdd}
-                                    disabled={!canEdit}
-                                    className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10"
-                                >
-                                    <Plus className="w-[18px] h-[18px]" />
-                                    <span>{canEdit ? 'Tambah Siswa' : 'Read-only'}</span>
+                            {/* Add button */}
+                            {canEdit && (
+                                <button onClick={handleAdd} className="h-9 px-4 sm:px-5 rounded-xl bg-[var(--color-primary)] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 border border-white/10">
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Tambah Siswa</span>
                                 </button>
                             )}
                         </>
@@ -667,66 +666,42 @@ export default function StudentsPage() {
 
                 {/* Stats Row Wrapper */}
                 {canShowStats && (
-                    <StatsCarousel count={5} cols={4}>
+                    <StatsCarousel count={4} cols={4}>
                         <StatCard
                             key="total"
                             icon={Users}
                             label="Total Siswa"
                             value={globalStats.total}
-                            subValue="Siswa aktif terdaftar"
-                            color="sky"
+                            color="primary"
                         />
                         <StatCard
                             key="boys"
                             icon={GenderMale}
                             label="Putra"
                             value={globalStats.boys}
-                            subValue={`${Math.round((globalStats.boys / (globalStats.total || 1)) * 100)}% dari total`}
-                            color="indigo"
+                            color="primary"
                         />
                         <StatCard
                             key="girls"
                             icon={GenderFemale}
                             label="Putri"
                             value={globalStats.girls}
-                            subValue={`${Math.round((globalStats.girls / (globalStats.total || 1)) * 100)}% dari total`}
-                            color="rose"
+                            color="primary"
                         />
                         <StatCard
                             key="incomplete"
                             icon={WarningCircle}
                             label="Data Tidak Lengkap"
                             value={globalStats.incompleteCount}
-                            subValue="Foto / No. HP"
-                            color="amber"
+                            color="primary"
                         />
                     </StatsCarousel>
                 )}
 
-                {/*  INSIGHT ROW */}
-                {globalStats.incompleteCount > 0 && (
-                    <div className="flex overflow-x-auto scrollbar-hide gap-2 mb-6 animate-in fade-in slide-in-from-top-1 duration-500 pb-1">
-                        {/* Data tidak lengkap */}
-                        <button
-                            onClick={() => { setFilterMissing(filterMissing === 'all' ? '' : 'all'); setShowAdvancedFilter(true) }}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-xl border transition-all hover:scale-[1.02] active:scale-95 shrink-0 ${filterMissing === 'all' ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500' : 'bg-amber-500/[0.08] border-amber-500/20 hover:bg-amber-500/[0.15]'}`}
-                        >
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${filterMissing === 'all' ? 'bg-amber-500 text-white' : 'bg-amber-500/15'}`}>
-                                <WarningCircle className="text-amber-500 w-3 h-3" />
-                            </div>
-                            <div className="text-left whitespace-nowrap">
-                                <p className={`text-[10px] font-black leading-none ${filterMissing === 'photo' ? 'text-amber-600' : 'text-amber-600 dark:text-amber-400'}`}>{globalStats.incompleteCount} Tidak Lengkap</p>
-                                <p className="text-[9px] text-[var(--color-text-muted)] font-bold mt-0.5">Foto / No. HP / Whatsapp</p>
-                            </div>
-                        </button>
-                    </div>
-                )}
-
-                {/* Filters & Sort */}
-                <div className="glass rounded-[1.5rem] mb-4 border border-[var(--color-border)] overflow-hidden">
-
-                    {/* Row 1: TelegramLogo + Quick Filters + Action Buttons */}
-                    <div className="flex items-center gap-2 p-2.5 lg:p-3">
+                {/* ── Main Data View ── */}
+                <div className="glass rounded-2xl border border-[var(--color-border)] overflow-hidden relative">
+                    <div className="border-b border-[var(--color-border)]">
+                        <div className="flex items-center gap-2 p-2.5 lg:p-3">
                         {/* Dynamic & Responsive */}
                         <div className="flex-1 min-w-[140px]">
                             <DebouncedSearchInput
@@ -1048,7 +1023,6 @@ export default function StudentsPage() {
                 </div>
 
                 {loading ? (
-                    <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-[var(--color-surface-alt)]">
@@ -1086,10 +1060,8 @@ export default function StudentsPage() {
                                 </tbody>
                             </table>
                         </div>
-                    </div>
                 ) : (
                     <div>
-                        <div className="glass rounded-[1.5rem] border border-[var(--color-border)] overflow-hidden">
                             {/* Desktop View */}
                             {!isMobile && (
                                 <div className="hidden md:block overflow-x-auto">
@@ -1604,8 +1576,8 @@ export default function StudentsPage() {
                                 />
                             )}
                         </div>
-                    </div>
                 )}
+                </div>
 
                 {/* IMPORT MODAL */}
                 {isImportModalOpen && (

@@ -32,7 +32,7 @@ import {
 } from "@shared/components";
 import Skeleton from "@shared/components/Skeleton";
 import PeriodFormModal from "@features/periods/components/PeriodFormModal";
-import { ArchiveModal, LockModal, UnlockModal, ShiftDatesModal } from "@features/periods/components/PeriodConfirmModals";
+import { ArchiveModal, LockModal, UnlockModal, ShiftDatesModal } from "@features/periods/components/PeriodsConfirmModals";
 import { usePeriodsCore } from "@features/periods/hooks/usePeriodsCore";
 import { usePeriodsKeyboard } from "@features/periods/hooks/usePeriodsKeyboard";
 import { usePeriodsModals } from "@features/periods/hooks/usePeriodsModals";
