@@ -4,6 +4,7 @@ import {
     Briefcase, ClockCounterClockwise, ChatCircle, Copy,
     GenderMale, GenderFemale,
     Prohibit, CheckCircle, Archive, Eye, EyeSlash, ArrowClockwise,
+    Lock, LockOpen,
 } from '@phosphor-icons/react'
 import { supabase } from '@lib/supabase'
 import { useFlag } from '@context/FeatureFlags'
@@ -53,11 +54,11 @@ function InfoRow({ label, value, hint, isPrivacyMode }) {
                 {label}
             </p>
             {value ? (
-                <p className="text-[12px] font-bold text-[var(--color-text)] truncate" title={typeof value === 'string' ? value : undefined}>
+                <p className="text-[13px] font-bold text-[var(--color-text)] break-words" title={typeof value === 'string' ? value : undefined}>
                     <PrivacyMask active={isPrivacyMode}>{value}</PrivacyMask>
                 </p>
             ) : (
-                <p className="text-[11px] text-[var(--color-text-muted)] italic">{hint || 'Belum diisi'}</p>
+                <p className="text-[12px] text-[var(--color-text-muted)] italic">{hint || 'Belum diisi'}</p>
             )}
         </div>
     )
@@ -66,7 +67,7 @@ function InfoRow({ label, value, hint, isPrivacyMode }) {
 function SectionCard({ icon, iconBg, accent, title, children }) {
     const Icon = icon
     return (
-        <div className="p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-4">
+        <div className="p-3 sm:p-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-sm space-y-3 sm:space-y-4">
             <div className="flex items-center gap-2.5 pt-1">
                 <div className={`w-1 h-4 ${accent} rounded-full`} />
                 <Icon className={`${iconBg} w-3 h-3 opacity-70`} />
@@ -163,6 +164,27 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
         }
     }, [teacher, saving, addToast])
 
+    const handleToggleLock = useCallback(async () => {
+        if (!teacher || saving) return
+        const newStatus = !teacher.is_locked
+        const updatePayload = newStatus
+            ? { is_locked: true, locked_at: new Date().toISOString(), locked_by: profile?.id ?? null }
+            : { is_locked: false, locked_at: null, locked_by: null }
+        setTeacher(prev => prev ? { ...prev, ...updatePayload } : prev)
+        setSaving(true)
+        try {
+            const { error } = await supabase.from('teachers').update(updatePayload).eq('id', teacher.id)
+            if (error) throw error
+            addToast(newStatus ? 'Guru dikunci' : 'Kunci guru dibuka', 'success')
+            logAudit({ action: 'UPDATE', source: 'MASTER', tableName: 'teachers', recordId: teacher.id, oldData: teacher, newData: { ...teacher, ...updatePayload } }).catch(() => {})
+        } catch (err) {
+            setTeacher(prev => prev ? { ...prev, is_locked: teacher.is_locked, locked_at: teacher.locked_at, locked_by: teacher.locked_by } : prev)
+            addToast(err?.message || 'Gagal mengubah kunci', 'error')
+        } finally {
+            setSaving(false)
+        }
+    }, [teacher, saving, addToast, profile])
+
     const handleDeleteConfirm = useCallback(async () => {
         if (!teacher || deleting) return
         setDeleting(true)
@@ -214,8 +236,10 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
     useEffect(() => { handlePrintRef.current = handlePrint }, [handlePrint])
 
     const handleEditRef = useRef(handleEdit)
+    const handleToggleLockRef = useRef(handleToggleLock)
     const goBackRef = useRef(goBack)
     useEffect(() => { handleEditRef.current = handleEdit }, [handleEdit])
+    useEffect(() => { handleToggleLockRef.current = handleToggleLock }, [handleToggleLock])
     useEffect(() => { goBackRef.current = goBack }, [goBack])
 
     /* ── Keyboard shortcuts ── */
@@ -224,6 +248,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
             if (e.key === 'Escape') { e.preventDefault(); goBackRef.current() }
             else if ((e.key === 'e' || e.key === 'E') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); handleEditRef.current() }
+            else if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); handleToggleLockRef.current() }
             else if ((e.key === 'p' || e.key === 'P') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); handlePrintRef.current() }
         }
         window.addEventListener('keydown', handleKeyDown)
@@ -296,20 +321,30 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                         </p>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0 min-w-0 overflow-x-auto scrollbar-hide lg:shrink-0 -mx-5 px-5 lg:mx-0 lg:px-0 py-0.5">
-                        <Tooltip content={!editable ? 'Akses terbatas' : 'Edit (E)'} position="bottom">
-                            <button onClick={handleEdit} disabled={!editable}
+                        <Tooltip content={!editable ? 'Akses terbatas' : teacher.is_locked ? 'Buka kunci terlebih dahulu' : 'Edit (E)'} position="bottom">
+                            <button onClick={handleEdit} disabled={!editable || teacher.is_locked}
                                 className="h-8 px-3 rounded-lg bg-[var(--color-primary)] text-white flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 shadow-md shadow-[var(--color-primary)]/20 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
                         </Tooltip>
                         <Tooltip content={!editable ? 'Akses terbatas' : teacher.is_active ? 'Nonaktifkan' : 'Aktifkan'} position="bottom">
-                            <button onClick={handleToggleActive} disabled={!editable || saving}
+                            <button onClick={handleToggleActive} disabled={!editable || teacher.is_locked || saving}
                                 className="h-8 px-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center gap-1.5 transition-all hover:bg-[var(--color-surface-alt)] disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
                                 {teacher.is_active ? <Prohibit className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
+                        <Tooltip content={!editable ? 'Akses terbatas' : teacher.is_locked ? 'Buka Kunci (L)' : 'Kunci (L)'} position="bottom">
+                            <button onClick={handleToggleLock} disabled={!editable || saving}
+                                className={`h-8 px-3 rounded-lg border flex items-center gap-1.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed shrink-0 ${
+                                    teacher.is_locked
+                                        ? 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100'
+                                        : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-alt)]'
+                                }`}>
+                                {teacher.is_locked ? <LockOpen className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                            </button>
+                        </Tooltip>
                         <Tooltip content={!editable ? 'Akses terbatas' : 'Arsipkan'} position="bottom">
-                            <button onClick={() => setIsDeleteOpen(true)} disabled={!editable || saving}
+                            <button onClick={() => setIsDeleteOpen(true)} disabled={!editable || teacher.is_locked || saving}
                                 className="h-8 px-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-600 flex items-center gap-1.5 transition-all hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
                                 <Archive className="w-3.5 h-3.5" />
                             </button>
@@ -327,7 +362,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                                 {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0 hidden sm:block" />
                         <Tooltip content="Cetak (P)" position="bottom">
                             <button onClick={handlePrint}
                                 className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center transition-all hover:bg-[var(--color-surface-alt)] shrink-0">
@@ -345,9 +380,9 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                         <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/5" />
                         <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-white/5" />
 
-                        <div className="relative flex items-center gap-5">
+                        <div className="relative flex items-center gap-4 sm:gap-5">
                             <div className="relative shrink-0">
-                                <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-0.5 flex items-center justify-center text-2xl font-black overflow-hidden shadow-lg">
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 p-0.5 flex items-center justify-center text-xl sm:text-2xl font-black overflow-hidden shadow-lg">
                                     <span className="drop-shadow-lg">{teacher.name?.charAt(0) || '?'}</span>
                                 </div>
                                 <div className={`absolute -bottom-2 -right-2 px-2 py-0.5 rounded-lg text-[8px] font-black shadow-lg border border-white/20 backdrop-blur-sm ${STATUS_CONFIG[teacher.status]?.color || 'bg-white/20 text-white'}`}>
@@ -356,7 +391,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <h2 className="text-xl font-black tracking-tight truncate drop-shadow-lg">
+                                <h2 className="text-lg sm:text-xl font-black tracking-tight leading-tight drop-shadow-lg">
                                     <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
                                 </h2>
                                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -380,6 +415,24 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                             </div>
                         </div>
                     </div>
+
+                    {/* Lock Info Alert */}
+                    {teacher.is_locked && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl border border-amber-200 bg-amber-50">
+                            <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                                <Lock className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-black text-amber-800 mb-0.5">Guru Terkunci</p>
+                                <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
+                                    Dikunci pada {formatDate(teacher.locked_at)}
+                                </p>
+                                <p className="text-[10px] text-amber-600 font-medium mt-1">
+                                    Data tidak dapat diedit atau diubah statusnya selama terkunci.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     {/* ── Tabs ── */}
                     <div className="flex gap-6 border-b border-[var(--color-border)] no-print">
@@ -405,7 +458,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                     {profileTab === 'info' && (
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             {/* Identitas */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                                 <SectionCard icon={IdentificationCard} iconBg="text-indigo-500" accent="bg-indigo-500" title="Identitas">
                                     <div className="space-y-4">
                                         <InfoRow label="Nama Lengkap" value={teacher.name} hint="Klik Edit" isPrivacyMode={isPrivacyMode} />
@@ -423,12 +476,12 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                                 </SectionCard>
 
                                 <SectionCard icon={ChatCircle} iconBg="text-emerald-500" accent="bg-emerald-500" title="WhatsApp">
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                         <div className="space-y-1">
                                             <p className="text-[9px] font-black uppercase text-[var(--color-text-muted)] tracking-widest mb-1 opacity-80">
                                                 No. HP / WhatsApp
                                             </p>
-                                            <p className="text-[13px] font-bold text-[var(--color-text)] tracking-wider">
+                                            <p className="text-[15px] font-bold text-[var(--color-text)] tracking-wider">
                                                 {teacher.phone ? (
                                                     <PrivacyMask active={isPrivacyMode}>{teacher.phone}</PrivacyMask>
                                                 ) : '---'}
@@ -439,17 +492,17 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                                             const isValid = digits.length >= 10
                                             const waNumber = digits.startsWith('62') ? digits : digits.replace(/^0/, '62')
                                             return (
-                                                <div className="flex gap-1.5">
-                                                    <button onClick={handleCopyPhone} className="w-7 h-7 rounded-lg bg-[var(--color-surface-alt)] flex items-center justify-center text-[11px] hover:bg-[var(--color-border)] transition-colors">
-                                                        {copiedPhone ? <span className="text-emerald-500 text-[9px] font-black">OK</span> : <Copy className="opacity-40" />}
+                                                <div className="flex gap-2">
+                                                    <button onClick={handleCopyPhone} className="h-9 px-3 rounded-xl bg-[var(--color-surface-alt)] border border-[var(--color-border)] flex items-center gap-1.5 text-[10px] font-bold hover:bg-[var(--color-border)] transition-colors">
+                                                        {copiedPhone ? <span className="text-emerald-500 font-black">Tersalin</span> : <><Copy className="w-3.5 h-3.5 opacity-40" /> Salin</>}
                                                     </button>
                                                     {isValid && (
                                                         <a
                                                             href={`https://wa.me/${waNumber}`}
                                                             target="_blank" rel="noopener noreferrer"
-                                                            className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[11px] hover:brightness-110 transition-all shadow-sm"
+                                                            className="h-9 px-4 rounded-xl bg-emerald-500 text-white flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-sm"
                                                         >
-                                                            <ChatCircle />
+                                                            <ChatCircle className="w-3.5 h-3.5" /> WhatsApp
                                                         </a>
                                                     )}
                                                 </div>

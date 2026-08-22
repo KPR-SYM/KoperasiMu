@@ -1,6 +1,6 @@
 ﻿import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Bed, Buildings, Calendar, CaretRight, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise, Prohibit, CheckCircle } from '@phosphor-icons/react'
+import { Bed, Buildings, Calendar, CaretRight, Clock, DotsThree, MagnifyingGlass, EyeSlash, GenderMale, Pencil, PushPin, Trash, Users, User, GenderFemale, Building, Copy, Lock, ClockCounterClockwise, Prohibit, CheckCircle } from '@phosphor-icons/react'
 import Checkbox from '@shared/components/Checkbox'
 import { PrivacyMask } from '@shared/components'
 
@@ -94,6 +94,12 @@ function renderColCell(key, { cls, visibleCols, isPrivacyMode, isPinned, isNoTea
         )
     }
     return null
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—'
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 export const ClassRow = React.memo(({
@@ -366,31 +372,10 @@ export const ClassMobileCard = React.memo(({
 
                 {/* Name Column */}
                 <div className="flex-1 min-w-0">
-                    {/* Name + Menu */}
-                    <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-medium text-[15px] text-[var(--color-text)] truncate">
-                            <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask>
-                        </h3>
-                        <div className="relative shrink-0">
-                            <button
-                                onClick={toggleMenu}
-                                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${menuOpen ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'}`}
-                                title="Lainnya"
-                            >
-                                <DotsThree weight="bold" className="w-4 h-4" />
-                            </button>
-                            {menuOpen && createPortal(
-                                <div ref={menuRef} style={{ position: 'fixed', ...(menuPos.top !== undefined ? { top: menuPos.top } : { bottom: menuPos.bottom }), right: menuPos.right, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
-                                    {menuItems.map((item, i) => (
-                                        <button key={i} onClick={item.onClick} className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 transition-colors ${item.danger ? 'text-red-500 hover:bg-red-50' : 'hover:bg-[var(--color-surface-alt)]'}`}>
-                                            <item.icon className="w-4 h-4" /> {item.label}
-                                        </button>
-                                    ))}
-                                </div>,
-                                document.body
-                            )}
-                        </div>
-                    </div>
+                    {/* Name */}
+                    <h3 className="font-medium text-[15px] text-[var(--color-text)] truncate">
+                        <PrivacyMask active={isPrivacyMode}>{cls.name}</PrivacyMask>
+                    </h3>
 
                     {/* Badges Row */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
@@ -434,28 +419,78 @@ export const ClassMobileCard = React.memo(({
                 </div>
             </div>
 
-            {/* Row 2: Actions */}
-            <div className="mt-3 pt-3 border-t border-[var(--color-border)]/40 flex items-center gap-2">
-                {handleView && (
+            {/* Footer: created + actions */}
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]/40 flex items-center justify-between gap-2 pl-[47px]">
+                <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] min-w-0">
+                    {cls.created_at && (
+                        <>
+                            <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40 shrink-0" />
+                            <span className="truncate">Dibuat {formatDate(cls.created_at)}</span>
+                        </>
+                    )}
+                </div>
+                <div className="flex items-center gap-0.5 shrink-0">
                     <button
-                        onClick={() => handleView(cls)}
-                        className="flex-1 h-10 rounded-xl flex items-center justify-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-xs font-bold transition-all active:scale-[0.98]"
-                        title="Lihat Detail"
+                        onClick={() => togglePin?.(cls.id)}
+                        title={isPinned ? "Lepas pin" : "Pin ke atas"}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-95 ${isPinned ? "text-amber-500 bg-amber-500/10 border-amber-500/20" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 border-[var(--color-border)]"}`}
                     >
-                        <MagnifyingGlass className="w-4 h-4" />
-                        Detail
+                        <PushPin weight={isPinned ? "fill" : "regular"} className="text-sm" />
                     </button>
-                )}
-                {handleEdit && (
-                    <button
-                        onClick={() => handleEdit(cls)}
-                        className="flex-1 h-10 rounded-xl flex items-center justify-center gap-2 text-[var(--color-text-muted)] hover:text-[var(--color-primary)] bg-[var(--color-surface-alt)]/60 text-xs font-bold transition-all active:scale-[0.98]"
-                        title="Edit"
-                    >
-                        <Pencil className="w-4 h-4" />
-                        Edit
-                    </button>
-                )}
+                    {handleView && (
+                        <button
+                            onClick={() => handleView(cls)}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border border-[var(--color-border)] transition-all active:scale-95"
+                            title="Lihat Detail"
+                        >
+                            <MagnifyingGlass className="text-sm" />
+                        </button>
+                    )}
+                    {handleEdit && (
+                        <button
+                            onClick={() => handleEdit(cls)}
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 border border-[var(--color-border)] transition-all active:scale-95"
+                            title="Edit"
+                        >
+                            <Pencil className="text-sm" />
+                        </button>
+                    )}
+                    <div className="relative">
+                        <button
+                            onClick={(e) => toggleMenu(e)}
+                            title="Lainnya"
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] border border-[var(--color-border)] transition-all active:scale-95"
+                        >
+                            <DotsThree weight="bold" />
+                        </button>
+                        {menuOpen && createPortal(
+                            <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+                                {menuItems.map((item, i) => (
+                                    item.divider ? (
+                                        <div key={i} className="my-1.5 border-t border-[var(--color-border)]" />
+                                    ) : (
+                                        <button
+                                            key={i}
+                                            onClick={item.onClick}
+                                            disabled={item.disabled}
+                                            className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 transition-colors ${
+                                                item.danger
+                                                    ? 'text-red-500 hover:bg-red-500/10'
+                                                    : item.disabled
+                                                    ? 'text-[var(--color-text-muted)] opacity-40 cursor-not-allowed'
+                                                    : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'
+                                            }`}
+                                        >
+                                            <item.icon weight={item.weight || 'regular'} className="w-4 h-4 shrink-0" />
+                                            {item.label}
+                                        </button>
+                                    )
+                                ))}
+                            </div>,
+                            document.body
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     )

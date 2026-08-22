@@ -1,9 +1,15 @@
 import React, { memo, useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Archive, ChatCircle, ClockCounterClockwise, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, Trash, User, Prohibit, CheckCircle } from '@phosphor-icons/react'
+import { Archive, ChatCircle, Clock, ClockCounterClockwise, DotsThree, MagnifyingGlass, GenderMale, MapPin, Pencil, PushPin, Trash, User, Prohibit, CheckCircle } from '@phosphor-icons/react'
 import { Badge, PrivacyMask } from '@shared/components'
 import Checkbox from '@shared/components/Checkbox'
 import { STATUS_CONFIG, TYPE_LABELS } from '@features/teachers/constants/teacherConstants'
+
+function formatDate(dateStr) {
+    if (!dateStr) return '—'
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 // ─── Avatar — handles error state, no gradient bleed ──────────────────────────
 function Avatar({ url, name, size = 'w-10 h-10', textSize = 'text-xs', rounded = 'rounded-full' }) {
@@ -223,15 +229,56 @@ const TeacherMobileCard = memo(({
     handleView,
     handleEdit,
     handleTogglePin,
+    onHistory,
     setTeacherToAction,
     setIsArchiveModalOpen,
     isPrivacyMode }) => {
     const isSelected = selectedIds.includes(teacher.id)
+    const types = Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []
+
+    const [menuOpen, setMenuOpen] = useState(false)
+    const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
+    const menuRef = useRef(null)
+
+    const closeMenu = useCallback(() => setMenuOpen(false), [])
+
+    const toggleMenu = useCallback((e) => {
+        e.stopPropagation()
+        if (menuOpen) { closeMenu(); return }
+        const rect = e.currentTarget.getBoundingClientRect()
+        const menuHeight = 220
+        const spaceBelow = window.innerHeight - rect.bottom
+        const showUp = spaceBelow < menuHeight
+        setMenuPos({
+            ...(showUp
+                ? { bottom: window.innerHeight - rect.top + 8 }
+                : { top: rect.bottom + 8 }
+            ),
+            right: window.innerWidth - rect.right - 8,
+        })
+        setMenuOpen(true)
+    }, [menuOpen, closeMenu])
+
+    useEffect(() => {
+        if (!menuOpen) return
+        const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) closeMenu() }
+        document.addEventListener('mousedown', handler)
+        return () => document.removeEventListener('mousedown', handler)
+    }, [menuOpen, closeMenu])
+
+    const menuItems = [
+        handleTogglePin && { icon: MapPin, weight: teacher.is_pinned ? 'fill' : 'regular', label: teacher.is_pinned ? 'Lepas Pin' : 'Pin ke Atas', onClick: () => { handleTogglePin(teacher); closeMenu() } },
+        teacher.phone && { icon: ChatCircle, label: 'WhatsApp', onClick: () => { window.open(`https://wa.me/${teacher.phone.replace(/^0/, '62')}`, '_blank'); closeMenu() } },
+        onHistory && { icon: ClockCounterClockwise, label: 'Riwayat', onClick: () => { onHistory(teacher); closeMenu() } },
+        handleEdit && { icon: Pencil, label: 'Edit', onClick: () => { handleEdit(teacher); closeMenu() } },
+        setIsArchiveModalOpen && setTeacherToAction && { icon: Archive, label: 'Arsipkan', danger: true, onClick: () => { setTeacherToAction(teacher); setIsArchiveModalOpen(true); closeMenu() } },
+    ].filter(Boolean)
 
     return (
-        <div className={`p-4 transition-colors ${isSelected ? 'bg-[var(--color-primary)]/5' : ''} ${teacher.is_pinned ? 'bg-amber-500/[0.04] border-l-4 border-l-amber-400' : ''}`}>
+        <div className={`p-3 transition-all duration-300 ${isSelected ? 'bg-[var(--color-primary)]/[0.03]' : 'bg-[var(--color-surface)]'}`}>
+            {/* Row 1: Checkbox + Avatar + Name + Menu */}
             <div className="flex items-start gap-3">
-                <div className="flex flex-col items-center gap-3">
+                <div className="mt-0.5 shrink-0">
                     <Checkbox
                         checked={isSelected}
                         onChange={() => toggleSelect(teacher.id)}
@@ -240,43 +287,79 @@ const TeacherMobileCard = memo(({
                     />
                 </div>
                 <div className="relative shrink-0">
-                    <Avatar name={teacher.name} size="w-12 h-12" textSize="text-sm" />
+                    <Avatar name={teacher.name} size="w-[38px] h-[38px]" textSize="text-sm" rounded="rounded-xl" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                            <button onClick={() => handleView(teacher)} className="font-extrabold text-sm text-[var(--color-text)] hover:text-[var(--color-primary)] text-left truncate block w-full">
-                                <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
-                            </button>
-                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                {teacher.subject && <span className="px-2 py-0.5 rounded-md bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20 text-[9px] font-black uppercase tracking-widest"><PrivacyMask active={isPrivacyMode}>{teacher.subject}</PrivacyMask></span>}
-                                <Badge color={teacher.status === 'active' ? 'emerald' : teacher.status === 'inactive' ? 'rose' : 'amber'}>{STATUS_CONFIG[teacher.status]?.label}</Badge>
-                                {(Array.isArray(teacher.type) ? teacher.type : teacher.type ? [teacher.type] : []).map(t => (
-                                    <Badge key={t} color={t === 'karyawan' ? 'blue' : 'indigo'}>{TYPE_LABELS[t] || t}</Badge>
-                                ))}
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            {handleView && <button onClick={() => handleView(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><MagnifyingGlass className="text-xs" /></button>}
-                            {handleEdit && <button onClick={() => handleEdit(teacher)} className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]"><Pencil className="text-xs" /></button>}
-                            <button
-                                onClick={() => handleTogglePin(teacher)}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${teacher.is_pinned ? 'text-amber-500 bg-amber-500/10' : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-alt)]'}`}
-                            >
-                                <MapPin className={`w-3 h-3 ${teacher.is_pinned ? '' : 'rotate-45'}`} />
-                            </button>
-                        </div>
+                    <h3 className="font-medium text-[15px] text-[var(--color-text)] truncate">
+                        <PrivacyMask active={isPrivacyMode}>{teacher.name}</PrivacyMask>
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {teacher.subject && <span className="px-1.5 py-0.5 rounded bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[9px] font-bold uppercase"><PrivacyMask active={isPrivacyMode}>{teacher.subject}</PrivacyMask></span>}
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${STATUS_CONFIG[teacher.status]?.color}`}>{STATUS_CONFIG[teacher.status]?.label}</span>
+                        {types.length > 0 && <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${types.includes('karyawan') ? 'bg-blue-500/10 text-blue-600' : 'bg-indigo-500/10 text-indigo-600'}`}>{types.includes('karyawan') ? 'Karyawan' : 'Guru'}</span>}
                     </div>
-                    <div className="mt-3 flex items-center gap-2">
-                        <button
-                            disabled={!teacher.phone}
-                            onClick={() => teacher.phone && window.open(`https://wa.me/${teacher.phone.replace(/^0/, '62')}`, '_blank')}
-                            className={`flex-1 h-9 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all
-                                ${teacher.phone ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 active:scale-95' : 'bg-slate-100 text-slate-400 grayscale opacity-60 cursor-not-allowed'}`}
-                        >
-                            <ChatCircle className="w-3 h-3" /> WhatsApp
+                    <div className="flex items-center gap-2 mt-2 text-xs text-[var(--color-text-muted)]">
+                        {teacher.phone && <div className="flex items-center gap-1"><ChatCircle className="w-3.5 h-3.5" /><span className="font-medium"><PrivacyMask active={isPrivacyMode}>{teacher.phone}</PrivacyMask></span></div>}
+                    </div>
+                </div>
+            </div>
+            {/* Footer: created + actions */}
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]/40 flex items-center justify-between gap-2 pl-[47px]">
+                <div className="flex items-center gap-1.5 text-[9px] text-[var(--color-text-muted)] min-w-0">
+                    {teacher.created_at && (
+                        <>
+                            <Clock className="w-3 h-3 text-[var(--color-text-muted)]/40 shrink-0" />
+                            <span className="truncate">Dibuat {formatDate(teacher.created_at)}</span>
+                        </>
+                    )}
+                </div>
+                <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                        onClick={() => handleTogglePin?.(teacher)}
+                        title={teacher.is_pinned ? "Lepas pin" : "Pin ke atas"}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all active:scale-95 ${teacher.is_pinned ? "text-amber-500 bg-amber-500/10 border-amber-500/20" : "text-[var(--color-text-muted)] hover:text-amber-500 hover:bg-amber-500/10 border-[var(--color-border)]"}`}
+                    >
+                        <PushPin weight={teacher.is_pinned ? "fill" : "regular"} className="text-sm" />
+                    </button>
+                    {handleView && (
+                        <button onClick={() => handleView(teacher)} className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border border-[var(--color-border)] transition-all active:scale-95" title="Lihat Detail">
+                            <MagnifyingGlass className="text-sm" />
                         </button>
-                        {setIsArchiveModalOpen && setTeacherToAction && <button onClick={() => { setTeacherToAction(teacher); setIsArchiveModalOpen(true) }} className="flex-1 h-9 rounded-xl bg-red-500/10 text-red-600 border border-red-500/20 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"><Archive className="text-xs" /> Arsipkan</button>}
+                    )}
+                    {handleEdit && (
+                        <button onClick={() => handleEdit(teacher)} className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-blue-500 hover:bg-blue-500/10 border border-[var(--color-border)] transition-all active:scale-95" title="Edit">
+                            <Pencil className="text-sm" />
+                        </button>
+                    )}
+                    <div className="relative">
+                        <button
+                            onClick={(e) => toggleMenu(e)}
+                            title="Lainnya"
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-alt)] border border-[var(--color-border)] transition-all active:scale-95"
+                        >
+                            <DotsThree weight="bold" />
+                        </button>
+                        {menuOpen && createPortal(
+                            <div ref={menuRef} style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }} className="w-48 py-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl">
+                                {menuItems.map((item, i) => (
+                                    item.divider ? (
+                                        <div key={i} className="my-1.5 border-t border-[var(--color-border)]" />
+                                    ) : (
+                                        <button
+                                            key={i}
+                                            onClick={item.onClick}
+                                            className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center gap-2.5 transition-colors ${
+                                                item.danger ? 'text-red-500 hover:bg-red-500/10' : 'text-[var(--color-text)] hover:bg-[var(--color-surface-alt)]'
+                                            }`}
+                                        >
+                                            <item.icon weight={item.weight || 'regular'} className="w-4 h-4 shrink-0" />
+                                            {item.label}
+                                        </button>
+                                    )
+                                ))}
+                            </div>,
+                            document.body
+                        )}
                     </div>
                 </div>
             </div>
