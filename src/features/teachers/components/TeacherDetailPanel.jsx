@@ -282,10 +282,10 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
         <div className="-mx-4 sm:-mx-5 lg:-mx-6 -mt-4 lg:-mt-6">
             <style>{`
                 @media print {
-                    body * { visibility: hidden; }
-                    .print-area, .print-area * { visibility: visible; }
-                    .print-area { position: absolute; left: 0; top: 0; width: 100%; }
                     .no-print { display: none !important; }
+                    .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+                    .print-area * { visibility: visible !important; }
+                    .print-area { visibility: visible !important; }
                 }
             `}</style>
 
@@ -362,7 +362,7 @@ export default function TeacherDetailPanel({ teacherId, onBack, subjectsList = [
                                 {isPrivacyMode ? <EyeSlash className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
                         </Tooltip>
-                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0 hidden sm:block" />
+                        <div className="w-px h-5 bg-[var(--color-border)] mx-0.5 shrink-0" />
                         <Tooltip content="Cetak (P)" position="bottom">
                             <button onClick={handlePrint}
                                 className="h-8 w-8 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] flex items-center justify-center transition-all hover:bg-[var(--color-surface-alt)] shrink-0">
